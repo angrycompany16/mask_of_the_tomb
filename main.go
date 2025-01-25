@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"mask_of_the_tomb/game"
-	"mask_of_the_tomb/utils"
+	. "mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -14,20 +14,24 @@ var (
 	debugMode bool
 )
 
-type Game struct {
-	world *game.World
+type App struct {
+	world *game.Game
 }
 
-func (g *Game) Update() error {
-	g.world.Update()
+func (a *App) Init() {
+	a.world.Init()
+}
+
+func (a *App) Update() error {
+	a.world.Update()
 	return nil
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
-	utils.DrawAt(g.world.Draw(), screen, 0, 0)
+func (a *App) Draw(screen *ebiten.Image) {
+	DrawAt(a.world.Draw(), screen, 0, 0)
 }
 
-func (g *Game) Layout(outsideHeight, outsideWidth int) (int, int) {
+func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
 	return game.GameWidth * game.PixelScale, game.GameHeight * game.PixelScale
 }
 
@@ -43,7 +47,10 @@ func main() {
 		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	}
 
-	if err := ebiten.RunGame(&Game{game.MakeWorld()}); err != nil {
+	a := &App{game.NewGame()}
+	a.Init()
+
+	if err := ebiten.RunGame(a); err != nil {
 		log.Fatal(err)
 	}
 }
