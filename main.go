@@ -45,6 +45,8 @@ func main() {
 
 	if debugMode {
 		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	} else {
+		ebiten.SetFullscreen(true)
 	}
 
 	a := &App{game.NewGame()}

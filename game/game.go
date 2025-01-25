@@ -21,6 +21,7 @@ type Game struct {
 }
 
 func (g *Game) Init() {
+	g.world.Init()
 	g.player.Init(g.world.GetSpawnPoint())
 }
 
@@ -32,12 +33,7 @@ func (g *Game) Update() error {
 
 	if playerMove != player.DirNone && !g.player.IsMoving() {
 		playerX, playerY := g.player.GetPos()
-		targetX, targetY, err := g.world.getCollision(playerMove, playerX, playerY)
-
-		if err != nil {
-			return err
-		}
-
+		targetX, targetY := g.world.getCollision(playerMove, playerX, playerY)
 		g.player.SetTarget(targetX, targetY)
 	}
 

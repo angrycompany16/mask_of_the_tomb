@@ -62,18 +62,6 @@ func (p *Player) SetTarget(x, y float64) {
 	p.targetPosY = y
 	p.moveDirX = math.Copysign(1, p.targetPosX-p.posX)
 	p.moveDirY = math.Copysign(1, p.targetPosY-p.posY)
-
-	// if x == p.posX {
-	// 	p.targetPosY = y
-	// 	p.moveDirY = math.Copysign(1, p.targetPosY-p.posY)
-	// 	p.moveDirX = 0
-	// }
-	// if y == p.posY {
-	// 	p.targetPosX = x
-	// 	p.moveDirX = math.Copysign(1, p.targetPosX-p.posX)
-	// 	p.moveDirY = 0
-	// }
-	// fmt.Println(x, y, p.moveDirX, p.moveDirY)
 }
 
 func (p *Player) IsMoving() bool {
