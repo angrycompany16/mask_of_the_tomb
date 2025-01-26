@@ -4,8 +4,8 @@ import (
 	"flag"
 	"log"
 
+	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/game"
-	. "mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

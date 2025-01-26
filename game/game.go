@@ -2,8 +2,8 @@ package game
 
 import (
 	"image/color"
+	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/player"
-	. "mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -48,10 +48,8 @@ func (g *Game) Draw() *ebiten.Image {
 	g.world.Draw(g.worldSurf)
 	g.player.Draw(g.worldSurf)
 
-	// Pixel scaling
-	op := Op()
-	OpScale(op, PixelScale, PixelScale)
-	g.screenSurf.DrawImage(g.worldSurf, op)
+	DrawAtScaled(g.worldSurf, g.screenSurf, 0, 0, PixelScale, PixelScale)
+
 	return g.screenSurf
 }
 
@@ -60,6 +58,6 @@ func NewGame() *Game {
 		worldSurf:  ebiten.NewImage(GameWidth, GameHeight),
 		screenSurf: ebiten.NewImage(GameWidth*PixelScale, GameHeight*PixelScale),
 		player:     player.NewPlayer(),
-		world:      NewWorld(),
+		world:      &World{},
 	}
 }

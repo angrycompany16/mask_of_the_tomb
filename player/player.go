@@ -1,6 +1,7 @@
 package player
 
 import (
+	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/files"
 	. "mask_of_the_tomb/utils"
 	"math"

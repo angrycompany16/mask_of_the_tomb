@@ -1,8 +1,11 @@
 package game
 
 import (
+	"fmt"
 	"image"
+	"log"
 	"mask_of_the_tomb/ebitenLDTK"
+	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/files"
 	"mask_of_the_tomb/player"
 	. "mask_of_the_tomb/utils"
@@ -11,27 +14,33 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-var (
-// tileSprite = files.LazyImage(files.TileSpritePath)
-// tileSize = tileSprite.Bounds().Size()
+const (
+	playerSpaceLayerName = "Playerspace"
+	spawnPosEntityName   = "SpawnPosition"
 )
 
 type World struct {
-	worldLDTK ebitenLDTK.LDTKWorld
-	tilemap   *ebiten.Image
-	tileSize  float64
-	tiles     [][]int
+	worldLDTK       ebitenLDTK.LDTKWorld
+	activeLevel     *ebitenLDTK.LDTKLevel
+	currentTileSize float64
+	tiles           [][]int
 }
 
 func (w *World) Init() {
 	w.worldLDTK = *files.LazyLDTK(files.LDTKMapPath)
-	w.tiles = w.worldLDTK.Levels[0].MakeBitmap(&w.worldLDTK.Defs.Layers[0], &w.worldLDTK.Levels[0].LayerInstances[0])
+
+	w.activeLevel = &w.worldLDTK.Levels[0]
+	w.tiles = w.worldLDTK.MakeBitmapFromLayer(w.activeLevel, playerSpaceLayerName)
 
 	// One folder back to access LDTK folder
 	LDTKpath := path.Clean(path.Join(files.LDTKMapPath, ".."))
-	tilemapPath := path.Join(LDTKpath, w.worldLDTK.Defs.Tilesets[0].RelPath)
-	w.tilemap = files.LazyImage(tilemapPath)
-	w.tileSize = float64(w.worldLDTK.Defs.Tilesets[0].TileGridSize)
+	for i := 0; i < len(w.worldLDTK.Defs.Tilesets); i++ {
+		tileset := &w.worldLDTK.Defs.Tilesets[i]
+		tilesetPath := path.Join(LDTKpath, tileset.RelPath)
+		tileset.Image = files.LazyImage(tilesetPath)
+	}
+
+	changeActiveLevel(w, 0)
 }
 
 func (w *World) Update() {
@@ -39,20 +48,62 @@ func (w *World) Update() {
 }
 
 func (w *World) Draw(surf *ebiten.Image) {
-	tileSize := w.worldLDTK.Defs.Tilesets[0].TileGridSize
-	for _, tile := range w.worldLDTK.Levels[0].LayerInstances[0].GridTiles {
-		DrawAt(w.tilemap.SubImage(
-			image.Rect(
-				tile.Src[0],
-				tile.Src[1],
-				tile.Src[0]+tileSize,
-				tile.Src[1]+tileSize,
-			),
-		).(*ebiten.Image), surf, F64(tile.Px[0]), F64(tile.Px[1]))
+	for i := len(w.worldLDTK.Levels[0].LayerInstances) - 1; i >= 0; i-- {
+		layerInstance := w.worldLDTK.Levels[0].LayerInstances[i]
+
+		layer, err := w.worldLDTK.GetLayerByUid(layerInstance.LayerDefUid)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if layer.Type != ebitenLDTK.LayerTypeTiles {
+			continue
+		}
+
+		tileset, err := w.worldLDTK.GetTilesetByUid(layer.TilesetUid)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		tileSize := tileset.TileGridSize
+		for _, tile := range layerInstance.GridTiles {
+			scaleX, scaleY := 1.0, 1.0
+			switch tile.TileOrientation {
+			case ebitenLDTK.OrientationFlipX:
+				scaleX = -1
+			case ebitenLDTK.OrientationFlipY:
+				scaleY = -1
+			case ebitenLDTK.OrientationFlipXY:
+				scaleX, scaleY = -1, -1
+			}
+			DrawAtScaled(tileset.Image.SubImage(
+				image.Rect(
+					tile.Src[0],
+					tile.Src[1],
+					tile.Src[0]+tileSize,
+					tile.Src[1]+tileSize,
+				),
+			).(*ebiten.Image), surf, F64(tile.Px[0]), F64(tile.Px[1]), scaleX, scaleY, 0.5, 0.5)
+		}
 	}
 }
 
 func (w *World) GetSpawnPoint() (float64, float64) {
+	for _, layerInstance := range w.activeLevel.LayerInstances {
+		layer, err := w.worldLDTK.GetLayerByUid(layerInstance.LayerDefUid)
+		HandleLazy(err)
+		if layer.Type != ebitenLDTK.LayerTypeEntities {
+			continue
+		}
+		for _, entityInstance := range layerInstance.EntityInstances {
+			entity, err := w.worldLDTK.GetEntityByUid(entityInstance.Uid)
+			HandleLazy(err)
+			if entity.Name != spawnPosEntityName {
+				continue
+			}
+			return F64(entityInstance.Px[0]), F64(entityInstance.Px[1])
+		}
+	}
 	return 0, 0
 }
 
@@ -97,14 +148,42 @@ func (w *World) getCollision(moveDir player.MoveDirection, x, y float64) (float6
 }
 
 func (w *World) gridToWorld(x, y int) (float64, float64) {
-	return F64(x) * w.tileSize, F64(y) * w.tileSize
+	return F64(x) * w.currentTileSize, F64(y) * w.currentTileSize
 }
 
 func (w *World) worldToGrid(x, y float64) (int, int) {
-	return int(x / w.tileSize), int(y / w.tileSize)
-
+	return int(x / w.currentTileSize), int(y / w.currentTileSize)
 }
 
-func NewWorld() *World {
-	return &World{tiles: [][]int{{0}}}
+func changeActiveLevel[T string | int](world *World, id T) error {
+	var newLevel ebitenLDTK.LDTKLevel
+	var err error
+
+	switch v := any(id).(type) {
+	case string:
+		newLevel, err = world.worldLDTK.GetLevelByName(v)
+		if err != nil {
+			fmt.Println("Error when switching levels (id string)")
+			return err
+		}
+	case int:
+		newLevel, err = world.worldLDTK.GetLevelByUid(v)
+		if err != nil {
+			fmt.Println("Error when switching levels (id int)")
+			return err
+		}
+	}
+
+	world.activeLevel = &newLevel
+
+	playerspace, err := world.activeLevel.GetLayerInstanceByName(playerSpaceLayerName)
+	if err != nil {
+		world.currentTileSize = 1
+		return nil
+	}
+
+	layer, err := world.worldLDTK.GetLayerByUid(playerspace.LayerDefUid)
+	HandleLazy(err)
+	world.currentTileSize = F64(layer.GridSize)
+	return nil
 }
