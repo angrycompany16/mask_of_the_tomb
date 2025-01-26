@@ -1,0 +1,19 @@
+"filename", "language", "Go", "Go Checksum File", "TypeScript JSX", "Markdown", "Go Module File", "XML", "comment", "blank", "total"
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/README.md", "Markdown", 0, 0, 0, 1, 0, 0, 0, 1, 2
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/assets/kenney_pixel-platformer/Tiled/tilemap-example-a.tmx", "XML", 0, 0, 0, 0, 0, 81, 0, 1, 82
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/assets/kenney_pixel-platformer/Tiled/tilemap-example-b.tmx", "XML", 0, 0, 0, 0, 0, 81, 0, 1, 82
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/assets/kenney_pixel-platformer/Tiled/tileset-characters.tsx", "TypeScript JSX", 0, 0, 5, 0, 0, 0, 0, 1, 6
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/assets/kenney_pixel-platformer/Tiled/tileset-tiles.tsx", "TypeScript JSX", 0, 0, 4, 0, 0, 0, 0, 1, 5
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/ebitenLDTK/beautifulbutsadlynonneeded.go", "Go", 1, 0, 0, 0, 0, 0, 70, 3, 74
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/ebitenLDTK/main.go", "Go", 181, 0, 0, 0, 0, 0, 3, 33, 217
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/ebitenRenderUtil/main.go", "Go", 101, 0, 0, 0, 0, 0, 1, 30, 132
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/files/files.go", "Go", 21, 0, 0, 0, 0, 0, 0, 5, 26
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/files/static_data.go", "Go", 9, 0, 0, 0, 0, 0, 4, 4, 17
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/game/game.go", "Go", 46, 0, 0, 0, 0, 0, 2, 16, 64
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/game/world.go", "Go", 164, 0, 0, 0, 0, 0, 2, 24, 190
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/go.mod", "Go Module File", 0, 0, 0, 0, 11, 0, 0, 4, 15
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/go.sum", "Go Checksum File", 0, 16, 0, 0, 0, 0, 0, 1, 17
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/main.go", "Go", 43, 0, 0, 0, 0, 0, 0, 16, 59
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/player/player.go", "Go", 93, 0, 0, 0, 0, 0, 0, 18, 111
+"/home/angrycompany16/gamedev/go/mask_of_the_tomb/utils/utils.go", "Go", 26, 0, 0, 0, 0, 0, 3, 7, 36
+"Total", "-", 685, 16, 9, 1, 11, 162, 85, 166, 1135
