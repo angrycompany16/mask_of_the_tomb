@@ -36,7 +36,38 @@ func (p *Player) Init(posX, posY float64) {
 	p.SetPos(posX, posY)
 }
 
-func (p *Player) GetInput() MoveDirection {
+func (p *Player) Update() {
+	p.posX += moveSpeed * p.moveDirX
+	p.posY += moveSpeed * p.moveDirY
+
+	if p.moveDirX < 0 {
+		p.posX = Clamp(p.posX, p.targetPosX, p.posX)
+	} else if p.moveDirX > 0 {
+		p.posX = Clamp(p.posX, p.posX, p.targetPosX)
+	}
+	if p.moveDirY < 0 {
+		p.posY = Clamp(p.posY, p.targetPosY, p.posY)
+	} else if p.moveDirY > 0 {
+		p.posY = Clamp(p.posY, p.posY, p.targetPosY)
+	}
+
+	if p.posX == p.targetPosX {
+		p.moveDirX = 0
+	}
+	if p.posY == p.targetPosY {
+		p.moveDirY = 0
+	}
+}
+
+func (p *Player) Draw(surf *ebiten.Image) {
+	DrawAt(p.sprite, surf, p.posX, p.posY)
+}
+
+func (p *Player) GetLevelSwapInput() bool {
+	return inpututil.IsKeyJustPressed(ebiten.KeySpace)
+}
+
+func (p *Player) GetMoveInput() MoveDirection {
 	if inpututil.IsKeyJustPressed(ebiten.KeyW) {
 		return DirUp
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
@@ -67,33 +98,6 @@ func (p *Player) SetTarget(x, y float64) {
 
 func (p *Player) IsMoving() bool {
 	return p.moveDirX != 0 || p.moveDirY != 0
-}
-
-func (p *Player) Update() {
-	p.posX += moveSpeed * p.moveDirX
-	p.posY += moveSpeed * p.moveDirY
-
-	if p.moveDirX < 0 {
-		p.posX = Clamp(p.posX, p.targetPosX, p.posX)
-	} else if p.moveDirX > 0 {
-		p.posX = Clamp(p.posX, p.posX, p.targetPosX)
-	}
-	if p.moveDirY < 0 {
-		p.posY = Clamp(p.posY, p.targetPosY, p.posY)
-	} else if p.moveDirY > 0 {
-		p.posY = Clamp(p.posY, p.posY, p.targetPosY)
-	}
-
-	if p.posX == p.targetPosX {
-		p.moveDirX = 0
-	}
-	if p.posY == p.targetPosY {
-		p.moveDirY = 0
-	}
-}
-
-func (p *Player) Draw(surf *ebiten.Image) {
-	DrawAt(p.sprite, surf, p.posX, p.posY)
 }
 
 func NewPlayer() *Player {

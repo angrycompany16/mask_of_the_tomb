@@ -15,8 +15,10 @@ import (
 )
 
 const (
-	playerSpaceLayerName = "Playerspace"
-	spawnPosEntityName   = "SpawnPosition"
+	playerSpaceLayerName   = "Playerspace"
+	spawnPosEntityName     = "SpawnPosition"
+	doorEntityName         = "Door"
+	doorOtherSideFieldName = "OtherSide"
 )
 
 type World struct {
@@ -48,8 +50,8 @@ func (w *World) Update() {
 }
 
 func (w *World) Draw(surf *ebiten.Image) {
-	for i := len(w.worldLDTK.Levels[0].LayerInstances) - 1; i >= 0; i-- {
-		layerInstance := w.worldLDTK.Levels[0].LayerInstances[i]
+	for i := len(w.activeLevel.LayerInstances) - 1; i >= 0; i-- {
+		layerInstance := w.activeLevel.LayerInstances[i]
 
 		layer, err := w.worldLDTK.GetLayerByUid(layerInstance.LayerDefUid)
 		if err != nil {
@@ -90,11 +92,6 @@ func (w *World) Draw(surf *ebiten.Image) {
 
 func (w *World) GetSpawnPoint() (float64, float64) {
 	for _, layerInstance := range w.activeLevel.LayerInstances {
-		layer, err := w.worldLDTK.GetLayerByUid(layerInstance.LayerDefUid)
-		HandleLazy(err)
-		if layer.Type != ebitenLDTK.LayerTypeEntities {
-			continue
-		}
 		for _, entityInstance := range layerInstance.EntityInstances {
 			entity, err := w.worldLDTK.GetEntityByUid(entityInstance.Uid)
 			HandleLazy(err)
@@ -145,6 +142,45 @@ func (w *World) getCollision(moveDir player.MoveDirection, x, y float64) (float6
 	default:
 		return x, y
 	}
+}
+
+func (w *World) TryDoorOverlap(x, y float64) (bool, ebitenLDTK.LDTKEntityInstance) {
+	for _, layerInstance := range w.activeLevel.LayerInstances {
+		for _, entityInstance := range layerInstance.EntityInstances {
+			entity, err := w.worldLDTK.GetEntityByUid(entityInstance.Uid)
+			HandleLazy(err)
+			if entity.Name != doorEntityName {
+				continue
+			}
+			if F64(entityInstance.Px[0]) == x && F64(entityInstance.Px[1]) == y {
+				return true, entityInstance
+			}
+		}
+	}
+	return false, ebitenLDTK.LDTKEntityInstance{}
+}
+
+func (w *World) ExitByDoor(doorEntity ebitenLDTK.LDTKEntityInstance) (int, int) {
+	entity, err := w.worldLDTK.GetEntityByUid(doorEntity.Uid)
+	HandleLazy(err)
+	if entity.Name != doorEntityName {
+		return 0, 0 // Should honestly be error handled
+	}
+	for _, fieldInstance := range doorEntity.FieldInstances {
+		if fieldInstance.Name != doorOtherSideFieldName {
+			continue
+		}
+
+		nextLevel, err := w.worldLDTK.GetLevelByIid(fieldInstance.EntityRefValue.LevelIid)
+		HandleLazy(err)
+		// Change level
+		changeActiveLevel(w, nextLevel.Uid)
+
+		otherSideEntityRef, err := w.activeLevel.GetEntityInstanceByIid(fieldInstance.EntityRefValue.EntityIid)
+		HandleLazy(err)
+		return otherSideEntityRef.Px[0], otherSideEntityRef.Px[1]
+	}
+	return 0, 0
 }
 
 func (w *World) gridToWorld(x, y int) (float64, float64) {
