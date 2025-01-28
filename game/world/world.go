@@ -1,4 +1,4 @@
-package game
+package world
 
 import (
 	"fmt"
@@ -7,7 +7,8 @@ import (
 	"mask_of_the_tomb/ebitenLDTK"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/files"
-	"mask_of_the_tomb/player"
+	"mask_of_the_tomb/game/player"
+	"mask_of_the_tomb/rect"
 	. "mask_of_the_tomb/utils"
 	"path"
 
@@ -49,7 +50,7 @@ func (w *World) Update() {
 	// Anything...
 }
 
-func (w *World) Draw(surf *ebiten.Image) {
+func (w *World) Draw(surf *ebiten.Image, camX, camY float64) {
 	for i := len(w.activeLevel.LayerInstances) - 1; i >= 0; i-- {
 		layerInstance := w.activeLevel.LayerInstances[i]
 
@@ -80,10 +81,10 @@ func (w *World) Draw(surf *ebiten.Image) {
 			}
 			DrawAtScaled(tileset.Image.SubImage(
 				image.Rect(
-					tile.Src[0],
-					tile.Src[1],
-					tile.Src[0]+tileSize,
-					tile.Src[1]+tileSize,
+					int(tile.Src[0]),
+					int(tile.Src[1]),
+					int(tile.Src[0]+tileSize),
+					int(tile.Src[1]+tileSize),
 				),
 			).(*ebiten.Image), surf, F64(tile.Px[0]), F64(tile.Px[1]), scaleX, scaleY, 0.5, 0.5)
 		}
@@ -104,7 +105,12 @@ func (w *World) GetSpawnPoint() (float64, float64) {
 	return 0, 0
 }
 
-func (w *World) getCollision(moveDir player.MoveDirection, x, y float64) (float64, float64) {
+func (w *World) GetLevelBorders() rect.Rect {
+	return *rect.NewRect(0, 0, w.activeLevel.PxWid, w.activeLevel.PxHei)
+}
+
+// TODO: replace player.MoveDirection??
+func (w *World) GetCollision(moveDir player.MoveDirection, x, y float64) (float64, float64) {
 	gridX, gridY := w.worldToGrid(x, y)
 	switch moveDir {
 	case player.DirUp:
@@ -211,6 +217,8 @@ func changeActiveLevel[T string | int](world *World, id T) error {
 	}
 
 	world.activeLevel = &newLevel
+
+	world.tiles = world.worldLDTK.MakeBitmapFromLayer(world.activeLevel, playerSpaceLayerName)
 
 	playerspace, err := world.activeLevel.GetLayerInstanceByName(playerSpaceLayerName)
 	if err != nil {

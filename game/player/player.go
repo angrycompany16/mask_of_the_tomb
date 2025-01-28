@@ -84,6 +84,11 @@ func (p *Player) GetPos() (float64, float64) {
 	return p.posX, p.posY
 }
 
+func (p *Player) GetPosCentered() (float64, float64) {
+	s := p.sprite.Bounds().Size()
+	return p.posX + F64(s.X)/2, p.posY + F64(s.Y)/2
+}
+
 func (p *Player) SetPos(x, y float64) {
 	p.posX, p.posY = x, y
 	p.targetPosX, p.targetPosY = x, y

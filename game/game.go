@@ -3,7 +3,9 @@ package game
 import (
 	"image/color"
 	. "mask_of_the_tomb/ebitenRenderUtil"
-	"mask_of_the_tomb/player"
+	"mask_of_the_tomb/game/camera"
+	"mask_of_the_tomb/game/player"
+	"mask_of_the_tomb/game/world"
 	. "mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -18,12 +20,14 @@ type Game struct {
 	worldSurf  *ebiten.Image
 	screenSurf *ebiten.Image
 	player     *player.Player
-	world      *World
+	world      *world.World
+	camera     *camera.Camera
 }
 
 func (g *Game) Init() {
 	g.world.Init()
 	g.player.Init(g.world.GetSpawnPoint())
+	g.camera.Init(g.world.GetLevelBorders(), GameWidth/2, GameHeight/2-1)
 }
 
 func (g *Game) Update() error {
@@ -33,7 +37,7 @@ func (g *Game) Update() error {
 	playerMove := g.player.GetMoveInput()
 	if playerMove != player.DirNone && !g.player.IsMoving() {
 		playerX, playerY := g.player.GetPos()
-		targetX, targetY := g.world.getCollision(playerMove, playerX, playerY)
+		targetX, targetY := g.world.GetCollision(playerMove, playerX, playerY)
 		g.player.SetTarget(targetX, targetY)
 	}
 
@@ -53,6 +57,10 @@ func (g *Game) Update() error {
 		// Swap to correct level
 		// Set player position
 	}
+
+	// Get player position
+
+	// Input player position to camera controls
 
 	g.player.Update()
 
@@ -75,6 +83,7 @@ func NewGame() *Game {
 		worldSurf:  ebiten.NewImage(GameWidth, GameHeight),
 		screenSurf: ebiten.NewImage(GameWidth*PixelScale, GameHeight*PixelScale),
 		player:     player.NewPlayer(),
-		world:      &World{},
+		world:      &world.World{},
+		camera:     camera.NewCamera(),
 	}
 }
