@@ -2,7 +2,9 @@ package game
 
 import (
 	"image/color"
+	"mask_of_the_tomb/commons"
 	. "mask_of_the_tomb/ebitenRenderUtil"
+	ui "mask_of_the_tomb/game/UI"
 	"mask_of_the_tomb/game/camera"
 	"mask_of_the_tomb/game/player"
 	"mask_of_the_tomb/game/world"
@@ -11,23 +13,28 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-const (
-	GameWidth, GameHeight = 480, 270
-	PixelScale            = 4
-)
-
 type Game struct {
 	worldSurf  *ebiten.Image
+	uiSurf     *ebiten.Image
 	screenSurf *ebiten.Image
 	player     *player.Player
 	world      *world.World
 	camera     *camera.Camera
+	ui         *ui.UI
 }
 
 func (g *Game) Init() {
 	g.world.Init()
 	g.player.Init(g.world.GetSpawnPoint())
-	g.camera.Init(g.world.GetLevelBorders(), GameWidth/2, GameHeight/2-1)
+	width, height := g.world.GetActiveLevelBounds()
+	playerWidth, playerHeight := g.player.GetSize()
+	g.camera.Init(
+		width,
+		height,
+		(commons.GameWidth-playerWidth)/2,
+		(commons.GameHeight-playerHeight)/2,
+	)
+	g.ui.SetText(g.ui.GenerateScoreMessage(0))
 }
 
 func (g *Game) Update() error {
@@ -35,55 +42,68 @@ func (g *Game) Update() error {
 	// between entities
 
 	playerMove := g.player.GetMoveInput()
+	playerX, playerY := g.player.GetPos()
 	if playerMove != player.DirNone && !g.player.IsMoving() {
-		playerX, playerY := g.player.GetPos()
 		targetX, targetY := g.world.GetCollision(playerMove, playerX, playerY)
 		g.player.SetTarget(targetX, targetY)
 	}
 
-	// TODO: Finish level swapping. Current problems:
-	//  - Camera movement is not implemented
-	//  - Level tile data needs to be regenerated when switching levels due to different level sizes
-
 	if g.player.GetLevelSwapInput() {
 		validSwapPosition, entityInstance := g.world.TryDoorOverlap(g.player.GetPos())
-		// Check position
+
 		if validSwapPosition {
 			newPosX, newPosY := g.world.ExitByDoor(entityInstance)
 
+			g.camera.SetBorders(g.world.GetActiveLevelBounds())
 			g.player.SetPos(F64(newPosX), F64(newPosY))
-			// println("Swap level")
 		}
-		// Swap to correct level
-		// Set player position
 	}
 
-	// Get player position
+	dx, dy := g.player.GetMovementSize()
+	collectibleOverlapCount := g.world.TryCollectibleOverlap(playerX, playerY, dx, dy)
 
-	// Input player position to camera controls
+	if collectibleOverlapCount > 0 {
+		g.player.SetScore(g.player.GetScore() + collectibleOverlapCount)
+		g.ui.SetText(g.ui.GenerateScoreMessage(g.player.GetScore()))
+	}
 
 	g.player.Update()
+
+	// New collision detection
+	// 1. Get the player's "planned" move distance
+	// 2. Find the tiles which will be traversed by the player
+	// 3. Check if each of the tiles contains a collectible
+	// 4. Add each collectible
+
+	playerX, playerY = g.player.GetPos()
+	g.camera.SetPos(playerX, playerY)
 
 	return nil
 }
 
 func (g *Game) Draw() *ebiten.Image {
-	g.worldSurf.Fill(color.RGBA{120, 120, 255, 255})
+	camX, camY := g.camera.GetPos()
+	g.worldSurf.Fill(color.RGBA{255, 255, 0, 255})
+	g.uiSurf.Clear()
 
-	g.world.Draw(g.worldSurf)
-	g.player.Draw(g.worldSurf)
+	g.world.Draw(g.worldSurf, camX, camY)
+	g.player.Draw(g.worldSurf, camX, camY)
+	g.ui.Draw(g.uiSurf)
 
-	DrawAtScaled(g.worldSurf, g.screenSurf, 0, 0, PixelScale, PixelScale)
+	DrawAtScaled(g.worldSurf, g.screenSurf, 0, 0, commons.PixelScale, commons.PixelScale)
+	DrawAt(g.uiSurf, g.screenSurf, 0, 0)
 
 	return g.screenSurf
 }
 
 func NewGame() *Game {
 	return &Game{
-		worldSurf:  ebiten.NewImage(GameWidth, GameHeight),
-		screenSurf: ebiten.NewImage(GameWidth*PixelScale, GameHeight*PixelScale),
+		worldSurf:  ebiten.NewImage(commons.GameWidth, commons.GameHeight),
+		uiSurf:     ebiten.NewImage(commons.GameWidth*commons.PixelScale, commons.GameHeight*commons.PixelScale),
+		screenSurf: ebiten.NewImage(commons.GameWidth*commons.PixelScale, commons.GameHeight*commons.PixelScale),
 		player:     player.NewPlayer(),
 		world:      &world.World{},
 		camera:     camera.NewCamera(),
+		ui:         ui.NewUi(),
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 
+	"mask_of_the_tomb/commons"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/game"
 
@@ -32,7 +33,7 @@ func (a *App) Draw(screen *ebiten.Image) {
 }
 
 func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
-	return game.GameWidth * game.PixelScale, game.GameHeight * game.PixelScale
+	return commons.GameWidth * commons.PixelScale, commons.GameHeight * commons.PixelScale
 }
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 
 	flag.Parse()
 
-	ebiten.SetWindowSize(game.GameWidth*game.PixelScale, game.GameHeight*game.PixelScale)
+	ebiten.SetWindowSize(commons.GameWidth*commons.PixelScale, commons.GameHeight*commons.PixelScale)
 	ebiten.SetWindowTitle("Mask of the tomb")
 
 	if debugMode {

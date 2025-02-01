@@ -29,6 +29,7 @@ type Player struct {
 	targetPosX, targetPosY float64
 	moveDirX, moveDirY     float64
 	moveProgress           float64
+	score                  int
 	sprite                 *ebiten.Image
 }
 
@@ -59,8 +60,8 @@ func (p *Player) Update() {
 	}
 }
 
-func (p *Player) Draw(surf *ebiten.Image) {
-	DrawAt(p.sprite, surf, p.posX, p.posY)
+func (p *Player) Draw(surf *ebiten.Image, camX, camY float64) {
+	DrawAt(p.sprite, surf, p.posX-camX, p.posY-camY)
 }
 
 func (p *Player) GetLevelSwapInput() bool {
@@ -84,14 +85,14 @@ func (p *Player) GetPos() (float64, float64) {
 	return p.posX, p.posY
 }
 
-func (p *Player) GetPosCentered() (float64, float64) {
-	s := p.sprite.Bounds().Size()
-	return p.posX + F64(s.X)/2, p.posY + F64(s.Y)/2
-}
-
 func (p *Player) SetPos(x, y float64) {
 	p.posX, p.posY = x, y
 	p.targetPosX, p.targetPosY = x, y
+}
+
+func (p *Player) GetPosCentered() (float64, float64) {
+	s := p.sprite.Bounds().Size()
+	return p.posX + F64(s.X)/2, p.posY + F64(s.Y)/2
 }
 
 func (p *Player) SetTarget(x, y float64) {
@@ -101,19 +102,30 @@ func (p *Player) SetTarget(x, y float64) {
 	p.moveDirY = math.Copysign(1, p.targetPosY-p.posY)
 }
 
+func (p *Player) GetSize() (float64, float64) {
+	s := p.sprite.Bounds().Size()
+	return float64(s.X), float64(s.Y)
+}
+
+func (p *Player) GetScore() int {
+	return p.score
+}
+
+func (p *Player) SetScore(score int) {
+	p.score = score
+}
+
+func (p *Player) GetMovementSize() (float64, float64) {
+	return moveSpeed * p.moveDirX, moveSpeed * p.moveDirY
+}
+
 func (p *Player) IsMoving() bool {
 	return p.moveDirX != 0 || p.moveDirY != 0
 }
 
 func NewPlayer() *Player {
 	return &Player{
-		posX:         0,
-		posY:         0,
-		targetPosX:   0,
-		targetPosY:   0,
-		moveDirX:     0,
-		moveDirY:     0,
 		moveProgress: 1,
-		sprite:       files.LazyImage(files.PlayerSpritePath),
+		sprite:       files.LazyImage(PlayerSpritePath),
 	}
 }

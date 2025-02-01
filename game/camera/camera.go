@@ -1,37 +1,37 @@
 package camera
 
 import (
-	"mask_of_the_tomb/rect"
+	"mask_of_the_tomb/commons"
 	"mask_of_the_tomb/utils"
 )
 
 type Camera struct {
-	posX, posY            float64
-	borders               rect.Rect
-	halfWidth, halfHeight float64
+	posX, posY       float64
+	width, height    float64
+	offsetX, offsetY float64
 }
 
-func (c *Camera) Init(borders rect.Rect, halfWidth, halfHeight float64) {
-	c.borders = borders
-	c.halfWidth = halfWidth
-	c.halfHeight = halfHeight
+func (c *Camera) Init(width, height, offsetX, offsetY float64) {
+	c.width, c.height = width, height
+	c.offsetX, c.offsetY = offsetX, offsetY
 }
 
 func (c *Camera) Update() {
 
 }
 
-func (c *Camera) GetX() float64 {
-	return c.posY
+func (c *Camera) GetPos() (float64, float64) {
+	return c.posX, c.posY
 }
 
-func (c *Camera) GetY() float64 {
-	return c.posY
+func (c *Camera) SetPos(x, y float64) {
+	c.posX = utils.Clamp(x-c.offsetX, 0, c.width-commons.GameWidth)
+	c.posY = utils.Clamp(y-c.offsetY, 0, c.height-commons.GameHeight)
 }
 
-func (c *Camera) SetPosition(x, y float64) {
-	c.posX = utils.Clamp(c.posX, c.borders.Left()+c.halfWidth, c.borders.Right()-c.halfWidth)
-	c.posY = utils.Clamp(c.posY, c.borders.Top()+c.halfHeight, c.borders.Bottom()-c.halfHeight)
+func (c *Camera) SetBorders(width, height float64) {
+	c.width = width
+	c.height = height
 }
 
 func NewCamera() *Camera {

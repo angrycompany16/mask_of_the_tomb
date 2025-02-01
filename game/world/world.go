@@ -3,12 +3,10 @@ package world
 import (
 	"fmt"
 	"image"
-	"log"
 	"mask_of_the_tomb/ebitenLDTK"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/files"
 	"mask_of_the_tomb/game/player"
-	"mask_of_the_tomb/rect"
 	. "mask_of_the_tomb/utils"
 	"path"
 
@@ -20,23 +18,24 @@ const (
 	spawnPosEntityName     = "SpawnPosition"
 	doorEntityName         = "Door"
 	doorOtherSideFieldName = "OtherSide"
+	collectibleLayerName   = "Collectibles"
 )
 
 type World struct {
-	worldLDTK       ebitenLDTK.LDTKWorld
-	activeLevel     *ebitenLDTK.LDTKLevel
+	worldLDTK       ebitenLDTK.World
+	activeLevel     *ebitenLDTK.Level
 	currentTileSize float64
 	tiles           [][]int
 }
 
 func (w *World) Init() {
-	w.worldLDTK = *files.LazyLDTK(files.LDTKMapPath)
+	w.worldLDTK = *files.LazyLDTK(LDTKMapPath)
 
 	w.activeLevel = &w.worldLDTK.Levels[0]
 	w.tiles = w.worldLDTK.MakeBitmapFromLayer(w.activeLevel, playerSpaceLayerName)
 
 	// One folder back to access LDTK folder
-	LDTKpath := path.Clean(path.Join(files.LDTKMapPath, ".."))
+	LDTKpath := path.Clean(path.Join(LDTKMapPath, ".."))
 	for i := 0; i < len(w.worldLDTK.Defs.Tilesets); i++ {
 		tileset := &w.worldLDTK.Defs.Tilesets[i]
 		tilesetPath := path.Join(LDTKpath, tileset.RelPath)
@@ -51,43 +50,68 @@ func (w *World) Update() {
 }
 
 func (w *World) Draw(surf *ebiten.Image, camX, camY float64) {
+
 	for i := len(w.activeLevel.LayerInstances) - 1; i >= 0; i-- {
 		layerInstance := w.activeLevel.LayerInstances[i]
 
 		layer, err := w.worldLDTK.GetLayerByUid(layerInstance.LayerDefUid)
-		if err != nil {
-			log.Fatal(err)
-		}
+		HandleLazy(err)
 
-		if layer.Type != ebitenLDTK.LayerTypeTiles {
-			continue
-		}
+		// IMPROVEMENT: maybe split into separate functions
+		if layer.Type == ebitenLDTK.LayerTypeEntities {
+			// for _, entity := range w.worldLDTK.Defs.Entities {
+			// 	if entity.RenderMode == ebitenLDTK.LayerTypeTiles {
+			// 		tile, err := w.worldLDTK.GetTilesetByUid()
+			// 	}
+			// }
 
-		tileset, err := w.worldLDTK.GetTilesetByUid(layer.TilesetUid)
-		if err != nil {
-			log.Fatal(err)
-		}
+			for _, entityInstance := range layerInstance.EntityInstances {
+				entity, err := w.worldLDTK.GetEntityByUid(entityInstance.Uid)
+				HandleLazy(err)
+				if entity.RenderMode == ebitenLDTK.RenderModeTile {
+					tileset, err := w.worldLDTK.GetTilesetByUid(entityInstance.Tile.TilesetUid)
+					HandleLazy(err)
 
-		tileSize := tileset.TileGridSize
-		for _, tile := range layerInstance.GridTiles {
-			scaleX, scaleY := 1.0, 1.0
-			switch tile.TileOrientation {
-			case ebitenLDTK.OrientationFlipX:
-				scaleX = -1
-			case ebitenLDTK.OrientationFlipY:
-				scaleY = -1
-			case ebitenLDTK.OrientationFlipXY:
-				scaleX, scaleY = -1, -1
+					srcX := entityInstance.Tile.X
+					srcY := entityInstance.Tile.Y
+					tileSize := tileset.TileGridSize
+					DrawAt(tileset.Image.SubImage(
+						image.Rect(
+							int(srcX),
+							int(srcY),
+							int(srcX+tileSize),
+							int(srcY+tileSize),
+						),
+					).(*ebiten.Image), surf, entityInstance.Px[0]-camX, entityInstance.Px[1]-camY)
+
+				}
 			}
-			DrawAtScaled(tileset.Image.SubImage(
-				image.Rect(
-					int(tile.Src[0]),
-					int(tile.Src[1]),
-					int(tile.Src[0]+tileSize),
-					int(tile.Src[1]+tileSize),
-				),
-			).(*ebiten.Image), surf, F64(tile.Px[0]), F64(tile.Px[1]), scaleX, scaleY, 0.5, 0.5)
+		} else if layer.Type == ebitenLDTK.LayerTypeTiles {
+			tileset, err := w.worldLDTK.GetTilesetByUid(layer.TilesetUid)
+			HandleLazy(err)
+
+			tileSize := tileset.TileGridSize
+			for _, tile := range layerInstance.GridTiles {
+				scaleX, scaleY := 1.0, 1.0
+				switch tile.TileOrientation {
+				case ebitenLDTK.OrientationFlipX:
+					scaleX = -1
+				case ebitenLDTK.OrientationFlipY:
+					scaleY = -1
+				case ebitenLDTK.OrientationFlipXY:
+					scaleX, scaleY = -1, -1
+				}
+				DrawAtScaled(tileset.Image.SubImage(
+					image.Rect(
+						int(tile.Src[0]),
+						int(tile.Src[1]),
+						int(tile.Src[0]+tileSize),
+						int(tile.Src[1]+tileSize),
+					),
+				).(*ebiten.Image), surf, tile.Px[0]-camX, tile.Px[1]-camY, scaleX, scaleY, 0.5, 0.5)
+			}
 		}
+
 	}
 }
 
@@ -99,14 +123,14 @@ func (w *World) GetSpawnPoint() (float64, float64) {
 			if entity.Name != spawnPosEntityName {
 				continue
 			}
-			return F64(entityInstance.Px[0]), F64(entityInstance.Px[1])
+			return entityInstance.Px[0], entityInstance.Px[1]
 		}
 	}
 	return 0, 0
 }
 
-func (w *World) GetLevelBorders() rect.Rect {
-	return *rect.NewRect(0, 0, w.activeLevel.PxWid, w.activeLevel.PxHei)
+func (w *World) GetActiveLevelBounds() (float64, float64) {
+	return w.activeLevel.PxWid, w.activeLevel.PxHei
 }
 
 // TODO: replace player.MoveDirection??
@@ -150,7 +174,46 @@ func (w *World) GetCollision(moveDir player.MoveDirection, x, y float64) (float6
 	}
 }
 
-func (w *World) TryDoorOverlap(x, y float64) (bool, ebitenLDTK.LDTKEntityInstance) {
+func (w *World) TryCollectibleOverlap(posX, posY, distX, distY float64) int {
+	collected := 0
+	for _, layerInstance := range w.activeLevel.LayerInstances {
+		layer, err := w.worldLDTK.GetLayerByUid(layerInstance.LayerDefUid)
+		HandleLazy(err)
+
+		if layer.Name != collectibleLayerName {
+			continue
+		}
+
+		for _, entityInstance := range layerInstance.EntityInstances {
+			itemX, itemY := w.worldToGrid(entityInstance.Px[0], entityInstance.Px[1])
+			playerX, playerY := w.worldToGrid(posX, posY)
+
+			if itemY == playerY {
+				if entityInstance.Px[0] > posX && entityInstance.Px[0] <= posX+distX {
+					collected++
+				}
+
+				if entityInstance.Px[0] < posX && entityInstance.Px[0] >= posX+distX {
+					collected++
+				}
+			}
+
+			if itemX == playerX {
+				if entityInstance.Px[1] > posY && entityInstance.Px[1] <= posY+distY {
+					collected++
+				}
+
+				if entityInstance.Px[1] < posY && entityInstance.Px[1] >= posY+distY {
+					collected++
+				}
+			}
+
+		}
+	}
+	return collected
+}
+
+func (w *World) TryDoorOverlap(x, y float64) (bool, ebitenLDTK.EntityInstance) {
 	for _, layerInstance := range w.activeLevel.LayerInstances {
 		for _, entityInstance := range layerInstance.EntityInstances {
 			entity, err := w.worldLDTK.GetEntityByUid(entityInstance.Uid)
@@ -158,15 +221,15 @@ func (w *World) TryDoorOverlap(x, y float64) (bool, ebitenLDTK.LDTKEntityInstanc
 			if entity.Name != doorEntityName {
 				continue
 			}
-			if F64(entityInstance.Px[0]) == x && F64(entityInstance.Px[1]) == y {
+			if entityInstance.Px[0] == x && entityInstance.Px[1] == y {
 				return true, entityInstance
 			}
 		}
 	}
-	return false, ebitenLDTK.LDTKEntityInstance{}
+	return false, ebitenLDTK.EntityInstance{}
 }
 
-func (w *World) ExitByDoor(doorEntity ebitenLDTK.LDTKEntityInstance) (int, int) {
+func (w *World) ExitByDoor(doorEntity ebitenLDTK.EntityInstance) (float64, float64) {
 	entity, err := w.worldLDTK.GetEntityByUid(doorEntity.Uid)
 	HandleLazy(err)
 	if entity.Name != doorEntityName {
@@ -198,7 +261,7 @@ func (w *World) worldToGrid(x, y float64) (int, int) {
 }
 
 func changeActiveLevel[T string | int](world *World, id T) error {
-	var newLevel ebitenLDTK.LDTKLevel
+	var newLevel ebitenLDTK.Level
 	var err error
 
 	switch v := any(id).(type) {
@@ -228,6 +291,6 @@ func changeActiveLevel[T string | int](world *World, id T) error {
 
 	layer, err := world.worldLDTK.GetLayerByUid(playerspace.LayerDefUid)
 	HandleLazy(err)
-	world.currentTileSize = F64(layer.GridSize)
+	world.currentTileSize = layer.GridSize
 	return nil
 }
