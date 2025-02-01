@@ -25,8 +25,8 @@ type Game struct {
 
 func (g *Game) Init() {
 	g.world.Init()
-	g.player.Init(g.world.GetSpawnPoint())
-	width, height := g.world.GetActiveLevelBounds()
+	g.player.Init(g.world.ActiveLevel.GetSpawnPoint())
+	width, height := g.world.ActiveLevel.GetLevelBounds()
 	playerWidth, playerHeight := g.player.GetSize()
 	g.camera.Init(
 		width,
@@ -38,29 +38,29 @@ func (g *Game) Init() {
 }
 
 func (g *Game) Update() error {
-	// Every entity should manage its own data, signals are passed to create communication
-	// between entities
+	// For convenience
+	level := g.world.ActiveLevel
 
 	playerMove := g.player.GetMoveInput()
 	playerX, playerY := g.player.GetPos()
 	if playerMove != player.DirNone && !g.player.IsMoving() {
-		targetX, targetY := g.world.GetCollision(playerMove, playerX, playerY)
+		targetX, targetY := level.GetCollision(playerMove, playerX, playerY)
 		g.player.SetTarget(targetX, targetY)
 	}
 
 	if g.player.GetLevelSwapInput() {
-		validSwapPosition, entityInstance := g.world.TryDoorOverlap(g.player.GetPos())
+		validSwapPosition, entityInstance := level.TryDoorOverlap(g.player.GetPos())
 
 		if validSwapPosition {
 			newPosX, newPosY := g.world.ExitByDoor(entityInstance)
 
-			g.camera.SetBorders(g.world.GetActiveLevelBounds())
+			g.camera.SetBorders(level.GetLevelBounds())
 			g.player.SetPos(F64(newPosX), F64(newPosY))
 		}
 	}
 
 	dx, dy := g.player.GetMovementSize()
-	collectibleOverlapCount := g.world.TryCollectibleOverlap(playerX, playerY, dx, dy)
+	collectibleOverlapCount := level.TryCollectibleOverlap(playerX, playerY, dx, dy)
 
 	if collectibleOverlapCount > 0 {
 		g.player.SetScore(g.player.GetScore() + collectibleOverlapCount)
