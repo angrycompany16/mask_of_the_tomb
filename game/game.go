@@ -38,29 +38,26 @@ func (g *Game) Init() {
 }
 
 func (g *Game) Update() error {
-	// For convenience
-	level := g.world.ActiveLevel
-
 	playerMove := g.player.GetMoveInput()
 	playerX, playerY := g.player.GetPos()
 	if playerMove != player.DirNone && !g.player.IsMoving() {
-		targetX, targetY := level.GetCollision(playerMove, playerX, playerY)
+		targetX, targetY := g.world.ActiveLevel.GetCollision(playerMove, playerX, playerY)
 		g.player.SetTarget(targetX, targetY)
 	}
 
 	if g.player.GetLevelSwapInput() {
-		validSwapPosition, entityInstance := level.TryDoorOverlap(g.player.GetPos())
+		validSwapPosition, entityInstance := g.world.ActiveLevel.TryDoorOverlap(g.player.GetPos())
 
 		if validSwapPosition {
 			newPosX, newPosY := g.world.ExitByDoor(entityInstance)
 
-			g.camera.SetBorders(level.GetLevelBounds())
+			g.camera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
 			g.player.SetPos(F64(newPosX), F64(newPosY))
 		}
 	}
 
 	dx, dy := g.player.GetMovementSize()
-	collectibleOverlapCount := level.TryCollectibleOverlap(playerX, playerY, dx, dy)
+	collectibleOverlapCount := g.world.ActiveLevel.TryCollectibleOverlap(playerX, playerY, dx, dy)
 
 	if collectibleOverlapCount > 0 {
 		g.player.SetScore(g.player.GetScore() + collectibleOverlapCount)
