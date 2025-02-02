@@ -18,7 +18,7 @@ const (
 	collectibleLayerName   = "Collectibles"
 )
 
-// A note on world generation - this may need layered saving
+// A note on level saving - this may need layered saving
 // When to actually save data? We have some options:
 //   - Just load the entire world into RAM :^)
 //   - Save data whenever we change levels

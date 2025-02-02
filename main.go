@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 
 	"mask_of_the_tomb/commons"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/game"
+	"mask_of_the_tomb/save"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -24,7 +26,10 @@ func (a *App) Init() {
 }
 
 func (a *App) Update() error {
-	a.world.Update()
+	err := a.world.Update()
+	if err == commons.Terminated {
+		return err
+	}
 	return nil
 }
 
@@ -54,6 +59,10 @@ func main() {
 	a.Init()
 
 	if err := ebiten.RunGame(a); err != nil {
+		if errors.Is(err, commons.Terminated) {
+			save.GlobalSave.SaveGame()
+			return
+		}
 		log.Fatal(err)
 	}
 }

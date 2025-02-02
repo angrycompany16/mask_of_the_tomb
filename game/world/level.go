@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/ebitenLDTK"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/game/player"
+	"mask_of_the_tomb/save"
 	. "mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -19,35 +20,15 @@ type Level struct {
 }
 
 func (l *Level) draw(surf *ebiten.Image, camX, camY float64) {
-
 	for i := len(l.levelLDTK.LayerInstances) - 1; i >= 0; i-- {
 		layerInstance := l.levelLDTK.LayerInstances[i]
 
 		layer, err := l.defs.GetLayerByUid(layerInstance.LayerDefUid)
 		HandleLazy(err)
 
-		// IMPROVEMENT: maybe split into separate functions
-		if layer.Type == ebitenLDTK.LayerTypeEntities {
-			for _, entityInstance := range layerInstance.EntityInstances {
-				entity, err := l.defs.GetEntityByUid(entityInstance.Uid)
-				HandleLazy(err)
-				if entity.RenderMode == ebitenLDTK.RenderModeTile {
-					tileset, err := l.defs.GetTilesetByUid(entityInstance.Tile.TilesetUid)
-					HandleLazy(err)
-
-					srcX := entityInstance.Tile.X
-					srcY := entityInstance.Tile.Y
-					tileSize := tileset.TileGridSize
-					DrawAt(tileset.Image.SubImage(
-						image.Rect(
-							int(srcX),
-							int(srcY),
-							int(srcX+tileSize),
-							int(srcY+tileSize),
-						),
-					).(*ebiten.Image), surf, entityInstance.Px[0]-camX, entityInstance.Px[1]-camY)
-
-				}
+		if layer.Name == collectibleLayerName {
+			for _, collectible := range l.collectibles {
+				collectible.draw(surf, camX, camY)
 			}
 		} else if layer.Type == ebitenLDTK.LayerTypeTiles {
 			tileset, err := l.defs.GetTilesetByUid(layer.TilesetUid)
@@ -137,38 +118,32 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, x, y float64) (float6
 
 func (l *Level) TryCollectibleOverlap(posX, posY, distX, distY float64) int {
 	collected := 0
-	for _, layerInstance := range l.levelLDTK.LayerInstances {
-		layer, err := l.defs.GetLayerByUid(layerInstance.LayerDefUid)
-		HandleLazy(err)
+	collect := func(i int) {
+		collected++
+		l.collectibles[i].collected = true
+		save.GlobalSave.GameData.CollectedEntityUids[l.collectibles[i].iid] = true
+	}
 
-		if layer.Name != collectibleLayerName {
+	for i := 0; i < len(l.collectibles); i++ {
+		collectible := l.collectibles[i]
+		if collectible.collected {
 			continue
 		}
+		itemX, itemY := l.worldToGrid(collectible.posX, collectible.posY)
+		playerX, playerY := l.worldToGrid(posX, posY)
 
-		for _, entityInstance := range layerInstance.EntityInstances {
-			itemX, itemY := l.worldToGrid(entityInstance.Px[0], entityInstance.Px[1])
-			playerX, playerY := l.worldToGrid(posX, posY)
-
-			if itemY == playerY {
-				if entityInstance.Px[0] > posX && entityInstance.Px[0] <= posX+distX {
-					collected++
-				}
-
-				if entityInstance.Px[0] < posX && entityInstance.Px[0] >= posX+distX {
-					collected++
-				}
+		if itemY == playerY {
+			if (collectible.posX > posX && collectible.posX <= posX+distX) ||
+				(collectible.posX < posX && collectible.posX >= posX+distX) {
+				collect(i)
 			}
+		}
 
-			if itemX == playerX {
-				if entityInstance.Px[1] > posY && entityInstance.Px[1] <= posY+distY {
-					collected++
-				}
-
-				if entityInstance.Px[1] < posY && entityInstance.Px[1] >= posY+distY {
-					collected++
-				}
+		if itemX == playerX {
+			if (collectible.posY > posY && collectible.posY <= posY+distY) ||
+				(collectible.posY < posY && collectible.posY >= posY+distY) {
+				collect(i)
 			}
-
 		}
 	}
 	return collected
@@ -214,7 +189,17 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 	HandleLazy(err)
 	newLevel.tileSize = layer.GridSize
 
-	// TODO: get and set up all collectibles
+	for _, layerInstance := range levelLDTK.LayerInstances {
+		layer, err := defs.GetLayerByUid(layerInstance.LayerDefUid)
+		HandleLazy(err)
+		if layer.Name != collectibleLayerName {
+			continue
+		}
+		for _, entityInstance := range layerInstance.EntityInstances {
+			collected := save.GlobalSave.GameData.CollectedEntityUids[entityInstance.Iid]
+			newLevel.collectibles = append(newLevel.collectibles, newCollectible(collected, entityInstance, *defs))
+		}
+	}
 
 	return newLevel, nil
 }

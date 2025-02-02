@@ -8,9 +8,11 @@ import (
 	"mask_of_the_tomb/game/camera"
 	"mask_of_the_tomb/game/player"
 	"mask_of_the_tomb/game/world"
+	"mask_of_the_tomb/save"
 	. "mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Game struct {
@@ -24,6 +26,7 @@ type Game struct {
 }
 
 func (g *Game) Init() {
+	save.GlobalSave.LoadGame()
 	g.world.Init()
 	g.player.Init(g.world.ActiveLevel.GetSpawnPoint())
 	width, height := g.world.ActiveLevel.GetLevelBounds()
@@ -66,14 +69,12 @@ func (g *Game) Update() error {
 
 	g.player.Update()
 
-	// New collision detection
-	// 1. Get the player's "planned" move distance
-	// 2. Find the tiles which will be traversed by the player
-	// 3. Check if each of the tiles contains a collectible
-	// 4. Add each collectible
-
 	playerX, playerY = g.player.GetPos()
 	g.camera.SetPos(playerX, playerY)
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		return commons.Terminated
+	}
 
 	return nil
 }

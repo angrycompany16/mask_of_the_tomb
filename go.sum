@@ -1,3 +1,5 @@
+github.com/domonda/go-pretty v0.0.0-20240110134850-17385799142f h1:5eA74m451PqlqCXyJzWXp95Quj4PZ6Lm/ndKBuiNhe4=
+github.com/domonda/go-pretty v0.0.0-20240110134850-17385799142f/go.mod h1:3QkM8UJdyJMeKZiIo7hYzSkQBpRS3k0gOHw4ysyEIB4=
 github.com/ebitengine/gomobile v0.0.0-20241016134836-cc2e38a7c0ee h1:YoNt0DHeZ92kjR78SfyUn1yEf7KnBypOFlFZO14cJ6w=
 github.com/ebitengine/gomobile v0.0.0-20241016134836-cc2e38a7c0ee/go.mod h1:ZDIonJlTRW7gahIn5dEXZtN4cM8Qwtlduob8cOCflmg=
 github.com/ebitengine/hideconsole v1.0.0 h1:5J4U0kXF+pv/DhiXt5/lTz0eO5ogJ1iXb8Yj1yReDqE=
