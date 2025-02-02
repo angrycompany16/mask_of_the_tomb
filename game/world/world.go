@@ -16,19 +16,10 @@ const (
 	doorEntityName         = "Door"
 	doorOtherSideFieldName = "OtherSide"
 	collectibleLayerName   = "Collectibles"
+	hazardLayerName        = "Hazards"
+	hazardDamageFieldName  = "Damage"
 )
 
-// A note on level saving - this may need layered saving
-// When to actually save data? We have some options:
-//   - Just load the entire world into RAM :^)
-//   - Save data whenever we change levels
-//   - Save data on exit, but keep local changes when switching scenes
-//   - Save data within some even interval (i.e. resting on a bench or smth), and then
-//     also local changes when switching scenes
-
-// Idea:
-// Use a save struct as the local version of the world
-// Store some sort of local diff of the world
 type World struct {
 	worldLDTK   ebitenLDTK.World
 	ActiveLevel *Level
@@ -57,7 +48,7 @@ func (w *World) Draw(surf *ebiten.Image, camX, camY float64) {
 }
 
 func (w *World) ExitByDoor(doorEntity ebitenLDTK.EntityInstance) (float64, float64) {
-	entity, err := w.worldLDTK.Defs.GetEntityByUid(doorEntity.Uid)
+	entity, err := w.worldLDTK.Defs.GetEntityByUid(doorEntity.DefUid)
 	HandleLazy(err)
 	if entity.Name != doorEntityName {
 		return 0, 0 // Should honestly be error handled
@@ -67,12 +58,19 @@ func (w *World) ExitByDoor(doorEntity ebitenLDTK.EntityInstance) (float64, float
 			continue
 		}
 
-		nextLevel, err := w.worldLDTK.GetLevelByIid(fieldInstance.EntityRefValue.LevelIid)
+		// entityRef, ok := fieldInstance.Value.
+		// if !ok {
+		// 	fmt.Println(fieldInstance.Value)
+		// 	log.Fatal("could not get entityRef from fieldInstance in ExitByDoor")
+		// }
+		fmt.Println(fieldInstance.EntityRef)
+		fmt.Println(fieldInstance.Float)
+		nextLevel, err := w.worldLDTK.GetLevelByIid(fieldInstance.EntityRef.LevelIid)
 		HandleLazy(err)
 		// Change level
 		changeActiveLevel(w, nextLevel.Uid)
 
-		otherSideEntityRef, err := w.ActiveLevel.levelLDTK.GetEntityInstanceByIid(fieldInstance.EntityRefValue.EntityIid)
+		otherSideEntityRef, err := w.ActiveLevel.levelLDTK.GetEntityInstanceByIid(fieldInstance.EntityRef.EntityIid)
 		HandleLazy(err)
 		return otherSideEntityRef.Px[0], otherSideEntityRef.Px[1]
 	}

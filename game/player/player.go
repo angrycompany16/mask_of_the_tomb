@@ -1,5 +1,7 @@
 package player
 
+// New task - gameplay / health system
+
 import (
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/files"

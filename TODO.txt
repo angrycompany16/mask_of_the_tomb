@@ -1,0 +1,9 @@
+(Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
+camera space
+(Priority: MEDIUM) Split the main Update function into subfunctions for various disjoint 
+entity interactions
+(Priority: LOW) Fully integrate new design pattern for entities: (Each entity gets its
+own class, so we no longer have to iterate over all entity instances when checking collision,
+collectibles etc.)
+(Priority: MEDIUM) Split the LDTK loader into multiple files *please*
+(Priority: LOW) Rewrite collision stuff using a Rect struct

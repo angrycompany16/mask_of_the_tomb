@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"mask_of_the_tomb/commons"
 	. "mask_of_the_tomb/ebitenRenderUtil"
@@ -65,6 +66,11 @@ func (g *Game) Update() error {
 	if collectibleOverlapCount > 0 {
 		g.player.SetScore(g.player.GetScore() + collectibleOverlapCount)
 		g.ui.SetText(g.ui.GenerateScoreMessage(g.player.GetScore()))
+	}
+
+	collidedWithHazard := g.world.ActiveLevel.TryHazardOverlap(playerX, playerY)
+	if collidedWithHazard {
+		fmt.Println("You are suffering")
 	}
 
 	g.player.Update()

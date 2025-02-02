@@ -17,6 +17,7 @@ type Level struct {
 	tiles        [][]int
 	tileSize     float64
 	collectibles []Collectible
+	hazards      []Hazard
 }
 
 func (l *Level) draw(surf *ebiten.Image, camX, camY float64) {
@@ -61,7 +62,7 @@ func (l *Level) draw(surf *ebiten.Image, camX, camY float64) {
 func (l *Level) GetSpawnPoint() (float64, float64) {
 	for _, layerInstance := range l.levelLDTK.LayerInstances {
 		for _, entityInstance := range layerInstance.EntityInstances {
-			entity, err := l.defs.GetEntityByUid(entityInstance.Uid)
+			entity, err := l.defs.GetEntityByUid(entityInstance.DefUid)
 			HandleLazy(err)
 			if entity.Name != spawnPosEntityName {
 				continue
@@ -152,7 +153,7 @@ func (l *Level) TryCollectibleOverlap(posX, posY, distX, distY float64) int {
 func (l *Level) TryDoorOverlap(x, y float64) (bool, ebitenLDTK.EntityInstance) {
 	for _, layerInstance := range l.levelLDTK.LayerInstances {
 		for _, entityInstance := range layerInstance.EntityInstances {
-			entity, err := l.defs.GetEntityByUid(entityInstance.Uid)
+			entity, err := l.defs.GetEntityByUid(entityInstance.DefUid)
 			HandleLazy(err)
 			if entity.Name != doorEntityName {
 				continue
@@ -163,6 +164,17 @@ func (l *Level) TryDoorOverlap(x, y float64) (bool, ebitenLDTK.EntityInstance) {
 		}
 	}
 	return false, ebitenLDTK.EntityInstance{}
+}
+
+func (l *Level) TryHazardOverlap(x, y float64) bool {
+	for _, hazard := range l.hazards {
+		if x <= hazard.posX+hazard.width && x >= hazard.posX {
+			if y <= hazard.posY+hazard.height && y >= hazard.posY {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (l *Level) gridToWorld(x, y int) (float64, float64) {
@@ -192,12 +204,15 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 	for _, layerInstance := range levelLDTK.LayerInstances {
 		layer, err := defs.GetLayerByUid(layerInstance.LayerDefUid)
 		HandleLazy(err)
-		if layer.Name != collectibleLayerName {
-			continue
-		}
-		for _, entityInstance := range layerInstance.EntityInstances {
-			collected := save.GlobalSave.GameData.CollectedEntityUids[entityInstance.Iid]
-			newLevel.collectibles = append(newLevel.collectibles, newCollectible(collected, entityInstance, *defs))
+		if layer.Name == collectibleLayerName {
+			for _, entityInstance := range layerInstance.EntityInstances {
+				collected := save.GlobalSave.GameData.CollectedEntityUids[entityInstance.Iid]
+				newLevel.collectibles = append(newLevel.collectibles, newCollectible(collected, entityInstance, *defs))
+			}
+		} else if layer.Name == hazardLayerName {
+			for _, entityInstance := range layerInstance.EntityInstances {
+				newLevel.hazards = append(newLevel.hazards, newHazard(entityInstance, defs))
+			}
 		}
 	}
 
