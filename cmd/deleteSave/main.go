@@ -1,6 +1,6 @@
 package main
 
-import "mask_of_the_tomb/save"
+import "mask_of_the_tomb/game/save"
 
 func main() {
 	save.GlobalSave.GameData = save.NewGameData()

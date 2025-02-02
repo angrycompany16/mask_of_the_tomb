@@ -1,8 +1,12 @@
 package camera
 
 import (
-	"mask_of_the_tomb/commons"
+	"mask_of_the_tomb/rendering"
 	"mask_of_the_tomb/utils"
+)
+
+var (
+	GlobalCamera = NewCamera()
 )
 
 type Camera struct {
@@ -25,8 +29,8 @@ func (c *Camera) GetPos() (float64, float64) {
 }
 
 func (c *Camera) SetPos(x, y float64) {
-	c.posX = utils.Clamp(x-c.offsetX, 0, c.width-commons.GameWidth)
-	c.posY = utils.Clamp(y-c.offsetY, 0, c.height-commons.GameHeight)
+	c.posX = utils.Clamp(x-c.offsetX, 0, c.width-rendering.GameWidth)
+	c.posY = utils.Clamp(y-c.offsetY, 0, c.height-rendering.GameHeight)
 }
 
 func (c *Camera) SetBorders(width, height float64) {

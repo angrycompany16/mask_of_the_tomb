@@ -6,9 +6,10 @@ import (
 	"log"
 
 	"mask_of_the_tomb/commons"
-	. "mask_of_the_tomb/ebitenRenderUtil"
+	// . "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/game"
-	"mask_of_the_tomb/save"
+	"mask_of_the_tomb/game/save"
+	"mask_of_the_tomb/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -34,11 +35,12 @@ func (a *App) Update() error {
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
-	DrawAt(a.world.Draw(), screen, 0, 0)
+	a.world.Draw()
+	rendering.RenderLayers.Draw(screen)
 }
 
 func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
-	return commons.GameWidth * commons.PixelScale, commons.GameHeight * commons.PixelScale
+	return rendering.GameWidth * rendering.PixelScale, rendering.GameHeight * rendering.PixelScale
 }
 
 func main() {
@@ -46,7 +48,7 @@ func main() {
 
 	flag.Parse()
 
-	ebiten.SetWindowSize(commons.GameWidth*commons.PixelScale, commons.GameHeight*commons.PixelScale)
+	ebiten.SetWindowSize(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
 	ebiten.SetWindowTitle("Mask of the tomb")
 
 	if debugMode {

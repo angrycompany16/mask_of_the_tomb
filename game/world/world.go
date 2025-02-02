@@ -6,12 +6,11 @@ import (
 	"mask_of_the_tomb/files"
 	. "mask_of_the_tomb/utils"
 	"path"
-
-	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
 	playerSpaceLayerName   = "Playerspace"
+	foreGroundLayerName    = "Foreground"
 	spawnPosEntityName     = "SpawnPosition"
 	doorEntityName         = "Door"
 	doorOtherSideFieldName = "OtherSide"
@@ -41,10 +40,6 @@ func (w *World) Init() {
 
 func (w *World) Update() {
 	// Anything...
-}
-
-func (w *World) Draw(surf *ebiten.Image, camX, camY float64) {
-	w.ActiveLevel.draw(surf, camX, camY)
 }
 
 func (w *World) ExitByDoor(doorEntity ebitenLDTK.EntityInstance) (float64, float64) {

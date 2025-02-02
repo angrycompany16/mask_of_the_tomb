@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"mask_of_the_tomb/files"
+	"mask_of_the_tomb/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -24,7 +25,7 @@ func (ui *UI) Update() {
 
 }
 
-func (ui *UI) Draw(surf *ebiten.Image) {
+func (ui *UI) Draw() {
 	opText := &text.DrawOptions{}
 	opText.LayoutOptions.LineSpacing = 10.0
 	// opText.LayoutOptions.PrimaryAlign = text.AlignCenter
@@ -33,7 +34,7 @@ func (ui *UI) Draw(surf *ebiten.Image) {
 	opText.ColorScale = ebiten.ColorScale{}
 	opText.ColorScale.ScaleWithColor(ui.secondaryTextColor)
 
-	text.Draw(surf, ui.text, &text.GoTextFace{
+	text.Draw(rendering.RenderLayers.UI, ui.text, &text.GoTextFace{
 		Source: ui.mainFont,
 		Size:   48,
 	}, opText)
@@ -42,7 +43,7 @@ func (ui *UI) Draw(surf *ebiten.Image) {
 	opText.ColorScale.ScaleWithColor(ui.mainTextColor)
 
 	opText.GeoM.Translate(4, -4)
-	text.Draw(surf, ui.text, &text.GoTextFace{
+	text.Draw(rendering.RenderLayers.UI, ui.text, &text.GoTextFace{
 		Source: ui.mainFont,
 		Size:   48,
 	}, opText)

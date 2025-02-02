@@ -3,19 +3,32 @@ package player
 // New task - gameplay / health system
 
 import (
+	"mask_of_the_tomb/commons"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/files"
+	"mask_of_the_tomb/game/camera"
+	"mask_of_the_tomb/game/health"
+	"mask_of_the_tomb/rendering"
 	. "mask_of_the_tomb/utils"
 	"math"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+type PlayerState int
+
+// Finish player state machine
+const (
+	Normal PlayerState = iota
+	TakingDamage
+)
+
 type MoveDirection int
 
 const (
-	DirNone = iota - 1
+	DirNone MoveDirection = iota - 1
 	DirUp
 	DirDown
 	DirLeft
@@ -23,16 +36,23 @@ const (
 )
 
 const (
-	moveSpeed = 5.0
+	moveSpeed             = 5.0
+	defaultPlayerHealth   = 5.0
+	invincibilityDuration = time.Second
 )
 
 type Player struct {
 	posX, posY             float64
 	targetPosX, targetPosY float64
+	prevPosX, prevPosY     float64
 	moveDirX, moveDirY     float64
 	moveProgress           float64
 	score                  int
 	sprite                 *ebiten.Image
+	health                 *health.HealthComponent
+	invincible             bool
+	disabled               bool
+	damageOverlay          damageOverlay
 }
 
 func (p *Player) Init(posX, posY float64) {
@@ -40,8 +60,8 @@ func (p *Player) Init(posX, posY float64) {
 }
 
 func (p *Player) Update() {
-	p.posX += moveSpeed * p.moveDirX
-	p.posY += moveSpeed * p.moveDirY
+	p.posX += moveSpeed * p.moveDirX * commons.GlobalTimeScale
+	p.posY += moveSpeed * p.moveDirY * commons.GlobalTimeScale
 
 	if p.moveDirX < 0 {
 		p.posX = Clamp(p.posX, p.targetPosX, p.posX)
@@ -60,10 +80,14 @@ func (p *Player) Update() {
 	if p.posY == p.targetPosY {
 		p.moveDirY = 0
 	}
+
+	p.damageOverlay.Update()
 }
 
-func (p *Player) Draw(surf *ebiten.Image, camX, camY float64) {
-	DrawAt(p.sprite, surf, p.posX-camX, p.posY-camY)
+func (p *Player) Draw() {
+	camX, camY := camera.GlobalCamera.GetPos()
+	DrawAt(p.sprite, rendering.RenderLayers.Playerspace, p.posX-camX, p.posY-camY)
+	p.damageOverlay.Draw()
 }
 
 func (p *Player) GetLevelSwapInput() bool {
@@ -100,6 +124,8 @@ func (p *Player) GetPosCentered() (float64, float64) {
 func (p *Player) SetTarget(x, y float64) {
 	p.targetPosX = x
 	p.targetPosY = y
+	p.prevPosX = p.posX
+	p.prevPosY = p.posY
 	p.moveDirX = math.Copysign(1, p.targetPosX-p.posX)
 	p.moveDirY = math.Copysign(1, p.targetPosY-p.posY)
 }
@@ -125,9 +151,41 @@ func (p *Player) IsMoving() bool {
 	return p.moveDirX != 0 || p.moveDirY != 0
 }
 
+func (p *Player) TakeDamage(damage float64) {
+	p.health.TakeDamage(damage)
+	p.invincible = true
+	p.disabled = true
+	go p.hitHazard()
+}
+
+func (p *Player) hitHazard() {
+	time.Sleep(time.Millisecond * 300)
+	p.disabled = false
+	p.damageOverlay.alpha = 1.0
+	go p.disableInvincibility()
+}
+
+func (p *Player) disableInvincibility() {
+	p.posX = p.prevPosX
+	p.posY = p.prevPosY
+	time.Sleep(invincibilityDuration)
+	p.invincible = false
+}
+
+func (p *Player) IsInvincible() bool {
+	return p.invincible
+}
+
+func (p *Player) IsDisabled() bool {
+	return p.disabled
+}
+
 func NewPlayer() *Player {
 	return &Player{
-		moveProgress: 1,
-		sprite:       files.LazyImage(PlayerSpritePath),
+		moveProgress:  1,
+		sprite:        files.LazyImage(PlayerSpritePath),
+		health:        health.NewHealthComponent(defaultPlayerHealth),
+		damageOverlay: newDamageOverlay(),
+		invincible:    false,
 	}
 }

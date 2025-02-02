@@ -4,8 +4,10 @@ import (
 	"image"
 	"mask_of_the_tomb/ebitenLDTK"
 	. "mask_of_the_tomb/ebitenRenderUtil"
+	"mask_of_the_tomb/game/camera"
 	"mask_of_the_tomb/game/player"
-	"mask_of_the_tomb/save"
+	"mask_of_the_tomb/game/save"
+	"mask_of_the_tomb/rendering"
 	. "mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -20,7 +22,9 @@ type Level struct {
 	hazards      []Hazard
 }
 
-func (l *Level) draw(surf *ebiten.Image, camX, camY float64) {
+// This REALLY needs a rewrite
+func (l *Level) Draw() {
+	camX, camY := camera.GlobalCamera.GetPos()
 	for i := len(l.levelLDTK.LayerInstances) - 1; i >= 0; i-- {
 		layerInstance := l.levelLDTK.LayerInstances[i]
 
@@ -29,9 +33,16 @@ func (l *Level) draw(surf *ebiten.Image, camX, camY float64) {
 
 		if layer.Name == collectibleLayerName {
 			for _, collectible := range l.collectibles {
-				collectible.draw(surf, camX, camY)
+				collectible.draw(rendering.RenderLayers.Playerspace, camX, camY)
 			}
 		} else if layer.Type == ebitenLDTK.LayerTypeTiles {
+			targetLayer := rendering.RenderLayers.Background
+			if layer.Name == playerSpaceLayerName {
+				targetLayer = rendering.RenderLayers.Playerspace
+			} else if layer.Name == foreGroundLayerName {
+				targetLayer = rendering.RenderLayers.Foreground
+			}
+
 			tileset, err := l.defs.GetTilesetByUid(layer.TilesetUid)
 			HandleLazy(err)
 
@@ -53,7 +64,9 @@ func (l *Level) draw(surf *ebiten.Image, camX, camY float64) {
 						int(tile.Src[0]+tileSize),
 						int(tile.Src[1]+tileSize),
 					),
-				).(*ebiten.Image), surf, tile.Px[0]-camX, tile.Px[1]-camY, scaleX, scaleY, 0.5, 0.5)
+				).(*ebiten.Image),
+					targetLayer,
+					tile.Px[0]-camX, tile.Px[1]-camY, scaleX, scaleY, 0.5, 0.5)
 			}
 		}
 	}
@@ -166,15 +179,15 @@ func (l *Level) TryDoorOverlap(x, y float64) (bool, ebitenLDTK.EntityInstance) {
 	return false, ebitenLDTK.EntityInstance{}
 }
 
-func (l *Level) TryHazardOverlap(x, y float64) bool {
+func (l *Level) TryHazardOverlap(x, y float64) float64 {
 	for _, hazard := range l.hazards {
-		if x <= hazard.posX+hazard.width && x >= hazard.posX {
-			if y <= hazard.posY+hazard.height && y >= hazard.posY {
-				return true
+		if hazard.posX+hazard.width > x && x >= hazard.posX {
+			if hazard.posY+hazard.height > y && y >= hazard.posY {
+				return hazard.damage
 			}
 		}
 	}
-	return false
+	return 0
 }
 
 func (l *Level) gridToWorld(x, y int) (float64, float64) {

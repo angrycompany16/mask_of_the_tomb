@@ -2,11 +2,9 @@ package commons
 
 import "errors"
 
-const (
-	GameWidth, GameHeight = 480, 270
-	PixelScale            = 4
-)
+const ()
 
 var (
-	Terminated = errors.New("Terminated")
+	GlobalTimeScale = 1.0
+	Terminated      = errors.New("Terminated")
 )
