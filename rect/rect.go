@@ -1,6 +1,10 @@
 package rect
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"mask_of_the_tomb/ebitenLDTK"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 type Rect struct {
 	x      float64
@@ -29,10 +33,47 @@ func (r *Rect) Center() (float64, float64) {
 	return r.x + r.width, r.y + r.height
 }
 
+func (r *Rect) TopLeft() (float64, float64) {
+	return r.Left(), r.Right()
+}
+
+func (r *Rect) SetPos(x, y float64) {
+	r.x, r.y = x, y
+}
+
 func (r *Rect) Draw(surf *ebiten.Image) {
 	// Render debug rect
 }
 
+func (r *Rect) Overlapping(other *Rect) bool {
+	if r.Left() < other.Right() &&
+		r.Right() > r.Left() &&
+		r.Top() < other.Bottom() &&
+		r.Bottom() < other.Top() {
+		return true
+	}
+	return false
+}
+
 func NewRect(x, y, width, height float64) *Rect {
 	return &Rect{x, y, width, height}
+}
+
+func FromImage(x, y float64, image *ebiten.Image) *Rect {
+	size := image.Bounds().Size()
+	return &Rect{
+		x:      x,
+		y:      y,
+		width:  float64(size.X),
+		height: float64(size.Y),
+	}
+}
+
+func FromEntity(entityInstance *ebitenLDTK.EntityInstance) *Rect {
+	return &Rect{
+		x:      entityInstance.Px[0],
+		y:      entityInstance.Px[1],
+		width:  entityInstance.Width,
+		height: entityInstance.Height,
+	}
 }

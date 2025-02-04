@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/game/camera"
 	"mask_of_the_tomb/game/player"
 	"mask_of_the_tomb/game/save"
+	"mask_of_the_tomb/rect"
 	"mask_of_the_tomb/rendering"
 	. "mask_of_the_tomb/utils"
 
@@ -20,6 +21,7 @@ type Level struct {
 	tileSize     float64
 	collectibles []Collectible
 	hazards      []Hazard
+	doors        []Door
 }
 
 // This REALLY needs a rewrite
@@ -130,7 +132,7 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, x, y float64) (float6
 	}
 }
 
-func (l *Level) TryCollectibleOverlap(posX, posY, distX, distY float64) int {
+func (l *Level) GetCollectibleHit(posX, posY, distX, distY float64) int {
 	collected := 0
 	collect := func(i int) {
 		collected++
@@ -163,23 +165,36 @@ func (l *Level) TryCollectibleOverlap(posX, posY, distX, distY float64) int {
 	return collected
 }
 
-func (l *Level) TryDoorOverlap(x, y float64) (bool, ebitenLDTK.EntityInstance) {
-	for _, layerInstance := range l.levelLDTK.LayerInstances {
-		for _, entityInstance := range layerInstance.EntityInstances {
-			entity, err := l.defs.GetEntityByUid(entityInstance.DefUid)
-			HandleLazy(err)
-			if entity.Name != doorEntityName {
-				continue
-			}
-			if entityInstance.Px[0] == x && entityInstance.Px[1] == y {
-				return true, entityInstance
-			}
+// Should return (hit bool, levelUid int, posX, posY float64)
+func (l *Level) GetDoorHit(playerHitbox *rect.Rect) (hit bool, levelIid string, posX, posY float64) {
+	for _, door := range l.doors {
+		// fmt.Println("Door")
+		if door.hitbox.Overlapping(playerHitbox) {
+			hit = true
+			levelIid = door.levelIid
+			posX, posY = playerHitbox.TopLeft()
 		}
 	}
-	return false, ebitenLDTK.EntityInstance{}
+	return
 }
 
-func (l *Level) TryHazardOverlap(x, y float64) float64 {
+// func (l *Level) GetDoorHit(x, y float64) (bool, ebitenLDTK.EntityInstance) {
+// 	for _, layerInstance := range l.levelLDTK.LayerInstances {
+// 		for _, entityInstance := range layerInstance.EntityInstances {
+// 			entity, err := l.defs.GetEntityByUid(entityInstance.DefUid)
+// 			HandleLazy(err)
+// 			if entity.Name != doorEntityName {
+// 				continue
+// 			}
+// 			if entityInstance.Px[0] == x && entityInstance.Px[1] == y {
+// 				return true, entityInstance
+// 			}
+// 		}
+// 	}
+// 	return false, ebitenLDTK.EntityInstance{}
+// }
+
+func (l *Level) GetHazardHit(x, y float64) float64 {
 	for _, hazard := range l.hazards {
 		if hazard.posX+hazard.width > x && x >= hazard.posX {
 			if hazard.posY+hazard.height > y && y >= hazard.posY {
@@ -220,11 +235,15 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 		if layer.Name == collectibleLayerName {
 			for _, entityInstance := range layerInstance.EntityInstances {
 				collected := save.GlobalSave.GameData.CollectedEntityUids[entityInstance.Iid]
-				newLevel.collectibles = append(newLevel.collectibles, newCollectible(collected, entityInstance, *defs))
+				newLevel.collectibles = append(newLevel.collectibles, newCollectible(collected, &entityInstance, defs))
 			}
 		} else if layer.Name == hazardLayerName {
 			for _, entityInstance := range layerInstance.EntityInstances {
-				newLevel.hazards = append(newLevel.hazards, newHazard(entityInstance, defs))
+				newLevel.hazards = append(newLevel.hazards, newHazard(&entityInstance, defs))
+			}
+		} else if layer.Name == roomTransitionLayerName {
+			for _, entityInstance := range layerInstance.EntityInstances {
+				newLevel.doors = append(newLevel.doors, newDoor(&entityInstance))
 			}
 		}
 	}

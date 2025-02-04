@@ -8,6 +8,7 @@ import (
 	"mask_of_the_tomb/files"
 	"mask_of_the_tomb/game/camera"
 	"mask_of_the_tomb/game/health"
+	"mask_of_the_tomb/rect"
 	"mask_of_the_tomb/rendering"
 	. "mask_of_the_tomb/utils"
 	"math"
@@ -47,6 +48,7 @@ type Player struct {
 	prevPosX, prevPosY     float64
 	moveDirX, moveDirY     float64
 	moveProgress           float64
+	hitbox                 *rect.Rect
 	score                  int
 	sprite                 *ebiten.Image
 	health                 *health.HealthComponent
@@ -57,6 +59,7 @@ type Player struct {
 
 func (p *Player) Init(posX, posY float64) {
 	p.SetPos(posX, posY)
+	p.hitbox = rect.FromImage(posX, posY, p.sprite)
 }
 
 func (p *Player) Update() {
@@ -82,6 +85,7 @@ func (p *Player) Update() {
 	}
 
 	p.damageOverlay.Update()
+	p.hitbox.SetPos(p.posX, p.posY)
 }
 
 func (p *Player) Draw() {
@@ -145,6 +149,10 @@ func (p *Player) SetScore(score int) {
 
 func (p *Player) GetMovementSize() (float64, float64) {
 	return moveSpeed * p.moveDirX, moveSpeed * p.moveDirY
+}
+
+func (p *Player) GetHitbox() *rect.Rect {
+	return p.hitbox
 }
 
 func (p *Player) IsMoving() bool {

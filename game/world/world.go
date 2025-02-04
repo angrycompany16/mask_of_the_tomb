@@ -4,19 +4,21 @@ import (
 	"fmt"
 	"mask_of_the_tomb/ebitenLDTK"
 	"mask_of_the_tomb/files"
-	. "mask_of_the_tomb/utils"
+
+	// . "mask_of_the_tomb/utils"
 	"path"
 )
 
 const (
-	playerSpaceLayerName   = "Playerspace"
-	foreGroundLayerName    = "Foreground"
-	spawnPosEntityName     = "SpawnPosition"
-	doorEntityName         = "Door"
-	doorOtherSideFieldName = "OtherSide"
-	collectibleLayerName   = "Collectibles"
-	hazardLayerName        = "Hazards"
-	hazardDamageFieldName  = "Damage"
+	playerSpaceLayerName    = "Playerspace"
+	foreGroundLayerName     = "Foreground"
+	spawnPosEntityName      = "SpawnPosition"
+	doorEntityName          = "Door"
+	doorOtherSideFieldName  = "OtherSide"
+	collectibleLayerName    = "Collectibles"
+	hazardLayerName         = "Hazards"
+	hazardDamageFieldName   = "Damage"
+	roomTransitionLayerName = "RoomTransitions"
 )
 
 type World struct {
@@ -35,44 +37,44 @@ func (w *World) Init() {
 		tileset.Image = files.LazyImage(tilesetPath)
 	}
 
-	changeActiveLevel(w, 0)
+	ChangeActiveLevel(w, 0)
 }
 
 func (w *World) Update() {
 	// Anything...
 }
 
-func (w *World) ExitByDoor(doorEntity ebitenLDTK.EntityInstance) (float64, float64) {
-	entity, err := w.worldLDTK.Defs.GetEntityByUid(doorEntity.DefUid)
-	HandleLazy(err)
-	if entity.Name != doorEntityName {
-		return 0, 0 // Should honestly be error handled
-	}
-	for _, fieldInstance := range doorEntity.FieldInstances {
-		if fieldInstance.Name != doorOtherSideFieldName {
-			continue
-		}
+// func (w *World) ExitByDoor(doorEntity ebitenLDTK.EntityInstance) (float64, float64) {
+// 	entity, err := w.worldLDTK.Defs.GetEntityByUid(doorEntity.DefUid)
+// 	HandleLazy(err)
+// 	if entity.Name != doorEntityName {
+// 		return 0, 0 // Should honestly be error handled
+// 	}
+// 	for _, fieldInstance := range doorEntity.FieldInstances {
+// 		if fieldInstance.Name != doorOtherSideFieldName {
+// 			continue
+// 		}
 
-		// entityRef, ok := fieldInstance.Value.
-		// if !ok {
-		// 	fmt.Println(fieldInstance.Value)
-		// 	log.Fatal("could not get entityRef from fieldInstance in ExitByDoor")
-		// }
-		fmt.Println(fieldInstance.EntityRef)
-		fmt.Println(fieldInstance.Float)
-		nextLevel, err := w.worldLDTK.GetLevelByIid(fieldInstance.EntityRef.LevelIid)
-		HandleLazy(err)
-		// Change level
-		changeActiveLevel(w, nextLevel.Uid)
+// 		// entityRef, ok := fieldInstance.Value.
+// 		// if !ok {
+// 		// 	fmt.Println(fieldInstance.Value)
+// 		// 	log.Fatal("could not get entityRef from fieldInstance in ExitByDoor")
+// 		// }
+// 		fmt.Println(fieldInstance.EntityRef)
+// 		fmt.Println(fieldInstance.Float)
+// 		nextLevel, err := w.worldLDTK.GetLevelByIid(fieldInstance.EntityRef.LevelIid)
+// 		HandleLazy(err)
+// 		// Change level
+// 		ChangeActiveLevel(w, nextLevel.Uid)
 
-		otherSideEntityRef, err := w.ActiveLevel.levelLDTK.GetEntityInstanceByIid(fieldInstance.EntityRef.EntityIid)
-		HandleLazy(err)
-		return otherSideEntityRef.Px[0], otherSideEntityRef.Px[1]
-	}
-	return 0, 0
-}
+// 		otherSideEntityRef, err := w.ActiveLevel.levelLDTK.GetEntityInstanceByIid(fieldInstance.EntityRef.EntityIid)
+// 		HandleLazy(err)
+// 		return otherSideEntityRef.Px[0], otherSideEntityRef.Px[1]
+// 	}
+// 	return 0, 0
+// }
 
-func changeActiveLevel[T string | int](world *World, id T) error {
+func ChangeActiveLevel[T string | int](world *World, id T) error {
 	var newLevelLDTK ebitenLDTK.Level
 	var err error
 

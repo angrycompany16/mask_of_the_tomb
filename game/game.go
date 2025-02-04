@@ -1,7 +1,9 @@
 package game
 
 import (
+	"fmt"
 	"mask_of_the_tomb/commons"
+
 	// . "mask_of_the_tomb/ebitenRenderUtil"
 	ui "mask_of_the_tomb/game/UI"
 	"mask_of_the_tomb/game/camera"
@@ -9,7 +11,8 @@ import (
 	"mask_of_the_tomb/game/save"
 	"mask_of_the_tomb/game/world"
 	"mask_of_the_tomb/rendering"
-	. "mask_of_the_tomb/utils"
+
+	// . "mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -50,25 +53,36 @@ func (g *Game) Update() error {
 	}
 
 	if g.player.GetLevelSwapInput() {
-		validSwapPosition, entityInstance := g.world.ActiveLevel.TryDoorOverlap(g.player.GetPos())
+		hit, levelIid, posX, posY := g.world.ActiveLevel.GetDoorHit(g.player.GetHitbox())
 
-		if validSwapPosition {
-			newPosX, newPosY := g.world.ExitByDoor(entityInstance)
-
-			camera.GlobalCamera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
-			g.player.SetPos(F64(newPosX), F64(newPosY))
+		if hit {
+			err := world.ChangeActiveLevel(g.world, levelIid)
+			if err != nil {
+				fmt.Println("Error occured when swapping to level with iid: ", levelIid)
+				return err
+			}
+			g.player.SetPos(posX, posY)
 		}
+
+		// validSwapPosition, entityInstance := g.world.ActiveLevel.GetDoorHit(g.player.GetPos())
+
+		// if validSwapPosition {
+		// 	newPosX, newPosY := g.world.ExitByDoor(entityInstance)
+
+		// 	camera.GlobalCamera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
+		// 	g.player.SetPos(F64(newPosX), F64(newPosY))
+		// }
 	}
 
 	dx, dy := g.player.GetMovementSize()
-	collectibleOverlapCount := g.world.ActiveLevel.TryCollectibleOverlap(playerX, playerY, dx, dy)
+	collectibleOverlapCount := g.world.ActiveLevel.GetCollectibleHit(playerX, playerY, dx, dy)
 
 	if collectibleOverlapCount > 0 {
 		g.player.SetScore(g.player.GetScore() + collectibleOverlapCount)
 		g.ui.SetText(g.ui.GenerateScoreMessage(g.player.GetScore()))
 	}
 
-	damage := g.world.ActiveLevel.TryHazardOverlap(playerX, playerY)
+	damage := g.world.ActiveLevel.GetHazardHit(playerX, playerY)
 	if damage > 0 && !g.player.IsInvincible() && !g.player.IsDisabled() {
 		g.player.TakeDamage(damage)
 	}

@@ -9,7 +9,7 @@ type Hazard struct {
 }
 
 func newHazard(
-	entityInstance ebitenLDTK.EntityInstance,
+	entityInstance *ebitenLDTK.EntityInstance,
 	defs *ebitenLDTK.Defs,
 ) Hazard {
 	newHazard := Hazard{}

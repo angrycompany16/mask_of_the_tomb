@@ -25,8 +25,8 @@ func (c *Collectible) draw(surf *ebiten.Image, camX, camY float64) {
 
 func newCollectible(
 	collected bool,
-	entityInstance ebitenLDTK.EntityInstance,
-	defs ebitenLDTK.Defs,
+	entityInstance *ebitenLDTK.EntityInstance,
+	defs *ebitenLDTK.Defs,
 ) Collectible {
 	newCollectible := Collectible{}
 	newCollectible.collected = collected

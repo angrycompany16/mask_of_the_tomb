@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"mask_of_the_tomb/commons"
-	// . "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/game"
 	"mask_of_the_tomb/game/save"
 	"mask_of_the_tomb/rendering"
