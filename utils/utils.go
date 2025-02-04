@@ -2,6 +2,8 @@ package utils
 
 import "log"
 
+// TODO: improve this so that it at least gives some info about where the panicking
+// call came from. This is actually quite important
 // This should ONLY be used when you are almost completely certain that the function
 // being calles will not throw an error
 func HandleLazy(err error) {

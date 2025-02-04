@@ -7,22 +7,22 @@ import (
 )
 
 type Door struct {
-	levelIid   string
-	hitbox     rect.Rect
-	posX, posY float64
+	levelIid  string
+	entityIid string
+	hitbox    rect.Rect
 }
 
 func newDoor(
 	entityInstance *ebitenLDTK.EntityInstance,
+	level *ebitenLDTK.Level,
 ) Door {
 	newDoor := Door{}
-	newDoor.posX = entityInstance.Px[0]
-	newDoor.posY = entityInstance.Px[0]
 	newDoor.hitbox = *rect.FromEntity(entityInstance)
 
 	fieldInstance, err := entityInstance.GetFieldInstanceByName(doorOtherSideFieldName)
 	HandleLazy(err)
-	newDoor.levelIid = fieldInstance.EntityRef.EntityIid
+	newDoor.levelIid = fieldInstance.EntityRef.LevelIid
+	newDoor.entityIid = fieldInstance.EntityRef.EntityIid
 
 	return newDoor
 }

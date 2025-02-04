@@ -46,10 +46,10 @@ func (r *Rect) Draw(surf *ebiten.Image) {
 }
 
 func (r *Rect) Overlapping(other *Rect) bool {
-	if r.Left() < other.Right() &&
-		r.Right() > r.Left() &&
-		r.Top() < other.Bottom() &&
-		r.Bottom() < other.Top() {
+	if r.Left() <= other.Right() &&
+		r.Right() >= r.Left() &&
+		r.Top() <= other.Bottom() &&
+		r.Bottom() >= other.Top() {
 		return true
 	}
 	return false

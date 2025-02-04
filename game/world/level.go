@@ -165,34 +165,17 @@ func (l *Level) GetCollectibleHit(posX, posY, distX, distY float64) int {
 	return collected
 }
 
-// Should return (hit bool, levelUid int, posX, posY float64)
-func (l *Level) GetDoorHit(playerHitbox *rect.Rect) (hit bool, levelIid string, posX, posY float64) {
+func (l *Level) GetDoorHit(playerHitbox *rect.Rect) (hit bool, levelIid, entityIid string) {
 	for _, door := range l.doors {
 		// fmt.Println("Door")
 		if door.hitbox.Overlapping(playerHitbox) {
 			hit = true
 			levelIid = door.levelIid
-			posX, posY = playerHitbox.TopLeft()
+			entityIid = door.entityIid
 		}
 	}
 	return
 }
-
-// func (l *Level) GetDoorHit(x, y float64) (bool, ebitenLDTK.EntityInstance) {
-// 	for _, layerInstance := range l.levelLDTK.LayerInstances {
-// 		for _, entityInstance := range layerInstance.EntityInstances {
-// 			entity, err := l.defs.GetEntityByUid(entityInstance.DefUid)
-// 			HandleLazy(err)
-// 			if entity.Name != doorEntityName {
-// 				continue
-// 			}
-// 			if entityInstance.Px[0] == x && entityInstance.Px[1] == y {
-// 				return true, entityInstance
-// 			}
-// 		}
-// 	}
-// 	return false, ebitenLDTK.EntityInstance{}
-// }
 
 func (l *Level) GetHazardHit(x, y float64) float64 {
 	for _, hazard := range l.hazards {
@@ -203,6 +186,10 @@ func (l *Level) GetHazardHit(x, y float64) float64 {
 		}
 	}
 	return 0
+}
+
+func (l *Level) GetEntityInstanceByIid(iid string) (ebitenLDTK.EntityInstance, error) {
+	return l.levelLDTK.GetEntityInstanceByIid(iid)
 }
 
 func (l *Level) gridToWorld(x, y int) (float64, float64) {
@@ -243,7 +230,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 			}
 		} else if layer.Name == roomTransitionLayerName {
 			for _, entityInstance := range layerInstance.EntityInstances {
-				newLevel.doors = append(newLevel.doors, newDoor(&entityInstance))
+				newLevel.doors = append(newLevel.doors, newDoor(&entityInstance, levelLDTK))
 			}
 		}
 	}

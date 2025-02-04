@@ -24,8 +24,7 @@ type Game struct {
 	screenSurf *ebiten.Image
 	player     *player.Player
 	world      *world.World
-	// camera     *camera.Camera
-	ui *ui.UI
+	ui         *ui.UI
 }
 
 func (g *Game) Init() {
@@ -53,7 +52,7 @@ func (g *Game) Update() error {
 	}
 
 	if g.player.GetLevelSwapInput() {
-		hit, levelIid, posX, posY := g.world.ActiveLevel.GetDoorHit(g.player.GetHitbox())
+		hit, levelIid, entityIid := g.world.ActiveLevel.GetDoorHit(g.player.GetHitbox())
 
 		if hit {
 			err := world.ChangeActiveLevel(g.world, levelIid)
@@ -61,17 +60,17 @@ func (g *Game) Update() error {
 				fmt.Println("Error occured when swapping to level with iid: ", levelIid)
 				return err
 			}
+
+			camera.GlobalCamera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
+
+			otherSideDoor, err := g.world.ActiveLevel.GetEntityInstanceByIid(entityIid)
+			if err != nil {
+				fmt.Println("Didn't find the other side door, iid ", entityIid)
+				return err
+			}
+			posX, posY := otherSideDoor.Px[0], otherSideDoor.Px[1]
 			g.player.SetPos(posX, posY)
 		}
-
-		// validSwapPosition, entityInstance := g.world.ActiveLevel.GetDoorHit(g.player.GetPos())
-
-		// if validSwapPosition {
-		// 	newPosX, newPosY := g.world.ExitByDoor(entityInstance)
-
-		// 	camera.GlobalCamera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
-		// 	g.player.SetPos(F64(newPosX), F64(newPosY))
-		// }
 	}
 
 	dx, dy := g.player.GetMovementSize()
@@ -103,19 +102,6 @@ func (g *Game) Draw() {
 	g.world.ActiveLevel.Draw()
 	g.player.Draw()
 	g.ui.Draw()
-
-	// camX, camY := camera.GlobalCamera.GetPos()
-	// g.worldSurf.Fill(color.RGBA{255, 255, 0, 255})
-	// g.uiSurf.Clear()
-
-	// g.world.Draw(g.worldSurf, camX, camY)
-	// g.player.Draw(g.worldSurf, camX, camY)
-	// g.ui.Draw(g.uiSurf)
-
-	// DrawAtScaled(g.worldSurf, g.screenSurf, 0, 0, rendering.PixelScale, rendering.PixelScale)
-	// DrawAt(g.uiSurf, g.screenSurf, 0, 0)
-
-	// return g.screenSurf
 }
 
 func NewGame() *Game {
@@ -125,7 +111,6 @@ func NewGame() *Game {
 		screenSurf: ebiten.NewImage(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale),
 		player:     player.NewPlayer(),
 		world:      &world.World{},
-		// camera:     camera.NewCamera(),
-		ui: ui.NewUi(),
+		ui:         ui.NewUi(),
 	}
 }
