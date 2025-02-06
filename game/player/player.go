@@ -3,14 +3,14 @@ package player
 // New task - gameplay / health system
 
 import (
-	"mask_of_the_tomb/commons"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/files"
 	"mask_of_the_tomb/game/camera"
 	"mask_of_the_tomb/game/health"
 	"mask_of_the_tomb/rect"
 	"mask_of_the_tomb/rendering"
-	. "mask_of_the_tomb/utils"
+	"mask_of_the_tomb/utils"
+	. "mask_of_the_tomb/utils" // This is bad
 	"math"
 	"time"
 
@@ -63,8 +63,8 @@ func (p *Player) Init(posX, posY float64) {
 }
 
 func (p *Player) Update() {
-	p.posX += moveSpeed * p.moveDirX * commons.GlobalTimeScale
-	p.posY += moveSpeed * p.moveDirY * commons.GlobalTimeScale
+	p.posX += moveSpeed * p.moveDirX * utils.GlobalTimeScale
+	p.posY += moveSpeed * p.moveDirY * utils.GlobalTimeScale
 
 	if p.moveDirX < 0 {
 		p.posX = Clamp(p.posX, p.targetPosX, p.posX)

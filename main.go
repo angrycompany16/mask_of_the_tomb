@@ -5,10 +5,10 @@ import (
 	"flag"
 	"log"
 
-	"mask_of_the_tomb/commons"
 	"mask_of_the_tomb/game"
 	"mask_of_the_tomb/game/save"
 	"mask_of_the_tomb/rendering"
+	"mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -18,23 +18,23 @@ var (
 )
 
 type App struct {
-	world *game.Game
+	game *game.Game
 }
 
 func (a *App) Init() {
-	a.world.Init()
+	a.game.Init()
 }
 
 func (a *App) Update() error {
-	err := a.world.Update()
-	if err == commons.Terminated {
+	err := a.game.Update()
+	if err == utils.Terminated {
 		return err
 	}
 	return nil
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
-	a.world.Draw()
+	a.game.Draw()
 	rendering.RenderLayers.Draw(screen)
 }
 
@@ -60,7 +60,7 @@ func main() {
 	a.Init()
 
 	if err := ebiten.RunGame(a); err != nil {
-		if errors.Is(err, commons.Terminated) {
+		if errors.Is(err, utils.Terminated) {
 			save.GlobalSave.SaveGame()
 			return
 		}

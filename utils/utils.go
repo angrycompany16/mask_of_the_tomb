@@ -35,3 +35,7 @@ func Clamp(val, min, max float64) float64 {
 func Lerp(a, b, t float64) float64 {
 	return a*(1.0-t) + b*t
 }
+
+func Mod(x, m int) int {
+	return (x%m + m) % m
+}

@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"mask_of_the_tomb/commons"
 
 	// . "mask_of_the_tomb/ebitenRenderUtil"
 	ui "mask_of_the_tomb/game/UI"
@@ -11,6 +10,7 @@ import (
 	"mask_of_the_tomb/game/save"
 	"mask_of_the_tomb/game/world"
 	"mask_of_the_tomb/rendering"
+	"mask_of_the_tomb/utils"
 
 	// . "mask_of_the_tomb/utils"
 
@@ -19,12 +19,9 @@ import (
 )
 
 type Game struct {
-	worldSurf  *ebiten.Image
-	uiSurf     *ebiten.Image
-	screenSurf *ebiten.Image
-	player     *player.Player
-	world      *world.World
-	ui         *ui.UI
+	player *player.Player
+	world  *world.World
+	gameUI *ui.UI
 }
 
 func (g *Game) Init() {
@@ -40,10 +37,31 @@ func (g *Game) Init() {
 		(rendering.GameWidth-playerWidth)/2,
 		(rendering.GameHeight-playerHeight)/2,
 	)
-	g.ui.SetText(g.ui.GenerateScoreMessage(0))
+	g.gameUI.SetScore(0)
 }
 
+// Design goal: switching on the global state should not be needed in every update
+// function, as this
 func (g *Game) Update() error {
+	var err error
+	switch utils.GlobalState {
+	case utils.StateMainMenu:
+		g.gameUI.Update()
+	case utils.StatePlaying:
+		err = g.updateGameplay()
+		if err != nil {
+			return err
+		}
+	case utils.StatePaused:
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		return utils.Terminated
+	}
+	return nil
+}
+
+func (g *Game) updateGameplay() error {
 	playerMove := g.player.GetMoveInput()
 	playerX, playerY := g.player.GetPos()
 	if playerMove != player.DirNone && !g.player.IsMoving() && !g.player.IsDisabled() {
@@ -78,7 +96,7 @@ func (g *Game) Update() error {
 
 	if collectibleOverlapCount > 0 {
 		g.player.SetScore(g.player.GetScore() + collectibleOverlapCount)
-		g.ui.SetText(g.ui.GenerateScoreMessage(g.player.GetScore()))
+		g.gameUI.SetScore(g.player.GetScore())
 	}
 
 	damage := g.world.ActiveLevel.GetHazardHit(playerX, playerY)
@@ -91,26 +109,24 @@ func (g *Game) Update() error {
 	playerX, playerY = g.player.GetPos()
 	camera.GlobalCamera.SetPos(playerX, playerY)
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		return commons.Terminated
-	}
-
 	return nil
 }
 
 func (g *Game) Draw() {
-	g.world.ActiveLevel.Draw()
-	g.player.Draw()
-	g.ui.Draw()
+	g.gameUI.Draw()
+	switch utils.GlobalState {
+	case utils.StateMainMenu:
+	case utils.StatePlaying:
+		g.world.ActiveLevel.Draw()
+		g.player.Draw()
+	case utils.StatePaused:
+	}
 }
 
 func NewGame() *Game {
 	return &Game{
-		worldSurf:  ebiten.NewImage(rendering.GameWidth, rendering.GameHeight),
-		uiSurf:     ebiten.NewImage(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale),
-		screenSurf: ebiten.NewImage(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale),
-		player:     player.NewPlayer(),
-		world:      &world.World{},
-		ui:         ui.NewUi(),
+		player: player.NewPlayer(),
+		world:  &world.World{},
+		gameUI: ui.NewUI(),
 	}
 }

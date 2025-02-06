@@ -1,8 +1,14 @@
+// Game mechanic ideas (how to make unique mechanics?)
+// 1. Push mechanic - When the player moves they push off against the block they moved from
+// 2. Gravity mechanic - When the player moves they switch the direction of gravity
+// 3. ?
+
+// Implement lighting it would look so cool
+
 (Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
 camera space
 (Priority: MEDIUM) Split the main Update function into subfunctions for various disjoint 
 entity interactions
-(Priority: LOW) Fully integrate new design pattern for entities: (Each entity gets its
-own class, so we no longer have to iterate over all entity instances when checking collision,
-collectibles etc.)
-(Priority: LOW) Rewrite collision stuff using a Rect struct
+(Priority: MEDIUM) Separate input into its own file, generalize
+(Priority: HIGH) Improve HandleLazy() so it actually reports where the error came from
+(Priority: LOW) Make global state less global
