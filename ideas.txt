@@ -1,0 +1,8 @@
+Mechanic ideas:
+- Portals B)
+- Blocks that can be pulled? (Might be a bit difficult but we'll see)
+- Blocks that break when you stand on them (Very nice and simple, both time + puzzle mechanic)
+- The classic button
+- And of course the classic spike
+
+Let's just try to make some simple puzzles with these few mechanics

@@ -5,7 +5,6 @@ import (
 	"mask_of_the_tomb/ebitenLDTK"
 	"mask_of_the_tomb/files"
 
-	// . "mask_of_the_tomb/utils"
 	"path"
 )
 
@@ -53,7 +52,7 @@ func ChangeActiveLevel[T string | int](world *World, id T) error {
 	case string:
 		newLevelLDTK, err = world.worldLDTK.GetLevelByName(levelId)
 		if err != nil {
-			fmt.Println("Error when switching levels by name (id string), trying Iid...")
+			fmt.Println("Couldn't switch levels by name (id string), trying Iid...")
 			var Ierr error
 			newLevelLDTK, Ierr = world.worldLDTK.GetLevelByIid(levelId)
 			if Ierr != nil {

@@ -9,10 +9,65 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+// TODO: Convert into asset files? BASed
+var (
+	Mainmenu = newMenu(
+		make([]*textbox, 0),
+		[]*selectable{
+			newSelectable(
+				"Play",
+				newTextBoxSimple("Play video game", 48, 0, -100, 10, text.AlignCenter, Centered),
+				utils.TextColorNormal,
+				utils.TextColorSelected,
+			),
+			newSelectable(
+				"Options",
+				newTextBoxSimple("Options", 48, 0, 0, 10, text.AlignCenter, Centered),
+				utils.TextColorNormal,
+				utils.TextColorSelected,
+			),
+			newSelectable(
+				"Quit",
+				newTextBoxSimple("Don't play video game", 48, 0, 100, 10, text.AlignCenter, Centered),
+				utils.TextColorNormal,
+				utils.TextColorSelected,
+			),
+		},
+	)
+
+	Pausemenu = newMenu(
+		make([]*textbox, 0),
+		[]*selectable{
+			newSelectable(
+				"Resume",
+				newTextBoxSimple("Resume", 48, 0, -100, 10, text.AlignCenter, Centered),
+				utils.TextColorNormal,
+				utils.TextColorSelected,
+			),
+			newSelectable(
+				"Options",
+				newTextBoxSimple("Options", 48, 0, 0, 10, text.AlignCenter, Centered),
+				utils.TextColorNormal,
+				utils.TextColorSelected,
+			),
+			newSelectable(
+				"Quit",
+				newTextBoxSimple("Quit", 48, 0, 100, 10, text.AlignCenter, Centered),
+				utils.TextColorNormal,
+				utils.TextColorSelected,
+			),
+		},
+	)
+	Hud = newMenu(
+		[]*textbox{
+			newTextBoxSimple("Text", defaultFontSize, 24, 24, defaultLineSpacing, text.AlignStart, TopLeft),
+		},
+		make([]*selectable, 0),
+	)
+)
+
 type UI struct {
-	pausemenu *menu
-	mainmenu  *menu
-	hud       *textbox
+	activeMenu *menu
 }
 
 func (ui *UI) Init() {
@@ -22,63 +77,35 @@ func (ui *UI) Init() {
 func (ui *UI) Update() {
 	inputDir := 0
 	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
-		inputDir = -1
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyW) {
 		inputDir = 1
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyW) {
+		inputDir = -1
 	}
 
-	confirmInput := inpututil.IsKeyJustReleased(ebiten.KeySpace) || inpututil.IsKeyJustReleased(ebiten.KeyEnter)
+	ui.activeMenu.update(inputDir)
+}
 
-	switch utils.GlobalState {
-	case utils.StateMainMenu:
-		ui.mainmenu.update(inputDir, confirmInput)
-	case utils.StatePlaying:
-	case utils.StatePaused:
-	}
-	// Take input
-	// Update active UI elements
+func (ui *UI) SwitchActiveMenu(menu *menu) {
+	ui.activeMenu = menu
+	ui.activeMenu.selectorPos = 0
 }
 
 func (ui *UI) Draw() {
-	switch utils.GlobalState {
-	case utils.StateMainMenu:
-		ui.mainmenu.draw()
-	case utils.StatePlaying:
-		ui.hud.draw()
-	case utils.StatePaused:
-		ui.pausemenu.draw()
-	}
+	ui.activeMenu.draw()
 }
 
+func (ui *UI) GetConfirmations() map[string]bool {
+	return ui.activeMenu.getConfirmed()
+}
+
+// Not great, really not great
 func (ui *UI) SetScore(score int) {
-	ui.hud.text = fmt.Sprintf("YOUR SCORE IS: %d", score)
+	Hud.textboxes[0].text = fmt.Sprintf("YOUR SCORE IS: %d", score)
 }
 
+// TODO?: replace this?
 func NewUI() *UI {
 	return &UI{
-		pausemenu: newMenu(
-			[]*selectable{
-				newSelectable(
-					newTextBoxSimple("Return", 48, 24, 24, 10, text.AlignCenter),
-					utils.TextColorNormal,
-					utils.TextColorSelected,
-				),
-			},
-		),
-		mainmenu: newMenu(
-			[]*selectable{
-				newSelectable(
-					newTextBoxSimple("Play video game", 48, 24, 24, 10, text.AlignCenter),
-					utils.TextColorNormal,
-					utils.TextColorSelected,
-				),
-				newSelectable(
-					newTextBoxSimple("Don't play video game", 48, 24, 124, 10, text.AlignCenter),
-					utils.TextColorNormal,
-					utils.TextColorSelected,
-				),
-			},
-		),
-		hud: newTextBoxSimple("Text", defaultFontSize, 24, 24, defaultLineSpacing, text.AlignCenter),
+		activeMenu: Mainmenu,
 	}
 }

@@ -12,10 +12,9 @@ import (
 	"mask_of_the_tomb/rendering"
 	"mask_of_the_tomb/utils"
 
-	// . "mask_of_the_tomb/utils"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	// . "mask_of_the_tomb/utils"
 )
 
 type Game struct {
@@ -41,22 +40,37 @@ func (g *Game) Init() {
 }
 
 // Design goal: switching on the global state should not be needed in every update
-// function, as this
+// function, as this (død)
 func (g *Game) Update() error {
+	confirmations := g.gameUI.GetConfirmations()
+	g.gameUI.Update()
 	var err error
 	switch utils.GlobalState {
 	case utils.StateMainMenu:
-		g.gameUI.Update()
+		if val, ok := confirmations["Play"]; ok && val {
+			// Spawn game
+			g.Init()
+			utils.GlobalState = utils.StatePlaying
+			g.gameUI.SwitchActiveMenu(ui.Hud)
+		} else if val, ok := confirmations["Quit"]; ok && val {
+			return utils.Terminated
+		}
 	case utils.StatePlaying:
 		err = g.updateGameplay()
 		if err != nil {
 			return err
 		}
 	case utils.StatePaused:
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		return utils.Terminated
+		if val, ok := confirmations["Resume"]; ok && val {
+			utils.GlobalState = utils.StatePlaying
+			g.gameUI.SwitchActiveMenu(ui.Hud)
+		} else if val, ok := confirmations["Quit"]; ok && val {
+			// Save data and stuff
+			// Loading screens
+			// etc
+			utils.GlobalState = utils.StateMainMenu
+			g.gameUI.SwitchActiveMenu(ui.Mainmenu)
+		}
 	}
 	return nil
 }
@@ -109,6 +123,11 @@ func (g *Game) updateGameplay() error {
 	playerX, playerY = g.player.GetPos()
 	camera.GlobalCamera.SetPos(playerX, playerY)
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		utils.GlobalState = utils.StatePaused
+		g.gameUI.SwitchActiveMenu(ui.Pausemenu)
+	}
+
 	return nil
 }
 
@@ -120,6 +139,8 @@ func (g *Game) Draw() {
 		g.world.ActiveLevel.Draw()
 		g.player.Draw()
 	case utils.StatePaused:
+		g.world.ActiveLevel.Draw()
+		g.player.Draw()
 	}
 }
 

@@ -22,7 +22,7 @@ type App struct {
 }
 
 func (a *App) Init() {
-	a.game.Init()
+
 }
 
 func (a *App) Update() error {

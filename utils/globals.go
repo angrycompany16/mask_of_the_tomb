@@ -18,6 +18,8 @@ var (
 		BrightColor: color.RGBA{255, 255, 255, 255},
 		DarkColor:   color.RGBA{0, 0, 0, 255},
 	}
+
+	DefaultShadowX, DefaultShadowY = -4.0, 4.0
 )
 
 // Global state

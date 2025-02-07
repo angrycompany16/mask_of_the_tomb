@@ -12,3 +12,4 @@ entity interactions
 (Priority: MEDIUM) Separate input into its own file, generalize
 (Priority: HIGH) Improve HandleLazy() so it actually reports where the error came from
 (Priority: LOW) Make global state less global
+(Priority: LOW) Make input buffer for movement inputs
