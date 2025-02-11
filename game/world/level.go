@@ -135,8 +135,9 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (pos
 	case player.DirUp:
 		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
 			for j := gridY; j >= 0; j-- {
+				fmt.Println("x, y: ", i, j)
 				if l.tiles[j][i] == 1 {
-					y = MinInt(y, j)
+					y = j + 1
 					break
 				}
 			}
@@ -145,7 +146,7 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (pos
 		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
 			for j := gridY; j <= len(l.tiles); j++ {
 				if l.tiles[j][i] == 1 {
-					y = MaxInt(y, j)
+					y = j
 					break
 				}
 			}
@@ -154,7 +155,7 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (pos
 		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
 			for i := gridX; i >= 0; i-- {
 				if l.tiles[j][i] == 1 {
-					x = MaxInt(x, i)
+					x = i + 1
 					break
 				}
 			}
@@ -163,8 +164,8 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (pos
 		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
 			for i := gridX; i < len(l.tiles[0]); i++ {
 				if l.tiles[j][i] == 1 {
-					fmt.Println("x, y: ", i, j)
-					x = MinInt(x, i)
+					// fmt.Println("x, y: ", i, j)
+					x = i
 					break
 				}
 			}
