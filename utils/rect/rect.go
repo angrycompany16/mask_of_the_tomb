@@ -34,7 +34,15 @@ func (r *Rect) Center() (float64, float64) {
 }
 
 func (r *Rect) TopLeft() (float64, float64) {
-	return r.Left(), r.Right()
+	return r.Left(), r.Top()
+}
+
+func (r *Rect) Width() float64 {
+	return r.width
+}
+
+func (r *Rect) Height() float64 {
+	return r.height
 }
 
 func (r *Rect) SetPos(x, y float64) {

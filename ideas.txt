@@ -4,5 +4,6 @@ Mechanic ideas:
 - Blocks that break when you stand on them (Very nice and simple, both time + puzzle mechanic)
 - The classic button
 - And of course the classic spike
+- Changing size ??? Holup goated idea
 
 Let's just try to make some simple puzzles with these few mechanics

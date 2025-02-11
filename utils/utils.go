@@ -1,6 +1,9 @@
 package utils
 
-import "log"
+import (
+	"log"
+	"math"
+)
 
 // TODO: improve this so that it at least gives some info about where the panicking
 // call came from. This is actually quite important
@@ -38,4 +41,12 @@ func Lerp(a, b, t float64) float64 {
 
 func Mod(x, m int) int {
 	return (x%m + m) % m
+}
+
+func MinInt(a, b int) int {
+	return int(math.Min(F64(a), F64(b)))
+}
+
+func MaxInt(a, b int) int {
+	return int(math.Max(F64(a), F64(b)))
 }

@@ -2,8 +2,8 @@ package world
 
 import (
 	"mask_of_the_tomb/ebitenLDTK"
-	"mask_of_the_tomb/rect"
 	. "mask_of_the_tomb/utils"
+	"mask_of_the_tomb/utils/rect"
 )
 
 type Door struct {

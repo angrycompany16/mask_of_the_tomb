@@ -1,15 +1,16 @@
 package world
 
 import (
+	"fmt"
 	"image"
 	"mask_of_the_tomb/ebitenLDTK"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/game/camera"
 	"mask_of_the_tomb/game/player"
 	"mask_of_the_tomb/game/save"
-	"mask_of_the_tomb/rect"
 	"mask_of_the_tomb/rendering"
 	. "mask_of_the_tomb/utils"
+	"mask_of_the_tomb/utils/rect"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -25,6 +26,7 @@ type Level struct {
 }
 
 // This REALLY needs a rewrite
+// Now it REALLY REALLY needs a rewrite
 func (l *Level) Draw() {
 	camX, camY := camera.GlobalCamera.GetPos()
 	for i := len(l.levelLDTK.LayerInstances) - 1; i >= 0; i-- {
@@ -70,6 +72,38 @@ func (l *Level) Draw() {
 					targetLayer,
 					tile.Px[0]-camX, tile.Px[1]-camY, scaleX, scaleY, 0.5, 0.5)
 			}
+		} else if layer.Type == ebitenLDTK.LayerTypeIntGrid {
+			targetLayer := rendering.RenderLayers.Playerspace
+
+			tileset, err := l.defs.GetTilesetByUid(layer.TilesetUid)
+			if err != nil {
+				fmt.Println("Failed to get tileset by uid", layer.TilesetUid)
+				return
+			}
+			// fmt.Println("IntGrid")
+
+			tileSize := tileset.TileGridSize
+			for _, tile := range layerInstance.AutoLayerTiles {
+				scaleX, scaleY := 1.0, 1.0
+				switch tile.TileOrientation {
+				case ebitenLDTK.OrientationFlipX:
+					scaleX = -1
+				case ebitenLDTK.OrientationFlipY:
+					scaleY = -1
+				case ebitenLDTK.OrientationFlipXY:
+					scaleX, scaleY = -1, -1
+				}
+				DrawAtScaled(tileset.Image.SubImage(
+					image.Rect(
+						int(tile.Src[0]),
+						int(tile.Src[1]),
+						int(tile.Src[0]+tileSize),
+						int(tile.Src[1]+tileSize),
+					),
+				).(*ebiten.Image),
+					targetLayer,
+					tile.Px[0]-camX, tile.Px[1]-camY, scaleX, scaleY, 0.5, 0.5)
+			}
 		}
 	}
 }
@@ -92,45 +126,96 @@ func (l *Level) GetLevelBounds() (float64, float64) {
 	return l.levelLDTK.PxWid, l.levelLDTK.PxHei
 }
 
-func (l *Level) GetCollision(moveDir player.MoveDirection, x, y float64) (float64, float64) {
-	gridX, gridY := l.worldToGrid(x, y)
+func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (posX, posY float64) {
+	gridX, gridY := l.worldToGrid(rect.TopLeft())
+	x := gridX
+	y := gridY
+	fmt.Println("gridX, gridY: ", gridX, gridY)
 	switch moveDir {
 	case player.DirUp:
-		for i := gridY; i >= 0; i-- {
-			if l.tiles[i][gridX] == 1 {
-				newX, newY := l.gridToWorld(gridX, i+1)
-				return newX, newY
+		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
+			for j := gridY; j >= 0; j-- {
+				if l.tiles[j][i] == 1 {
+					y = MinInt(y, j)
+					break
+				}
 			}
 		}
-		return x, y
 	case player.DirDown:
-		for i := gridY; i < len(l.tiles); i++ {
-			if l.tiles[i][gridX] == 1 {
-				newX, newY := l.gridToWorld(gridX, i-1)
-				return newX, newY
+		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
+			for j := gridY; j <= len(l.tiles); j++ {
+				if l.tiles[j][i] == 1 {
+					y = MaxInt(y, j)
+					break
+				}
 			}
 		}
-		return x, y
 	case player.DirLeft:
-		for i := gridX; i >= 0; i-- {
-			if l.tiles[gridY][i] == 1 {
-				newX, newY := l.gridToWorld(i+1, gridY)
-				return newX, newY
+		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
+			for i := gridX; i >= 0; i-- {
+				if l.tiles[j][i] == 1 {
+					x = MaxInt(x, i)
+					break
+				}
 			}
 		}
-		return x, y
 	case player.DirRight:
-		for i := gridX; i < len(l.tiles[0]); i++ {
-			if l.tiles[gridY][i] == 1 {
-				newX, newY := l.gridToWorld(i-1, gridY)
-				return newX, newY
+		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
+			for i := gridX; i < len(l.tiles[0]); i++ {
+				if l.tiles[j][i] == 1 {
+					fmt.Println("x, y: ", i, j)
+					x = MinInt(x, i)
+					break
+				}
 			}
 		}
-		return x, y
-	default:
-		return x, y
 	}
+	posX, posY = l.gridToWorld(x, y)
+	fmt.Println("posX, posY: ", posX, posY)
+	return
 }
+
+// func (l *Level) GetCollision(moveDir player.MoveDirection, x, y float64) (float64, float64) {
+// 	gridX, gridY := l.worldToGrid(x, y)
+
+// 	switch moveDir {
+// 	case player.DirUp:
+// 		// Iterate up from the
+// 		for i := gridY; i >= 0; i-- {
+// 			if l.tiles[i][gridX] == 1 {
+// 				newX, newY := l.gridToWorld(gridX, i+1)
+// 				return newX, newY
+// 			}
+// 		}
+// 		return x, y
+// 	case player.DirDown:
+// 		for i := gridY; i < len(l.tiles); i++ {
+// 			if l.tiles[i][gridX] == 1 {
+// 				newX, newY := l.gridToWorld(gridX, i-1)
+// 				return newX, newY
+// 			}
+// 		}
+// 		return x, y
+// 	case player.DirLeft:
+// 		for i := gridX; i >= 0; i-- {
+// 			if l.tiles[gridY][i] == 1 {
+// 				newX, newY := l.gridToWorld(i+1, gridY)
+// 				return newX, newY
+// 			}
+// 		}
+// 		return x, y
+// 	case player.DirRight:
+// 		for i := gridX; i < len(l.tiles[0]); i++ {
+// 			if l.tiles[gridY][i] == 1 {
+// 				newX, newY := l.gridToWorld(i-1, gridY)
+// 				return newX, newY
+// 			}
+// 		}
+// 		return x, y
+// 	default:
+// 		return x, y
+// 	}
+// }
 
 func (l *Level) GetCollectibleHit(posX, posY, distX, distY float64) int {
 	collected := 0
@@ -204,6 +289,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 	newLevel := Level{}
 	newLevel.levelLDTK = levelLDTK
 	newLevel.defs = defs
+
 	newLevel.tiles = levelLDTK.MakeBitmapFromLayer(defs, playerSpaceLayerName)
 
 	playerspace, err := levelLDTK.GetLayerInstanceByName(playerSpaceLayerName)
