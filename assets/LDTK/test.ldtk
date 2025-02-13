@@ -11,7 +11,7 @@
 	"iid": "94589810-c210-11ef-b2e6-99619d5a4f10",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 473703,
-	"nextUid": 81,
+	"nextUid": 82,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "GridVania",
@@ -1715,6 +1715,41 @@
 					"tilesetUid": null
 				}
 			]
+		},
+		{
+			"identifier": "Breakable",
+			"uid": 81,
+			"tags": [],
+			"exportToToc": false,
+			"allowOutOfBounds": false,
+			"doc": null,
+			"width": 8,
+			"height": 8,
+			"resizableX": false,
+			"resizableY": false,
+			"minWidth": null,
+			"maxWidth": null,
+			"minHeight": null,
+			"maxHeight": null,
+			"keepAspectRatio": false,
+			"tileOpacity": 1,
+			"fillOpacity": 1,
+			"lineOpacity": 1,
+			"hollow": false,
+			"color": "#67ECDF",
+			"renderMode": "Rectangle",
+			"showName": true,
+			"tilesetId": null,
+			"tileRenderMode": "FitInside",
+			"tileRect": null,
+			"uiTileRect": { "tilesetUid": 25, "x": 48, "y": 32, "w": 8, "h": 8 },
+			"nineSliceBorders": [],
+			"maxCount": 0,
+			"limitScope": "PerLevel",
+			"limitBehavior": "MoveLastOne",
+			"pivotX": 0,
+			"pivotY": 0,
+			"fieldDefs": []
 		}
 	], "tilesets": [
 		{

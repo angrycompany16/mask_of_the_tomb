@@ -1,0 +1,3 @@
+Animation class which chooses from a spritesheet
+- Represent animations with .yaml files?
+- Need some kind of asset loader system, maybe multithread it?

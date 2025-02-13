@@ -79,7 +79,6 @@ func (g *Game) updateGameplay() error {
 	playerMove := g.player.GetMoveInput()
 	playerX, playerY := g.player.GetPos()
 	if playerMove != player.DirNone && !g.player.IsMoving() && !g.player.IsDisabled() {
-		fmt.Println("hitbox: ", g.player.GetHitbox())
 		targetX, targetY := g.world.ActiveLevel.GetCollision(playerMove, g.player.GetHitbox())
 		switch playerMove {
 		case player.DirUp:

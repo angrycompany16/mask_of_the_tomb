@@ -130,12 +130,10 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (pos
 	gridX, gridY := l.worldToGrid(rect.TopLeft())
 	x := gridX
 	y := gridY
-	fmt.Println("gridX, gridY: ", gridX, gridY)
 	switch moveDir {
 	case player.DirUp:
 		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
 			for j := gridY; j >= 0; j-- {
-				fmt.Println("x, y: ", i, j)
 				if l.tiles[j][i] == 1 {
 					y = j + 1
 					break
@@ -164,7 +162,6 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (pos
 		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
 			for i := gridX; i < len(l.tiles[0]); i++ {
 				if l.tiles[j][i] == 1 {
-					// fmt.Println("x, y: ", i, j)
 					x = i
 					break
 				}
@@ -172,51 +169,8 @@ func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (pos
 		}
 	}
 	posX, posY = l.gridToWorld(x, y)
-	fmt.Println("posX, posY: ", posX, posY)
 	return
 }
-
-// func (l *Level) GetCollision(moveDir player.MoveDirection, x, y float64) (float64, float64) {
-// 	gridX, gridY := l.worldToGrid(x, y)
-
-// 	switch moveDir {
-// 	case player.DirUp:
-// 		// Iterate up from the
-// 		for i := gridY; i >= 0; i-- {
-// 			if l.tiles[i][gridX] == 1 {
-// 				newX, newY := l.gridToWorld(gridX, i+1)
-// 				return newX, newY
-// 			}
-// 		}
-// 		return x, y
-// 	case player.DirDown:
-// 		for i := gridY; i < len(l.tiles); i++ {
-// 			if l.tiles[i][gridX] == 1 {
-// 				newX, newY := l.gridToWorld(gridX, i-1)
-// 				return newX, newY
-// 			}
-// 		}
-// 		return x, y
-// 	case player.DirLeft:
-// 		for i := gridX; i >= 0; i-- {
-// 			if l.tiles[gridY][i] == 1 {
-// 				newX, newY := l.gridToWorld(i+1, gridY)
-// 				return newX, newY
-// 			}
-// 		}
-// 		return x, y
-// 	case player.DirRight:
-// 		for i := gridX; i < len(l.tiles[0]); i++ {
-// 			if l.tiles[gridY][i] == 1 {
-// 				newX, newY := l.gridToWorld(i-1, gridY)
-// 				return newX, newY
-// 			}
-// 		}
-// 		return x, y
-// 	default:
-// 		return x, y
-// 	}
-// }
 
 func (l *Level) GetCollectibleHit(posX, posY, distX, distY float64) int {
 	collected := 0
@@ -253,7 +207,6 @@ func (l *Level) GetCollectibleHit(posX, posY, distX, distY float64) int {
 
 func (l *Level) GetDoorHit(playerHitbox *rect.Rect) (hit bool, levelIid, entityIid string) {
 	for _, door := range l.doors {
-		// fmt.Println("Door")
 		if door.hitbox.Overlapping(playerHitbox) {
 			hit = true
 			levelIid = door.levelIid
@@ -263,6 +216,7 @@ func (l *Level) GetDoorHit(playerHitbox *rect.Rect) (hit bool, levelIid, entityI
 	return
 }
 
+// TODO: rewrite with rect
 func (l *Level) GetHazardHit(x, y float64) float64 {
 	for _, hazard := range l.hazards {
 		if hazard.posX+hazard.width > x && x >= hazard.posX {
