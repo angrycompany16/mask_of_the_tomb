@@ -19,6 +19,7 @@ const (
 	hazardDamageFieldName   = "Damage"
 	roomTransitionLayerName = "Doors"
 	spawnPointLayerName     = "SpawnPoint"
+	breakableBlockLayerName = "BreakableBlocks"
 )
 
 type World struct {
@@ -41,7 +42,7 @@ func (w *World) Init() {
 }
 
 func (w *World) Update() {
-	// Anything...
+	w.ActiveLevel.Update()
 }
 
 func ChangeActiveLevel[T string | int](world *World, id T) error {

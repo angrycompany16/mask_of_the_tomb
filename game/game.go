@@ -49,13 +49,12 @@ func (g *Game) Update() error {
 	case utils.StateMainMenu:
 		if val, ok := confirmations["Play"]; ok && val {
 			// Spawn game
-			g.Init()
-			utils.GlobalState = utils.StatePlaying
-			g.gameUI.SwitchActiveMenu(ui.Hud)
+			g.EnterPlayMode()
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			return utils.Terminated
 		}
 	case utils.StatePlaying:
+		g.world.Update()
 		err = g.updateGameplay()
 		if err != nil {
 			return err
@@ -151,6 +150,12 @@ func (g *Game) Draw() {
 		g.world.ActiveLevel.Draw()
 		g.player.Draw()
 	}
+}
+
+func (g *Game) EnterPlayMode() {
+	g.Init()
+	utils.GlobalState = utils.StatePlaying
+	g.gameUI.SwitchActiveMenu(ui.Hud)
 }
 
 func NewGame() *Game {

@@ -5,6 +5,7 @@ package player
 import (
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/files"
+	"mask_of_the_tomb/game/animation"
 	"mask_of_the_tomb/game/camera"
 	"mask_of_the_tomb/game/health"
 	"mask_of_the_tomb/rendering"
@@ -41,6 +42,7 @@ const (
 	invincibilityDuration = time.Second
 )
 
+// Convert to animation state machine, turn into asset file?
 type Player struct {
 	posX, posY             float64
 	targetPosX, targetPosY float64
@@ -50,10 +52,12 @@ type Player struct {
 	hitbox                 *rect.Rect
 	score                  int
 	sprite                 *ebiten.Image
+	playerTestAnim         *animation.Animation
 	health                 *health.HealthComponent
 	invincible             bool
 	disabled               bool
 	damageOverlay          damageOverlay
+	angle                  float64
 }
 
 func (p *Player) Init(posX, posY float64) {
@@ -85,11 +89,23 @@ func (p *Player) Update() {
 
 	p.damageOverlay.Update()
 	p.hitbox.SetPos(p.posX, p.posY)
+
+	p.playerTestAnim.Update()
 }
 
 func (p *Player) Draw() {
 	camX, camY := camera.GlobalCamera.GetPos()
-	DrawAt(p.sprite, rendering.RenderLayers.Playerspace, p.posX-camX, p.posY-camY)
+	DrawAtRotated(
+		p.playerTestAnim.GetSprite(),
+		rendering.RenderLayers.Playerspace,
+		p.posX-camX,
+		p.posY-camY,
+		p.angle,
+		0.5,
+		0.5,
+	)
+
+	// DrawAt(p.sprite, rendering.RenderLayers.Playerspace, p.posX-camX, p.posY-camY)
 	p.damageOverlay.Draw()
 }
 
@@ -99,12 +115,16 @@ func (p *Player) GetLevelSwapInput() bool {
 
 func (p *Player) GetMoveInput() MoveDirection {
 	if inpututil.IsKeyJustPressed(ebiten.KeyW) {
+		p.angle = 0
 		return DirUp
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		p.angle = math.Pi
 		return DirDown
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		p.angle = math.Pi / 2
 		return DirRight
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyA) {
+		p.angle = 3 * math.Pi / 2
 		return DirLeft
 	}
 	return DirNone
@@ -189,8 +209,14 @@ func (p *Player) IsDisabled() bool {
 
 func NewPlayer() *Player {
 	return &Player{
-		moveProgress:  1,
-		sprite:        files.LazyImage(PlayerSpritePath),
+		moveProgress: 1,
+		sprite:       files.LazyImage(PlayerSpritePath),
+		playerTestAnim: animation.NewAnimation(
+			animation.NewSpritesheetAuto(files.LazyImage(IdleSpritesheetPath)),
+			0.1666667,
+			animation.Strip,
+			animation.Loop,
+		),
 		health:        health.NewHealthComponent(defaultPlayerHealth),
 		damageOverlay: newDamageOverlay(),
 		invincible:    false,

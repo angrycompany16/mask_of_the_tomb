@@ -10,7 +10,6 @@ type Hazard struct {
 
 func newHazard(
 	entityInstance *ebitenLDTK.EntityInstance,
-	defs *ebitenLDTK.Defs,
 ) Hazard {
 	newHazard := Hazard{}
 	newHazard.posX = entityInstance.Px[0]

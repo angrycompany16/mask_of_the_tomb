@@ -16,18 +16,29 @@ import (
 )
 
 type Level struct {
-	defs         *ebitenLDTK.Defs
-	levelLDTK    *ebitenLDTK.Level
-	tiles        [][]int
-	tileSize     float64
-	collectibles []Collectible
-	hazards      []Hazard
-	doors        []Door
+	defs            *ebitenLDTK.Defs
+	levelLDTK       *ebitenLDTK.Level
+	tiles           [][]int
+	tileSize        float64
+	collectibles    []Collectible
+	hazards         []Hazard
+	doors           []Door
+	breakableblocks []BreakableBlock
+}
+
+func (l *Level) Update() {
+	for _, block := range l.breakableblocks {
+		block.Update()
+	}
 }
 
 // This REALLY needs a rewrite
 // Now it REALLY REALLY needs a rewrite
 func (l *Level) Draw() {
+	for _, block := range l.breakableblocks {
+		block.Draw()
+	}
+
 	camX, camY := camera.GlobalCamera.GetPos()
 	for i := len(l.levelLDTK.LayerInstances) - 1; i >= 0; i-- {
 		layerInstance := l.levelLDTK.LayerInstances[i]
@@ -240,6 +251,7 @@ func (l *Level) worldToGrid(x, y float64) (int, int) {
 	return int(x / l.tileSize), int(y / l.tileSize)
 }
 
+// TODO: Make layer collision bitmap dynamic
 func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error) {
 	newLevel := Level{}
 	newLevel.levelLDTK = levelLDTK
@@ -267,11 +279,15 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 			}
 		} else if layer.Name == hazardLayerName {
 			for _, entityInstance := range layerInstance.EntityInstances {
-				newLevel.hazards = append(newLevel.hazards, newHazard(&entityInstance, defs))
+				newLevel.hazards = append(newLevel.hazards, newHazard(&entityInstance))
 			}
 		} else if layer.Name == roomTransitionLayerName {
 			for _, entityInstance := range layerInstance.EntityInstances {
 				newLevel.doors = append(newLevel.doors, newDoor(&entityInstance, levelLDTK))
+			}
+		} else if layer.Name == breakableBlockLayerName {
+			for _, entityInstance := range layerInstance.EntityInstances {
+				newLevel.breakableblocks = append(newLevel.breakableblocks, *NewBreakableBlock(&entityInstance))
 			}
 		}
 	}
