@@ -9,15 +9,15 @@ type Hazard struct {
 }
 
 func newHazard(
-	entityInstance *ebitenLDTK.EntityInstance,
+	entity *ebitenLDTK.Entity,
 ) Hazard {
 	newHazard := Hazard{}
-	newHazard.posX = entityInstance.Px[0]
-	newHazard.posY = entityInstance.Px[1]
-	newHazard.width = entityInstance.Width
-	newHazard.height = entityInstance.Height
+	newHazard.posX = entity.Px[0]
+	newHazard.posY = entity.Px[1]
+	newHazard.width = entity.Width
+	newHazard.height = entity.Height
 
-	for _, fieldInstance := range entityInstance.FieldInstances {
+	for _, fieldInstance := range entity.Fields {
 		if fieldInstance.Name == hazardDamageFieldName {
 			newHazard.damage = fieldInstance.Float
 		}

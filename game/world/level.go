@@ -1,12 +1,11 @@
 package world
 
 import (
-	"fmt"
 	"image"
 	"mask_of_the_tomb/ebitenLDTK"
 	. "mask_of_the_tomb/ebitenRenderUtil"
 	"mask_of_the_tomb/game/camera"
-	"mask_of_the_tomb/game/player"
+	"mask_of_the_tomb/game/physics"
 	"mask_of_the_tomb/game/save"
 	"mask_of_the_tomb/rendering"
 	. "mask_of_the_tomb/utils"
@@ -15,15 +14,24 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// Collision detection system structure
+// - Note: Player should collide with static level geometry, movable blocks, maybe
+//   interactables and foliage etc...
+// - Need some way to specify collision masks or something, a way to determine what collides
+//   with what
+// - This calls for a new package collision
+
 type Level struct {
 	defs            *ebitenLDTK.Defs
 	levelLDTK       *ebitenLDTK.Level
-	tiles           [][]int
+	TilemapCollider physics.TilemapCollider
+	// tiles           [][]int
 	tileSize        float64
 	collectibles    []Collectible
 	hazards         []Hazard
 	doors           []Door
 	breakableblocks []BreakableBlock
+	slamboxes       []slambox
 }
 
 func (l *Level) Update() {
@@ -40,11 +48,8 @@ func (l *Level) Draw() {
 	}
 
 	camX, camY := camera.GlobalCamera.GetPos()
-	for i := len(l.levelLDTK.LayerInstances) - 1; i >= 0; i-- {
-		layerInstance := l.levelLDTK.LayerInstances[i]
-
-		layer, err := l.defs.GetLayerByUid(layerInstance.LayerDefUid)
-		HandleLazy(err)
+	for i := len(l.levelLDTK.Layers) - 1; i >= 0; i-- {
+		layer := l.levelLDTK.Layers[i]
 
 		if layer.Name == collectibleLayerName {
 			for _, collectible := range l.collectibles {
@@ -62,7 +67,7 @@ func (l *Level) Draw() {
 			HandleLazy(err)
 
 			tileSize := tileset.TileGridSize
-			for _, tile := range layerInstance.GridTiles {
+			for _, tile := range layer.GridTiles {
 				scaleX, scaleY := 1.0, 1.0
 				switch tile.TileOrientation {
 				case ebitenLDTK.OrientationFlipX:
@@ -87,14 +92,10 @@ func (l *Level) Draw() {
 			targetLayer := rendering.RenderLayers.Playerspace
 
 			tileset, err := l.defs.GetTilesetByUid(layer.TilesetUid)
-			if err != nil {
-				fmt.Println("Failed to get tileset by uid", layer.TilesetUid)
-				return
-			}
-			// fmt.Println("IntGrid")
+			HandleLazy(err)
 
 			tileSize := tileset.TileGridSize
-			for _, tile := range layerInstance.AutoLayerTiles {
+			for _, tile := range layer.AutoLayerTiles {
 				scaleX, scaleY := 1.0, 1.0
 				switch tile.TileOrientation {
 				case ebitenLDTK.OrientationFlipX:
@@ -120,14 +121,12 @@ func (l *Level) Draw() {
 }
 
 func (l *Level) GetSpawnPoint() (float64, float64) {
-	for _, layerInstance := range l.levelLDTK.LayerInstances {
-		for _, entityInstance := range layerInstance.EntityInstances {
-			entity, err := l.defs.GetEntityByUid(entityInstance.DefUid)
-			HandleLazy(err)
+	for _, layer := range l.levelLDTK.Layers {
+		for _, entity := range layer.Entities {
 			if entity.Name != spawnPosEntityName {
 				continue
 			}
-			return entityInstance.Px[0], entityInstance.Px[1]
+			return entity.Px[0], entity.Px[1]
 		}
 	}
 	return 0, 0
@@ -137,51 +136,52 @@ func (l *Level) GetLevelBounds() (float64, float64) {
 	return l.levelLDTK.PxWid, l.levelLDTK.PxHei
 }
 
-func (l *Level) GetCollision(moveDir player.MoveDirection, rect *rect.Rect) (posX, posY float64) {
-	gridX, gridY := l.worldToGrid(rect.TopLeft())
-	x := gridX
-	y := gridY
-	switch moveDir {
-	case player.DirUp:
-		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
-			for j := gridY; j >= 0; j-- {
-				if l.tiles[j][i] == 1 {
-					y = j + 1
-					break
-				}
-			}
-		}
-	case player.DirDown:
-		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
-			for j := gridY; j <= len(l.tiles); j++ {
-				if l.tiles[j][i] == 1 {
-					y = j
-					break
-				}
-			}
-		}
-	case player.DirLeft:
-		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
-			for i := gridX; i >= 0; i-- {
-				if l.tiles[j][i] == 1 {
-					x = i + 1
-					break
-				}
-			}
-		}
-	case player.DirRight:
-		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
-			for i := gridX; i < len(l.tiles[0]); i++ {
-				if l.tiles[j][i] == 1 {
-					x = i
-					break
-				}
-			}
-		}
-	}
-	posX, posY = l.gridToWorld(x, y)
-	return
-}
+// Projects a Rect through the map in a certain direction
+// func (l *Level) GetCollision(moveDir utils.Direction, rect *rect.Rect) (posX, posY float64) {
+// 	gridX, gridY := l.worldToGrid(rect.TopLeft())
+// 	x := gridX
+// 	y := gridY
+// 	switch moveDir {
+// 	case utils.DirUp:
+// 		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
+// 			for j := gridY; j >= 0; j-- {
+// 				if l.tiles[j][i] == 1 {
+// 					y = j + 1
+// 					break
+// 				}
+// 			}
+// 		}
+// 	case utils.DirDown:
+// 		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
+// 			for j := gridY; j <= len(l.tiles); j++ {
+// 				if l.tiles[j][i] == 1 {
+// 					y = j
+// 					break
+// 				}
+// 			}
+// 		}
+// 	case utils.DirLeft:
+// 		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
+// 			for i := gridX; i >= 0; i-- {
+// 				if l.tiles[j][i] == 1 {
+// 					x = i + 1
+// 					break
+// 				}
+// 			}
+// 		}
+// 	case utils.DirRight:
+// 		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
+// 			for i := gridX; i < len(l.tiles[0]); i++ {
+// 				if l.tiles[j][i] == 1 {
+// 					x = i
+// 					break
+// 				}
+// 			}
+// 		}
+// 	}
+// 	posX, posY = l.gridToWorld(x, y)
+// 	return
+// }
 
 func (l *Level) GetCollectibleHit(posX, posY, distX, distY float64) int {
 	collected := 0
@@ -239,8 +239,8 @@ func (l *Level) GetHazardHit(x, y float64) float64 {
 	return 0
 }
 
-func (l *Level) GetEntityInstanceByIid(iid string) (ebitenLDTK.EntityInstance, error) {
-	return l.levelLDTK.GetEntityInstanceByIid(iid)
+func (l *Level) GetEntityByIid(iid string) (ebitenLDTK.Entity, error) {
+	return l.levelLDTK.GetEntityByIid(iid)
 }
 
 func (l *Level) gridToWorld(x, y int) (float64, float64) {
@@ -257,37 +257,41 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 	newLevel.levelLDTK = levelLDTK
 	newLevel.defs = defs
 
-	newLevel.tiles = levelLDTK.MakeBitmapFromLayer(defs, playerSpaceLayerName)
+	newLevel.TilemapCollider.Tiles = levelLDTK.MakeBitmapFromLayer(defs, playerSpaceLayerName)
+	// newLevel.tiles = levelLDTK.MakeBitmapFromLayer(defs, playerSpaceLayerName)
 
-	playerspace, err := levelLDTK.GetLayerInstanceByName(playerSpaceLayerName)
+	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
 		newLevel.tileSize = 1
+		newLevel.TilemapCollider.TileSize = 1
 		return newLevel, nil
 	}
 
-	layer, err := defs.GetLayerByUid(playerspace.LayerDefUid)
-	HandleLazy(err)
-	newLevel.tileSize = layer.GridSize
+	newLevel.tileSize = float64(playerspace.GridSize)
+	newLevel.TilemapCollider.TileSize = float64(playerspace.GridSize)
 
-	for _, layerInstance := range levelLDTK.LayerInstances {
-		layer, err := defs.GetLayerByUid(layerInstance.LayerDefUid)
-		HandleLazy(err)
+	for _, layer := range levelLDTK.Layers {
 		if layer.Name == collectibleLayerName {
-			for _, entityInstance := range layerInstance.EntityInstances {
-				collected := save.GlobalSave.GameData.CollectedEntityUids[entityInstance.Iid]
-				newLevel.collectibles = append(newLevel.collectibles, newCollectible(collected, &entityInstance, defs))
+			for _, entity := range layer.Entities {
+				collected := save.GlobalSave.GameData.CollectedEntityUids[entity.Iid]
+				newLevel.collectibles = append(newLevel.collectibles, newCollectible(collected, &entity, defs))
 			}
 		} else if layer.Name == hazardLayerName {
-			for _, entityInstance := range layerInstance.EntityInstances {
-				newLevel.hazards = append(newLevel.hazards, newHazard(&entityInstance))
+			for _, entity := range layer.Entities {
+				newLevel.hazards = append(newLevel.hazards, newHazard(&entity))
 			}
 		} else if layer.Name == roomTransitionLayerName {
-			for _, entityInstance := range layerInstance.EntityInstances {
-				newLevel.doors = append(newLevel.doors, newDoor(&entityInstance, levelLDTK))
+			for _, entity := range layer.Entities {
+				newLevel.doors = append(newLevel.doors, newDoor(&entity))
 			}
 		} else if layer.Name == breakableBlockLayerName {
-			for _, entityInstance := range layerInstance.EntityInstances {
-				newLevel.breakableblocks = append(newLevel.breakableblocks, *NewBreakableBlock(&entityInstance))
+			for _, entity := range layer.Entities {
+				// TODO: remove the pointer thingy here
+				newLevel.breakableblocks = append(newLevel.breakableblocks, *NewBreakableBlock(&entity))
+			}
+		} else if layer.Name == slamboxLayerName {
+			for _, entity := range layer.Entities {
+				newLevel.slamboxes = append(newLevel.slamboxes, newSlambox(&entity))
 			}
 		}
 	}

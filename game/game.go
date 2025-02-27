@@ -17,6 +17,9 @@ import (
 	// . "mask_of_the_tomb/utils"
 )
 
+// TODO: Make dynamic level layouts and add moving blocks
+// It's gonna be cool as hell
+
 type Game struct {
 	player *player.Player
 	world  *world.World
@@ -48,7 +51,6 @@ func (g *Game) Update() error {
 	switch utils.GlobalState {
 	case utils.StateMainMenu:
 		if val, ok := confirmations["Play"]; ok && val {
-			// Spawn game
 			g.EnterPlayMode()
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			return utils.Terminated
@@ -77,18 +79,19 @@ func (g *Game) Update() error {
 func (g *Game) updateGameplay() error {
 	playerMove := g.player.GetMoveInput()
 	playerX, playerY := g.player.GetPos()
-	if playerMove != player.DirNone && !g.player.IsMoving() && !g.player.IsDisabled() {
-		targetX, targetY := g.world.ActiveLevel.GetCollision(playerMove, g.player.GetHitbox())
-		switch playerMove {
-		case player.DirUp:
-			g.player.SetTarget(playerX, targetY)
-		case player.DirDown:
-			g.player.SetTarget(targetX, targetY-g.player.GetHitbox().Height())
-		case player.DirLeft:
-			g.player.SetTarget(targetX, targetY)
-		case player.DirRight:
-			g.player.SetTarget(targetX-g.player.GetHitbox().Width(), targetY)
-		}
+	if playerMove != utils.DirNone && !g.player.IsMoving() && !g.player.IsDisabled() {
+		newRect := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), playerMove, nil)
+		g.player.SetTarget(newRect.Left(), newRect.Top())
+		// switch playerMove {
+		// case utils.DirUp:
+		// 	g.player.SetTarget(playerX, targetY)
+		// case utils.DirDown:
+		// 	g.player.SetTarget(targetX, targetY-g.player.GetHitbox().Height())
+		// case utils.DirLeft:
+		// 	g.player.SetTarget(targetX, targetY)
+		// case utils.DirRight:
+		// 	g.player.SetTarget(targetX-g.player.GetHitbox().Width(), targetY)
+		// }
 	}
 
 	if g.player.GetLevelSwapInput() {
@@ -103,7 +106,7 @@ func (g *Game) updateGameplay() error {
 
 			camera.GlobalCamera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
 
-			otherSideDoor, err := g.world.ActiveLevel.GetEntityInstanceByIid(entityIid)
+			otherSideDoor, err := g.world.ActiveLevel.GetEntityByIid(entityIid)
 			if err != nil {
 				fmt.Println("Didn't find the other side door, iid ", entityIid)
 				return err

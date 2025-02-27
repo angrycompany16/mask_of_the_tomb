@@ -77,7 +77,7 @@ func FromImage(x, y float64, image *ebiten.Image) *Rect {
 	}
 }
 
-func FromEntity(entityInstance *ebitenLDTK.EntityInstance) *Rect {
+func FromEntity(entityInstance *ebitenLDTK.Entity) *Rect {
 	return &Rect{
 		x:      entityInstance.Px[0],
 		y:      entityInstance.Px[1],

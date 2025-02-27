@@ -71,12 +71,14 @@ func (s *Save) SaveGame() {
 	file, err := os.Create(s.savePath)
 	if err != nil {
 		fmt.Println("Could not open file ", s.savePath)
+		fmt.Println(err)
 		return
 	}
 	defer file.Close()
 	err = json.NewEncoder(file).Encode(&s.GameData)
 	if err != nil {
 		fmt.Println("Could not write save data to ", s.savePath)
+		fmt.Println(err)
 		return
 	}
 }
@@ -86,6 +88,7 @@ func (s *Save) LoadGame() {
 	file, err := os.Open(s.savePath)
 	if err != nil {
 		fmt.Println("Could not open file")
+		fmt.Println(err)
 		return
 	}
 	defer file.Close()
@@ -93,6 +96,7 @@ func (s *Save) LoadGame() {
 	err = json.NewDecoder(file).Decode(&gameData)
 	if err != nil {
 		fmt.Println("Could not decode JSON")
+		fmt.Println(err)
 		return
 	}
 	s.GameData = gameData

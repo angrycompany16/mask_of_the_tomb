@@ -1,16 +1,33 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"math"
+	"path/filepath"
+	"runtime"
 )
 
-// TODO: improve this so that it at least gives some info about where the panicking
-// call came from. This is actually quite important
+type Direction int
+
+const (
+	DirNone Direction = iota - 1
+	DirUp
+	DirDown
+	DirLeft
+	DirRight
+)
+
 // This should ONLY be used when you are almost completely certain that the function
 // being calles will not throw an error
 func HandleLazy(err error) {
+	pc, file, no, ok := runtime.Caller(1)
+	funcDetails := runtime.FuncForPC(pc)
 	if err != nil {
+		if ok {
+			fmt.Println(no)
+			fmt.Printf("Failure from %s, file %s, line number %d\n", filepath.Base((funcDetails.Name())), file, no)
+		}
 		log.Fatal(err)
 	}
 }

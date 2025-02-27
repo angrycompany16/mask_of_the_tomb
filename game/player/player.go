@@ -26,23 +26,13 @@ const (
 	TakingDamage
 )
 
-type MoveDirection int
-
-const (
-	DirNone MoveDirection = iota - 1
-	DirUp
-	DirDown
-	DirLeft
-	DirRight
-)
-
 const (
 	moveSpeed             = 5.0
 	defaultPlayerHealth   = 5.0
 	invincibilityDuration = time.Second
 )
 
-// Convert to animation state machine, turn into asset file?
+// TODO: Convert to animation state machine, turn into asset file?
 type Player struct {
 	posX, posY             float64
 	targetPosX, targetPosY float64
@@ -62,6 +52,8 @@ type Player struct {
 
 func (p *Player) Init(posX, posY float64) {
 	p.SetPos(posX, posY)
+	// p.sprite = ebiten.NewImage(9, 9)
+	// p.sprite.Fill(color.RGBA{198, 238, 124, 255})
 	p.hitbox = rect.FromImage(posX, posY, p.sprite)
 }
 
@@ -105,7 +97,7 @@ func (p *Player) Draw() {
 		0.5,
 	)
 
-	// DrawAt(p.sprite, rendering.RenderLayers.Playerspace, p.posX-camX, p.posY-camY)
+	DrawAt(p.sprite, rendering.RenderLayers.Playerspace, p.posX-camX, p.posY-camY)
 	p.damageOverlay.Draw()
 }
 
@@ -113,7 +105,7 @@ func (p *Player) GetLevelSwapInput() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeySpace)
 }
 
-func (p *Player) GetMoveInput() MoveDirection {
+func (p *Player) GetMoveInput() Direction {
 	if inpututil.IsKeyJustPressed(ebiten.KeyW) {
 		p.angle = 0
 		return DirUp

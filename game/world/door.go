@@ -13,8 +13,8 @@ type Door struct {
 }
 
 func newDoor(
-	entityInstance *ebitenLDTK.EntityInstance,
-	level *ebitenLDTK.Level,
+	entityInstance *ebitenLDTK.Entity,
+	// level *ebitenLDTK.Level,
 ) Door {
 	newDoor := Door{}
 	newDoor.hitbox = *rect.FromEntity(entityInstance)

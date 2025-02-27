@@ -25,7 +25,7 @@ func (c *Collectible) draw(surf *ebiten.Image, camX, camY float64) {
 
 func newCollectible(
 	collected bool,
-	entityInstance *ebitenLDTK.EntityInstance,
+	entityInstance *ebitenLDTK.Entity,
 	defs *ebitenLDTK.Defs,
 ) Collectible {
 	newCollectible := Collectible{}
@@ -34,6 +34,7 @@ func newCollectible(
 	newCollectible.posX = entityInstance.Px[0]
 	newCollectible.posY = entityInstance.Px[1]
 
+	// Rewrite with static sprite
 	tileset, err := defs.GetTilesetByUid(entityInstance.Tile.TilesetUid)
 	HandleLazy(err)
 	tileSize := tileset.TileGridSize

@@ -30,7 +30,7 @@ func (b *BreakableBlock) Draw() {
 	ebitenrenderutil.DrawAt(b.anim.GetSprite(), rendering.RenderLayers.Playerspace, b.posX+b.offsetX, b.posY+b.offsetY)
 }
 
-func NewBreakableBlock(entityInstance *ebitenLDTK.EntityInstance) *BreakableBlock {
+func NewBreakableBlock(entityInstance *ebitenLDTK.Entity) *BreakableBlock {
 	return &BreakableBlock{
 		anim: animation.NewAnimation(
 			animation.NewSpritesheetAuto(files.LazyImage(crumbleSpritePath)),

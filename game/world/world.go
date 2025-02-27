@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mask_of_the_tomb/ebitenLDTK"
 	"mask_of_the_tomb/files"
+	"mask_of_the_tomb/game/physics"
 
 	"path"
 )
@@ -20,6 +21,7 @@ const (
 	roomTransitionLayerName = "Doors"
 	spawnPointLayerName     = "SpawnPoint"
 	breakableBlockLayerName = "BreakableBlocks"
+	slamboxLayerName        = "Slamboxes"
 )
 
 type World struct {
@@ -27,7 +29,11 @@ type World struct {
 	ActiveLevel *Level
 }
 
+// TODO: FIX THE PRINTING
 func (w *World) Init() {
+	physics.SetupCollisionMatrix()
+	// fmt.Println(physics.CheckCollide(31, 31))
+
 	w.worldLDTK = *files.LazyLDTK(LDTKMapPath)
 
 	// One folder back to access LDTK folder
