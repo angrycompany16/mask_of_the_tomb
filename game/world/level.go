@@ -26,6 +26,7 @@ type Level struct {
 	levelLDTK       *ebitenLDTK.Level
 	TilemapCollider physics.TilemapCollider
 	// tiles           [][]int
+	ActiveColliders []physics.RectCollider
 	tileSize        float64
 	collectibles    []Collectible
 	hazards         []Hazard
@@ -45,6 +46,10 @@ func (l *Level) Update() {
 func (l *Level) Draw() {
 	for _, block := range l.breakableblocks {
 		block.Draw()
+	}
+
+	for _, box := range l.slamboxes {
+		box.Draw()
 	}
 
 	camX, camY := camera.GlobalCamera.GetPos()
@@ -136,53 +141,6 @@ func (l *Level) GetLevelBounds() (float64, float64) {
 	return l.levelLDTK.PxWid, l.levelLDTK.PxHei
 }
 
-// Projects a Rect through the map in a certain direction
-// func (l *Level) GetCollision(moveDir utils.Direction, rect *rect.Rect) (posX, posY float64) {
-// 	gridX, gridY := l.worldToGrid(rect.TopLeft())
-// 	x := gridX
-// 	y := gridY
-// 	switch moveDir {
-// 	case utils.DirUp:
-// 		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
-// 			for j := gridY; j >= 0; j-- {
-// 				if l.tiles[j][i] == 1 {
-// 					y = j + 1
-// 					break
-// 				}
-// 			}
-// 		}
-// 	case utils.DirDown:
-// 		for i := gridX; i < gridX+int(rect.Width()/l.tileSize); i++ {
-// 			for j := gridY; j <= len(l.tiles); j++ {
-// 				if l.tiles[j][i] == 1 {
-// 					y = j
-// 					break
-// 				}
-// 			}
-// 		}
-// 	case utils.DirLeft:
-// 		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
-// 			for i := gridX; i >= 0; i-- {
-// 				if l.tiles[j][i] == 1 {
-// 					x = i + 1
-// 					break
-// 				}
-// 			}
-// 		}
-// 	case utils.DirRight:
-// 		for j := gridY; j < gridY+int(rect.Height()/l.tileSize); j++ {
-// 			for i := gridX; i < len(l.tiles[0]); i++ {
-// 				if l.tiles[j][i] == 1 {
-// 					x = i
-// 					break
-// 				}
-// 			}
-// 		}
-// 	}
-// 	posX, posY = l.gridToWorld(x, y)
-// 	return
-// }
-
 func (l *Level) GetCollectibleHit(posX, posY, distX, distY float64) int {
 	collected := 0
 	collect := func(i int) {
@@ -251,14 +209,12 @@ func (l *Level) worldToGrid(x, y float64) (int, int) {
 	return int(x / l.tileSize), int(y / l.tileSize)
 }
 
-// TODO: Make layer collision bitmap dynamic
 func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error) {
 	newLevel := Level{}
 	newLevel.levelLDTK = levelLDTK
 	newLevel.defs = defs
 
 	newLevel.TilemapCollider.Tiles = levelLDTK.MakeBitmapFromLayer(defs, playerSpaceLayerName)
-	// newLevel.tiles = levelLDTK.MakeBitmapFromLayer(defs, playerSpaceLayerName)
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
@@ -291,7 +247,9 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 			}
 		} else if layer.Name == slamboxLayerName {
 			for _, entity := range layer.Entities {
-				newLevel.slamboxes = append(newLevel.slamboxes, newSlambox(&entity))
+				newSlambox := newSlambox(&entity)
+				newLevel.ActiveColliders = append(newLevel.ActiveColliders, newSlambox.collider)
+				newLevel.slamboxes = append(newLevel.slamboxes, newSlambox)
 			}
 		}
 	}

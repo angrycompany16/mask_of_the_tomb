@@ -14,12 +14,12 @@ var CollisionMatrix = make([]uint32, 32)
 
 // TODO: ignore?
 type RectCollider struct {
-	r rect.Rect
+	Rect rect.Rect
 	// collisionLayer int // 0 - 32
 }
 
 func NewRectCollider(r rect.Rect) RectCollider {
-	return RectCollider{r: r}
+	return RectCollider{Rect: r}
 }
 
 type TilemapCollider struct {
@@ -54,14 +54,7 @@ func PrintCollisionMatrixRow(row int) {
 	fmt.Printf("%032s\n", strconv.FormatUint(uint64(CollisionMatrix[row]), 2))
 }
 
-func PrintCollisionMatrix() {
-	// for _, i := range CollisionMatrix {
-	// fmt.Printf("%b", i)
-	// fmt.Println(strconv.FormatInt(int64(i), 2))
-	// }
-}
-
-// Problem: Need to figure out where worldToGrid should go
+// TODO: Need to figure out where worldToGrid should go
 func (tc *TilemapCollider) gridToWorld(x, y int) (float64, float64) {
 	return F64(x) * tc.TileSize, F64(y) * tc.TileSize
 }
@@ -70,9 +63,9 @@ func (tc *TilemapCollider) worldToGrid(x, y float64) (int, int) {
 	return int(x / tc.TileSize), int(y / tc.TileSize)
 }
 
+// TODO: rewrite entire function (it ugly)
 // Return a rect representing the new rect for collision object
 func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils.Direction, otherRects []RectCollider) rect.Rect {
-
 	// Goal: be able to specify which objects should be ignored in this function
 	// Loop through collisionobjects
 	// If collision layers overlap
@@ -89,48 +82,136 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 	gridX, gridY := tc.worldToGrid(collisionRect.TopLeft())
 	// Round the size up to the nearest size fitting the grid
 	// Project that sized-up rect
-	// Finally find how far it actually is from hitting the grid and move it that far
+	// Finally find how far it actually is from hitting the griddy and move it that far
 	x := gridX
 	y := gridY
+
 	switch direction {
 	case utils.DirUp:
+		y = -1000
 		for i := gridX; i < gridX+int(enlargedRect.Width()/tc.TileSize); i++ {
 			for j := gridY; j >= 0; j-- {
 				if tc.Tiles[j][i] == 1 {
-					y = j + 1
+					y = MaxInt(y, j+1)
 					break
 				}
 			}
 		}
 	case utils.DirDown:
+		y = 1000
 		for i := gridX; i < gridX+int(enlargedRect.Width()/tc.TileSize); i++ {
 			for j := gridY; j <= len(tc.Tiles); j++ {
 				if tc.Tiles[j][i] == 1 {
-					y = j - int(enlargedRect.Height()/tc.TileSize)
+					y = MinInt(y, j-int(enlargedRect.Height()/tc.TileSize))
 					break
 				}
 			}
 		}
 	case utils.DirLeft:
+		x = -1000
 		for j := gridY; j < gridY+int(enlargedRect.Height()/tc.TileSize); j++ {
 			for i := gridX; i >= 0; i-- {
 				if tc.Tiles[j][i] == 1 {
-					x = i + 1
+					x = MaxInt(x, i+1)
 					break
 				}
 			}
 		}
 	case utils.DirRight:
+		x = 1000
 		for j := gridY; j < gridY+int(enlargedRect.Height()/tc.TileSize); j++ {
-			for i := gridX; i < len(tc.Tiles[0]); i++ {
+			for i := gridX; i <= len(tc.Tiles[0]); i++ {
 				if tc.Tiles[j][i] == 1 {
-					x = i - int(enlargedRect.Width()/tc.TileSize)
+					x = MinInt(x, i-int(enlargedRect.Width()/tc.TileSize))
 					break
 				}
 			}
 		}
 	}
 	newX, newY := tc.gridToWorld(x, y)
+
+	// Detect collision against rects
+	// If there is a collision, change the position based on movedir
+
+	// TODO: FIX this
+
+	var moveRect *rect.Rect
+	switch direction {
+	case DirUp:
+		moveRect = rect.NewRect(
+			newX,
+			newY,
+			collisionRect.Width(),
+			collisionRect.Bottom()-newY,
+		)
+
+		// Find the closes rect we are colliding with
+		dist := collisionRect.Top() - newY
+		for _, rect := range otherRects {
+			if rect.Rect.Overlapping(moveRect) {
+				if collisionRect.Top()-rect.Rect.Bottom() < dist {
+					dist = collisionRect.Top() - rect.Rect.Bottom()
+				}
+			}
+		}
+
+		newY = collisionRect.Top() - dist
+	case DirDown:
+		moveRect = rect.NewRect(
+			newX,
+			collisionRect.Top(),
+			collisionRect.Width(),
+			newY-collisionRect.Bottom(),
+		)
+
+		// Find the closes rect we are colliding with
+		dist := newY - collisionRect.Top()
+		for _, rect := range otherRects {
+			if rect.Rect.Overlapping(moveRect) {
+				if rect.Rect.Top()-collisionRect.Bottom() < dist {
+					dist = rect.Rect.Top() - collisionRect.Bottom()
+				}
+			}
+		}
+
+		newY = dist + collisionRect.Top()
+	case DirRight:
+		moveRect = rect.NewRect(
+			collisionRect.Left(),
+			newY,
+			newX-collisionRect.Right(),
+			collisionRect.Height(),
+		)
+
+		dist := newX - collisionRect.Left()
+		for _, rect := range otherRects {
+			if rect.Rect.Overlapping(moveRect) {
+				if rect.Rect.Left()-collisionRect.Right() < dist {
+					dist = rect.Rect.Left() - collisionRect.Right()
+				}
+			}
+		}
+
+		newX = dist + collisionRect.Left()
+	case DirLeft:
+		moveRect = rect.NewRect(
+			newX,
+			newY,
+			collisionRect.Right()-newX,
+			collisionRect.Height(),
+		)
+
+		dist := collisionRect.Left() - newX
+		for _, rect := range otherRects {
+			if rect.Rect.Overlapping(moveRect) {
+				if collisionRect.Left()-rect.Rect.Right() < dist {
+					dist = collisionRect.Left() - rect.Rect.Right()
+				}
+			}
+		}
+
+		newX = collisionRect.Left() - dist
+	}
 
 	// Resize the rect again based on move dir
 	switch direction {
