@@ -2,24 +2,25 @@ package physics
 
 import (
 	"fmt"
-	"mask_of_the_tomb/utils"
 	. "mask_of_the_tomb/utils"
 	"mask_of_the_tomb/utils/rect"
 	"math"
 	"strconv"
 )
 
+// TODO: STOP THE DOT IMPORTS
 // TODO: rect should not be in utils
 var CollisionMatrix = make([]uint32, 32)
 
 // TODO: ignore?
+// It would be nice if this was a little easier to work with, I.E. If you could simply
+// treat rects as rectcolliders and vice versa
 type RectCollider struct {
-	Rect rect.Rect
-	// collisionLayer int // 0 - 32
+	rect.Rect
 }
 
 func NewRectCollider(r rect.Rect) RectCollider {
-	return RectCollider{Rect: r}
+	return RectCollider{r}
 }
 
 type TilemapCollider struct {
@@ -65,7 +66,7 @@ func (tc *TilemapCollider) worldToGrid(x, y float64) (int, int) {
 
 // TODO: rewrite entire function (it ugly)
 // Return a rect representing the new rect for collision object
-func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils.Direction, otherRects []RectCollider) rect.Rect {
+func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction Direction, otherRects []*RectCollider) rect.Rect {
 	// Goal: be able to specify which objects should be ignored in this function
 	// Loop through collisionobjects
 	// If collision layers overlap
@@ -87,7 +88,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 	y := gridY
 
 	switch direction {
-	case utils.DirUp:
+	case DirUp:
 		y = -1000
 		for i := gridX; i < gridX+int(enlargedRect.Width()/tc.TileSize); i++ {
 			for j := gridY; j >= 0; j-- {
@@ -97,7 +98,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 				}
 			}
 		}
-	case utils.DirDown:
+	case DirDown:
 		y = 1000
 		for i := gridX; i < gridX+int(enlargedRect.Width()/tc.TileSize); i++ {
 			for j := gridY; j <= len(tc.Tiles); j++ {
@@ -107,7 +108,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 				}
 			}
 		}
-	case utils.DirLeft:
+	case DirLeft:
 		x = -1000
 		for j := gridY; j < gridY+int(enlargedRect.Height()/tc.TileSize); j++ {
 			for i := gridX; i >= 0; i-- {
@@ -117,7 +118,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 				}
 			}
 		}
-	case utils.DirRight:
+	case DirRight:
 		x = 1000
 		for j := gridY; j < gridY+int(enlargedRect.Height()/tc.TileSize); j++ {
 			for i := gridX; i <= len(tc.Tiles[0]); i++ {
@@ -132,9 +133,6 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 
 	// Detect collision against rects
 	// If there is a collision, change the position based on movedir
-
-	// TODO: FIX this
-
 	var moveRect *rect.Rect
 	switch direction {
 	case DirUp:
@@ -148,7 +146,20 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 		// Find the closes rect we are colliding with
 		dist := collisionRect.Top() - newY
 		for _, rect := range otherRects {
+			// fmt.Println(moveRect)
+			// fmt.Println(rect)
 			if rect.Rect.Overlapping(moveRect) {
+				/*
+					fmt.Printf("r.Left: %f\n", rect.Rect.Left())
+					fmt.Printf("r.Right: %f\n", rect.Rect.Right())
+					fmt.Printf("r.Top: %f\n", rect.Rect.Top())
+					fmt.Printf("r.Bottom: %f\n", rect.Rect.Bottom())
+					fmt.Println()
+					fmt.Printf("other.Left: %f\n", moveRect.Left())
+					fmt.Printf("other.Right: %f\n", moveRect.Right())
+					fmt.Printf("other.Top: %f\n", moveRect.Top())
+					fmt.Printf("other.Bottom: %f\n", moveRect.Bottom())
+				*/
 				if collisionRect.Top()-rect.Rect.Bottom() < dist {
 					dist = collisionRect.Top() - rect.Rect.Bottom()
 				}
@@ -161,7 +172,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 			newX,
 			collisionRect.Top(),
 			collisionRect.Width(),
-			newY-collisionRect.Bottom(),
+			newY+collisionRect.Height()-collisionRect.Bottom(),
 		)
 
 		// Find the closes rect we are colliding with
@@ -179,7 +190,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *rect.Rect, direction utils
 		moveRect = rect.NewRect(
 			collisionRect.Left(),
 			newY,
-			newX-collisionRect.Right(),
+			newX+collisionRect.Width()-collisionRect.Left(),
 			collisionRect.Height(),
 		)
 

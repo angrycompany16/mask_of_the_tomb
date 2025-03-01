@@ -33,6 +33,7 @@ const (
 )
 
 // TODO: Convert to animation state machine, turn into asset file?
+// TODO: Rewrite the player into an fsm
 type Player struct {
 	posX, posY             float64
 	targetPosX, targetPosY float64
@@ -97,7 +98,7 @@ func (p *Player) Draw() {
 		0.5,
 	)
 
-	DrawAt(p.sprite, rendering.RenderLayers.Playerspace, p.posX-camX, p.posY-camY)
+	// DrawAt(p.sprite, rendering.RenderLayers.Playerspace, p.posX-camX, p.posY-camY)
 	p.damageOverlay.Draw()
 }
 

@@ -2,6 +2,7 @@ package rect
 
 import (
 	"mask_of_the_tomb/ebitenLDTK"
+	"mask_of_the_tomb/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -45,6 +46,23 @@ func (r *Rect) Height() float64 {
 	return r.height
 }
 
+func (r *Rect) Extended(dir utils.Direction, length float64) Rect {
+	newRect := *r
+	switch dir {
+	case utils.DirUp:
+		newRect.y -= length
+		newRect.height += length
+	case utils.DirDown:
+		newRect.height += length
+	case utils.DirRight:
+		newRect.width += length
+	case utils.DirLeft:
+		newRect.x -= length
+		newRect.width += length
+	}
+	return newRect
+}
+
 func (r *Rect) SetPos(x, y float64) {
 	r.x, r.y = x, y
 }
@@ -54,10 +72,10 @@ func (r *Rect) Draw(surf *ebiten.Image) {
 }
 
 func (r *Rect) Overlapping(other *Rect) bool {
-	if r.Left() <= other.Right() &&
-		r.Right() >= r.Left() &&
-		r.Top() <= other.Bottom() &&
-		r.Bottom() >= other.Top() {
+	if r.Left() < other.Right() &&
+		r.Right() > other.Left() &&
+		r.Top() < other.Bottom() &&
+		r.Bottom() > other.Top() {
 		return true
 	}
 	return false

@@ -29,10 +29,8 @@ type World struct {
 	ActiveLevel *Level
 }
 
-// TODO: FIX THE PRINTING
 func (w *World) Init() {
 	physics.SetupCollisionMatrix()
-	// fmt.Println(physics.CheckCollide(31, 31))
 
 	w.worldLDTK = *files.LazyLDTK(LDTKMapPath)
 

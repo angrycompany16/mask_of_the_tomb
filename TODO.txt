@@ -1,7 +1,7 @@
 // Game mechanic ideas (how to make unique mechanics?)
-// 1. Push mechanic - When the player moves they push off against the block they moved from
-// 2. Gravity mechanic - When the player moves they switch the direction of gravity
-// 3. ?
+// 1. I've already made the most interesting game mechanic known to mankind
+//    It's smooth sailing from here
+//    Surely :^)
 
 // Implement lighting it would look so cool
 
@@ -12,5 +12,12 @@ entity interactions
 (Priority: MEDIUM) Separate input into its own file, generalize
 (Priority: LOW) Make global state less global
 (Priority: LOW) Make input buffer for movement inputs
-(Priority: MEDIUM) Rewrite the collision system to handle arbitrary player size
 (Priority: LOW) Improve rect so it has no dependency on ebitenLDTK
+(Priority: MEDIUM) Make examples aka non-automated integration tests
+
+
+// THE MAJOR GRAPHICS/GAME FEEL OVERHAUL
+// - PARTICLE SYSTEMS
+// - SHADOWS AND LIGHTING (NORMAL MAPPED)
+// - CAMERA SHAKE
+// - UPDATED ANIMATIONS

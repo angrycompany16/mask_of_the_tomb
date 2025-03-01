@@ -26,18 +26,22 @@ type Level struct {
 	levelLDTK       *ebitenLDTK.Level
 	TilemapCollider physics.TilemapCollider
 	// tiles           [][]int
-	ActiveColliders []physics.RectCollider
+	// ActiveColliders []physics.RectCollider
 	tileSize        float64
 	collectibles    []Collectible
 	hazards         []Hazard
 	doors           []Door
 	breakableblocks []BreakableBlock
-	slamboxes       []slambox
+	slamboxes       []*slambox
 }
 
 func (l *Level) Update() {
 	for _, block := range l.breakableblocks {
 		block.Update()
+	}
+
+	for _, slambox := range l.slamboxes {
+		slambox.Update()
 	}
 }
 
@@ -197,6 +201,32 @@ func (l *Level) GetHazardHit(x, y float64) float64 {
 	return 0
 }
 
+// TODO: this should not be here, very spaghetti
+func (l *Level) Without(exSlambox *slambox) []*slambox {
+	slamboxes := make([]*slambox, 0)
+	for _, _slambox := range l.slamboxes {
+		if _slambox != exSlambox {
+			slamboxes = append(slamboxes, _slambox)
+		}
+	}
+	return slamboxes
+}
+
+// For now we assume that we will only ever be slamming one box at a time, though
+// this may change later
+func (l *Level) GetSlamboxHit(playerCollider *rect.Rect, dir Direction) *slambox {
+	extendedRect := playerCollider.Extended(dir, 1)
+	for _, slambox := range l.slamboxes {
+		if extendedRect.Overlapping(&slambox.collider.Rect) {
+			return slambox
+		}
+	}
+	return nil
+	// Increase the size of the collider by 1 in the moveDirection
+	// If there is an overlap with a slambox, return true
+	// Else, return false
+}
+
 func (l *Level) GetEntityByIid(iid string) (ebitenLDTK.Entity, error) {
 	return l.levelLDTK.GetEntityByIid(iid)
 }
@@ -207,6 +237,14 @@ func (l *Level) gridToWorld(x, y int) (float64, float64) {
 
 func (l *Level) worldToGrid(x, y float64) (int, int) {
 	return int(x / l.tileSize), int(y / l.tileSize)
+}
+
+func (l *Level) GetSlamboxColliders() []*physics.RectCollider {
+	colliders := make([]*physics.RectCollider, 0)
+	for _, box := range l.slamboxes {
+		colliders = append(colliders, &box.collider)
+	}
+	return colliders
 }
 
 func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error) {
@@ -248,7 +286,6 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 		} else if layer.Name == slamboxLayerName {
 			for _, entity := range layer.Entities {
 				newSlambox := newSlambox(&entity)
-				newLevel.ActiveColliders = append(newLevel.ActiveColliders, newSlambox.collider)
 				newLevel.slamboxes = append(newLevel.slamboxes, newSlambox)
 			}
 		}

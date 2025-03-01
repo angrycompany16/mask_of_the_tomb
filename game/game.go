@@ -3,9 +3,9 @@ package game
 import (
 	"fmt"
 
-	// . "mask_of_the_tomb/ebitenRenderUtil"
 	ui "mask_of_the_tomb/game/UI"
 	"mask_of_the_tomb/game/camera"
+	"mask_of_the_tomb/game/physics"
 	"mask_of_the_tomb/game/player"
 	"mask_of_the_tomb/game/save"
 	"mask_of_the_tomb/game/world"
@@ -14,11 +14,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	// . "mask_of_the_tomb/utils"
 )
-
-// TODO: Make dynamic level layouts and add moving blocks
-// It's gonna be cool as hell
 
 type Game struct {
 	player *player.Player
@@ -76,11 +72,27 @@ func (g *Game) Update() error {
 	return nil
 }
 
+// TODO: Rewrite the physics system with somem kind of interface or something
+// Basically allow the individual objects to define how collisions should be handled.
+// TODO: Make something like list comprehension?
 func (g *Game) updateGameplay() error {
 	playerMove := g.player.GetMoveInput()
 	playerX, playerY := g.player.GetPos()
 	if playerMove != utils.DirNone && !g.player.IsMoving() && !g.player.IsDisabled() {
-		newRect := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), playerMove, g.world.ActiveLevel.ActiveColliders)
+		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), playerMove)
+
+		if slambox != nil {
+			otherHitboxes := make([]*physics.RectCollider, 0)
+			for _, slambox := range g.world.ActiveLevel.Without(slambox) {
+				otherHitboxes = append(otherHitboxes, slambox.GetCollider())
+			}
+
+			newSlamboxRect := g.world.ActiveLevel.TilemapCollider.ProjectRect(&slambox.GetCollider().Rect, playerMove, otherHitboxes)
+
+			slambox.SetTarget(newSlamboxRect.Left(), newSlamboxRect.Top())
+		}
+
+		newRect := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), playerMove, g.world.ActiveLevel.GetSlamboxColliders())
 		g.player.SetTarget(newRect.Left(), newRect.Top())
 	}
 
