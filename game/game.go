@@ -76,9 +76,10 @@ func (g *Game) Update() error {
 // Basically allow the individual objects to define how collisions should be handled.
 // TODO: Make something like list comprehension?
 func (g *Game) updateGameplay() error {
-	playerMove := g.player.GetMoveInput()
+	playerMove := g.player.GetBufferedInput()
 	playerX, playerY := g.player.GetPos()
 	if playerMove != utils.DirNone && !g.player.IsMoving() && !g.player.IsDisabled() {
+		g.player.DeleteBuffer()
 		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), playerMove)
 
 		if slambox != nil {

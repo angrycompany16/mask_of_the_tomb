@@ -11,7 +11,6 @@ camera space
 entity interactions
 (Priority: MEDIUM) Separate input into its own file, generalize
 (Priority: LOW) Make global state less global
-(Priority: LOW) Make input buffer for movement inputs
 (Priority: LOW) Improve rect so it has no dependency on ebitenLDTK
 (Priority: MEDIUM) Make examples aka non-automated integration tests
 

@@ -30,6 +30,7 @@ const (
 	moveSpeed             = 5.0
 	defaultPlayerHealth   = 5.0
 	invincibilityDuration = time.Second
+	inputBufferDuration   = 0.1
 )
 
 // TODO: Convert to animation state machine, turn into asset file?
@@ -49,16 +50,28 @@ type Player struct {
 	disabled               bool
 	damageOverlay          damageOverlay
 	angle                  float64
+	inputDirBuffer         Direction
+	bufferResetTimer       float64
 }
 
 func (p *Player) Init(posX, posY float64) {
 	p.SetPos(posX, posY)
-	// p.sprite = ebiten.NewImage(9, 9)
-	// p.sprite.Fill(color.RGBA{198, 238, 124, 255})
 	p.hitbox = rect.FromImage(posX, posY, p.sprite)
 }
 
 func (p *Player) Update() {
+	movement := p.GetMoveInput()
+	if movement != DirNone {
+		p.inputDirBuffer = movement
+		p.ResetBuffer()
+	}
+
+	p.bufferResetTimer -= 0.01666666667 // Update tick time should be constant
+
+	if p.bufferResetTimer <= 0 {
+		p.inputDirBuffer = DirNone
+	}
+
 	p.posX += moveSpeed * p.moveDirX * GlobalTimeScale
 	p.posY += moveSpeed * p.moveDirY * GlobalTimeScale
 
@@ -98,15 +111,27 @@ func (p *Player) Draw() {
 		0.5,
 	)
 
-	// DrawAt(p.sprite, rendering.RenderLayers.Playerspace, p.posX-camX, p.posY-camY)
 	p.damageOverlay.Draw()
+}
+
+func (p *Player) ResetBuffer() {
+	p.bufferResetTimer = inputBufferDuration
+}
+
+func (p *Player) DeleteBuffer() {
+	p.inputDirBuffer = DirNone
 }
 
 func (p *Player) GetLevelSwapInput() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeySpace)
 }
 
+func (p *Player) GetBufferedInput() Direction {
+	return p.inputDirBuffer
+}
+
 func (p *Player) GetMoveInput() Direction {
+	// Return whatever is in the input buffer
 	if inpututil.IsKeyJustPressed(ebiten.KeyW) {
 		p.angle = 0
 		return DirUp
@@ -210,8 +235,9 @@ func NewPlayer() *Player {
 			animation.Strip,
 			animation.Loop,
 		),
-		health:        health.NewHealthComponent(defaultPlayerHealth),
-		damageOverlay: newDamageOverlay(),
-		invincible:    false,
+		health:         health.NewHealthComponent(defaultPlayerHealth),
+		damageOverlay:  newDamageOverlay(),
+		invincible:     false,
+		inputDirBuffer: DirNone,
 	}
 }
