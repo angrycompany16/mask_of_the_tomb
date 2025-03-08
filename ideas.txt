@@ -1,9 +1,10 @@
 Mechanic ideas:
-- Portals B)
-- Blocks that can be pulled? (Might be a bit difficult but we'll see)
-- Blocks that break when you stand on them (Very nice and simple, both time + puzzle mechanic)
-- The classic button
-- And of course the classic spike
-- Changing size ??? Holup goated idea
+ - The slam box
 
 Let's just try to make some simple puzzles with these few mechanics
+
+Areas:
+ - Baggage Basement
+ - Mr. Portman's library
+ - The observatory
+ - Stars of the sky
