@@ -9,15 +9,14 @@ import (
 )
 
 const (
-	playerSpaceLayerName    = "Playerspace"
-	spawnPosEntityName      = "SpawnPosition"
-	doorEntityName          = "Door"
-	doorOtherSideFieldName  = "OtherSide"
-	hazardLayerName         = "Hazards"
-	hazardDamageFieldName   = "Damage"
-	roomTransitionLayerName = "Doors"
-	spawnPointLayerName     = "SpawnPoint"
-	slamboxLayerName        = "Slamboxes"
+	playerSpaceLayerName   = "Playerspace"
+	spawnPosEntityName     = "SpawnPosition"
+	doorEntityName         = "Door"
+	doorOtherSideFieldName = "OtherSide"
+	hazardEntityName       = "Hazard"
+	hazardDamageFieldName  = "Damage"
+	spawnPointEntityName   = "SpawnPoint"
+	slamboxEntityName      = "Slambox"
 )
 
 type World struct {
@@ -25,6 +24,7 @@ type World struct {
 	ActiveLevel *Level
 }
 
+// TODO: Fix game-breaking bug with slamboxes
 func (w *World) Init() {
 	w.worldLDTK = errs.Must(ebitenLDTK.LoadWorld(LDTKMapPath))
 
@@ -33,6 +33,7 @@ func (w *World) Init() {
 	for i := 0; i < len(w.worldLDTK.Defs.Tilesets); i++ {
 		tileset := &w.worldLDTK.Defs.Tilesets[i]
 		tilesetPath := filepath.Join(LDTKpath, tileset.RelPath)
+		// fmt.Println(tilesetPath)
 		tileset.Image = errs.MustNewImageFromFile(tilesetPath)
 	}
 

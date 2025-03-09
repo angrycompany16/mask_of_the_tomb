@@ -90,9 +90,6 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// TODO: Rewrite the physics system with somem kind of interface or something
-// Basically allow the individual objects to define how collisions should be handled.
-// TODO: Make something like list comprehension?
 func (g *Game) updateGameplay() error {
 	playerMove := g.player.InputBuffer.Read()
 	if playerMove != maths.DirNone && !g.player.IsMoving() && !g.player.Disabled {

@@ -3,17 +3,12 @@
 //    It's smooth sailing from here
 //    Surely :^)
 
-// Implement lighting it would look so cool
-
 (Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
 camera space
 (Priority: MEDIUM) Split the main Update function into subfunctions for various disjoint 
 entity interactions
 (Priority: MEDIUM) Separate input into its own file, generalize
-(Priority: LOW) Make global state less global
-(Priority: LOW) Improve rect so it has no dependency on ebitenLDTK
 (Priority: MEDIUM) Make examples aka non-automated integration tests
-
 
 // THE MAJOR GRAPHICS/GAME FEEL OVERHAUL
 // - PARTICLE SYSTEMS
@@ -21,6 +16,25 @@ entity interactions
 // - CAMERA SHAKE
 // - UPDATED ANIMATIONS
 
+// Roadmap for now (in order):
+// - Draw the player animations for dashing, slamming, idle etc.
+// - Fix the huge slambox bug
+// - Add slambox linking
+// - Implement automatic graphics for slambox
+// - Update the animator component to handle all the player animations that we need
+// - Implement procedural part of player animation for block slamming
+// - Add death/retry effect / retry screen (to start just copy celeste or something) 
+// - Finish the asset loader, add loading screens
+// - Add custom asset for UI systems
+// - Implement particle systems, make asset loader etc.
+// - Implement camera shake
+// - Make the lighting system
+// - Make examples for future reference/testing
+// - Implement background color
+// - Start on levels
+
+// Backburner
+// - Implement super cool animation technique from aartihificial
 
 Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread

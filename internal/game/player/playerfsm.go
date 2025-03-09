@@ -51,5 +51,5 @@ func (p *Player) Update() {
 	p.damageOverlay.Update()
 	p.Hitbox.SetPos(p.PosX, p.PosY)
 
-	p.playerTestAnim.Update()
+	p.playerIdleAnim.Update()
 }

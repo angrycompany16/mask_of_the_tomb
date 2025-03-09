@@ -39,6 +39,7 @@ func (l *Level) Update() {
 	}
 }
 
+// TODO: Fill the background with backgroundColor from LDTK
 func (l *Level) Draw() {
 	for _, box := range l.Slamboxes {
 		box.Draw()
@@ -180,21 +181,34 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 	newLevel.TilemapCollider.TileSize = float64(playerspace.GridSize)
 
 	for _, layer := range levelLDTK.Layers {
-		if layer.Name == hazardLayerName {
-			for _, entity := range layer.Entities {
+		for _, entity := range layer.Entities {
+			switch entity.Name {
+			case hazardEntityName:
 				newLevel.hazards = append(newLevel.hazards, newHazard(&entity))
-			}
-		} else if layer.Name == roomTransitionLayerName {
-			for _, entity := range layer.Entities {
+			case doorEntityName:
 				newLevel.doors = append(newLevel.doors, newDoor(&entity))
-			}
-		} else if layer.Name == slamboxLayerName {
-			for _, entity := range layer.Entities {
-				newSlambox := newSlambox(&entity)
-				newLevel.Slamboxes = append(newLevel.Slamboxes, newSlambox)
+			case slamboxEntityName:
+				newLevel.Slamboxes = append(newLevel.Slamboxes, newSlambox(&entity))
 			}
 		}
 	}
+
+	// for _, layer := range levelLDTK.Layers {
+	// 	// if layer.Name == hazardLayerName {
+	// 		for _, entity := range layer.Entities {
+	// 			newLevel.hazards = append(newLevel.hazards, newHazard(&entity))
+	// 		}
+	// 	// } else if layer.Name == roomTransitionLayerName {
+	// 		for _, entity := range layer.Entities {
+	// 			newLevel.doors = append(newLevel.doors, newDoor(&entity))
+	// 		}
+	// 	// } else if layer.Name == slamboxLayerName {
+	// 		for _, entity := range layer.Entities {
+	// 			newSlambox := newSlambox(&entity)
+	// 			newLevel.Slamboxes = append(newLevel.Slamboxes, newSlambox)
+	// 		}
+	// 	}
+	// }
 
 	return newLevel, nil
 }

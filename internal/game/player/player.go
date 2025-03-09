@@ -32,7 +32,7 @@ type Player struct {
 	moveProgress           float64
 	Hitbox                 *maths.Rect
 	sprite                 *ebiten.Image
-	playerTestAnim         *animation.Animation
+	playerIdleAnim         *animation.Animation
 	Invincible             bool
 	Disabled               bool
 	damageOverlay          deathEffect
@@ -49,7 +49,7 @@ func (p *Player) Init(posX, posY float64) {
 func (p *Player) Draw() {
 	camX, camY := camera.GlobalCamera.GetPos()
 	ebitenrenderutil.DrawAtRotated(
-		p.playerTestAnim.GetSprite(),
+		p.playerIdleAnim.GetSprite(),
 		rendering.RenderLayers.Playerspace,
 		p.PosX-camX,
 		p.PosY-camY,
@@ -147,7 +147,7 @@ func NewPlayer() *Player {
 	return &Player{
 		moveProgress: 1,
 		sprite:       errs.MustNewImageFromFile(PlayerSpritePath),
-		playerTestAnim: animation.NewAnimation(
+		playerIdleAnim: animation.NewAnimation(
 			animation.NewSpritesheetAuto(errs.MustNewImageFromFile(IdleSpritesheetPath)),
 			0.1666667,
 			animation.Strip,

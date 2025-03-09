@@ -12,6 +12,7 @@ const (
 )
 
 type renderLayers struct {
+	Background2 *ebiten.Image
 	Background  *ebiten.Image
 	Midground   *ebiten.Image
 	Playerspace *ebiten.Image
