@@ -1,0 +1,4 @@
+Should contain simple levels and such for testing parts of the game in isolation
+Essentially this should work as integration tests, they just won't be automated
+
+This should also help keep the engine code more modularized / easy to use!

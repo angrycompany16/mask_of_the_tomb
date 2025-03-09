@@ -4,11 +4,9 @@ import (
 	"errors"
 	"flag"
 	"log"
-
-	"mask_of_the_tomb/game"
-	"mask_of_the_tomb/game/save"
-	"mask_of_the_tomb/rendering"
-	"mask_of_the_tomb/utils"
+	"mask_of_the_tomb/internal/game"
+	"mask_of_the_tomb/internal/game/rendering"
+	save "mask_of_the_tomb/internal/game/savesystem"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -27,7 +25,7 @@ func (a *App) Init() {
 
 func (a *App) Update() error {
 	err := a.game.Update()
-	if err == utils.Terminated {
+	if err == game.ErrTerminated {
 		return err
 	}
 	return nil
@@ -55,14 +53,14 @@ func main() {
 
 	if debugMode {
 		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-		utils.GlobalState = utils.StatePlaying
+		game.State = game.StatePlaying
 		a.game.EnterPlayMode()
 	} else {
 		ebiten.SetFullscreen(true)
 	}
 
 	if err := ebiten.RunGame(a); err != nil {
-		if errors.Is(err, utils.Terminated) {
+		if errors.Is(err, game.ErrTerminated) {
 			save.GlobalSave.SaveGame()
 			return
 		}

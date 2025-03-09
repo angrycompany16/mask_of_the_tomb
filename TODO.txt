@@ -20,3 +20,9 @@ entity interactions
 // - SHADOWS AND LIGHTING (NORMAL MAPPED)
 // - CAMERA SHAKE
 // - UPDATED ANIMATIONS
+
+
+Consideration: asset manager:
+Why do we need this? Well, we should be performing the loading of sprites in another thread
+so that we can display a loading screen or something while loading our assets
+It's obviously not feasible to just load every resource on startup
