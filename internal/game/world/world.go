@@ -8,15 +8,21 @@ import (
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
 
+// TODO: Maybe find a better place for this
 const (
-	playerSpaceLayerName   = "Playerspace"
-	spawnPosEntityName     = "SpawnPosition"
-	doorEntityName         = "Door"
-	doorOtherSideFieldName = "OtherSide"
-	hazardEntityName       = "Hazard"
-	hazardDamageFieldName  = "Damage"
-	spawnPointEntityName   = "SpawnPoint"
-	slamboxEntityName      = "Slambox"
+	playerSpaceLayerName       = "Playerspace"
+	spawnPosEntityName         = "SpawnPosition"
+	doorEntityName             = "Door"
+	doorOtherSideFieldName     = "OtherSide"
+	hazardEntityName           = "Hazard"
+	hazardDamageFieldName      = "Damage"
+	spawnPointEntityName       = "SpawnPoint"
+	slamboxEntityName          = "Slambox"
+	SlamboxConnectionFieldName = "ConnectedBoxes"
+)
+
+var (
+	InitLevelIid = "Level_0"
 )
 
 type World struct {
@@ -37,7 +43,7 @@ func (w *World) Init() {
 		tileset.Image = errs.MustNewImageFromFile(tilesetPath)
 	}
 
-	ChangeActiveLevel(w, 0)
+	ChangeActiveLevel(w, InitLevelIid)
 }
 
 func (w *World) Update() {

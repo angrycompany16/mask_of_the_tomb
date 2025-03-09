@@ -10,6 +10,7 @@ import (
 	"mask_of_the_tomb/internal/game/physics"
 	"mask_of_the_tomb/internal/game/rendering"
 	"mask_of_the_tomb/internal/maths"
+	"slices"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -131,15 +132,16 @@ func (l *Level) GetHazardHit(playerHitbox *maths.Rect) float64 {
 	return 0
 }
 
-// TODO: this should not be here, very spaghetti
-func (l *Level) Without(exSlambox *Slambox) []*Slambox {
-	slamboxes := make([]*Slambox, 0)
-	for _, _slambox := range l.Slamboxes {
-		if _slambox != exSlambox {
-			slamboxes = append(slamboxes, _slambox)
-		}
-	}
-	return slamboxes
+// Get all the rect colliders that are not connected to slambox
+func (l *Level) DisconnectedColliders(slambox *Slambox) []*physics.RectCollider {
+	// I love writing unreadable code
+	return arrays.MapSlice(
+		arrays.Filter(
+			l.Slamboxes, func(s *Slambox) bool { return !slices.Contains(slambox.ConnectedBoxes, s) && s != slambox },
+		),
+		func(s *Slambox) *physics.RectCollider { return &s.Collider },
+	)
+
 }
 
 func (l *Level) GetSlamboxColliders() []*physics.RectCollider {
@@ -162,12 +164,12 @@ func (l *Level) GetEntityByIid(iid string) (ebitenLDTK.Entity, error) {
 	return l.levelLDTK.GetEntityByIid(iid)
 }
 
+// TODO: Refactor because this is very big
 func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error) {
 	newLevel := Level{}
 	newLevel.levelLDTK = levelLDTK
 	newLevel.defs = defs
 
-	// fmt.Println(playerSpaceLayerName)
 	newLevel.TilemapCollider.Tiles = levelLDTK.MakeBitmapFromLayer(defs, playerSpaceLayerName)
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
@@ -193,22 +195,15 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 		}
 	}
 
-	// for _, layer := range levelLDTK.Layers {
-	// 	// if layer.Name == hazardLayerName {
-	// 		for _, entity := range layer.Entities {
-	// 			newLevel.hazards = append(newLevel.hazards, newHazard(&entity))
-	// 		}
-	// 	// } else if layer.Name == roomTransitionLayerName {
-	// 		for _, entity := range layer.Entities {
-	// 			newLevel.doors = append(newLevel.doors, newDoor(&entity))
-	// 		}
-	// 	// } else if layer.Name == slamboxLayerName {
-	// 		for _, entity := range layer.Entities {
-	// 			newSlambox := newSlambox(&entity)
-	// 			newLevel.Slamboxes = append(newLevel.Slamboxes, newSlambox)
-	// 		}
-	// 	}
-	// }
+	// NOTE: We need to loop twice to ensure that all slamboxes have been added
+	// before we link them together
+	for _, slambox := range newLevel.Slamboxes {
+		for _, otherSlambox := range newLevel.Slamboxes {
+			if slices.Contains(slambox.otherLinkIDs, otherSlambox.LinkID) {
+				slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
+			}
+		}
+	}
 
 	return newLevel, nil
 }

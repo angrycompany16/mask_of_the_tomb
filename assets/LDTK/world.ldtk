@@ -11,7 +11,7 @@
 	"iid": "94589810-c210-11ef-b2e6-99619d5a4f10",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 473703,
-	"nextUid": 270,
+	"nextUid": 271,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "GridVania",
@@ -4395,7 +4395,45 @@
 			"limitBehavior": "MoveLastOne",
 			"pivotX": 0,
 			"pivotY": 0,
-			"fieldDefs": []
+			"fieldDefs": [
+				{
+					"identifier": "ConnectedBoxes",
+					"doc": null,
+					"__type": "Array<EntityRef>",
+					"uid": 270,
+					"type": "F_EntityRef",
+					"isArray": true,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "RefLinkBetweenCenters",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "CurvedArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": null,
+					"textLanguageMode": null,
+					"symmetricalRef": true,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
+				}
+			]
 		}
 	], "tilesets": [
 		{
@@ -4615,6 +4653,22 @@
 							}] }],
 							"__worldX": 448,
 							"__worldY": 240
+						},
+						{
+							"__identifier": "Slambox",
+							"__grid": [36,44],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#BE4A2F",
+							"iid": "e73e8960-e920-11ef-98cf-3df642cf1c6b",
+							"width": 48,
+							"height": 16,
+							"defUid": 83,
+							"px": [144,176],
+							"fieldInstances": [{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 270, "realEditorValues": [] }],
+							"__worldX": 144,
+							"__worldY": 176
 						}
 					]
 				},

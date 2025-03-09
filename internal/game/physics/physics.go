@@ -20,9 +20,13 @@ type TilemapCollider struct {
 	grid.Tilemap[int]
 }
 
+// Problem: We need to avoid actually colliding with the rects we are connected to
+
 // TODO: Add the ability to link rects together and then we are gucci
-// TODO: rewrite entire function (it ugly)
-func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction maths.Direction, otherRects []*RectCollider) maths.Rect {
+// Round the size up to the nearest size fitting the grid
+// Project that sized-up rect
+// Finally find how far it actually is from hitting the griddy and move it that far
+func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction maths.Direction, otherRects []*RectCollider) (maths.Rect, float64) {
 	enlargedRect := maths.NewRect(
 		math.Floor(collisionRect.Left()/tc.TileSize)*tc.TileSize,
 		math.Floor(collisionRect.Top()/tc.TileSize)*tc.TileSize,
@@ -32,9 +36,6 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 
 	gridX, gridY := tc.WorldPosToGrid(collisionRect.TopLeft())
 
-	// Round the size up to the nearest size fitting the grid
-	// Project that sized-up rect
-	// Finally find how far it actually is from hitting the griddy and move it that far
 	x := gridX
 	y := gridY
 
@@ -105,25 +106,39 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 		}
 
 		newY = collisionRect.Top() - dist
+
+		return *maths.NewRect(
+			collisionRect.Left(),
+			newY,
+			collisionRect.Width(),
+			collisionRect.Height(),
+		), dist
 	case maths.DirDown:
 		moveRect = maths.NewRect(
 			newX,
 			collisionRect.Top(),
 			collisionRect.Width(),
-			newY+collisionRect.Height()-collisionRect.Bottom(),
+			newY+2*collisionRect.Height()-collisionRect.Bottom(),
 		)
 
 		// Find the closes rect we are colliding with
 		dist := newY - collisionRect.Top()
 		for _, rect := range otherRects {
+
 			if rect.Rect.Overlapping(moveRect) {
 				if rect.Rect.Top()-collisionRect.Bottom() < dist {
 					dist = rect.Rect.Top() - collisionRect.Bottom()
 				}
 			}
 		}
-
 		newY = dist + collisionRect.Top()
+
+		return *maths.NewRect(
+			collisionRect.Left(),
+			newY+enlargedRect.Height()-collisionRect.Height(),
+			collisionRect.Width(),
+			collisionRect.Height(),
+		), dist
 	case maths.DirRight:
 		moveRect = maths.NewRect(
 			collisionRect.Left(),
@@ -140,8 +155,15 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 				}
 			}
 		}
-
 		newX = dist + collisionRect.Left()
+
+		newPos := newX + enlargedRect.Width() - collisionRect.Width()
+		return *maths.NewRect(
+			newPos,
+			collisionRect.Top(),
+			collisionRect.Width(),
+			collisionRect.Height(),
+		), math.Abs(dist)
 	case maths.DirLeft:
 		moveRect = maths.NewRect(
 			newX,
@@ -158,41 +180,16 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 				}
 			}
 		}
-
 		newX = collisionRect.Left() - dist
-	}
 
-	// Resize the rect again based on move dir
-	switch direction {
-	case maths.DirUp:
-		return *maths.NewRect(
-			collisionRect.Left(),
-			newY,
-			collisionRect.Width(),
-			collisionRect.Height(),
-		)
-	case maths.DirDown:
-		return *maths.NewRect(
-			collisionRect.Left(),
-			newY+enlargedRect.Height()-collisionRect.Height(),
-			collisionRect.Width(),
-			collisionRect.Height(),
-		)
-	case maths.DirRight:
-		return *maths.NewRect(
-			newX+enlargedRect.Width()-collisionRect.Width(),
-			collisionRect.Top(),
-			collisionRect.Width(),
-			collisionRect.Height(),
-		)
-	case maths.DirLeft:
 		return *maths.NewRect(
 			newX,
 			collisionRect.Top(),
 			collisionRect.Width(),
 			collisionRect.Height(),
-		)
+		), dist
 	}
 
-	return *collisionRect
+	// Resize the rect again based on move dir
+	return *collisionRect, 0
 }

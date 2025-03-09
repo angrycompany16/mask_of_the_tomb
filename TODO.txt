@@ -17,9 +17,6 @@ entity interactions
 // - UPDATED ANIMATIONS
 
 // Roadmap for now (in order):
-// - Draw the player animations for dashing, slamming, idle etc.
-// - Fix the huge slambox bug
-// - Add slambox linking
 // - Implement automatic graphics for slambox
 // - Update the animator component to handle all the player animations that we need
 // - Implement procedural part of player animation for block slamming

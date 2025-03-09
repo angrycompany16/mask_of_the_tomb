@@ -3,6 +3,7 @@ package world
 import (
 	"image/color"
 	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
+	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/camera"
 	"mask_of_the_tomb/internal/game/physics"
 	"mask_of_the_tomb/internal/game/rendering"
@@ -13,7 +14,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// TODO: make a generalized LevelEntity or something to make this more logical
 // TODO: make the moving box into a generalized entity?
 
 const (
@@ -22,6 +22,9 @@ const (
 
 type Slambox struct {
 	Collider               physics.RectCollider
+	ConnectedBoxes         []*Slambox
+	LinkID                 string   // ID to check for linked boxes
+	otherLinkIDs           []string // ID to check for linked boxes
 	sprite                 *ebiten.Image
 	targetRect             maths.Rect
 	posX, posY             float64
@@ -81,10 +84,17 @@ func newSlambox(
 ) *Slambox {
 	newSlambox := Slambox{}
 	newSlambox.Collider = physics.NewRectCollider(*maths.RectFromEntity(entity))
+	newSlambox.ConnectedBoxes = make([]*Slambox, 0)
+	newSlambox.LinkID = entity.Iid
 	newSlambox.SetPos(entity.Px[0], entity.Px[1])
 	newSlambox.targetRect = newSlambox.Collider.Rect
 	newSlambox.sprite = ebiten.NewImage(int(entity.Width), int(entity.Height))
 	newSlambox.sprite.Fill(color.RGBA{123, 245, 167, 255})
+
+	connectionField := errs.Must(entity.GetFieldByName(SlamboxConnectionFieldName))
+	for _, entityRef := range connectionField.EntityRefArray {
+		newSlambox.otherLinkIDs = append(newSlambox.otherLinkIDs, entityRef.EntityIid)
+	}
 
 	return &newSlambox
 }
