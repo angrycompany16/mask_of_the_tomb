@@ -3,8 +3,7 @@ package world
 import (
 	"fmt"
 	"mask_of_the_tomb/internal/errs"
-
-	"path"
+	"path/filepath"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
@@ -30,11 +29,10 @@ func (w *World) Init() {
 	w.worldLDTK = errs.Must(ebitenLDTK.LoadWorld(LDTKMapPath))
 
 	// One folder back to access LDTK folder
-	LDTKpath := path.Clean(path.Join(LDTKMapPath, ".."))
+	LDTKpath := filepath.Clean(filepath.Join(LDTKMapPath, ".."))
 	for i := 0; i < len(w.worldLDTK.Defs.Tilesets); i++ {
 		tileset := &w.worldLDTK.Defs.Tilesets[i]
-		tilesetPath := path.Join(LDTKpath, tileset.RelPath)
-		// fmt.Println(tilesetPath)
+		tilesetPath := filepath.Join(LDTKpath, tileset.RelPath)
 		tileset.Image = errs.MustNewImageFromFile(tilesetPath)
 	}
 

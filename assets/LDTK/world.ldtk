@@ -4094,19 +4094,19 @@
 					"entityInstances": [
 						{
 							"__identifier": "Slambox",
-							"__grid": [14,21],
+							"__grid": [14,20],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#BE4A2F",
 							"iid": "181c0950-e920-11ef-8a51-b5ed93af0124",
 							"width": 48,
-							"height": 40,
+							"height": 48,
 							"defUid": 83,
-							"px": [112,168],
+							"px": [112,160],
 							"fieldInstances": [],
 							"__worldX": 112,
-							"__worldY": 168
+							"__worldY": 160
 						}
 					]
 				},
