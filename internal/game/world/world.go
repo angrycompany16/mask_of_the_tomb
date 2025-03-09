@@ -34,6 +34,7 @@ func (w *World) Init() {
 	for i := 0; i < len(w.worldLDTK.Defs.Tilesets); i++ {
 		tileset := &w.worldLDTK.Defs.Tilesets[i]
 		tilesetPath := path.Join(LDTKpath, tileset.RelPath)
+		// fmt.Println(tilesetPath)
 		tileset.Image = errs.MustNewImageFromFile(tilesetPath)
 	}
 

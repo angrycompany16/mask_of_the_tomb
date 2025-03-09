@@ -107,10 +107,6 @@ func (g *Game) updateGameplay() error {
 				),
 				func(s *world.Slambox) *physics.RectCollider { return &s.Collider },
 			)
-			// otherHitboxes := make([]*physics.RectCollider, 0)
-			// for _, slambox := range g.world.ActiveLevel.Without(slambox) {
-			// 	otherHitboxes = append(otherHitboxes, slambox.GetCollider())
-			// }
 
 			newSlamboxRect := g.world.ActiveLevel.TilemapCollider.ProjectRect(&slambox.GetCollider().Rect, playerMove, otherHitboxes)
 
