@@ -2,6 +2,7 @@ package player
 
 import (
 	"mask_of_the_tomb/internal/maths"
+	"mask_of_the_tomb/internal/sequence"
 	"math"
 	"time"
 )
@@ -14,26 +15,32 @@ const (
 	Slamming
 )
 
-var (
-	slamming       = false
-	slamFinishChan = make(chan int, 1)
-	SlamHitChan    = make(chan int, 1)
-)
+// FINALLY it feels good
+func (p *Player) StartSlamming(direction maths.Direction) {
+	// TODO: orient player properly
+	p.angle = maths.ToRadians(maths.Opposite(direction))
+	p.animator.SwitchClip(slamAnim)
+	p.State = Slamming
+	p.jumpOffsetvel = 2.5
+}
 
 func (p *Player) Update() {
 	switch p.State {
 	case Slamming:
-		if slamming {
-			select {
-			case <-slamFinishChan:
-				slamming = false
-				p.State = Idle
-			default:
-			}
-		} else {
-			slamming = true
-			go p.Slam()
+		if p.finishedClipEventListener.Poll() {
+			p.State = Idle
+			p.jumpOffset = 0
+			p.jumpOffsetvel = 0
 		}
+
+		if p.jumpOffsetvel > 0 {
+			p.jumpOffsetvel -= 0.1
+		} else {
+			p.jumpOffsetvel -= 0.25
+		}
+
+		p.jumpOffset += p.jumpOffsetvel
+		p.jumpOffset = maths.Clamp(p.jumpOffset, 0, 1000000)
 	case Idle:
 		p.animator.SwitchClip(idleAnim)
 	case Moving:
@@ -77,10 +84,7 @@ func (p *Player) Update() {
 	p.animator.Update()
 }
 
-func (p *Player) Slam() {
-	p.animator.SwitchClip(slamAnim)
-	time.Sleep(500 * time.Millisecond)
-	SlamHitChan <- 1
-	time.Sleep(500 * time.Millisecond)
-	slamFinishChan <- 1
+func Slam(seq *sequence.Sequence) {
+	time.Sleep(time.Second)
+	seq.FinishChannel <- 1
 }

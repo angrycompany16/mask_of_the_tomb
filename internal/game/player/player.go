@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/animation"
 	"mask_of_the_tomb/internal/game/camera"
+	"mask_of_the_tomb/internal/game/events"
 	"mask_of_the_tomb/internal/game/rendering"
 	"mask_of_the_tomb/internal/maths"
 	"math"
@@ -16,6 +17,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// TODO: Rewrite literally everything with some kind of gameobject interface
+// Basically we can create a struct of this type, and then the update function
+// Will simply be called automatically without us needing to reference these things
+// All over creating a lot of chaos
+
+// TODO: Rewrite as much as possible using events rather than importing packages
+
 const (
 	moveSpeed             = 5.0
 	defaultPlayerHealth   = 5.0
@@ -23,22 +31,25 @@ const (
 	inputBufferDuration   = 0.1
 )
 
-// TODO: Convert to animation state machine, turn into asset file? (i.e. assets for anims)
+// TODO: Rewrite player to use maths.direction instead of float angle
+// TODO: turn animations into asset file? (i.e. assets for anims)
 type Player struct {
-	PosX, PosY             float64
-	targetPosX, targetPosY float64
-	prevPosX, prevPosY     float64
-	moveDirX, moveDirY     float64
-	moveProgress           float64
-	Hitbox                 *maths.Rect
-	sprite                 *ebiten.Image
-	animator               *animation.Animator
-	Invincible             bool
-	Disabled               bool
-	damageOverlay          deathEffect
-	angle                  float64
-	InputBuffer            inputBuffer
-	State                  playerState
+	PosX, PosY                float64
+	targetPosX, targetPosY    float64
+	prevPosX, prevPosY        float64
+	moveDirX, moveDirY        float64
+	moveProgress              float64
+	jumpOffset, jumpOffsetvel float64
+	Hitbox                    *maths.Rect
+	sprite                    *ebiten.Image
+	animator                  *animation.Animator
+	Invincible                bool
+	Disabled                  bool
+	damageOverlay             deathEffect
+	angle                     float64
+	InputBuffer               inputBuffer
+	State                     playerState
+	finishedClipEventListener *events.EventListener
 }
 
 func (p *Player) Init(posX, posY float64) {
@@ -49,17 +60,31 @@ func (p *Player) Init(posX, posY float64) {
 
 func (p *Player) Draw() {
 	camX, camY := camera.GlobalCamera.GetPos()
+	jumpOffsetX, jumpOffsetY := p.getJumpOffset()
 	ebitenrenderutil.DrawAtRotated(
 		p.animator.GetSprite(),
 		rendering.RenderLayers.Playerspace,
-		p.PosX-camX,
-		p.PosY-camY,
+		p.PosX-camX-jumpOffsetX,
+		p.PosY-camY-jumpOffsetY,
 		p.angle,
 		0.5,
 		0.5,
 	)
 
 	p.damageOverlay.Draw()
+}
+
+func (p *Player) getJumpOffset() (float64, float64) {
+	if p.angle == 0 {
+		return 0, p.jumpOffset
+	} else if p.angle == math.Pi/2 {
+		return -p.jumpOffset, 0
+	} else if p.angle == math.Pi {
+		return 0, -p.jumpOffset
+	} else if p.angle == 3*math.Pi/2 {
+		return p.jumpOffset, 0
+	}
+	return 0, 0
 }
 
 func (p *Player) GetLevelSwapInput() bool {
@@ -157,7 +182,7 @@ func (p *Player) EnterSlamAnim() {
 }
 
 func NewPlayer() *Player {
-	return &Player{
+	player := &Player{
 		moveProgress:  1,
 		sprite:        errs.MustNewImageFromFile(playerSpritePath),
 		animator:      animation.NewAnimator(playerAnimationMap),
@@ -166,4 +191,8 @@ func NewPlayer() *Player {
 		InputBuffer:   newInputBuffer(inputBufferDuration),
 		State:         Idle,
 	}
+
+	// TODO: Shorten down these names holy flippin moly
+	player.finishedClipEventListener = events.NewEventListener(player.animator.FinishedClipEvent)
+	return player
 }

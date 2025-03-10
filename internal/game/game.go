@@ -8,6 +8,7 @@ import (
 
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/camera"
+	"mask_of_the_tomb/internal/game/events"
 	"mask_of_the_tomb/internal/game/player"
 	"mask_of_the_tomb/internal/game/rendering"
 	save "mask_of_the_tomb/internal/game/savesystem"
@@ -66,6 +67,7 @@ var (
 func (g *Game) Update() error {
 	confirmations := g.gameUI.GetConfirmations()
 	g.gameUI.Update()
+	events.GlobalEventManager.Update()
 	var err error
 	switch State {
 	case StateMainMenu:
@@ -96,34 +98,34 @@ func (g *Game) Update() error {
 	return nil
 }
 
-// TODO: Fix the bug where the player gets stuck if they try to slam while standing
-// next to a wall (replicated in slambox example, can be verified by attempting to)
-// slam the same block twice
 func (g *Game) updateGameplay() error {
+	// TODO: Rewrite with events
 	playerMove := g.player.InputBuffer.Read()
+	if slamming {
+		select {
+		case <-slamFinishChan:
+			slamming = false
+		default:
+		}
+	}
+
 	if playerMove != maths.DirNone && g.player.CanMove() && !g.player.Disabled {
 		g.player.InputBuffer.Clear()
 		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.Hitbox, playerMove)
-
-		if slamming {
-			select {
-			case <-slamFinishChan:
-				slamming = false
-			default:
-			}
-		}
 		if slambox != nil {
-			g.player.State = player.Slamming
+			g.player.StartSlamming(playerMove)
 			if !slamming {
 				slamming = true
 				go g.DoSlam(slambox, playerMove)
 			}
 		} else {
-			g.player.EnterDashAnim()
 			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.Hitbox, playerMove, g.world.ActiveLevel.GetSlamboxColliders())
-			g.player.SetRot(playerMove)
-			g.player.SetTarget(newRect.Left(), newRect.Top())
-			g.player.State = player.Moving
+			if newRect != *g.player.Hitbox {
+				g.player.EnterDashAnim()
+				g.player.SetRot(playerMove)
+				g.player.SetTarget(newRect.Left(), newRect.Top())
+				g.player.State = player.Moving
+			}
 		}
 
 	}

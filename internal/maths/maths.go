@@ -12,10 +12,8 @@ const (
 	DirRight
 )
 
-func OppositeDir(dir Direction) Direction {
+func Opposite(dir Direction) Direction {
 	switch dir {
-	case DirNone:
-		return DirNone
 	case DirUp:
 		return DirDown
 	case DirDown:
@@ -26,6 +24,20 @@ func OppositeDir(dir Direction) Direction {
 		return DirRight
 	}
 	return DirNone
+}
+
+func ToRadians(dir Direction) float64 {
+	switch dir {
+	case DirUp:
+		return 0
+	case DirDown:
+		return math.Pi
+	case DirRight:
+		return math.Pi / 2
+	case DirLeft:
+		return 3 * math.Pi / 2
+	}
+	return 0
 }
 
 func Clamp(val, min, max float64) float64 {
