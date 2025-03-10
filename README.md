@@ -14,4 +14,6 @@ or
   go run examples/slamboxes/main.go
 ```
 
+for a simple example
+
 If you discover any bugs, please raise an issue or something idk
