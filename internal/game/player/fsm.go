@@ -2,20 +2,41 @@ package player
 
 import (
 	"mask_of_the_tomb/internal/maths"
+	"math"
+	"time"
 )
 
 type playerState int
 
 const (
-	StateIdle playerState = iota
-	StateMoving
+	Idle playerState = iota
+	Moving
+	Slamming
+)
+
+var (
+	slamming       = false
+	slamFinishChan = make(chan int, 1)
+	SlamHitChan    = make(chan int, 1)
 )
 
 func (p *Player) Update() {
 	switch p.State {
-	case StateIdle:
-
-	case StateMoving:
+	case Slamming:
+		if slamming {
+			select {
+			case <-slamFinishChan:
+				slamming = false
+				p.State = Idle
+			default:
+			}
+		} else {
+			slamming = true
+			go p.Slam()
+		}
+	case Idle:
+		p.animator.SwitchClip(idleAnim)
+	case Moving:
 		p.PosX += moveSpeed * p.moveDirX
 		p.PosY += moveSpeed * p.moveDirY
 
@@ -38,7 +59,8 @@ func (p *Player) Update() {
 		}
 
 		if p.PosX == p.targetPosX && p.PosY == p.targetPosY {
-			p.State = StateIdle
+			p.angle = p.angle - math.Pi
+			p.State = Idle
 		}
 	}
 
@@ -46,10 +68,19 @@ func (p *Player) Update() {
 	if direction != maths.DirNone {
 		p.InputBuffer.set(direction)
 	}
+
 	p.InputBuffer.update()
 
 	p.damageOverlay.Update()
 	p.Hitbox.SetPos(p.PosX, p.PosY)
 
-	p.playerIdleAnim.Update()
+	p.animator.Update()
+}
+
+func (p *Player) Slam() {
+	p.animator.SwitchClip(slamAnim)
+	time.Sleep(500 * time.Millisecond)
+	SlamHitChan <- 1
+	time.Sleep(500 * time.Millisecond)
+	slamFinishChan <- 1
 }

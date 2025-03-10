@@ -1,7 +1,7 @@
 package world
 
 import (
-	"image/color"
+	"image"
 	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/camera"
@@ -17,7 +17,66 @@ import (
 // TODO: make the moving box into a generalized entity?
 
 const (
-	moveSpeed = 10.0
+	moveSpeed                  = 10.0
+	tilesRegionX, tilesRegionY = 0, 0
+	tileSize                   = 8
+)
+
+var (
+	TopLeft = image.Rect(
+		int(tilesRegionX),
+		int(tilesRegionY),
+		int(tilesRegionX+tileSize),
+		int(tilesRegionY+tileSize),
+	)
+	Top = image.Rect(
+		int(tilesRegionX+tileSize),
+		int(tilesRegionY),
+		int(tilesRegionX+2*tileSize),
+		int(tilesRegionY+tileSize),
+	)
+	TopRight = image.Rect(
+		int(tilesRegionX+2*tileSize),
+		int(tilesRegionY),
+		int(tilesRegionX+3*tileSize),
+		int(tilesRegionY+tileSize),
+	)
+	Left = image.Rect(
+		int(tilesRegionX),
+		int(tilesRegionY+tileSize),
+		int(tilesRegionX+tileSize),
+		int(tilesRegionY+2*tileSize),
+	)
+	Center = image.Rect(
+		int(tilesRegionX+tileSize),
+		int(tilesRegionY+tileSize),
+		int(tilesRegionX+2*tileSize),
+		int(tilesRegionY+2*tileSize),
+	)
+	Right = image.Rect(
+		int(tilesRegionX+2*tileSize),
+		int(tilesRegionY+tileSize),
+		int(tilesRegionX+3*tileSize),
+		int(tilesRegionY+2*tileSize),
+	)
+	BottomLeft = image.Rect(
+		int(tilesRegionX),
+		int(tilesRegionY+2*tileSize),
+		int(tilesRegionX+tileSize),
+		int(tilesRegionY+3*tileSize),
+	)
+	Bottom = image.Rect(
+		int(tilesRegionX+tileSize),
+		int(tilesRegionY+2*tileSize),
+		int(tilesRegionX+2*tileSize),
+		int(tilesRegionY+3*tileSize),
+	)
+	BottomRight = image.Rect(
+		int(tilesRegionX+2*tileSize),
+		int(tilesRegionY+2*tileSize),
+		int(tilesRegionX+3*tileSize),
+		int(tilesRegionY+3*tileSize),
+	)
 )
 
 type Slambox struct {
@@ -88,8 +147,35 @@ func newSlambox(
 	newSlambox.LinkID = entity.Iid
 	newSlambox.SetPos(entity.Px[0], entity.Px[1])
 	newSlambox.targetRect = newSlambox.Collider.Rect
+
+	tilemap := errs.MustNewImageFromFile(SlamboxTilemapPath)
+
 	newSlambox.sprite = ebiten.NewImage(int(entity.Width), int(entity.Height))
-	newSlambox.sprite.Fill(color.RGBA{123, 245, 167, 255})
+
+	// Render from tilemap
+	// Draw corners
+	ebitenrenderutil.DrawAt(tilemap.SubImage(TopLeft).(*ebiten.Image), newSlambox.sprite, 0, 0)
+	ebitenrenderutil.DrawAt(tilemap.SubImage(TopRight).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, 0)
+	ebitenrenderutil.DrawAt(tilemap.SubImage(BottomLeft).(*ebiten.Image), newSlambox.sprite, 0, entity.Height-tileSize)
+	ebitenrenderutil.DrawAt(tilemap.SubImage(BottomRight).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, entity.Height-tileSize)
+
+	// Draw edges
+	for i := 1; i < int(entity.Width/tileSize)-1; i++ {
+		ebitenrenderutil.DrawAt(tilemap.SubImage(Top).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), 0)
+		ebitenrenderutil.DrawAt(tilemap.SubImage(Bottom).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), entity.Height-tileSize)
+	}
+
+	for i := 1; i < int(entity.Height/tileSize)-1; i++ {
+		ebitenrenderutil.DrawAt(tilemap.SubImage(Left).(*ebiten.Image), newSlambox.sprite, 0, float64(i*tileSize))
+		ebitenrenderutil.DrawAt(tilemap.SubImage(Right).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, float64(i*tileSize))
+	}
+
+	// Draw interior
+	for i := 1; i < int(entity.Width/tileSize)-1; i++ {
+		for j := 1; j < int(entity.Height/tileSize)-1; j++ {
+			ebitenrenderutil.DrawAt(tilemap.SubImage(Center).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), float64(j*tileSize))
+		}
+	}
 
 	connectionField := errs.Must(entity.GetFieldByName(SlamboxConnectionFieldName))
 	for _, entityRef := range connectionField.EntityRefArray {

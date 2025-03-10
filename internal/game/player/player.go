@@ -32,7 +32,7 @@ type Player struct {
 	moveProgress           float64
 	Hitbox                 *maths.Rect
 	sprite                 *ebiten.Image
-	playerIdleAnim         *animation.Animation
+	animator               *animation.Animator
 	Invincible             bool
 	Disabled               bool
 	damageOverlay          deathEffect
@@ -44,12 +44,13 @@ type Player struct {
 func (p *Player) Init(posX, posY float64) {
 	p.SetPos(posX, posY)
 	p.Hitbox = maths.RectFromImage(posX, posY, p.sprite)
+	p.animator.SwitchClip(idleAnim)
 }
 
 func (p *Player) Draw() {
 	camX, camY := camera.GlobalCamera.GetPos()
 	ebitenrenderutil.DrawAtRotated(
-		p.playerIdleAnim.GetSprite(),
+		p.animator.GetSprite(),
 		rendering.RenderLayers.Playerspace,
 		p.PosX-camX,
 		p.PosY-camY,
@@ -119,6 +120,10 @@ func (p *Player) GetMovementSize() (float64, float64) {
 	return moveSpeed * p.moveDirX, moveSpeed * p.moveDirY
 }
 
+func (p *Player) CanMove() bool {
+	return p.State == Idle
+}
+
 func (p *Player) IsMoving() bool {
 	return p.moveDirX != 0 || p.moveDirY != 0
 }
@@ -143,19 +148,22 @@ func (p *Player) disableInvincibility() {
 	p.Invincible = false
 }
 
+func (p *Player) EnterDashAnim() {
+	p.animator.SwitchClip(dashInitAnim)
+}
+
+func (p *Player) EnterSlamAnim() {
+	p.animator.SwitchClip(slamAnim)
+}
+
 func NewPlayer() *Player {
 	return &Player{
-		moveProgress: 1,
-		sprite:       errs.MustNewImageFromFile(PlayerSpritePath),
-		playerIdleAnim: animation.NewAnimation(
-			animation.NewSpritesheetAuto(errs.MustNewImageFromFile(IdleSpritesheetPath)),
-			0.1666667,
-			animation.Strip,
-			animation.Loop,
-		),
+		moveProgress:  1,
+		sprite:        errs.MustNewImageFromFile(playerSpritePath),
+		animator:      animation.NewAnimator(playerAnimationMap),
 		damageOverlay: newDamageOverlay(),
 		Invincible:    false,
 		InputBuffer:   newInputBuffer(inputBufferDuration),
-		State:         StateIdle,
+		State:         Idle,
 	}
 }

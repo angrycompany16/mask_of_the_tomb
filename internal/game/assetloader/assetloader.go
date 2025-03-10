@@ -1,5 +1,13 @@
 package assetloader
 
+import "path/filepath"
+
+// Useful file paths
+var (
+	EnvironmentTilemapFolder = filepath.Join("assets", "sprites", "environment", "tilemaps", "export")
+	PlayerFolder             = filepath.Join("assets", "sprites", "player", "export")
+)
+
 type Asset interface {
 	load() // Very simple asset loader interface
 	// Can now create loaders for images, ldtk etc..

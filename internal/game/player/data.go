@@ -1,9 +1,14 @@
 package player
 
-import "path/filepath"
+import (
+	"mask_of_the_tomb/internal/game/assetloader"
+	"path/filepath"
+)
 
 var (
-	playerFolder        = filepath.Join("assets", "sprites", "player", "export")
-	PlayerSpritePath    = filepath.Join(playerFolder, "player.png")
-	IdleSpritesheetPath = filepath.Join(playerFolder, "player-idle-Sheet.png")
+	playerSpritePath        = filepath.Join(assetloader.PlayerFolder, "player.png")
+	idleSpritesheetPath     = filepath.Join(assetloader.PlayerFolder, "player-idle-Sheet.png")
+	dashInitSpritesheetPath = filepath.Join(assetloader.PlayerFolder, "player-init-jump-Sheet.png")
+	dashLoopSpritesheetPath = filepath.Join(assetloader.PlayerFolder, "player-loop-jump-Sheet.png")
+	slamSpritesheetPath     = filepath.Join(assetloader.PlayerFolder, "player-slam-Sheet.png")
 )

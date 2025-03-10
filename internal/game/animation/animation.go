@@ -26,9 +26,8 @@ type Spritesheet struct {
 	frames        int
 }
 
-// Note: Should only be used when there's a spritesheet with quadratic tiles
+// Note: Should only be used when the spritesheet is a strip of tiles
 func NewSpritesheetAuto(img *ebiten.Image) *Spritesheet {
-	// Do calculations
 	tileSize := float64(img.Bounds().Size().Y)
 	numTiles := float64(img.Bounds().Size().X) / tileSize
 	return &Spritesheet{
@@ -48,6 +47,8 @@ type Animation struct {
 	frameDelay  float64
 	t           float64
 	paused      bool
+	finished    bool
+	next        int // id of the next animation we want to play. -1 if irrelevant
 }
 
 func (a *Animation) Update() {
@@ -55,11 +56,18 @@ func (a *Animation) Update() {
 		return
 	}
 
-	a.t += 0.01666666666667
+	a.t += 0.008333333 // ? Why ? I don't knwo man. For some reason it is quite accurate
 	if a.t > a.frameDelay {
 		a.t = 0
 		a.switchFrame()
 	}
+}
+
+func (a *Animation) reset() {
+	a.t = 0
+	a.xindex = 0
+	a.yindex = 0
+	a.finished = false
 }
 
 func (a *Animation) switchFrame() {
@@ -68,14 +76,21 @@ func (a *Animation) switchFrame() {
 		if a.loopMode == Loop {
 			a.xindex %= a.spritesheet.frames
 		} else if a.loopMode == Once && a.xindex == a.spritesheet.frames {
-			a.Pause()
+			a.finished = true
+
+			if a.next == -1 {
+				a.Pause()
+			}
 		}
-		return
 	}
 }
 
 func (a *Animation) Pause() {
 	a.paused = true
+}
+
+func (a *Animation) play() {
+	a.paused = false
 }
 
 func (a *Animation) GetSprite() *ebiten.Image {
@@ -92,7 +107,7 @@ func (a *Animation) GetSprite() *ebiten.Image {
 	return a.spritesheet.src
 }
 
-func NewAnimation(spritesheet *Spritesheet, frameDelay float64, orientation SpritesheetOrientation, loopMode AnimationLoopMode) *Animation {
+func NewAnimation(spritesheet *Spritesheet, frameDelay float64, orientation SpritesheetOrientation, loopMode AnimationLoopMode, next int) *Animation {
 	return &Animation{
 		spritesheet: spritesheet,
 		orientation: orientation,
@@ -102,5 +117,7 @@ func NewAnimation(spritesheet *Spritesheet, frameDelay float64, orientation Spri
 		t:           0,
 		loopMode:    loopMode,
 		paused:      false,
+		next:        next,
+		finished:    false,
 	}
 }

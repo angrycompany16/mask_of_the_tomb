@@ -854,7 +854,7 @@
 					"entityInstances": [
 						{
 							"__identifier": "SpawnPosition",
-							"__grid": [8,9],
+							"__grid": [18,17],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -863,23 +863,23 @@
 							"width": 16,
 							"height": 16,
 							"defUid": 81,
-							"px": [64,72],
+							"px": [144,136],
 							"fieldInstances": [],
-							"__worldX": 64,
-							"__worldY": 72
+							"__worldX": 144,
+							"__worldY": 136
 						},
 						{
 							"__identifier": "Slambox",
-							"__grid": [8,16],
+							"__grid": [13,21],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#BE4A2F",
 							"iid": "a35e44e0-e920-11ef-98cf-c3d6807a276a",
-							"width": 32,
-							"height": 16,
+							"width": 40,
+							"height": 32,
 							"defUid": 1,
-							"px": [64,128],
+							"px": [104,168],
 							"fieldInstances": [{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [{
 								"entityIid": "91abb640-e920-11ef-a853-dfa79b8e6717",
 								"layerIid": "9ac99d20-e920-11ef-98cf-995957388ca4",
@@ -889,8 +889,8 @@
 								"id": "V_String",
 								"params": ["91abb640-e920-11ef-a853-dfa79b8e6717"]
 							}] }],
-							"__worldX": 64,
-							"__worldY": 128
+							"__worldX": 104,
+							"__worldY": 168
 						},
 						{
 							"__identifier": "Slambox",

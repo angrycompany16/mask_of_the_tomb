@@ -17,7 +17,6 @@ entity interactions
 // - UPDATED ANIMATIONS
 
 // Roadmap for now (in order):
-// - Implement automatic graphics for slambox
 // - Update the animator component to handle all the player animations that we need
 // - Implement procedural part of player animation for block slamming
 // - Add death/retry effect / retry screen (to start just copy celeste or something) 
@@ -28,7 +27,10 @@ entity interactions
 // - Make the lighting system
 // - Make examples for future reference/testing
 // - Implement background color
+// - Implement sound system
 // - Start on levels
+// - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
+// - Implement generalized input handler
 
 // Backburner
 // - Implement super cool animation technique from aartihificial
@@ -37,3 +39,6 @@ Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread
 so that we can display a loading screen or something while loading our assets
 It's obviously not feasible to just load every resource on startup
+Another reason for the asset manager: Right now we are loading assets multiple times
+because they aren't stored globally anywhere. This is resource inefficient, with an asset
+manager we could load assets and then cache them for later

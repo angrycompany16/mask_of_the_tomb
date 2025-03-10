@@ -12,6 +12,22 @@ const (
 	DirRight
 )
 
+func OppositeDir(dir Direction) Direction {
+	switch dir {
+	case DirNone:
+		return DirNone
+	case DirUp:
+		return DirDown
+	case DirDown:
+		return DirUp
+	case DirRight:
+		return DirLeft
+	case DirLeft:
+		return DirRight
+	}
+	return DirNone
+}
+
 func Clamp(val, min, max float64) float64 {
 	if val < min {
 		return min
