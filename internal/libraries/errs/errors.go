@@ -32,7 +32,7 @@ func MustNewImageFromFile(path string) *ebiten.Image {
 
 func Must[T any](v T, err error) T {
 	if err != nil {
-		tracedPanic(err)
+		panic(err)
 	}
 	return v
 }

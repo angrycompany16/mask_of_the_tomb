@@ -1,8 +1,9 @@
 package ui
 
 import (
-	"fmt"
 	"image/color"
+	"mask_of_the_tomb/internal/game/entities"
+	"mask_of_the_tomb/internal/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -24,6 +25,8 @@ var (
 
 // TODO: Convert into asset files? BASed
 var (
+	_ui = UI{}
+
 	Mainmenu = newMenu(
 		make([]*textbox, 0),
 		[]*selectable{
@@ -88,11 +91,14 @@ type ColorPair struct {
 	DarkColor   color.Color
 }
 
-func (ui *UI) Init() {
-
+func Init() {
+	entities.RegisterEntity(&_ui, "UI")
 }
 
 func (ui *UI) Update() {
+	confirmations := _ui.GetConfirmations()
+	utils.UNUSED(confirmations)
+
 	inputDir := 0
 	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
 		inputDir = 1
@@ -117,9 +123,9 @@ func (ui *UI) GetConfirmations() map[string]bool {
 }
 
 // Not great, really not great
-func (ui *UI) SetScore(score int) {
-	Hud.textboxes[0].text = fmt.Sprintf("YOUR SCORE IS: %d", score)
-}
+// func (ui *UI) SetScore(score int) {
+// 	Hud.textboxes[0].text = fmt.Sprintf("YOUR SCORE IS: %d", score)
+// }
 
 // TODO?: replace this?
 func NewUI() *UI {

@@ -6,9 +6,10 @@ import (
 	"math"
 	"time"
 
+	"mask_of_the_tomb/internal/engine/advertisers"
+	"mask_of_the_tomb/internal/engine/entities"
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/camera"
-	"mask_of_the_tomb/internal/game/events"
 	"mask_of_the_tomb/internal/game/player"
 	"mask_of_the_tomb/internal/game/rendering"
 	save "mask_of_the_tomb/internal/game/savesystem"
@@ -19,42 +20,40 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+const (
+	GameEntityName = "Game"
+)
+
 var (
 	ErrTerminated = errors.New("Terminated")
-)
-
-type GameState int
-
-const (
-	StateMainMenu GameState = iota
-	StatePlaying
-	StatePaused
-)
-
-var (
-	State GameState
+	_game         = Game{}
 )
 
 type Game struct {
-	player *player.Player
-	world  *world.World
-	gameUI *ui.UI
+	advertiser gameAdvertiser
+	state      GameState
 }
 
-func (g *Game) Init() {
-	save.GlobalSave.LoadGame()
-	g.world.Init()
-	g.player.Init(g.world.ActiveLevel.GetSpawnPoint())
-	width, height := g.world.ActiveLevel.GetLevelBounds()
-	playerWidth, playerHeight := g.player.GetSize()
+func Init() {
+	_game.state = StateMainMenu
+	entities.RegisterEntity(&_game, GameEntityName)
+	advertisers.RegisterAdvertiser(&_game.advertiser, GameEntityName)
 
-	camera.GlobalCamera.Init(
-		width,
-		height,
-		(rendering.GameWidth-playerWidth)/2,
-		(rendering.GameHeight-playerHeight)/2,
+	// Q: Should we init a bunch of stuff from here?
+	// A: Maybe, this could be an easy way to get parent-child hierarchies
+	save.GlobalSave.LoadGame()
+
+	worldInit := world.Init()
+
+	playerInit := player.Init(worldInit.SpawnX, worldInit.SpawnY)
+	ui.Init()
+
+	camera.Init(
+		worldInit.LevelWidth,
+		worldInit.LevelHeight,
+		(rendering.GameWidth-playerInit.Width)/2,
+		(rendering.GameHeight-playerInit.Height)/2,
 	)
-	g.gameUI.SetScore(0)
 }
 
 var (
@@ -64,10 +63,9 @@ var (
 
 // Design goal: switching on the global state should not be needed in every update
 // function, as this (død)
-func (g *Game) Update() error {
-	confirmations := g.gameUI.GetConfirmations()
-	g.gameUI.Update()
-	events.GlobalEventManager.Update()
+func (g *Game) Update() {
+	entities.UpdateEntities()
+
 	var err error
 	switch State {
 	case StateMainMenu:
@@ -170,7 +168,6 @@ func (g *Game) updateGameplay() error {
 }
 
 func (g *Game) DoSlam(slambox *world.Slambox, playerMove maths.Direction) {
-	// <-player.SlamHitChan
 	// holy fuCKNING SHIT IT WORKSsss!!!!!!!!!!!!!!!
 	// YEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH
 	// FUCK
@@ -178,6 +175,8 @@ func (g *Game) DoSlam(slambox *world.Slambox, playerMove maths.Direction) {
 	// TODO: rewrite a little bit as this is not very beautiful (function is
 	// over 100 lines long)
 	// Some small bugs hehe!
+
+	// TODO: event
 	time.Sleep(500 * time.Millisecond)
 
 	projectedSlamboxRect, dist := g.world.ActiveLevel.TilemapCollider.ProjectRect(
@@ -260,7 +259,7 @@ func (g *Game) EnterPlayMode() {
 func NewGame() *Game {
 	return &Game{
 		player: player.NewPlayer(),
-		world:  &world.World{},
+		// world:  &world.World{},
 		gameUI: ui.NewUI(),
 	}
 }

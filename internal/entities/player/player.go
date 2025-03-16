@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/animation"
 	"mask_of_the_tomb/internal/game/camera"
+	"mask_of_the_tomb/internal/game/entities"
 	"mask_of_the_tomb/internal/game/events"
 	"mask_of_the_tomb/internal/game/rendering"
 	"mask_of_the_tomb/internal/maths"
@@ -23,6 +24,10 @@ import (
 // All over creating a lot of chaos
 
 // TODO: Rewrite as much as possible using events rather than importing packages
+
+var (
+	_player = Player{}
+)
 
 const (
 	moveSpeed             = 5.0
@@ -52,10 +57,21 @@ type Player struct {
 	finishedClipEventListener *events.EventListener
 }
 
-func (p *Player) Init(posX, posY float64) {
-	p.SetPos(posX, posY)
-	p.Hitbox = maths.RectFromImage(posX, posY, p.sprite)
-	p.animator.SwitchClip(idleAnim)
+type playerInitMsg struct {
+	Width, Height float64
+}
+
+func Init(posX, posY float64) playerInitMsg {
+	entities.RegisterEntity(&_player, "Player")
+	_player.SetPos(posX, posY)
+	_player.Hitbox = maths.RectFromImage(posX, posY, _player.sprite)
+	_player.animator.SwitchClip(idleAnim)
+
+	width, height := _player.GetSize()
+	return playerInitMsg{
+		Width:  width,
+		Height: height,
+	}
 }
 
 func (p *Player) Draw() {
@@ -192,7 +208,6 @@ func NewPlayer() *Player {
 		State:         Idle,
 	}
 
-	// TODO: Shorten down these names holy flippin moly
 	player.finishedClipEventListener = events.NewEventListener(player.animator.FinishedClipEvent)
 	return player
 }

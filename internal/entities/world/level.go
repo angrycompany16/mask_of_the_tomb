@@ -108,10 +108,6 @@ func (l *Level) GetSpawnPoint() (float64, float64) {
 	return 0, 0
 }
 
-func (l *Level) GetLevelBounds() (float64, float64) {
-	return l.levelLDTK.PxWid, l.levelLDTK.PxHei
-}
-
 func (l *Level) GetDoorHit(playerHitbox *maths.Rect) (hit bool, levelIid, entityIid string) {
 	for _, door := range l.doors {
 		if door.hitbox.Overlapping(playerHitbox) {

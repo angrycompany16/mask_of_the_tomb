@@ -1,12 +1,13 @@
 package camera
 
 import (
+	"mask_of_the_tomb/internal/game/entities"
 	"mask_of_the_tomb/internal/game/rendering"
 	"mask_of_the_tomb/internal/maths"
 )
 
 var (
-	GlobalCamera = NewCamera()
+	GlobalCamera = Camera{}
 )
 
 type Camera struct {
@@ -15,9 +16,10 @@ type Camera struct {
 	offsetX, offsetY float64
 }
 
-func (c *Camera) Init(width, height, offsetX, offsetY float64) {
-	c.width, c.height = width, height
-	c.offsetX, c.offsetY = offsetX, offsetY
+func Init(width, height, offsetX, offsetY float64) {
+	entities.RegisterEntity(&GlobalCamera, "Camera")
+	GlobalCamera.width, GlobalCamera.height = width, height
+	GlobalCamera.offsetX, GlobalCamera.offsetY = offsetX, offsetY
 }
 
 func (c *Camera) Update() {
@@ -36,8 +38,4 @@ func (c *Camera) SetPos(x, y float64) {
 func (c *Camera) SetBorders(width, height float64) {
 	c.width = width
 	c.height = height
-}
-
-func NewCamera() *Camera {
-	return &Camera{}
 }

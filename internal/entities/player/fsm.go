@@ -2,9 +2,7 @@ package player
 
 import (
 	"mask_of_the_tomb/internal/maths"
-	"mask_of_the_tomb/internal/sequence"
 	"math"
-	"time"
 )
 
 type playerState int
@@ -23,6 +21,8 @@ func (p *Player) StartSlamming(direction maths.Direction) {
 	p.State = Slamming
 	p.jumpOffsetvel = 2.5
 }
+
+func (p *Player) PreUpdate() {}
 
 func (p *Player) Update() {
 	switch p.State {
@@ -84,7 +84,4 @@ func (p *Player) Update() {
 	p.animator.Update()
 }
 
-func Slam(seq *sequence.Sequence) {
-	time.Sleep(time.Second)
-	seq.FinishChannel <- 1
-}
+func (p *Player) PostUpdate() {}
