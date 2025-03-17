@@ -1,8 +1,8 @@
 package player
 
 import (
-	"mask_of_the_tomb/internal/errs"
-	"mask_of_the_tomb/internal/game/animation"
+	"mask_of_the_tomb/internal/entities/animation"
+	"mask_of_the_tomb/internal/libraries/errs"
 )
 
 const (

@@ -1,7 +1,7 @@
 package rendering
 
 import (
-	. "mask_of_the_tomb/internal/ebitenrenderutil"
+	"mask_of_the_tomb/internal/libraries/assets/ebitenrenderutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -49,7 +49,7 @@ func newRenderLayers() (rl renderLayers) {
 func (r *renderLayers) Draw(screen *ebiten.Image) {
 	for _, layer := range r.layers {
 		scaleFactor := GameWidth * PixelScale / float64(layer.Bounds().Dx())
-		DrawAtScaled(layer, screen, 0, 0, scaleFactor, scaleFactor)
+		ebitenrenderutil.DrawAtScaled(layer, screen, 0, 0, scaleFactor, scaleFactor)
 		layer.Clear()
 	}
 }

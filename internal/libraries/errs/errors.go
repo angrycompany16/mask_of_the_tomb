@@ -1,6 +1,7 @@
 package errs
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -9,6 +10,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
+
+var ErrTerminated = errors.New("Terminated")
 
 func tracedPanic(err error) {
 	pc, file, no, ok := runtime.Caller(2)

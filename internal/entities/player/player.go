@@ -3,30 +3,22 @@ package player
 // New task - gameplay / health system
 
 import (
-	"mask_of_the_tomb/internal/ebitenrenderutil"
-	"mask_of_the_tomb/internal/errs"
-	"mask_of_the_tomb/internal/game/animation"
-	"mask_of_the_tomb/internal/game/camera"
-	"mask_of_the_tomb/internal/game/entities"
-	"mask_of_the_tomb/internal/game/events"
-	"mask_of_the_tomb/internal/game/rendering"
-	"mask_of_the_tomb/internal/maths"
+	"mask_of_the_tomb/internal/engine/advertisers"
+	"mask_of_the_tomb/internal/engine/entities"
+	"mask_of_the_tomb/internal/engine/events"
+	"mask_of_the_tomb/internal/entities/animation"
+	"mask_of_the_tomb/internal/entities/camera/pubcamera"
+	pubgame "mask_of_the_tomb/internal/entities/game/pub"
+	"mask_of_the_tomb/internal/libraries/assets/ebitenrenderutil"
+	"mask_of_the_tomb/internal/libraries/errs"
+	"mask_of_the_tomb/internal/libraries/gameplay/inputbuffer"
+	"mask_of_the_tomb/internal/libraries/maths"
+	"mask_of_the_tomb/internal/libraries/rendering"
 	"math"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-)
-
-// TODO: Rewrite literally everything with some kind of gameobject interface
-// Basically we can create a struct of this type, and then the update function
-// Will simply be called automatically without us needing to reference these things
-// All over creating a lot of chaos
-
-// TODO: Rewrite as much as possible using events rather than importing packages
-
-var (
-	_player = Player{}
 )
 
 const (
@@ -36,24 +28,27 @@ const (
 	inputBufferDuration   = 0.1
 )
 
+// TODO: Reduce the pointer-y ness
+// Not everything needs to be a pointer!
 // TODO: Rewrite player to use maths.direction instead of float angle
 // TODO: turn animations into asset file? (i.e. assets for anims)
-type Player struct {
-	PosX, PosY                float64
-	targetPosX, targetPosY    float64
-	prevPosX, prevPosY        float64
-	moveDirX, moveDirY        float64
-	moveProgress              float64
+type player struct {
+	// PosX, PosY                float64
+	// targetPosX, targetPosY    float64
+	// prevPosX, prevPosY        float64
+
+	// moveDirX, moveDirY        float64
+	// moveProgress              float64
 	jumpOffset, jumpOffsetvel float64
 	Hitbox                    *maths.Rect
 	sprite                    *ebiten.Image
 	animator                  *animation.Animator
 	Invincible                bool
 	Disabled                  bool
-	damageOverlay             deathEffect
-	angle                     float64
-	InputBuffer               inputBuffer
-	State                     playerState
+	// damageOverlay             deathEffect
+	angle       float64
+	InputBuffer inputbuffer.InputBuffer
+	// State                     playerState
 	finishedClipEventListener *events.EventListener
 }
 
@@ -61,36 +56,150 @@ type playerInitMsg struct {
 	Width, Height float64
 }
 
-func Init(posX, posY float64) playerInitMsg {
+func New(posX, posY float64) (*player, playerInitMsg) {
+	_player := player{
+		sprite:   errs.MustNewImageFromFile(playerSpritePath),
+		animator: animation.NewAnimator(playerAnimationMap),
+		// damageOverlay: newDamageOverlay(),
+		Invincible: false,
+		// InputBuffer: newInputBuffer(inputBufferDuration),
+		// State:         Idle,
+	}
 	entities.RegisterEntity(&_player, "Player")
-	_player.SetPos(posX, posY)
+
+	_player.finishedClipEventListener = events.NewEventListener(_player.animator.FinishedClipEvent)
+
+	// _player.SetPos(posX, posY)
 	_player.Hitbox = maths.RectFromImage(posX, posY, _player.sprite)
 	_player.animator.SwitchClip(idleAnim)
 
 	width, height := _player.GetSize()
-	return playerInitMsg{
+
+	initMsg := playerInitMsg{
 		Width:  width,
 		Height: height,
 	}
+	return &_player, initMsg
 }
 
-func (p *Player) Draw() {
-	camX, camY := camera.GlobalCamera.GetPos()
+func (p *player) Update() {
+	adv := advertisers.GetAdvertiser(pubgame.GameEntityName)
+	val := adv.Read().(pubgame.GameAdvertiser)
+	if val.State != pubgame.StatePlaying {
+		return
+	}
+
+	// switch p.State {
+	// case Slamming:
+	// 	if _, raised := p.finishedClipEventListener.Poll(); raised {
+	// 		p.State = Idle
+	// 		p.jumpOffset = 0
+	// 		p.jumpOffsetvel = 0
+	// 	}
+
+	// 	if p.jumpOffsetvel > 0 {
+	// 		p.jumpOffsetvel -= 0.1
+	// 	} else {
+	// 		p.jumpOffsetvel -= 0.25
+	// 	}
+
+	// 	p.jumpOffset += p.jumpOffsetvel
+	// 	p.jumpOffset = maths.Clamp(p.jumpOffset, 0, 1000000)
+	// case Idle:
+	// 	p.animator.SwitchClip(idleAnim)
+	// case Moving:
+	// 	moveDir := p.InputBuffer.ReadSingle()
+	// 	if moveDir != maths.DirNone && p.CanMove() && !p.Disabled {
+	// 		pubplayer.OnMove.Raise(events.EventInfo{Data: pubplayer.MoveEvent{
+	// 			Direction: moveDir,
+	// 			Hitbox:    *p.Hitbox,
+	// 		}})
+
+	// 		// Get slamboxes via advertiser
+	// 		slambox := g.world.ActiveLevel.GetSlamboxHit(p.Hitbox, moveDir)
+	// 		if slambox != nil {
+	// 			g.player.StartSlamming(playerMove)
+	// 			if !slamming {
+	// 				slamming = true
+	// 				go g.DoSlam(slambox, playerMove)
+	// 			}
+	// 		} else {
+	// 			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.Hitbox, playerMove, g.world.ActiveLevel.GetSlamboxColliders())
+	// 			if newRect != *g.player.Hitbox {
+	// 				g.player.EnterDashAnim()
+	// 				g.player.SetRot(playerMove)
+	// 				g.player.SetTarget(newRect.Left(), newRect.Top())
+	// 				g.player.State = player.Moving
+	// 			}
+	// 		}
+
+	// 	}
+	// }
+	// p.PosX += moveSpeed * p.moveDirX
+	// p.PosY += moveSpeed * p.moveDirY
+
+	// if p.moveDirX < 0 {
+	// 	p.PosX = maths.Clamp(p.PosX, p.targetPosX, p.PosX)
+	// } else if p.moveDirX > 0 {
+	// 	p.PosX = maths.Clamp(p.PosX, p.PosX, p.targetPosX)
+	// }
+	// if p.moveDirY < 0 {
+	// 	p.PosY = maths.Clamp(p.PosY, p.targetPosY, p.PosY)
+	// } else if p.moveDirY > 0 {
+	// 	p.PosY = maths.Clamp(p.PosY, p.PosY, p.targetPosY)
+	// }
+
+	// if p.PosX == p.targetPosX {
+	// 	p.moveDirX = 0
+	// }
+	// if p.PosY == p.targetPosY {
+	// 	p.moveDirY = 0
+	// }
+
+	// 	if p.PosX == p.targetPosX && p.PosY == p.targetPosY {
+	// 		p.angle = p.angle - math.Pi
+	// 		p.State = Idle
+	// 	}
+	// }
+
+	// direction := p.getMoveInput()
+	// if direction != maths.DirNone {
+	// 	p.InputBuffer.set(direction)
+	// }
+
+	// p.InputBuffer.update()
+
+	// p.damageOverlay.Update()
+	// p.Hitbox.SetPos(p.PosX, p.PosY)
+
+	p.animator.Update()
+}
+
+func (p *player) Draw() {
+	adv := advertisers.GetAdvertiser(pubgame.GameEntityName)
+	val := adv.Read().(pubgame.GameAdvertiser)
+	if val.State == pubgame.StateMainMenu {
+		return
+	}
+
+	camAdv := advertisers.GetAdvertiser(pubcamera.CameraEntityName)
+	camPos := camAdv.Read().(pubcamera.CameraAdvertiser)
+	camX, camY := camPos.PosX, camPos.PosY
 	jumpOffsetX, jumpOffsetY := p.getJumpOffset()
 	ebitenrenderutil.DrawAtRotated(
 		p.animator.GetSprite(),
 		rendering.RenderLayers.Playerspace,
-		p.PosX-camX-jumpOffsetX,
-		p.PosY-camY-jumpOffsetY,
+		p.Hitbox.Left()-camX-jumpOffsetX,
+		p.Hitbox.Top()-camY-jumpOffsetY,
 		p.angle,
 		0.5,
 		0.5,
 	)
 
-	p.damageOverlay.Draw()
+	// p.damageOverlay.Draw()
 }
 
-func (p *Player) getJumpOffset() (float64, float64) {
+func (p *player) getJumpOffset() (float64, float64) {
 	if p.angle == 0 {
 		return 0, p.jumpOffset
 	} else if p.angle == math.Pi/2 {
@@ -103,11 +212,11 @@ func (p *Player) getJumpOffset() (float64, float64) {
 	return 0, 0
 }
 
-func (p *Player) GetLevelSwapInput() bool {
+func (p *player) GetLevelSwapInput() bool {
 	return inpututil.IsKeyJustPressed(ebiten.KeySpace)
 }
 
-func (p *Player) getMoveInput() maths.Direction {
+func (p *player) getMoveInput() maths.Direction {
 	if inpututil.IsKeyJustPressed(ebiten.KeyW) {
 		return maths.DirUp
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
@@ -120,12 +229,12 @@ func (p *Player) getMoveInput() maths.Direction {
 	return maths.DirNone
 }
 
-func (p *Player) SetPos(x, y float64) {
-	p.PosX, p.PosY = x, y
-	p.targetPosX, p.targetPosY = x, y
-}
+// func (p *player) SetPos(x, y float64) {
+// 	p.PosX, p.PosY = x, y
+// 	p.targetPosX, p.targetPosY = x, y
+// }
 
-func (p *Player) SetRot(direction maths.Direction) {
+func (p *player) SetRot(direction maths.Direction) {
 	switch direction {
 	case maths.DirUp:
 		p.angle = 0
@@ -138,76 +247,67 @@ func (p *Player) SetRot(direction maths.Direction) {
 	}
 }
 
-func (p *Player) GetPosCentered() (float64, float64) {
-	s := p.sprite.Bounds().Size()
-	return p.PosX + float64(s.X)/2, p.PosY + float64(s.Y)/2
-}
+// func (p *player) GetPosCentered() (float64, float64) {
+// 	s := p.sprite.Bounds().Size()
+// 	return p.PosX + float64(s.X)/2, p.PosY + float64(s.Y)/2
+// }
 
-func (p *Player) SetTarget(x, y float64) {
-	p.targetPosX = x
-	p.targetPosY = y
-	p.prevPosX = p.PosX
-	p.prevPosY = p.PosY
-	p.moveDirX = math.Copysign(1, p.targetPosX-p.PosX)
-	p.moveDirY = math.Copysign(1, p.targetPosY-p.PosY)
-}
-
-func (p *Player) GetSize() (float64, float64) {
+func (p *player) GetSize() (float64, float64) {
 	s := p.sprite.Bounds().Size()
 	return float64(s.X), float64(s.Y)
 }
 
-func (p *Player) GetMovementSize() (float64, float64) {
-	return moveSpeed * p.moveDirX, moveSpeed * p.moveDirY
-}
+// func (p *player) GetMovementSize() (float64, float64) {
+// 	return moveSpeed * p.moveDirX, moveSpeed * p.moveDirY
+// }
 
-func (p *Player) CanMove() bool {
-	return p.State == Idle
-}
+// func (p *player) CanMove() bool {
+// 	return p.State == Idle
+// }
 
-func (p *Player) IsMoving() bool {
-	return p.moveDirX != 0 || p.moveDirY != 0
-}
+// func (p *player) IsMoving() bool {
+// 	return p.moveDirX != 0 || p.moveDirY != 0
+// }
 
-func (p *Player) TakeDamage(damage float64) {
-	p.Invincible = true
-	p.Disabled = true
-	go p.hitHazard()
-}
+// func (p *player) TakeDamage(damage float64) {
+// 	p.Invincible = true
+// 	p.Disabled = true
+// 	go p.hitHazard()
+// }
 
-func (p *Player) hitHazard() {
-	time.Sleep(time.Millisecond * 300)
-	p.Disabled = false
-	p.damageOverlay.alpha = 1.0
-	go p.disableInvincibility()
-}
+// func (p *player) hitHazard() {
+// 	time.Sleep(time.Millisecond * 300)
+// 	p.Disabled = false
+// 	p.damageOverlay.alpha = 1.0
+// 	go p.disableInvincibility()
+// }
 
-func (p *Player) disableInvincibility() {
-	p.PosX = p.prevPosX
-	p.PosY = p.prevPosY
-	time.Sleep(invincibilityDuration)
-	p.Invincible = false
-}
+// func (p *player) disableInvincibility() {
+// 	p.PosX = p.prevPosX
+// 	p.PosY = p.prevPosY
+// 	time.Sleep(invincibilityDuration)
+// 	p.Invincible = false
+// }
 
-func (p *Player) EnterDashAnim() {
+func (p *player) EnterDashAnim() {
 	p.animator.SwitchClip(dashInitAnim)
 }
 
-func (p *Player) EnterSlamAnim() {
+func (p *player) EnterSlamAnim() {
 	p.animator.SwitchClip(slamAnim)
 }
 
-func NewPlayer() *Player {
-	player := &Player{
-		moveProgress:  1,
-		sprite:        errs.MustNewImageFromFile(playerSpritePath),
-		animator:      animation.NewAnimator(playerAnimationMap),
-		damageOverlay: newDamageOverlay(),
-		Invincible:    false,
-		InputBuffer:   newInputBuffer(inputBufferDuration),
-		State:         Idle,
-	}
+// func NewPlayer() *player {
+// 	player := &player{
+// 		moveProgress:  1,
+// 		sprite:        errs.MustNewImageFromFile(playerSpritePath),
+// 		animator:      animation.NewAnimator(playerAnimationMap),
+// 		damageOverlay: newDamageOverlay(),
+// 		Invincible:    false,
+// 		InputBuffer:   newInputBuffer(inputBufferDuration),
+// 		State:         Idle,
+// 	}
 
-	player.finishedClipEventListener = events.NewEventListener(player.animator.FinishedClipEvent)
-	return player
-}
+// 	player.finishedClipEventListener = events.NewEventListener(player.animator.FinishedClipEvent)
+// 	return player
+// }

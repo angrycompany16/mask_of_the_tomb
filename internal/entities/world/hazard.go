@@ -1,7 +1,8 @@
 package world
 
 import (
-	"mask_of_the_tomb/internal/maths"
+	"mask_of_the_tomb/internal/libraries/assets/ldtknames"
+	"mask_of_the_tomb/internal/libraries/maths"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
@@ -18,7 +19,7 @@ func newHazard(
 	newHazard.hitbox = *maths.RectFromEntity(entity)
 
 	for _, fieldInstance := range entity.Fields {
-		if fieldInstance.Name == hazardDamageFieldName {
+		if fieldInstance.Name == ldtknames.HazardDamageFieldName {
 			newHazard.damage = fieldInstance.Float
 		}
 	}

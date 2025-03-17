@@ -2,7 +2,7 @@ package animation
 
 import (
 	"fmt"
-	"mask_of_the_tomb/internal/game/events"
+	"mask_of_the_tomb/internal/engine/events"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -20,7 +20,7 @@ func (a *Animator) Update() {
 	activeClip.Update()
 	if activeClip.finished {
 		if activeClip.next != -1 {
-			a.FinishedClipEvent.Raise()
+			a.FinishedClipEvent.Raise(events.EventInfo{})
 			a.ActiveClip = activeClip.next
 		}
 	}

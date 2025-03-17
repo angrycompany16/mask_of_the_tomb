@@ -22,8 +22,6 @@ to do so, do it.
 
 Default folder structure for entity:
  - [entityName].go (Contains the entity methods)
- - [entityNameAdvertiser].go (Contains the advertiser object if there is one)
+ - pub[entityName] (Contains advertisers, public types and events)
  - [entityNameData].go (contains any (mostly) static data that the entity needs to function)
- - [entityNameCore].go (Contains other methods defined on the entity's data struct)
- - [entityNameEvents].go (Contains the events defined on the entity object)
- - [componentName].go (files for member types of the entity)
+ - Various folders in case the complexity of the entity grows large

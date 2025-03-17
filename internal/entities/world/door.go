@@ -1,8 +1,9 @@
 package world
 
 import (
-	"mask_of_the_tomb/internal/errs"
-	"mask_of_the_tomb/internal/maths"
+	"mask_of_the_tomb/internal/libraries/assets/ldtknames"
+	"mask_of_the_tomb/internal/libraries/errs"
+	"mask_of_the_tomb/internal/libraries/maths"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
@@ -20,7 +21,7 @@ func newDoor(
 	newDoor := door{}
 	newDoor.hitbox = *maths.RectFromEntity(entityInstance)
 
-	fieldInstance := errs.Must(entityInstance.GetFieldByName(doorOtherSideFieldName))
+	fieldInstance := errs.Must(entityInstance.GetFieldByName(ldtknames.DoorOtherSideFieldName))
 	newDoor.levelIid = fieldInstance.EntityRef.LevelIid
 	newDoor.entityIid = fieldInstance.EntityRef.EntityIid
 

@@ -1,7 +1,7 @@
 package player
 
 import (
-	"mask_of_the_tomb/internal/game/assetloader"
+	"mask_of_the_tomb/internal/entities/assetloader"
 	"path/filepath"
 )
 

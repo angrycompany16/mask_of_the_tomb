@@ -1,7 +1,7 @@
 package physics
 
 import (
-	"mask_of_the_tomb/internal/libraries/grid"
+	"mask_of_the_tomb/internal/libraries/gameplay/grid"
 	"mask_of_the_tomb/internal/libraries/maths"
 	"math"
 )

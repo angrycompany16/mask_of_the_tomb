@@ -1,13 +1,12 @@
-package world
+package slambox
 
 import (
 	"image"
-	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
-	"mask_of_the_tomb/internal/errs"
-	"mask_of_the_tomb/internal/game/camera"
-	"mask_of_the_tomb/internal/game/physics"
-	"mask_of_the_tomb/internal/game/rendering"
-	"mask_of_the_tomb/internal/maths"
+	"mask_of_the_tomb/internal/libraries/assets/ebitenrenderutil"
+	"mask_of_the_tomb/internal/libraries/assets/ldtknames"
+	"mask_of_the_tomb/internal/libraries/errs"
+	"mask_of_the_tomb/internal/libraries/gameplay/physics"
+	"mask_of_the_tomb/internal/libraries/maths"
 	"math"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -124,10 +123,10 @@ func (s *Slambox) SetTarget(x, y float64) {
 	s.moveDirY = math.Copysign(1, s.targetPosY-s.posY)
 }
 
-func (s *Slambox) Draw() {
-	camX, camY := camera.GlobalCamera.GetPos()
-	ebitenrenderutil.DrawAt(s.sprite, rendering.RenderLayers.Playerspace, s.posX-camX, s.posY-camY)
-}
+// func (s *Slambox) Draw() {
+// 	// camX, camY := camera.GlobalCamera.GetPos()
+// 	ebitenrenderutil.DrawAt(s.sprite, rendering.RenderLayers.Playerspace, s.posX-camX, s.posY-camY)
+// }
 
 func (s *Slambox) GetCollider() *physics.RectCollider {
 	return &s.Collider
@@ -147,40 +146,45 @@ func newSlambox(
 	newSlambox.LinkID = entity.Iid
 	newSlambox.SetPos(entity.Px[0], entity.Px[1])
 	newSlambox.targetRect = newSlambox.Collider.Rect
+	newSlambox.sprite = generateSlamboxSprite(entity)
 
-	tilemap := errs.MustNewImageFromFile(SlamboxTilemapPath)
-
-	newSlambox.sprite = ebiten.NewImage(int(entity.Width), int(entity.Height))
-
-	// Render from tilemap
-	// Draw corners
-	ebitenrenderutil.DrawAt(tilemap.SubImage(TopLeft).(*ebiten.Image), newSlambox.sprite, 0, 0)
-	ebitenrenderutil.DrawAt(tilemap.SubImage(TopRight).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, 0)
-	ebitenrenderutil.DrawAt(tilemap.SubImage(BottomLeft).(*ebiten.Image), newSlambox.sprite, 0, entity.Height-tileSize)
-	ebitenrenderutil.DrawAt(tilemap.SubImage(BottomRight).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, entity.Height-tileSize)
-
-	// Draw edges
-	for i := 1; i < int(entity.Width/tileSize)-1; i++ {
-		ebitenrenderutil.DrawAt(tilemap.SubImage(Top).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), 0)
-		ebitenrenderutil.DrawAt(tilemap.SubImage(Bottom).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), entity.Height-tileSize)
-	}
-
-	for i := 1; i < int(entity.Height/tileSize)-1; i++ {
-		ebitenrenderutil.DrawAt(tilemap.SubImage(Left).(*ebiten.Image), newSlambox.sprite, 0, float64(i*tileSize))
-		ebitenrenderutil.DrawAt(tilemap.SubImage(Right).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, float64(i*tileSize))
-	}
-
-	// Draw interior
-	for i := 1; i < int(entity.Width/tileSize)-1; i++ {
-		for j := 1; j < int(entity.Height/tileSize)-1; j++ {
-			ebitenrenderutil.DrawAt(tilemap.SubImage(Center).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), float64(j*tileSize))
-		}
-	}
-
-	connectionField := errs.Must(entity.GetFieldByName(SlamboxConnectionFieldName))
+	connectionField := errs.Must(entity.GetFieldByName(ldtknames.SlamboxConnectionFieldName))
 	for _, entityRef := range connectionField.EntityRefArray {
 		newSlambox.otherLinkIDs = append(newSlambox.otherLinkIDs, entityRef.EntityIid)
 	}
 
 	return &newSlambox
+}
+
+func generateSlamboxSprite(entity *ebitenLDTK.Entity) *ebiten.Image {
+	tilemap := errs.MustNewImageFromFile(SlamboxTilemapPath)
+
+	sprite := ebiten.NewImage(int(entity.Width), int(entity.Height))
+
+	// Render from tilemap
+	// Draw corners
+	ebitenrenderutil.DrawAt(tilemap.SubImage(TopLeft).(*ebiten.Image), sprite, 0, 0)
+	ebitenrenderutil.DrawAt(tilemap.SubImage(TopRight).(*ebiten.Image), sprite, entity.Width-tileSize, 0)
+	ebitenrenderutil.DrawAt(tilemap.SubImage(BottomLeft).(*ebiten.Image), sprite, 0, entity.Height-tileSize)
+	ebitenrenderutil.DrawAt(tilemap.SubImage(BottomRight).(*ebiten.Image), sprite, entity.Width-tileSize, entity.Height-tileSize)
+
+	// Draw edges
+	for i := 1; i < int(entity.Width/tileSize)-1; i++ {
+		ebitenrenderutil.DrawAt(tilemap.SubImage(Top).(*ebiten.Image), sprite, float64(i*tileSize), 0)
+		ebitenrenderutil.DrawAt(tilemap.SubImage(Bottom).(*ebiten.Image), sprite, float64(i*tileSize), entity.Height-tileSize)
+	}
+
+	for i := 1; i < int(entity.Height/tileSize)-1; i++ {
+		ebitenrenderutil.DrawAt(tilemap.SubImage(Left).(*ebiten.Image), sprite, 0, float64(i*tileSize))
+		ebitenrenderutil.DrawAt(tilemap.SubImage(Right).(*ebiten.Image), sprite, entity.Width-tileSize, float64(i*tileSize))
+	}
+
+	// Draw interior
+	for i := 1; i < int(entity.Width/tileSize)-1; i++ {
+		for j := 1; j < int(entity.Height/tileSize)-1; j++ {
+			ebitenrenderutil.DrawAt(tilemap.SubImage(Center).(*ebiten.Image), sprite, float64(i*tileSize), float64(j*tileSize))
+		}
+	}
+
+	return sprite
 }

@@ -2,8 +2,11 @@ package ui
 
 import (
 	"image/color"
-	"mask_of_the_tomb/internal/game/entities"
-	"mask_of_the_tomb/internal/utils"
+	"mask_of_the_tomb/internal/engine/advertisers"
+	"mask_of_the_tomb/internal/engine/entities"
+	"mask_of_the_tomb/internal/engine/events"
+	pubui "mask_of_the_tomb/internal/entities/UI/pub"
+	pubgame "mask_of_the_tomb/internal/entities/game/pub"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -25,9 +28,7 @@ var (
 
 // TODO: Convert into asset files? BASed
 var (
-	_ui = UI{}
-
-	Mainmenu = newMenu(
+	mainMenu = newMenu(
 		make([]*textbox, 0),
 		[]*selectable{
 			newSelectable(
@@ -91,13 +92,46 @@ type ColorPair struct {
 	DarkColor   color.Color
 }
 
-func Init() {
+func NewUI() *UI {
+	_ui := UI{
+		activeMenu: mainMenu,
+	}
 	entities.RegisterEntity(&_ui, "UI")
+
+	return &_ui
 }
 
 func (ui *UI) Update() {
-	confirmations := _ui.GetConfirmations()
-	utils.UNUSED(confirmations)
+	adv := advertisers.GetAdvertiser(pubgame.GameEntityName)
+	val := adv.Read().(pubgame.GameAdvertiser)
+
+	confirmations := ui.activeMenu.getConfirmed()
+
+	switch val.State {
+	case pubgame.StateMainMenu:
+		if val, ok := confirmations["Play"]; ok && val {
+			pubui.UISelected.Raise(events.EventInfo{Data: pubui.SelectPlay})
+			ui.activeMenu = Hud
+		} else if val, ok := confirmations["Quit"]; ok && val {
+			pubui.UISelected.Raise(events.EventInfo{Data: pubui.SelectQuit})
+		}
+	case pubgame.StatePlaying:
+
+	case pubgame.StatePaused:
+		if val, ok := confirmations["Resume"]; ok && val {
+			// pubui.UISelected.Raise(events.EventInfo{Data: pubui.SelectPlay})
+			// pubui.UISelected.Raise(events.EventInfo{Data: pubui.SelectQuit})
+			// ui.activeMenu = mainMenu
+			// ui.activeMenu.selectorPos = 0
+		} else if val, ok := confirmations["Quit"]; ok && val {
+			pubui.UISelected.Raise(events.EventInfo{Data: pubui.SelectMainMenu})
+			// Save data and stuff
+			// Loading screens
+			// etc
+			ui.activeMenu.selectorPos = 0
+			ui.activeMenu = mainMenu
+		}
+	}
 
 	inputDir := 0
 	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
@@ -109,27 +143,6 @@ func (ui *UI) Update() {
 	ui.activeMenu.update(inputDir)
 }
 
-func (ui *UI) SwitchActiveMenu(menu *menu) {
-	ui.activeMenu = menu
-	ui.activeMenu.selectorPos = 0
-}
-
 func (ui *UI) Draw() {
 	ui.activeMenu.draw()
-}
-
-func (ui *UI) GetConfirmations() map[string]bool {
-	return ui.activeMenu.getConfirmed()
-}
-
-// Not great, really not great
-// func (ui *UI) SetScore(score int) {
-// 	Hud.textboxes[0].text = fmt.Sprintf("YOUR SCORE IS: %d", score)
-// }
-
-// TODO?: replace this?
-func NewUI() *UI {
-	return &UI{
-		activeMenu: Mainmenu,
-	}
 }

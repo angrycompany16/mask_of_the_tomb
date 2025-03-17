@@ -1,19 +1,19 @@
 package events
 
-import "mask_of_the_tomb/internal/engine/entities"
+import (
+	"mask_of_the_tomb/internal/engine/entities"
+)
 
-var eventMangerSingleton eventManager
+var _eventManager = eventManager{
+	events: make([]*Event, 0),
+}
 
 type eventManager struct {
 	events []*Event
 }
 
 func InitEventManager() {
-	eventMangerSingleton = eventManager{
-		events: make([]*Event, 0),
-	}
-
-	entities.RegisterEntity(&eventMangerSingleton, "EventManager")
+	entities.RegisterEntity(&_eventManager, "EventManager")
 }
 
 func (evm *eventManager) PreUpdate() {

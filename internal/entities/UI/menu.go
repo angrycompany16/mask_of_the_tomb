@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"mask_of_the_tomb/internal/maths"
+	"mask_of_the_tomb/internal/libraries/maths"
 )
 
 type menu struct {

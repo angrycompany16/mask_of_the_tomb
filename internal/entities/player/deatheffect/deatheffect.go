@@ -2,9 +2,9 @@ package player
 
 import (
 	"image/color"
-	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
-	"mask_of_the_tomb/internal/game/rendering"
-	"mask_of_the_tomb/internal/maths"
+	"mask_of_the_tomb/internal/libraries/assets/ebitenrenderutil"
+	"mask_of_the_tomb/internal/libraries/maths"
+	"mask_of_the_tomb/internal/libraries/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

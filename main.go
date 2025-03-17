@@ -4,9 +4,10 @@ import (
 	"errors"
 	"flag"
 	"log"
-	"mask_of_the_tomb/internal/game"
-	"mask_of_the_tomb/internal/game/rendering"
-	save "mask_of_the_tomb/internal/game/savesystem"
+	"mask_of_the_tomb/internal/app"
+	"mask_of_the_tomb/internal/libraries/errs"
+	"mask_of_the_tomb/internal/libraries/rendering"
+	save "mask_of_the_tomb/internal/libraries/savesystem"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -14,28 +15,6 @@ import (
 var (
 	debugMode bool
 )
-
-type App struct {
-	game *game.Game
-}
-
-func (a *App) Update() error {
-	// err := a.game.Update()
-	// Check if terminated
-	if err == game.ErrTerminated {
-		return err
-	}
-	return nil
-}
-
-func (a *App) Draw(screen *ebiten.Image) {
-	a.game.Draw()
-	rendering.RenderLayers.Draw(screen)
-}
-
-func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
-	return rendering.GameWidth * rendering.PixelScale, rendering.GameHeight * rendering.PixelScale
-}
 
 func main() {
 	flag.BoolVar(&debugMode, "debug", false, "enable debug mode")
@@ -45,19 +24,19 @@ func main() {
 	ebiten.SetWindowSize(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
 	ebiten.SetWindowTitle("Mask of the tomb")
 
-	a := &App{game.NewGame()}
-	a.game.Init()
+	a := app.MakeApp()
+	a.Init()
 
 	if debugMode {
-		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-		game.State = game.StatePlaying
-		a.game.EnterPlayMode()
+		// ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+		// game.State = game.StatePlaying
+		// a.game.EnterPlayMode()
 	} else {
 		ebiten.SetFullscreen(true)
 	}
 
 	if err := ebiten.RunGame(a); err != nil {
-		if errors.Is(err, game.ErrTerminated) {
+		if errors.Is(err, errs.ErrTerminated) {
 			save.GlobalSave.SaveGame()
 			return
 		}
