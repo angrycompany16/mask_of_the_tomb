@@ -17,7 +17,7 @@ type AdvertiserManager struct {
 	advertisers map[string]advertiser
 }
 
-func GetAdvertiser(id string) advertiser {
+func Get(id string) advertiser {
 	advertiser, ok := _advertiserManager.advertisers[id]
 	if !ok {
 		panic(fmt.Sprintf("Could not find advertiser with id %s", id))

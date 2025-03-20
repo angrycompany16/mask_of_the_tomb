@@ -1,51 +1,70 @@
 package moveBox
 
 import (
+	"mask_of_the_tomb/internal/engine/entities"
+	"mask_of_the_tomb/internal/engine/events"
+	"mask_of_the_tomb/internal/entities/player/moveBox/pubmovebox"
 	"mask_of_the_tomb/internal/libraries/maths"
 	"math"
 )
 
-type MoveBox struct {
-	PosX, PosY             float64
+type movebox struct {
+	*entities.Entity
+	positionAdvertiser     pubmovebox.PositionAdvertiser
+	posX, posY             float64
 	targetPosX, targetPosY float64
 	moveDirX, moveDirY     float64
 	moveProgress           float64
 	moveSpeed              float64
 }
 
-func (m *MoveBox) Move() {
-	m.PosX += m.moveSpeed * m.moveDirX
-	m.PosY += m.moveSpeed * m.moveDirY
+func NewMovebox(posX, posY, moveSpeed float64, name string) *movebox {
+	_movebox := &movebox{
+		posX:       posX,
+		posY:       posY,
+		targetPosX: posX,
+		targetPosY: posY,
+		moveSpeed:  moveSpeed,
+	}
+	_movebox.Entity = entities.RegisterEntity(_movebox, name)
+	return _movebox
+}
+
+func (m *movebox) Update() {
+	m.posX += m.moveSpeed * m.moveDirX
+	m.posY += m.moveSpeed * m.moveDirY
 
 	if m.moveDirX < 0 {
-		m.PosX = maths.Clamp(m.PosX, m.targetPosX, m.PosX)
+		m.posX = maths.Clamp(m.posX, m.targetPosX, m.posX)
 	} else if m.moveDirX > 0 {
-		m.PosX = maths.Clamp(m.PosX, m.PosX, m.targetPosX)
+		m.posX = maths.Clamp(m.posX, m.posX, m.targetPosX)
 	}
 	if m.moveDirY < 0 {
-		m.PosY = maths.Clamp(m.PosY, m.targetPosY, m.PosY)
+		m.posY = maths.Clamp(m.posY, m.targetPosY, m.posY)
 	} else if m.moveDirY > 0 {
-		m.PosY = maths.Clamp(m.PosY, m.PosY, m.targetPosY)
+		m.posY = maths.Clamp(m.posY, m.posY, m.targetPosY)
 	}
 
-	if m.PosX == m.targetPosX {
+	if m.posX == m.targetPosX {
 		m.moveDirX = 0
 	}
-	if m.PosY == m.targetPosY {
+	if m.posY == m.targetPosY {
 		m.moveDirY = 0
 	}
 
-	// if m.PosX == m.targetPosX && m.PosY == m.targetPosY {
-	// 	m.angle = m.angle - math.Pi
-	// 	m.State = Idle
-	// }
+	if m.posX == m.targetPosX && m.posY == m.targetPosY {
+		pubmovebox.FinishedMoveEvent.Raise(events.EventInfo{
+			EntityID: m.GetID(),
+		})
+	}
+
+	m.positionAdvertiser.PosX = m.posX
+	m.positionAdvertiser.PosY = m.posY
 }
 
-func (m *MoveBox) SetTarget(x, y float64) {
+func (m *movebox) SetTarget(x, y float64) {
 	m.targetPosX = x
 	m.targetPosY = y
-	// m.prevPosX = m.PosX
-	// m.prevPosY = m.PosY
-	m.moveDirX = math.Copysign(1, m.targetPosX-m.PosX)
-	m.moveDirY = math.Copysign(1, m.targetPosY-m.PosY)
+	m.moveDirX = math.Copysign(1, m.targetPosX-m.posX)
+	m.moveDirY = math.Copysign(1, m.targetPosY-m.posY)
 }

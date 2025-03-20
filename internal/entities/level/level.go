@@ -49,13 +49,13 @@ func (l *Level) Update() {
 
 // TODO: Fill the background with backgroundColor from LDTK
 func (l *Level) Draw() {
-	gameAdv := advertisers.GetAdvertiser(pubgame.GameEntityName)
+	gameAdv := advertisers.Get(pubgame.GameEntityName)
 	gameState := gameAdv.Read().(pubgame.GameAdvertiser)
 	if gameState.State == pubgame.StateMainMenu {
 		return
 	}
 
-	camAdv := advertisers.GetAdvertiser(pubcamera.CameraEntityName)
+	camAdv := advertisers.Get(pubcamera.CameraEntityName)
 	camPos := camAdv.Read().(pubcamera.CameraAdvertiser)
 	camX, camY := camPos.PosX, camPos.PosY
 

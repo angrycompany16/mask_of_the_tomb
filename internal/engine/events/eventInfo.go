@@ -1,5 +1,6 @@
 package events
 
 type EventInfo struct {
-	Data any
+	EntityID string
+	Data     any
 }

@@ -102,7 +102,7 @@ func NewUI() *UI {
 }
 
 func (ui *UI) Update() {
-	adv := advertisers.GetAdvertiser(pubgame.GameEntityName)
+	adv := advertisers.Get(pubgame.GameEntityName)
 	val := adv.Read().(pubgame.GameAdvertiser)
 
 	confirmations := ui.activeMenu.getConfirmed()

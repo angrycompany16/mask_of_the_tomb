@@ -9,6 +9,7 @@ import (
 	"mask_of_the_tomb/internal/entities/animation"
 	"mask_of_the_tomb/internal/entities/camera/pubcamera"
 	pubgame "mask_of_the_tomb/internal/entities/game/pub"
+	"mask_of_the_tomb/internal/entities/player/moveBox"
 	"mask_of_the_tomb/internal/libraries/assets/ebitenrenderutil"
 	"mask_of_the_tomb/internal/libraries/errs"
 	"mask_of_the_tomb/internal/libraries/gameplay/inputbuffer"
@@ -26,6 +27,7 @@ const (
 	defaultPlayerHealth   = 5.0
 	invincibilityDuration = time.Second
 	inputBufferDuration   = 0.1
+	moveboxName           = "playerMoveBox"
 )
 
 // TODO: Reduce the pointer-y ness
@@ -33,6 +35,7 @@ const (
 // TODO: Rewrite player to use maths.direction instead of float angle
 // TODO: turn animations into asset file? (i.e. assets for anims)
 type player struct {
+	*entities.Entity
 	// PosX, PosY                float64
 	// targetPosX, targetPosY    float64
 	// prevPosX, prevPosY        float64
@@ -65,7 +68,7 @@ func New(posX, posY float64) (*player, playerInitMsg) {
 		// InputBuffer: newInputBuffer(inputBufferDuration),
 		// State:         Idle,
 	}
-	entities.RegisterEntity(&_player, "Player")
+	_player.Entity = entities.RegisterEntity(&_player, "Player")
 
 	_player.finishedClipEventListener = events.NewEventListener(_player.animator.FinishedClipEvent)
 
@@ -79,12 +82,15 @@ func New(posX, posY float64) (*player, playerInitMsg) {
 		Width:  width,
 		Height: height,
 	}
+
+	_movebox := moveBox.NewMovebox(posX, posY, moveSpeed, moveboxName)
+	_movebox.SetParent(_player.Entity)
 	return &_player, initMsg
 }
 
+// TODO: Semplify getting advertisers?
 func (p *player) Update() {
-	adv := advertisers.GetAdvertiser(pubgame.GameEntityName)
-	val := adv.Read().(pubgame.GameAdvertiser)
+	val := advertisers.Get(pubgame.GameEntityName).Read().(pubgame.GameAdvertiser)
 	if val.State != pubgame.StatePlaying {
 		return
 	}
@@ -172,25 +178,29 @@ func (p *player) Update() {
 	// p.damageOverlay.Update()
 	// p.Hitbox.SetPos(p.PosX, p.PosY)
 
+	// Turn into entity. Ideally you should never need to call an 'update' function in
+	// udpate
 	p.animator.Update()
 }
 
 func (p *player) Draw() {
-	adv := advertisers.GetAdvertiser(pubgame.GameEntityName)
-	val := adv.Read().(pubgame.GameAdvertiser)
-	if val.State == pubgame.StateMainMenu {
+	moveboxAdv := advertisers.Get(moveboxName).Read().(pubcamera.CameraAdvertiser)
+	posX, posY := moveboxAdv.PosX, moveboxAdv.PosY
+
+	gameAdv := advertisers.Get(pubgame.GameEntityName).Read().(pubgame.GameAdvertiser)
+	if gameAdv.State == pubgame.StateMainMenu {
 		return
 	}
 
-	camAdv := advertisers.GetAdvertiser(pubcamera.CameraEntityName)
-	camPos := camAdv.Read().(pubcamera.CameraAdvertiser)
-	camX, camY := camPos.PosX, camPos.PosY
+	camAdv := advertisers.Get(pubcamera.CameraEntityName).Read().(pubcamera.CameraAdvertiser)
+	camX, camY := camAdv.PosX, camAdv.PosY
+
 	jumpOffsetX, jumpOffsetY := p.getJumpOffset()
 	ebitenrenderutil.DrawAtRotated(
 		p.animator.GetSprite(),
 		rendering.RenderLayers.Playerspace,
-		p.Hitbox.Left()-camX-jumpOffsetX,
-		p.Hitbox.Top()-camY-jumpOffsetY,
+		posX-camX-jumpOffsetX,
+		posY-camY-jumpOffsetY,
 		p.angle,
 		0.5,
 		0.5,

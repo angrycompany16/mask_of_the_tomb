@@ -21,6 +21,9 @@ type Game struct {
 }
 
 func NewGame() *Game {
+	// Problem: With the current event setup, we can only have one event
+	// per definition, rather than being able to create multiple events
+	// with
 	_game := Game{
 		uiListener: events.NewEventListener(pubui.UISelected),
 		state:      pubgame.StateMainMenu,
@@ -64,7 +67,7 @@ func (g *Game) Update() {
 	}
 }
 
-func (g *Game) PostUpdate() {
+func (g *Game) PreUpdate() {
 	g.gameAdvertiser.State = g.state
 }
 
