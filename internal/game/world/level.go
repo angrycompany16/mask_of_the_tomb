@@ -46,7 +46,7 @@ func (l *Level) Draw() {
 		box.Draw()
 	}
 
-	camX, camY := camera.GlobalCamera.GetPos()
+	camX, camY := camera.GetPos()
 	// NOTE: we *need* to loop in reverse
 	for i := len(l.levelLDTK.Layers) - 1; i >= 0; i-- {
 		layer := l.levelLDTK.Layers[i]

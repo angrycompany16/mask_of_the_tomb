@@ -2,9 +2,6 @@ package player
 
 import (
 	"mask_of_the_tomb/internal/maths"
-	"mask_of_the_tomb/internal/sequence"
-	"math"
-	"time"
 )
 
 type playerState int
@@ -18,7 +15,7 @@ const (
 // FINALLY it feels good
 func (p *Player) StartSlamming(direction maths.Direction) {
 	// TODO: orient player properly
-	p.angle = maths.ToRadians(maths.Opposite(direction))
+	p.direction = maths.Opposite(direction)
 	p.animator.SwitchClip(slamAnim)
 	p.State = Slamming
 	p.jumpOffsetvel = 2.5
@@ -27,7 +24,8 @@ func (p *Player) StartSlamming(direction maths.Direction) {
 func (p *Player) Update() {
 	switch p.State {
 	case Slamming:
-		if p.finishedClipEventListener.Poll() {
+		_, finished := p.finishedClipEventListener.Poll()
+		if finished {
 			p.State = Idle
 			p.jumpOffset = 0
 			p.jumpOffsetvel = 0
@@ -44,29 +42,10 @@ func (p *Player) Update() {
 	case Idle:
 		p.animator.SwitchClip(idleAnim)
 	case Moving:
-		p.PosX += moveSpeed * p.moveDirX
-		p.PosY += moveSpeed * p.moveDirY
-
-		if p.moveDirX < 0 {
-			p.PosX = maths.Clamp(p.PosX, p.targetPosX, p.PosX)
-		} else if p.moveDirX > 0 {
-			p.PosX = maths.Clamp(p.PosX, p.PosX, p.targetPosX)
-		}
-		if p.moveDirY < 0 {
-			p.PosY = maths.Clamp(p.PosY, p.targetPosY, p.PosY)
-		} else if p.moveDirY > 0 {
-			p.PosY = maths.Clamp(p.PosY, p.PosY, p.targetPosY)
-		}
-
-		if p.PosX == p.targetPosX {
-			p.moveDirX = 0
-		}
-		if p.PosY == p.targetPosY {
-			p.moveDirY = 0
-		}
-
-		if p.PosX == p.targetPosX && p.PosY == p.targetPosY {
-			p.angle = p.angle - math.Pi
+		p.movebox.Update()
+		_, finished := p.finishedMoveEventListener.Poll()
+		if finished {
+			p.direction = maths.Opposite(p.direction)
 			p.State = Idle
 		}
 	}
@@ -79,12 +58,7 @@ func (p *Player) Update() {
 	p.InputBuffer.update()
 
 	p.damageOverlay.Update()
-	p.Hitbox.SetPos(p.PosX, p.PosY)
+	p.Hitbox.SetPos(p.movebox.GetPos())
 
 	p.animator.Update()
-}
-
-func Slam(seq *sequence.Sequence) {
-	time.Sleep(time.Second)
-	seq.FinishChannel <- 1
 }

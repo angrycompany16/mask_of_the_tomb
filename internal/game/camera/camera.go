@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	GlobalCamera = NewCamera()
+	_camera = &Camera{}
 )
 
 type Camera struct {
@@ -15,29 +15,21 @@ type Camera struct {
 	offsetX, offsetY float64
 }
 
-func (c *Camera) Init(width, height, offsetX, offsetY float64) {
-	c.width, c.height = width, height
-	c.offsetX, c.offsetY = offsetX, offsetY
+func Init(width, height, offsetX, offsetY float64) {
+	_camera.width, _camera.height = width, height
+	_camera.offsetX, _camera.offsetY = offsetX, offsetY
 }
 
-func (c *Camera) Update() {
-
+func GetPos() (float64, float64) {
+	return _camera.posX, _camera.posY
 }
 
-func (c *Camera) GetPos() (float64, float64) {
-	return c.posX, c.posY
+func SetPos(x, y float64) {
+	_camera.posX = maths.Clamp(x-_camera.offsetX, 0, _camera.width-rendering.GameWidth)
+	_camera.posY = maths.Clamp(y-_camera.offsetY, 0, _camera.height-rendering.GameHeight)
 }
 
-func (c *Camera) SetPos(x, y float64) {
-	c.posX = maths.Clamp(x-c.offsetX, 0, c.width-rendering.GameWidth)
-	c.posY = maths.Clamp(y-c.offsetY, 0, c.height-rendering.GameHeight)
-}
-
-func (c *Camera) SetBorders(width, height float64) {
-	c.width = width
-	c.height = height
-}
-
-func NewCamera() *Camera {
-	return &Camera{}
+func SetBorders(width, height float64) {
+	_camera.width = width
+	_camera.height = height
 }

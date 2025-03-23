@@ -3,8 +3,6 @@ package game
 import (
 	"errors"
 	"fmt"
-	"math"
-	"time"
 
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/camera"
@@ -48,7 +46,7 @@ func (g *Game) Init() {
 	width, height := g.world.ActiveLevel.GetLevelBounds()
 	playerWidth, playerHeight := g.player.GetSize()
 
-	camera.GlobalCamera.Init(
+	camera.Init(
 		width,
 		height,
 		(rendering.GameWidth-playerWidth)/2,
@@ -57,17 +55,12 @@ func (g *Game) Init() {
 	g.gameUI.SetScore(0)
 }
 
-var (
-	slamming       = false
-	slamFinishChan = make(chan int, 1)
-)
-
 // Design goal: switching on the global state should not be needed in every update
 // function, as this (død)
 func (g *Game) Update() error {
+	events.Update()
 	confirmations := g.gameUI.GetConfirmations()
 	g.gameUI.Update()
-	events.GlobalEventManager.Update()
 	var err error
 	switch State {
 	case StateMainMenu:
@@ -99,25 +92,14 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) updateGameplay() error {
-	// TODO: Rewrite with events
 	playerMove := g.player.InputBuffer.Read()
-	if slamming {
-		select {
-		case <-slamFinishChan:
-			slamming = false
-		default:
-		}
-	}
 
 	if playerMove != maths.DirNone && g.player.CanMove() && !g.player.Disabled {
 		g.player.InputBuffer.Clear()
 		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.Hitbox, playerMove)
 		if slambox != nil {
 			g.player.StartSlamming(playerMove)
-			if !slamming {
-				slamming = true
-				go g.DoSlam(slambox, playerMove)
-			}
+			slambox.DoSlam(playerMove, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.DisconnectedColliders(slambox))
 		} else {
 			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.Hitbox, playerMove, g.world.ActiveLevel.GetSlamboxColliders())
 			if newRect != *g.player.Hitbox {
@@ -127,7 +109,6 @@ func (g *Game) updateGameplay() error {
 				g.player.State = player.Moving
 			}
 		}
-
 	}
 
 	if g.player.GetLevelSwapInput() {
@@ -140,7 +121,7 @@ func (g *Game) updateGameplay() error {
 				return err
 			}
 
-			camera.GlobalCamera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
+			camera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
 
 			otherSideDoor, err := g.world.ActiveLevel.GetEntityByIid(entityIid)
 			if err != nil {
@@ -159,7 +140,7 @@ func (g *Game) updateGameplay() error {
 
 	g.player.Update()
 
-	camera.GlobalCamera.SetPos(g.player.PosX, g.player.PosY)
+	camera.SetPos(g.player.GetPosCentered())
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		State = StatePaused
@@ -167,75 +148,6 @@ func (g *Game) updateGameplay() error {
 	}
 
 	return nil
-}
-
-func (g *Game) DoSlam(slambox *world.Slambox, playerMove maths.Direction) {
-	// <-player.SlamHitChan
-	// holy fuCKNING SHIT IT WORKSsss!!!!!!!!!!!!!!!
-	// YEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH
-	// FUCK
-	// YEAH
-	// TODO: rewrite a little bit as this is not very beautiful (function is
-	// over 100 lines long)
-	// Some small bugs hehe!
-	time.Sleep(500 * time.Millisecond)
-
-	projectedSlamboxRect, dist := g.world.ActiveLevel.TilemapCollider.ProjectRect(
-		&slambox.GetCollider().Rect,
-		playerMove,
-		g.world.ActiveLevel.DisconnectedColliders(slambox),
-	)
-	shortestDist := dist
-
-	for _, otherSlambox := range slambox.ConnectedBoxes {
-		_, otherDist := g.world.ActiveLevel.TilemapCollider.ProjectRect(
-			&otherSlambox.GetCollider().Rect,
-			playerMove,
-			g.world.ActiveLevel.DisconnectedColliders(otherSlambox),
-		)
-
-		if math.Abs(otherDist) < math.Abs(dist) {
-			shortestDist = otherDist
-		}
-	}
-
-	for _, otherSlambox := range slambox.ConnectedBoxes {
-		otherProjRect, _dist := g.world.ActiveLevel.TilemapCollider.ProjectRect(
-			&otherSlambox.GetCollider().Rect,
-			playerMove,
-			g.world.ActiveLevel.DisconnectedColliders(otherSlambox),
-		)
-
-		offset := _dist - shortestDist
-
-		switch playerMove {
-		case maths.DirUp:
-			otherProjRect.SetPos(otherSlambox.Collider.Left(), otherProjRect.Top()+offset)
-		case maths.DirDown:
-			otherProjRect.SetPos(otherSlambox.Collider.Left(), otherProjRect.Top()-offset)
-		case maths.DirRight:
-			otherProjRect.SetPos(otherProjRect.Left()-offset, otherSlambox.Collider.Top())
-		case maths.DirLeft:
-			otherProjRect.SetPos(otherProjRect.Left()+offset, otherSlambox.Collider.Top())
-		}
-		otherSlambox.SetTarget(otherProjRect.Left(), otherProjRect.Top())
-	}
-
-	offset := math.Abs(dist - shortestDist)
-
-	switch playerMove {
-	case maths.DirUp:
-		projectedSlamboxRect.SetPos(slambox.Collider.Left(), projectedSlamboxRect.Top()+offset)
-	case maths.DirDown:
-		projectedSlamboxRect.SetPos(slambox.Collider.Left(), projectedSlamboxRect.Top()-offset)
-	case maths.DirRight:
-		projectedSlamboxRect.SetPos(projectedSlamboxRect.Left()-offset, slambox.Collider.Top())
-	case maths.DirLeft:
-		projectedSlamboxRect.SetPos(projectedSlamboxRect.Left()+offset, slambox.Collider.Top())
-	}
-
-	slambox.SetTarget(projectedSlamboxRect.Left(), projectedSlamboxRect.Top())
-	slamFinishChan <- 1
 }
 
 func (g *Game) Draw() {

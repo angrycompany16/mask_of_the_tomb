@@ -20,7 +20,7 @@ func (a *Animator) Update() {
 	activeClip.Update()
 	if activeClip.finished {
 		if activeClip.next != -1 {
-			a.FinishedClipEvent.Raise()
+			a.FinishedClipEvent.Raise(events.EventInfo{})
 			a.ActiveClip = activeClip.next
 		}
 	}

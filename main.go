@@ -19,10 +19,6 @@ type App struct {
 	game *game.Game
 }
 
-func (a *App) Init() {
-
-}
-
 func (a *App) Update() error {
 	err := a.game.Update()
 	if err == game.ErrTerminated {

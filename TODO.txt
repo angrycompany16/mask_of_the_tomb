@@ -18,18 +18,16 @@ entity interactions
 
 // Roadmap for now (in order):
 // - Add death/retry effect / retry screen (to start just copy celeste or something) 
-// - Implement dear-imgui for faster debugging (this will be key later)
 // - Finish the asset loader, add loading screens
-// - Add custom asset for UI systems
 // - Implement particle systems, make asset loader etc.
+// - Implement generalized input handler
+// - Add custom asset for UI systems
 // - Implement camera shake
-// - Make the lighting system
 // - Make examples for future reference/testing
 // - Implement background color
 // - Implement sound system
 // - Start on levels
 // - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
-// - Implement generalized input handler
 
 // Backburner
 // - Implement super cool animation technique from aartihificial

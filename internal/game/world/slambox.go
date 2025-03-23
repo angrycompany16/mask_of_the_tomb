@@ -5,16 +5,26 @@ import (
 	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/camera"
+	"mask_of_the_tomb/internal/game/events"
+	"mask_of_the_tomb/internal/game/movebox"
 	"mask_of_the_tomb/internal/game/physics"
 	"mask_of_the_tomb/internal/game/rendering"
+	"mask_of_the_tomb/internal/game/timer"
 	"mask_of_the_tomb/internal/maths"
 	"math"
+	"time"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// TODO: make the moving box into a generalized entity?
+type slamboxState int
+
+const (
+	idle = iota
+	waiting
+	slamming
+)
 
 const (
 	moveSpeed                  = 10.0
@@ -79,54 +89,124 @@ var (
 	)
 )
 
+type SlamContext struct {
+	direction             maths.Direction
+	tilemapCollider       *physics.TilemapCollider
+	disconnectedColliders []*physics.RectCollider
+}
+
 type Slambox struct {
-	Collider               physics.RectCollider
-	ConnectedBoxes         []*Slambox
-	LinkID                 string   // ID to check for linked boxes
-	otherLinkIDs           []string // ID to check for linked boxes
-	sprite                 *ebiten.Image
-	targetRect             maths.Rect
-	posX, posY             float64
-	targetPosX, targetPosY float64
-	moveDirX, moveDirY     float64
+	Collider                  physics.RectCollider
+	ConnectedBoxes            []*Slambox
+	LinkID                    string   // ID to check for linked boxes
+	otherLinkIDs              []string // ID to check for linked boxes
+	sprite                    *ebiten.Image
+	movebox                   *movebox.Movebox
+	state                     slamboxState
+	moveFinishedEventListener *events.EventListener
+	slamTimer                 *timer.Timer
+	slamTimerEventListener    *events.EventListener
+	currentSlamCtx            SlamContext
 }
 
 func (s *Slambox) Update() {
-	s.Collider = physics.NewRectCollider(s.targetRect)
-	s.posX += moveSpeed * s.moveDirX
-	s.posY += moveSpeed * s.moveDirY
-
-	if s.moveDirX < 0 {
-		s.posX = maths.Clamp(s.posX, s.targetPosX, s.posX)
-	} else if s.moveDirX > 0 {
-		s.posX = maths.Clamp(s.posX, s.posX, s.targetPosX)
+	s.movebox.Update()
+	x, y := s.movebox.GetPos()
+	s.Collider.SetPos(x, y)
+	s.slamTimer.Update()
+	switch s.state {
+	case idle:
+	case waiting:
+		_, raised := s.slamTimerEventListener.Poll()
+		if raised {
+			s.Slam(s.currentSlamCtx)
+			s.state = slamming
+		}
+	case slamming:
+		_, finished := s.moveFinishedEventListener.Poll()
+		if finished {
+			s.state = idle
+		}
 	}
-	if s.moveDirY < 0 {
-		s.posY = maths.Clamp(s.posY, s.targetPosY, s.posY)
-	} else if s.moveDirY > 0 {
-		s.posY = maths.Clamp(s.posY, s.posY, s.targetPosY)
-	}
-
-	if s.posX == s.targetPosX {
-		s.moveDirX = 0
-	}
-	if s.posY == s.targetPosY {
-		s.moveDirY = 0
-	}
-
-	s.Collider.SetPos(s.posX, s.posY)
-}
-
-func (s *Slambox) SetTarget(x, y float64) {
-	s.targetPosX = x
-	s.targetPosY = y
-	s.moveDirX = math.Copysign(1, s.targetPosX-s.posX)
-	s.moveDirY = math.Copysign(1, s.targetPosY-s.posY)
 }
 
 func (s *Slambox) Draw() {
-	camX, camY := camera.GlobalCamera.GetPos()
-	ebitenrenderutil.DrawAt(s.sprite, rendering.RenderLayers.Playerspace, s.posX-camX, s.posY-camY)
+	x, y := s.movebox.GetPos()
+	camX, camY := camera.GetPos()
+	ebitenrenderutil.DrawAt(s.sprite, rendering.RenderLayers.Playerspace, x-camX, y-camY)
+}
+
+// Projects a slambox through the environment given by slamctx
+func (s *Slambox) Slam(slamCtx SlamContext) {
+	projectedSlamboxRect, dist := slamCtx.tilemapCollider.ProjectRect(
+		&s.Collider.Rect,
+		slamCtx.direction,
+		slamCtx.disconnectedColliders,
+	)
+	shortestDist := dist
+
+	for _, otherSlambox := range s.ConnectedBoxes {
+		_, otherDist := slamCtx.tilemapCollider.ProjectRect(
+			&otherSlambox.GetCollider().Rect,
+			slamCtx.direction,
+			slamCtx.disconnectedColliders,
+		)
+
+		if math.Abs(otherDist) < math.Abs(dist) {
+			shortestDist = otherDist
+		}
+	}
+
+	for _, otherSlambox := range s.ConnectedBoxes {
+		otherProjRect, _dist := slamCtx.tilemapCollider.ProjectRect(
+			&otherSlambox.GetCollider().Rect,
+			slamCtx.direction,
+			slamCtx.disconnectedColliders,
+		)
+
+		offset := _dist - shortestDist
+
+		switch slamCtx.direction {
+		case maths.DirUp:
+			otherProjRect.SetPos(otherSlambox.Collider.Left(), otherProjRect.Top()+offset)
+		case maths.DirDown:
+			otherProjRect.SetPos(otherSlambox.Collider.Left(), otherProjRect.Top()-offset)
+		case maths.DirRight:
+			otherProjRect.SetPos(otherProjRect.Left()-offset, otherSlambox.Collider.Top())
+		case maths.DirLeft:
+			otherProjRect.SetPos(otherProjRect.Left()+offset, otherSlambox.Collider.Top())
+		}
+		otherSlambox.SetTarget(otherProjRect.Left(), otherProjRect.Top())
+	}
+
+	offset := math.Abs(dist - shortestDist)
+
+	switch slamCtx.direction {
+	case maths.DirUp:
+		projectedSlamboxRect.SetPos(s.Collider.Left(), projectedSlamboxRect.Top()+offset)
+	case maths.DirDown:
+		projectedSlamboxRect.SetPos(s.Collider.Left(), projectedSlamboxRect.Top()-offset)
+	case maths.DirRight:
+		projectedSlamboxRect.SetPos(projectedSlamboxRect.Left()-offset, s.Collider.Top())
+	case maths.DirLeft:
+		projectedSlamboxRect.SetPos(projectedSlamboxRect.Left()+offset, s.Collider.Top())
+	}
+
+	s.SetTarget(projectedSlamboxRect.Left(), projectedSlamboxRect.Top())
+}
+
+func (s *Slambox) DoSlam(direction maths.Direction, tilemapCollider *physics.TilemapCollider, disconnectedColliders []*physics.RectCollider) {
+	s.slamTimer.Reset()
+	s.state = waiting
+	s.currentSlamCtx = SlamContext{
+		direction:             direction,
+		tilemapCollider:       tilemapCollider,
+		disconnectedColliders: disconnectedColliders,
+	}
+}
+
+func (s *Slambox) SetTarget(x, y float64) {
+	s.movebox.SetTarget(x, y)
 }
 
 func (s *Slambox) GetCollider() *physics.RectCollider {
@@ -134,8 +214,7 @@ func (s *Slambox) GetCollider() *physics.RectCollider {
 }
 
 func (s *Slambox) SetPos(x, y float64) {
-	s.posX, s.posY = x, y
-	s.targetPosX, s.targetPosY = x, y
+	s.movebox.SetPos(x, y)
 }
 
 func newSlambox(
@@ -145,8 +224,13 @@ func newSlambox(
 	newSlambox.Collider = physics.NewRectCollider(*maths.RectFromEntity(entity))
 	newSlambox.ConnectedBoxes = make([]*Slambox, 0)
 	newSlambox.LinkID = entity.Iid
+	newSlambox.movebox = movebox.NewMovebox(moveSpeed)
 	newSlambox.SetPos(entity.Px[0], entity.Px[1])
-	newSlambox.targetRect = newSlambox.Collider.Rect
+	newSlambox.moveFinishedEventListener = events.NewEventListener(newSlambox.movebox.FinishedMoveEvent)
+	newSlambox.slamTimer = timer.NewTimer(time.Millisecond * 500)
+	newSlambox.slamTimer.Pause()
+	// newSlambox.SlamTimerFinished = events.NewEvent()
+	newSlambox.slamTimerEventListener = events.NewEventListener(newSlambox.slamTimer.TimedoutEvent)
 
 	tilemap := errs.MustNewImageFromFile(SlamboxTilemapPath)
 
