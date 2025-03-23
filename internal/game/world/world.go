@@ -19,6 +19,7 @@ const (
 	spawnPointEntityName       = "SpawnPoint"
 	slamboxEntityName          = "Slambox"
 	SlamboxConnectionFieldName = "ConnectedBoxes"
+	SpikeIntGridName           = "Spikes"
 )
 
 var (
@@ -78,6 +79,18 @@ func ChangeActiveLevel[T string | int](world *World, id T) error {
 	if err != nil {
 		return err
 	}
-	world.ActiveLevel = &newLevel
+	world.ActiveLevel = newLevel
 	return nil
+}
+
+func (w *World) ResetActiveLevel() (float64, float64) {
+	levelLDTK := *w.ActiveLevel.levelLDTK
+	defs := *w.ActiveLevel.defs
+	newLevel, err := newLevel(&levelLDTK, &defs)
+	if err != nil {
+		panic(fmt.Sprintln("Could not reset level", w.ActiveLevel.name))
+	}
+
+	w.ActiveLevel = newLevel
+	return w.ActiveLevel.GetSpawnPoint()
 }

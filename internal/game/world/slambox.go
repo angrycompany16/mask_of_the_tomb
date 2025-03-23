@@ -226,7 +226,7 @@ func newSlambox(
 	newSlambox.LinkID = entity.Iid
 	newSlambox.movebox = movebox.NewMovebox(moveSpeed)
 	newSlambox.SetPos(entity.Px[0], entity.Px[1])
-	newSlambox.moveFinishedEventListener = events.NewEventListener(newSlambox.movebox.FinishedMoveEvent)
+	newSlambox.moveFinishedEventListener = events.NewEventListener(newSlambox.movebox.OnMoveFinished)
 	newSlambox.slamTimer = timer.NewTimer(time.Millisecond * 500)
 	newSlambox.slamTimer.Pause()
 	// newSlambox.SlamTimerFinished = events.NewEvent()

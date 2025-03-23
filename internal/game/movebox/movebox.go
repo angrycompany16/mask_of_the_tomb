@@ -7,7 +7,7 @@ import (
 )
 
 type Movebox struct {
-	FinishedMoveEvent      *events.Event
+	OnMoveFinished         *events.Event
 	posX, posY             float64
 	targetPosX, targetPosY float64
 	moveDirX, moveDirY     float64
@@ -37,7 +37,7 @@ func (m *Movebox) Update() {
 	}
 
 	if m.posX == m.targetPosX && m.posY == m.targetPosY {
-		m.FinishedMoveEvent.Raise(events.EventInfo{})
+		m.OnMoveFinished.Raise(events.EventInfo{})
 	}
 }
 
@@ -63,8 +63,8 @@ func (m *Movebox) GetMovedir() (float64, float64) {
 
 func NewMovebox(moveSpeed float64) *Movebox {
 	_movebox := &Movebox{
-		FinishedMoveEvent: events.NewEvent(),
-		moveSpeed:         moveSpeed,
+		OnMoveFinished: events.NewEvent(),
+		moveSpeed:      moveSpeed,
 	}
 	return _movebox
 }

@@ -3,13 +3,11 @@ package player
 // New task - gameplay / health system
 
 import (
-	"mask_of_the_tomb/internal/ebitenrenderutil"
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/animation"
-	"mask_of_the_tomb/internal/game/camera"
 	"mask_of_the_tomb/internal/game/events"
 	"mask_of_the_tomb/internal/game/movebox"
-	"mask_of_the_tomb/internal/game/rendering"
+	"mask_of_the_tomb/internal/game/player/deathanim"
 	"mask_of_the_tomb/internal/maths"
 	"math"
 	"time"
@@ -20,7 +18,7 @@ import (
 
 // TODO: There's a bug which sometimes appears where the player moves a tiny bit out
 // from the wall if they press the opposite move key right before hitting the wall
-// TODO: Rewrite as much as possible using events rather than importing packages
+// Can maybe be solved with PreUpdate()?
 
 const (
 	moveSpeed             = 5.0
@@ -30,7 +28,6 @@ const (
 )
 
 // TODO: Allow for sprites which aren't exactly 16x16
-// TODO: Rewrite player to use maths.direction instead of float angle
 // TODO: turn animations into asset file? (i.e. assets for anims)
 type Player struct {
 	State                     playerState
@@ -42,33 +39,19 @@ type Player struct {
 	animator                  *animation.Animator
 	Invincible                bool
 	Disabled                  bool
-	damageOverlay             deathEffect
 	InputBuffer               inputBuffer
-	finishedMoveEventListener *events.EventListener
-	finishedClipEventListener *events.EventListener
+	deathAnim                 *deathanim.DeathAnim
+	// Events
+	OnDeath *events.Event
+	// Listeners
+	moveFinishedListener *events.EventListener
+	clipFinishedListener *events.EventListener
 }
 
 func (p *Player) Init(posX, posY float64) {
 	p.SetPos(posX, posY)
 	p.Hitbox = maths.RectFromImage(posX, posY, p.sprite)
 	p.animator.SwitchClip(idleAnim)
-}
-
-func (p *Player) Draw() {
-	posX, posY := p.movebox.GetPos()
-	camX, camY := camera.GetPos()
-	jumpOffsetX, jumpOffsetY := p.getJumpOffset()
-	ebitenrenderutil.DrawAtRotated(
-		p.animator.GetSprite(),
-		rendering.RenderLayers.Playerspace,
-		posX-camX-jumpOffsetX,
-		posY-camY-jumpOffsetY,
-		maths.ToRadians(p.direction),
-		0.5,
-		0.5,
-	)
-
-	p.damageOverlay.Draw()
 }
 
 func (p *Player) getJumpOffset() (float64, float64) {
@@ -139,25 +122,22 @@ func (p *Player) IsMoving() bool {
 	return moveDirX != 0 || moveDirY != 0
 }
 
-func (p *Player) TakeDamage(damage float64) {
-	// p.Invincible = true
-	// p.Disabled = true
-	// go p.hitHazard()
+func (p *Player) Die() {
+	p.Disabled = true
+	p.State = Dying
+	p.deathAnim.Play()
+	// TODO: Make it centered
+	p.deathAnim.SetPos(p.movebox.GetPos())
+
+	// May not be necessary
+	p.OnDeath.Raise(events.EventInfo{})
 }
 
-// func (p *Player) hitHazard() {
-// 	time.Sleep(time.Millisecond * 300)
-// 	p.Disabled = false
-// 	p.damageOverlay.alpha = 1.0
-// go p.disableInvincibility()
-// }
-
-// func (p *Player) disableInvincibility() {
-// p.PosX = p.prevPosX
-// p.PosY = p.prevPosY
-// 	time.Sleep(invincibilityDuration)
-// 	p.Invincible = false
-// }
+func (p *Player) Respawn() {
+	p.Disabled = false
+	p.direction = maths.DirUp
+	p.State = Idle
+}
 
 func (p *Player) EnterDashAnim() {
 	p.animator.SwitchClip(dashInitAnim)
@@ -169,17 +149,19 @@ func (p *Player) EnterSlamAnim() {
 
 func NewPlayer() *Player {
 	player := &Player{
-		movebox:       movebox.NewMovebox(moveSpeed),
-		sprite:        errs.MustNewImageFromFile(playerSpritePath),
-		animator:      animation.NewAnimator(playerAnimationMap),
-		damageOverlay: newDamageOverlay(),
-		Invincible:    false,
-		InputBuffer:   newInputBuffer(inputBufferDuration),
-		State:         Idle,
+		movebox:  movebox.NewMovebox(moveSpeed),
+		sprite:   errs.MustNewImageFromFile(playerSpritePath),
+		animator: animation.NewAnimator(playerAnimationMap),
+		// damageOverlay: newDamageOverlay(),
+		Invincible:  false,
+		InputBuffer: newInputBuffer(inputBufferDuration),
+		State:       Idle,
+		OnDeath:     events.NewEvent(),
+		deathAnim:   deathanim.NewDeathAnim(),
 	}
 
-	player.finishedMoveEventListener = events.NewEventListener(player.movebox.FinishedMoveEvent)
-	player.finishedClipEventListener = events.NewEventListener(player.animator.FinishedClipEvent)
+	player.moveFinishedListener = events.NewEventListener(player.movebox.OnMoveFinished)
+	player.clipFinishedListener = events.NewEventListener(player.animator.OnClipFinished)
 	// TODO: Shorten down these names holy flippin moly
 	return player
 }

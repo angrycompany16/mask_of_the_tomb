@@ -35,10 +35,10 @@ func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
 
 func main() {
 	ebiten.SetWindowSize(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
-	ebiten.SetWindowTitle("Slambox test")
+	ebiten.SetWindowTitle("Hazard test")
 
 	a := &App{game.NewGame()}
-	world.LDTKMapPath = filepath.Join("assets", "LDTK", "slambox.ldtk")
+	world.LDTKMapPath = filepath.Join("assets", "LDTK", "hazard.ldtk")
 	a.game.Init()
 
 	ebiten.SetFullscreen(true)

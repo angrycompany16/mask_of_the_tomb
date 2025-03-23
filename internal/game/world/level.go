@@ -25,6 +25,7 @@ var layerMap = map[string]*ebiten.Image{
 }
 
 type Level struct {
+	name            string
 	defs            *ebitenLDTK.Defs
 	levelLDTK       *ebitenLDTK.Level
 	TilemapCollider physics.TilemapCollider
@@ -123,13 +124,13 @@ func (l *Level) GetDoorHit(playerHitbox *maths.Rect) (hit bool, levelIid, entity
 	return
 }
 
-func (l *Level) GetHazardHit(playerHitbox *maths.Rect) float64 {
+func (l *Level) GetHazardHit(playerHitbox *maths.Rect) bool {
 	for _, hazard := range l.hazards {
 		if hazard.hitbox.Overlapping(playerHitbox) {
-			return hazard.damage
+			return true
 		}
 	}
-	return 0
+	return false
 }
 
 // Get all the rect colliders that are not connected to slambox
@@ -165,12 +166,11 @@ func (l *Level) GetEntityByIid(iid string) (ebitenLDTK.Entity, error) {
 }
 
 // TODO: Refactor because this is very big
-func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error) {
-	newLevel := Level{}
+func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error) {
+	newLevel := &Level{}
 	newLevel.levelLDTK = levelLDTK
 	newLevel.defs = defs
-
-	newLevel.TilemapCollider.Tiles = levelLDTK.MakeBitmapFromLayer(defs, playerSpaceLayerName)
+	newLevel.name = levelLDTK.Name
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
@@ -178,6 +178,18 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (Level, error)
 		newLevel.TilemapCollider.TileSize = 1
 		return newLevel, nil
 	}
+
+	var spikeIntGridID int
+	for _, layerDef := range defs.LayerDefs {
+		if layerDef.Name == playerSpaceLayerName {
+			spikeIntGridID = layerDef.GetIntGridValue(SpikeIntGridName)
+		}
+	}
+
+	// TODO: Why the hell is this running twice?
+	// fmt.Println("hello") // use this to see the point
+	intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
+	newLevel.TilemapCollider.Tiles = intGridCSV
 
 	newLevel.tileSize = float64(playerspace.GridSize)
 	newLevel.TilemapCollider.TileSize = float64(playerspace.GridSize)

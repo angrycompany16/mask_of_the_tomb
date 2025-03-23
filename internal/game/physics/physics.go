@@ -44,7 +44,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 		y = -1000
 		for i := gridX; i < gridX+int(enlargedRect.Width()/tc.TileSize); i++ {
 			for j := gridY; j >= 0; j-- {
-				if tc.Tiles[j][i] == 1 {
+				if tc.Tiles[j][i] > 0 {
 					y = maths.MaxInt(y, j+1)
 					break
 				}
@@ -54,7 +54,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 		y = 1000
 		for i := gridX; i < gridX+int(enlargedRect.Width()/tc.TileSize); i++ {
 			for j := gridY; j <= len(tc.Tiles); j++ {
-				if tc.Tiles[j][i] == 1 {
+				if tc.Tiles[j][i] > 0 {
 					y = maths.MinInt(y, j-int(enlargedRect.Height()/tc.TileSize))
 					break
 				}
@@ -64,7 +64,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 		x = -1000
 		for j := gridY; j < gridY+int(enlargedRect.Height()/tc.TileSize); j++ {
 			for i := gridX; i >= 0; i-- {
-				if tc.Tiles[j][i] == 1 {
+				if tc.Tiles[j][i] > 0 {
 					x = maths.MaxInt(x, i+1)
 					break
 				}
@@ -74,7 +74,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 		x = 1000
 		for j := gridY; j < gridY+int(enlargedRect.Height()/tc.TileSize); j++ {
 			for i := gridX; i <= len(tc.Tiles[0]); i++ {
-				if tc.Tiles[j][i] == 1 {
+				if tc.Tiles[j][i] > 0 {
 					x = maths.MinInt(x, i-int(enlargedRect.Width()/tc.TileSize))
 					break
 				}

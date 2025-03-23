@@ -9,9 +9,9 @@ import (
 
 // Essentially a container for a map of animations
 type Animator struct {
-	clips             map[int]*Animation
-	ActiveClip        int // The animation that is currently active
-	FinishedClipEvent *events.Event
+	clips          map[int]*Animation
+	ActiveClip     int // The animation that is currently active
+	OnClipFinished *events.Event
 }
 
 func (a *Animator) Update() {
@@ -20,7 +20,7 @@ func (a *Animator) Update() {
 	activeClip.Update()
 	if activeClip.finished {
 		if activeClip.next != -1 {
-			a.FinishedClipEvent.Raise(events.EventInfo{})
+			a.OnClipFinished.Raise(events.EventInfo{})
 			a.ActiveClip = activeClip.next
 		}
 	}
@@ -53,8 +53,8 @@ func (a *Animator) AddAnimation(anim *Animation, id int) {
 func NewAnimator(clips map[int]*Animation) *Animator {
 	// NOTE: An empty animator cannet exist which probably isn't great
 	return &Animator{
-		clips:             clips,
-		ActiveClip:        0,
-		FinishedClipEvent: events.NewEvent(),
+		clips:          clips,
+		ActiveClip:     0,
+		OnClipFinished: events.NewEvent(),
 	}
 }

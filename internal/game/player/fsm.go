@@ -1,6 +1,9 @@
 package player
 
 import (
+	"mask_of_the_tomb/internal/ebitenrenderutil"
+	"mask_of_the_tomb/internal/game/camera"
+	"mask_of_the_tomb/internal/game/rendering"
 	"mask_of_the_tomb/internal/maths"
 )
 
@@ -10,6 +13,7 @@ const (
 	Idle playerState = iota
 	Moving
 	Slamming
+	Dying
 )
 
 // FINALLY it feels good
@@ -24,7 +28,7 @@ func (p *Player) StartSlamming(direction maths.Direction) {
 func (p *Player) Update() {
 	switch p.State {
 	case Slamming:
-		_, finished := p.finishedClipEventListener.Poll()
+		_, finished := p.clipFinishedListener.Poll()
 		if finished {
 			p.State = Idle
 			p.jumpOffset = 0
@@ -43,11 +47,15 @@ func (p *Player) Update() {
 		p.animator.SwitchClip(idleAnim)
 	case Moving:
 		p.movebox.Update()
-		_, finished := p.finishedMoveEventListener.Poll()
+		_, finished := p.moveFinishedListener.Poll()
 		if finished {
 			p.direction = maths.Opposite(p.direction)
 			p.State = Idle
 		}
+	case Dying:
+		p.animator.SwitchClip(idleAnim)
+		p.deathAnim.Update()
+		// Update death animation
 	}
 
 	direction := p.getMoveInput()
@@ -57,8 +65,27 @@ func (p *Player) Update() {
 
 	p.InputBuffer.update()
 
-	p.damageOverlay.Update()
 	p.Hitbox.SetPos(p.movebox.GetPos())
 
 	p.animator.Update()
+}
+
+// TODO: this will be changed back when we add some kind of death (sprite) animation
+func (p *Player) Draw() {
+	if p.State == Dying {
+		p.deathAnim.Draw()
+	} else {
+		posX, posY := p.movebox.GetPos()
+		camX, camY := camera.GetPos()
+		jumpOffsetX, jumpOffsetY := p.getJumpOffset()
+		ebitenrenderutil.DrawAtRotated(
+			p.animator.GetSprite(),
+			rendering.RenderLayers.Playerspace,
+			posX-camX-jumpOffsetX,
+			posY-camY-jumpOffsetY,
+			maths.ToRadians(p.direction),
+			0.5,
+			0.5,
+		)
+	}
 }

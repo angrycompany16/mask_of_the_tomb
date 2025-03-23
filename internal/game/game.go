@@ -37,6 +37,10 @@ type Game struct {
 	player *player.Player
 	world  *world.World
 	gameUI *ui.UI
+	// Events
+	// Listeners
+	deathEffectEnterListener *events.EventListener
+	playerDeathListener      *events.EventListener
 }
 
 func (g *Game) Init() {
@@ -94,6 +98,7 @@ func (g *Game) Update() error {
 func (g *Game) updateGameplay() error {
 	playerMove := g.player.InputBuffer.Read()
 
+	// TODO: Change this by listening to player move event?
 	if playerMove != maths.DirNone && g.player.CanMove() && !g.player.Disabled {
 		g.player.InputBuffer.Clear()
 		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.Hitbox, playerMove)
@@ -134,8 +139,19 @@ func (g *Game) updateGameplay() error {
 	}
 
 	damage := g.world.ActiveLevel.GetHazardHit(g.player.Hitbox)
-	if damage > 0 && !g.player.Invincible && !g.player.Disabled {
-		g.player.TakeDamage(damage)
+	if damage && !g.player.Disabled {
+		fmt.Println("Dead")
+		g.player.Die()
+		g.gameUI.DeathEffect.StartEnter()
+	}
+
+	_, raised := g.deathEffectEnterListener.Poll()
+	if raised {
+		posX, posY := g.world.ResetActiveLevel()
+		g.player.SetPos(posX, posY)
+		g.player.Respawn()
+
+		g.gameUI.DeathEffect.StartExit()
 	}
 
 	g.player.Update()
@@ -170,9 +186,13 @@ func (g *Game) EnterPlayMode() {
 }
 
 func NewGame() *Game {
-	return &Game{
+	game := &Game{
 		player: player.NewPlayer(),
 		world:  &world.World{},
 		gameUI: ui.NewUI(),
 	}
+
+	game.playerDeathListener = events.NewEventListener(game.player.OnDeath)
+	game.deathEffectEnterListener = events.NewEventListener(game.gameUI.DeathEffect.OnFinishEnter)
+	return game
 }

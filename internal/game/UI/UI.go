@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"image/color"
+	"mask_of_the_tomb/internal/game/deatheffect"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -79,8 +80,10 @@ var (
 	)
 )
 
+// TODO: Make menu select into an event (With event info!!!)
 type UI struct {
-	activeMenu *menu
+	activeMenu  *menu
+	DeathEffect *deatheffect.DeathEffect
 }
 
 type ColorPair struct {
@@ -101,6 +104,7 @@ func (ui *UI) Update() {
 	}
 
 	ui.activeMenu.update(inputDir)
+	ui.DeathEffect.Update()
 }
 
 func (ui *UI) SwitchActiveMenu(menu *menu) {
@@ -110,6 +114,7 @@ func (ui *UI) SwitchActiveMenu(menu *menu) {
 
 func (ui *UI) Draw() {
 	ui.activeMenu.draw()
+	ui.DeathEffect.Draw()
 }
 
 func (ui *UI) GetConfirmations() map[string]bool {
@@ -124,6 +129,7 @@ func (ui *UI) SetScore(score int) {
 // TODO?: replace this?
 func NewUI() *UI {
 	return &UI{
-		activeMenu: Mainmenu,
+		activeMenu:  Mainmenu,
+		DeathEffect: deatheffect.NewDeathEffect(),
 	}
 }
