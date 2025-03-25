@@ -25,6 +25,11 @@ var (
 
 // TODO: Convert into asset files? BASed
 var (
+	LoadingScreen = newMenu(
+		[]*textbox{newTextBoxSimple("CURRENTLY LOADING YOUR FUTURE SUFFERING", defaultFontSize, 24, 24, defaultLineSpacing, text.AlignCenter, Centered)},
+		make([]*selectable, 0),
+	)
+
 	Mainmenu = newMenu(
 		make([]*textbox, 0),
 		[]*selectable{
@@ -129,7 +134,7 @@ func (ui *UI) SetScore(score int) {
 // TODO?: replace this?
 func NewUI() *UI {
 	return &UI{
-		activeMenu:  Mainmenu,
+		activeMenu:  LoadingScreen,
 		DeathEffect: deatheffect.NewDeathEffect(),
 	}
 }

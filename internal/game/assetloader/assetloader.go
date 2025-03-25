@@ -1,11 +1,17 @@
 package assetloader
 
-import "path/filepath"
+import (
+	"path/filepath"
+	"slices"
+)
+
+// It's asset loadin time
 
 // Useful file paths
 var (
 	EnvironmentTilemapFolder = filepath.Join("assets", "sprites", "environment", "tilemaps", "export")
 	PlayerFolder             = filepath.Join("assets", "sprites", "player", "export")
+	_assetLoader             = assetLoader{}
 )
 
 type Asset interface {
@@ -28,12 +34,23 @@ type ParticleSystemAsset struct {
 type AnimationAsset struct {
 }
 
-type DelayAsset struct { // Debug asset which takes a long time to load
+type assetLoader struct {
+	// Loading screen
+	assetPool    []Asset
+	loadedAssets []Asset
 }
 
-type AssetLoader struct {
-	// Loading screen
-	// Asset pool []*Asset
+func AddAsset(asset Asset) {
+	_assetLoader.assetPool = append(_assetLoader.assetPool, asset)
+}
+
+func LoadAll(doneChan chan<- int) {
+	for i, asset := range _assetLoader.assetPool {
+		asset.load()
+		_assetLoader.loadedAssets = append(_assetLoader.loadedAssets, asset)
+		_assetLoader.assetPool = slices.Delete(_assetLoader.assetPool, i, i)
+	}
+	doneChan <- 1
 }
 
 // How should this system work?

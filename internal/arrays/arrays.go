@@ -31,3 +31,9 @@ func MapToArray[V comparable, W any](input map[V]W) (valueSlice []W) {
 	}
 	return
 }
+
+func DeleteAtUnordered[V any](input []V, i int) []V {
+	input[i] = input[len(input)-1]
+	input = input[:len(input)-1]
+	return input
+}

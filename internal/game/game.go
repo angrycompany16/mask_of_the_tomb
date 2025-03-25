@@ -3,8 +3,10 @@ package game
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	ui "mask_of_the_tomb/internal/game/UI"
+	"mask_of_the_tomb/internal/game/assetloader"
 	"mask_of_the_tomb/internal/game/camera"
 	"mask_of_the_tomb/internal/game/events"
 	"mask_of_the_tomb/internal/game/player"
@@ -24,13 +26,16 @@ var (
 type GameState int
 
 const (
-	StateMainMenu GameState = iota
+	StateLoading GameState = iota
+	StateMainMenu
 	StatePlaying
 	StatePaused
 )
 
 var (
-	State GameState
+	State            GameState
+	loadFinishedChan = make(chan int)
+	delayAsset       = assetloader.NewDelayAsset(time.Second)
 )
 
 type Game struct {
@@ -43,8 +48,22 @@ type Game struct {
 	playerDeathListener      *events.EventListener
 }
 
-func (g *Game) Init() {
+func (g *Game) Load() {
+	assetloader.AddAsset(&delayAsset)
 	save.GlobalSave.LoadGame()
+	g.world.Load()
+	g.player.Load()
+
+	// For now, let's just have one loading phase when we open the game
+	// AssetLoader.Load() some assets
+	// When assets should be loaded can be declared in the asset definition (in code,
+	// that is)
+	// Problem: When we for instance load an LDTK level we don't want each asset to
+	// have to take
+	go assetloader.LoadAll(loadFinishedChan)
+}
+
+func (g *Game) Init() {
 	g.world.Init()
 	g.player.Init(g.world.ActiveLevel.GetSpawnPoint())
 	width, height := g.world.ActiveLevel.GetLevelBounds()
@@ -57,6 +76,9 @@ func (g *Game) Init() {
 		(rendering.GameHeight-playerHeight)/2,
 	)
 	g.gameUI.SetScore(0)
+
+	State = StateMainMenu
+	g.gameUI.SwitchActiveMenu(ui.Mainmenu)
 }
 
 // Design goal: switching on the global state should not be needed in every update
@@ -67,6 +89,13 @@ func (g *Game) Update() error {
 	g.gameUI.Update()
 	var err error
 	switch State {
+	case StateLoading:
+		select {
+		case <-loadFinishedChan:
+			fmt.Println("Finished loading")
+			g.Init()
+		default:
+		}
 	case StateMainMenu:
 		if val, ok := confirmations["Play"]; ok && val {
 			g.EnterPlayMode()
@@ -169,6 +198,7 @@ func (g *Game) updateGameplay() error {
 func (g *Game) Draw() {
 	g.gameUI.Draw()
 	switch State {
+	case StateLoading:
 	case StateMainMenu:
 	case StatePlaying:
 		g.world.ActiveLevel.Draw()
@@ -180,7 +210,7 @@ func (g *Game) Draw() {
 }
 
 func (g *Game) EnterPlayMode() {
-	g.Init()
+	// g.Init()
 	State = StatePlaying
 	g.gameUI.SwitchActiveMenu(ui.Hud)
 }

@@ -37,7 +37,6 @@ type Player struct {
 	jumpOffset, jumpOffsetvel float64
 	direction                 maths.Direction
 	animator                  *animation.Animator
-	Invincible                bool
 	Disabled                  bool
 	InputBuffer               inputBuffer
 	deathAnim                 *deathanim.DeathAnim
@@ -46,6 +45,10 @@ type Player struct {
 	// Listeners
 	moveFinishedListener *events.EventListener
 	clipFinishedListener *events.EventListener
+}
+
+func (p *Player) Load() {
+
 }
 
 func (p *Player) Init(posX, posY float64) {
@@ -149,11 +152,9 @@ func (p *Player) EnterSlamAnim() {
 
 func NewPlayer() *Player {
 	player := &Player{
-		movebox:  movebox.NewMovebox(moveSpeed),
-		sprite:   errs.MustNewImageFromFile(playerSpritePath),
-		animator: animation.NewAnimator(playerAnimationMap),
-		// damageOverlay: newDamageOverlay(),
-		Invincible:  false,
+		movebox:     movebox.NewMovebox(moveSpeed),
+		sprite:      errs.MustNewImageFromFile(playerSpritePath),
+		animator:    animation.NewAnimator(playerAnimationMap),
 		InputBuffer: newInputBuffer(inputBufferDuration),
 		State:       Idle,
 		OnDeath:     events.NewEvent(),

@@ -45,15 +45,15 @@ func main() {
 	ebiten.SetWindowTitle("Mask of the tomb")
 
 	a := &App{game.NewGame()}
-	a.game.Init()
+	a.game.Load()
 
-	if debugMode {
-		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-		game.State = game.StatePlaying
-		a.game.EnterPlayMode()
-	} else {
-		ebiten.SetFullscreen(true)
-	}
+	// if debugMode {
+	// 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	// 	game.State = game.StatePlaying
+	// 	a.game.EnterPlayMode()
+	// } else {
+	ebiten.SetFullscreen(true)
+	// }
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, game.ErrTerminated) {
