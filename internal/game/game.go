@@ -6,6 +6,7 @@ import (
 	"time"
 
 	ui "mask_of_the_tomb/internal/game/UI"
+	"mask_of_the_tomb/internal/game/UI/fonts"
 	"mask_of_the_tomb/internal/game/core/assetloader"
 	"mask_of_the_tomb/internal/game/core/events"
 	"mask_of_the_tomb/internal/game/core/rendering"
@@ -53,6 +54,8 @@ func (g *Game) Load() {
 	save.GlobalSave.LoadGame()
 	g.player.Load()
 	g.world.Load()
+	g.gameUI.Load()
+	fonts.FontRegistry.Load()
 
 	go assetloader.LoadAll(loadFinishedChan)
 }
@@ -69,10 +72,10 @@ func (g *Game) Init() {
 		(rendering.GameWidth-playerWidth)/2,
 		(rendering.GameHeight-playerHeight)/2,
 	)
-	g.gameUI.SetScore(0)
+	// g.gameUI.SetScore(0)
 
 	State = StateMainMenu
-	g.gameUI.SwitchActiveMenu(ui.Mainmenu)
+	// g.gameUI.SwitchActiveMenu(ui.Mainmenu)
 }
 
 // Design goal: switching on the global state should not be needed in every update
@@ -205,14 +208,14 @@ func (g *Game) Draw() {
 
 func (g *Game) EnterPlayMode() {
 	State = StatePlaying
-	g.gameUI.SwitchActiveMenu(ui.Hud)
+	// g.gameUI.SwitchActiveMenu(ui.Hud)
 }
 
 func NewGame() *Game {
 	game := &Game{
 		player: player.NewPlayer(),
 		world:  &world.World{},
-		gameUI: ui.NewUI(),
+		gameUI: &ui.UI{},
 	}
 
 	game.playerDeathListener = events.NewEventListener(game.player.OnDeath)

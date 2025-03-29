@@ -1,21 +1,19 @@
 # TODO: Make
 ---
 GlobalSpace: false
-PosX: 100
-PosY: 100
+PosX: 0
+PosY: 0
 Angle: 0
-Emission: 10
+Emission: 0
 Bursts:
 - Count: 50
   Time: 0
-- Count: 50
-  Time: 5
 SpawnPosX:
   Min: -1
   Max: 1
 SpawnPosY:
-  Min: -100
-  Max: 100
+  Min: -1
+  Max: 1
 SpawnVelX:
   Min: -30
   Max: 30

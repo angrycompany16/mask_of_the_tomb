@@ -11,6 +11,7 @@ import (
 )
 
 // TODO: Generalize into an overlay type?
+// For suuure we can make an interface for this, or something
 
 var (
 	OverlayColor = []uint8{20, 16, 19}

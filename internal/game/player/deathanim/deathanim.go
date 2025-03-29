@@ -3,7 +3,7 @@ package deathanim
 import (
 	"image/color"
 	"mask_of_the_tomb/internal/ebitenrenderutil"
-	ui "mask_of_the_tomb/internal/game/UI"
+	"mask_of_the_tomb/internal/game/UI/colorpair"
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/maths"
@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	ballColors = ui.ColorPair{
+	ballColors = colorpair.ColorPair{
 		BrightColor: color.RGBA{255, 253, 240, 255},
 		DarkColor:   color.RGBA{21, 10, 31, 255},
 	}

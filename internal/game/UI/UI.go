@@ -2,98 +2,99 @@ package ui
 
 import (
 	"fmt"
-	"image/color"
+	"mask_of_the_tomb/internal/game/UI/menu"
 	"mask_of_the_tomb/internal/game/UI/screenfade"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-var (
-	TextColorNormal = ColorPair{
-		BrightColor: color.RGBA{205, 247, 226, 255},
-		DarkColor:   color.RGBA{199, 176, 139, 255},
-	}
-	TextColorSelected = ColorPair{
-		BrightColor: color.RGBA{255, 255, 255, 255},
-		DarkColor:   color.RGBA{0, 0, 0, 255},
-	}
+// var (
+// 	TextColorNormal = ColorPair{
+// 		BrightColor: color.RGBA{205, 247, 226, 255},
+// 		DarkColor:   color.RGBA{199, 176, 139, 255},
+// 	}
+// 	TextColorSelected = ColorPair{
+// 		BrightColor: color.RGBA{255, 255, 255, 255},
+// 		DarkColor:   color.RGBA{0, 0, 0, 255},
+// 	}
 
-	DefaultShadowX, DefaultShadowY = -4.0, 4.0
-)
+// 	DefaultShadowX, DefaultShadowY = -4.0, 4.0
+// )
 
-// TODO: Convert into asset files? BASed
-var (
-	LoadingScreen = newMenu(
-		[]*textbox{newTextBoxSimple("CURRENTLY LOADING YOUR FUTURE SUFFERING", defaultFontSize, 24, 24, defaultLineSpacing, text.AlignCenter, Centered)},
-		make([]*selectable, 0),
-	)
+// var (
+// 	LoadingScreen = newMenu(
+// 		[]*Textbox{newTextBoxSimple("CURRENTLY LOADING YOUR FUTURE SUFFERING", defaultFontSize, 24, 24, defaultLineSpacing, text.AlignCenter, Centered)},
+// 		make([]*Selectable, 0),
+// 	)
 
-	Mainmenu = newMenu(
-		make([]*textbox, 0),
-		[]*selectable{
-			newSelectable(
-				"Play",
-				newTextBoxSimple("Play video game", 48, 0, -100, 10, text.AlignCenter, Centered),
-				TextColorNormal,
-				TextColorSelected,
-			),
-			newSelectable(
-				"Options",
-				newTextBoxSimple("Options", 48, 0, 0, 10, text.AlignCenter, Centered),
-				TextColorNormal,
-				TextColorSelected,
-			),
-			newSelectable(
-				"Quit",
-				newTextBoxSimple("Don't play video game", 48, 0, 100, 10, text.AlignCenter, Centered),
-				TextColorNormal,
-				TextColorSelected,
-			),
-		},
-	)
+// 	Mainmenu = newMenu(
+// 		make([]*Textbox, 0),
+// 		[]*Selectable{
+// 			newSelectable(
+// 				"Play",
+// 				newTextBoxSimple("Play video game", 48, 0, -100, 10, text.AlignCenter, Centered),
+// 				TextColorNormal,
+// 				TextColorSelected,
+// 			),
+// 			newSelectable(
+// 				"Options",
+// 				newTextBoxSimple("Options", 48, 0, 0, 10, text.AlignCenter, Centered),
+// 				TextColorNormal,
+// 				TextColorSelected,
+// 			),
+// 			newSelectable(
+// 				"Quit",
+// 				newTextBoxSimple("Don't play video game", 48, 0, 100, 10, text.AlignCenter, Centered),
+// 				TextColorNormal,
+// 				TextColorSelected,
+// 			),
+// 		},
+// 	)
 
-	Pausemenu = newMenu(
-		make([]*textbox, 0),
-		[]*selectable{
-			newSelectable(
-				"Resume",
-				newTextBoxSimple("Resume", 48, 0, -100, 10, text.AlignCenter, Centered),
-				TextColorNormal,
-				TextColorSelected,
-			),
-			newSelectable(
-				"Options",
-				newTextBoxSimple("Options", 48, 0, 0, 10, text.AlignCenter, Centered),
-				TextColorNormal,
-				TextColorSelected,
-			),
-			newSelectable(
-				"Quit",
-				newTextBoxSimple("Quit", 48, 0, 100, 10, text.AlignCenter, Centered),
-				TextColorNormal,
-				TextColorSelected,
-			),
-		},
-	)
-	Hud = newMenu(
-		[]*textbox{
-			newTextBoxSimple("Text", defaultFontSize, 24, 24, defaultLineSpacing, text.AlignStart, TopLeft),
-		},
-		make([]*selectable, 0),
-	)
-)
+// 	Pausemenu = newMenu(
+// 		make([]*Textbox, 0),
+// 		[]*Selectable{
+// 			newSelectable(
+// 				"Resume",
+// 				newTextBoxSimple("Resume", 48, 0, -100, 10, text.AlignCenter, Centered),
+// 				TextColorNormal,
+// 				TextColorSelected,
+// 			),
+// 			newSelectable(
+// 				"Options",
+// 				newTextBoxSimple("Options", 48, 0, 0, 10, text.AlignCenter, Centered),
+// 				TextColorNormal,
+// 				TextColorSelected,
+// 			),
+// 			newSelectable(
+// 				"Quit",
+// 				newTextBoxSimple("Quit", 48, 0, 100, 10, text.AlignCenter, Centered),
+// 				TextColorNormal,
+// 				TextColorSelected,
+// 			),
+// 		},
+// 	)
+// 	Hud = newMenu(
+// 		[]*Textbox{
+// 			newTextBoxSimple("Text", defaultFontSize, 24, 24, defaultLineSpacing, text.AlignStart, TopLeft),
+// 		},
+// 		make([]*Selectable, 0),
+// 	)
+// )
 
 // TODO: Make menu select into an event (With event info!!!)
 type UI struct {
-	activeMenu  *menu
+	activeMenu  *menu.Menu
+	menus       map[string]*menu.Menu
 	DeathEffect *screenfade.DeathEffect
 }
 
-type ColorPair struct {
-	BrightColor color.Color
-	DarkColor   color.Color
+func (ui *UI) Load(menuPaths ...string) {
+	// for _, menuPath := range menuPaths {
+	// assetloader.AddAsset(assetloader.men)
+	// Load menu path
+	// }
 }
 
 func (ui *UI) Init() {
@@ -108,33 +109,38 @@ func (ui *UI) Update() {
 		inputDir = -1
 	}
 
-	ui.activeMenu.update(inputDir)
+	ui.activeMenu.Update(inputDir)
 	ui.DeathEffect.Update()
 }
 
-func (ui *UI) SwitchActiveMenu(menu *menu) {
+func (ui *UI) SwitchActiveMenu(name string) {
+	menu, ok := ui.menus[name]
+	if !ok {
+		fmt.Println("Failed to switch to menu with name", name)
+		return
+	}
 	ui.activeMenu = menu
-	ui.activeMenu.selectorPos = 0
+	ui.activeMenu.SelectorPos = 0
 }
 
 func (ui *UI) Draw() {
-	ui.activeMenu.draw()
+	ui.activeMenu.Draw()
 	ui.DeathEffect.Draw()
 }
 
 func (ui *UI) GetConfirmations() map[string]bool {
-	return ui.activeMenu.getConfirmed()
+	return ui.activeMenu.GetConfirmed()
 }
 
 // Not great, really not great
-func (ui *UI) SetScore(score int) {
-	Hud.textboxes[0].text = fmt.Sprintf("YOUR SCORE IS: %d", score)
-}
+// func (ui *UI) SetScore(score int) {
+// Hud.Textboxes[0].text = fmt.Sprintf("YOUR SCORE IS: %d", score)
+// }
 
 // TODO?: replace this?
-func NewUI() *UI {
-	return &UI{
-		activeMenu:  LoadingScreen,
-		DeathEffect: screenfade.NewDeathEffect(),
-	}
-}
+// func NewUI() *UI {
+// 	return &UI{
+// 		activeMenu:  LoadingScreen,
+// 		DeathEffect: screenfade.NewDeathEffect(),
+// 	}
+// }

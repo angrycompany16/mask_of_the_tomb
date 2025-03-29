@@ -1,4 +1,4 @@
-package assetloader
+package assettypes
 
 import (
 	"mask_of_the_tomb/internal/errs"
@@ -14,7 +14,7 @@ type LDTKAsset struct {
 	// done  chan int
 }
 
-func (a *LDTKAsset) load() {
+func (a *LDTKAsset) Load() {
 	a.World = errs.Must(ebitenLDTK.LoadWorld(a.path))
 
 	LDTKpath := filepath.Clean(filepath.Join(a.path, ".."))

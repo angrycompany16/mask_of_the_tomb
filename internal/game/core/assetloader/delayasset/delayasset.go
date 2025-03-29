@@ -1,4 +1,4 @@
-package assetloader
+package delayasset
 
 import "time"
 
@@ -6,7 +6,7 @@ type delayAsset struct { // Debug asset which takes a long time to load
 	timeout time.Duration
 }
 
-func (a *delayAsset) load() {
+func (a *delayAsset) Load() {
 	time.Sleep(a.timeout)
 }
 

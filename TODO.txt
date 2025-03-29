@@ -12,7 +12,7 @@ entity interactions
 
 // THE MAJOR GRAPHICS/GAME FEEL OVERHAUL
 // - PARTICLE SYSTEMS
-// - SHADOWS AND LIGHTING (NORMAL MAPPED)
+// - SHADOWS AND LIGHTING (NORMAL MAPPED) eeeh mby not (not yet, that is)
 // - CAMERA SHAKE
 // - UPDATED ANIMATIONS
 
@@ -23,11 +23,11 @@ entity interactions
 
 // - Implement generalized input handler
 // - Implement camera shake
-// - Make examples for future reference/testing
-// - Implement background color
 // - Implement sound system
-// - Start on levels
+// - Implement background color
 // - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
+// - Start on levels
+// - Make examples for future reference/testing
 // - Make debug mode work a little better 
 //  - Add the ability to spawn in any level
 //  - Add some useful debug info (fps? maybe something idk)

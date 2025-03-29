@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/animation"
 	"mask_of_the_tomb/internal/game/core/assetloader"
+	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/game/core/events"
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/physics/movebox"
@@ -52,7 +53,7 @@ type Player struct {
 }
 
 func (p *Player) Load() {
-	playerSpriteAsset := assetloader.NewImageAsset(playerSpritePath)
+	playerSpriteAsset := assettypes.NewImageAsset(playerSpritePath)
 	assetloader.AddAsset(playerSpriteAsset)
 	p.sprite = &playerSpriteAsset.Image // ????
 }
@@ -160,8 +161,7 @@ func (p *Player) EnterSlamAnim() {
 
 func NewPlayer() *Player {
 	player := &Player{
-		movebox: movebox.NewMovebox(moveSpeed),
-		// sprite:      errs.MustNewImageFromFile(playerSpritePath),
+		movebox:     movebox.NewMovebox(moveSpeed),
 		animator:    animation.NewAnimator(playerAnimationMap),
 		InputBuffer: newInputBuffer(inputBufferDuration),
 		State:       Idle,

@@ -1,4 +1,4 @@
-package assetloader
+package assettypes
 
 import (
 	"mask_of_the_tomb/internal/errs"
@@ -11,7 +11,7 @@ type ImageAsset struct {
 	Image ebiten.Image
 }
 
-func (a *ImageAsset) load() {
+func (a *ImageAsset) Load() {
 	a.Image = *errs.MustNewImageFromFile(a.path)
 }
 

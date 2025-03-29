@@ -1,0 +1,82 @@
+# - TextAlign
+# AlignStart
+# AlignCenter
+# AlignEnd
+
+# - Screenalign
+# Centered
+# TopLeft
+
+---
+Name: "mainmenu"
+Textboxes:
+- Text: "MASK OF THE TOMB"
+  PosX: 0
+  PosY: -200
+  Color:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  Font: "JSE_AmigaAmos"
+  FontSize: 64
+  LineSpacing: 10
+  PrimaryAlign: AlignCenter
+  SecondaryAlign: AlignCenter
+  ScreenAlign: Centered
+  ShadowX: -4
+  ShadowY: 4
+Selectables:
+- Textbox:
+    Text: "Play video game"
+    PosX: 0
+    PosY: -100
+    Font: "JSE_AmigaAmos"
+    FontSize: 48
+    LineSpacing: 10
+    PrimaryAlign: AlignCenter
+    SecondaryAlign: AlignCenter
+    ScreenAlign: Centered
+    ShadowX: -4
+    ShadowY: 4
+  NormalColor:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  HoverColor:
+    Bright: [255, 255, 255, 255]
+    Dark: [0, 0, 0, 255]
+- Textbox:
+    Text: "Options"
+    PosX: 0
+    PosY: 0
+    Font: "JSE_AmigaAmos"
+    FontSize: 48
+    LineSpacing: 10
+    PrimaryAlign: AlignCenter
+    SecondaryAlign: AlignCenter
+    ScreenAlign: Centered
+    ShadowX: -4
+    ShadowY: 4
+  NormalColor:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  HoverColor:
+    Bright: [255, 255, 255, 255]
+    Dark: [0, 0, 0, 255]
+- Textbox:
+    Text: "Don't play video game"
+    PosX: 0
+    PosY: 0
+    Font: "JSE_AmigaAmos"
+    FontSize: 48
+    LineSpacing: 10
+    PrimaryAlign: AlignCenter
+    SecondaryAlign: AlignCenter
+    ScreenAlign: Centered
+    ShadowX: -4
+    ShadowY: 4
+  NormalColor:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  HoverColor:
+    Bright: [255, 255, 255, 255]
+    Dark: [0, 0, 0, 255]
+...

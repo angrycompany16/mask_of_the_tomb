@@ -2,7 +2,7 @@ package ui
 
 import (
 	_ "embed"
-	"mask_of_the_tomb/assets"
+	"path/filepath"
 )
 
 const (
@@ -11,5 +11,6 @@ const (
 )
 
 var (
-	mainFont = assets.JSE_AmigaAMOS_ttf
+	// mainFont     = assets.Fonts["JSE_AmigaAmos"]
+	mainMenuPath = filepath.Join("assets", "menus", "game", "mainmenu.yaml")
 )

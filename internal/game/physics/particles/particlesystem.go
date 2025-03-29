@@ -45,6 +45,7 @@ type ParticleSystem struct {
 func (ps *ParticleSystem) Play() {
 	ps.particles = nil
 	// Not good, really not good...
+	// This is literally just not thread safe at all...
 	go func() {
 		for _, burst := range ps.Bursts {
 			time.Sleep(time.Duration(burst.Time) * time.Second)
@@ -143,8 +144,6 @@ func FromFile(path string, layer *ebiten.Image) (*ParticleSystem, error) {
 	spritePath := errs.Must(filepath.Localize(ps.SpritePath))
 	ps.sprite = errs.MustNewImageFromFile(spritePath)
 	ps.layer = layer
-	// fmt.Println(ps.StartColor)
-	// fmt.Println(ps.EndColor)
 	return ps, nil
 }
 
