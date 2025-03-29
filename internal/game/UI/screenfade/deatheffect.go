@@ -1,10 +1,10 @@
-package deatheffect
+package screenfade
 
 import (
 	"image/color"
 	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
-	"mask_of_the_tomb/internal/game/events"
-	"mask_of_the_tomb/internal/game/rendering"
+	"mask_of_the_tomb/internal/game/core/events"
+	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/maths"
 
 	"github.com/hajimehoshi/ebiten/v2"

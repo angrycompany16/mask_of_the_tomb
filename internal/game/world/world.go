@@ -2,23 +2,9 @@ package world
 
 import (
 	"fmt"
-	"mask_of_the_tomb/internal/game/assetloader"
+	"mask_of_the_tomb/internal/game/core/assetloader"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
-)
-
-// TODO: Maybe find a better place for this
-const (
-	playerSpaceLayerName       = "Playerspace"
-	spawnPosEntityName         = "SpawnPosition"
-	doorEntityName             = "Door"
-	doorOtherSideFieldName     = "OtherSide"
-	hazardEntityName           = "Hazard"
-	hazardDamageFieldName      = "Damage"
-	spawnPointEntityName       = "SpawnPoint"
-	slamboxEntityName          = "Slambox"
-	SlamboxConnectionFieldName = "ConnectedBoxes"
-	SpikeIntGridName           = "Spikes"
 )
 
 var (
@@ -30,24 +16,10 @@ type World struct {
 	ActiveLevel *Level
 }
 
-// TODO: Fix game-breaking bug with slamboxes
 func (w *World) Load() {
 	worldAsset := assetloader.NewLDTKAsset(LDTKMapPath)
 	assetloader.AddAsset(worldAsset)
 	w.worldLDTK = &worldAsset.World
-	// Does this consume way too much memory?
-	// No, it wasn't even very noticable...
-	// w.worldLDTK = errs.Must(ebitenLDTK.LoadWorld(LDTKMapPath))
-
-	// One folder back to access LDTK folder
-	// LDTKpath := filepath.Clean(filepath.Join(LDTKMapPath, ".."))
-	// for i := 0; i < len(w.worldLDTK.Defs.Tilesets); i++ {
-	// 	tileset := &w.worldLDTK.Defs.Tilesets[i]
-	// 	tilesetPath := filepath.Join(LDTKpath, tileset.RelPath)
-	// 	// fmt.Println(tilesetPath)
-	// 	tileset.Image = errs.MustNewImageFromFile(tilesetPath)
-	// }
-
 }
 
 func (w *World) Init() {

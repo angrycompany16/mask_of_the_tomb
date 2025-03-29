@@ -3,7 +3,7 @@ package ui
 import (
 	"bytes"
 	"mask_of_the_tomb/internal/errs"
-	"mask_of_the_tomb/internal/game/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"

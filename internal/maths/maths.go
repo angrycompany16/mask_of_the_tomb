@@ -1,6 +1,9 @@
 package maths
 
-import "math"
+import (
+	"image/color"
+	"math"
+)
 
 type Direction int
 
@@ -64,4 +67,15 @@ func MinInt(a, b int) int {
 
 func MaxInt(a, b int) int {
 	return int(math.Max(float64(a), float64(b)))
+}
+
+func Mix(a, b color.Color, t float64) color.Color {
+	rA, gA, bA, aA := a.RGBA()
+	rB, gB, bB, aB := b.RGBA()
+	return color.RGBA64{
+		uint16(Lerp(float64(rA), float64(rB), t)),
+		uint16(Lerp(float64(gA), float64(gB), t)),
+		uint16(Lerp(float64(bA), float64(bB), t)),
+		uint16(Lerp(float64(aA), float64(aB), t)),
+	}
 }

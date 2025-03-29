@@ -2,8 +2,8 @@ package player
 
 import (
 	"mask_of_the_tomb/internal/ebitenrenderutil"
-	"mask_of_the_tomb/internal/game/camera"
-	"mask_of_the_tomb/internal/game/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/maths"
 )
 
@@ -64,14 +64,14 @@ func (p *Player) Update() {
 	}
 
 	p.InputBuffer.update()
-
 	p.Hitbox.SetPos(p.movebox.GetPos())
-
 	p.animator.Update()
+	p.testParticles.Update()
 }
 
 // TODO: this will be changed back when we add some kind of death (sprite) animation
 func (p *Player) Draw() {
+	p.testParticles.Draw()
 	if p.State == Dying {
 		p.deathAnim.Draw()
 	} else {

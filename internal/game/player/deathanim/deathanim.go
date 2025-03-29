@@ -4,9 +4,9 @@ import (
 	"image/color"
 	"mask_of_the_tomb/internal/ebitenrenderutil"
 	ui "mask_of_the_tomb/internal/game/UI"
-	"mask_of_the_tomb/internal/game/camera"
-	"mask_of_the_tomb/internal/game/easings"
-	"mask_of_the_tomb/internal/game/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering/camera"
+	"mask_of_the_tomb/internal/maths"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -108,7 +108,7 @@ func NewDeathAnim() *DeathAnim {
 
 func getRadius(t float64) float64 {
 	if t < 0.5 {
-		return largeRadius * easings.SineInOut(t*2)
+		return largeRadius * maths.SineInOut(t*2)
 	}
-	return largeRadius * (1 - easings.QuadInOut(t*2-1))
+	return largeRadius * (1 - maths.QuadInOut(t*2-1))
 }

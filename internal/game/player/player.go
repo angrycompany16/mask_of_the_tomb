@@ -5,8 +5,11 @@ package player
 import (
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/animation"
-	"mask_of_the_tomb/internal/game/events"
-	"mask_of_the_tomb/internal/game/movebox"
+	"mask_of_the_tomb/internal/game/core/assetloader"
+	"mask_of_the_tomb/internal/game/core/events"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/game/physics/movebox"
+	"mask_of_the_tomb/internal/game/physics/particles"
 	"mask_of_the_tomb/internal/game/player/deathanim"
 	"mask_of_the_tomb/internal/maths"
 	"math"
@@ -40,6 +43,7 @@ type Player struct {
 	Disabled                  bool
 	InputBuffer               inputBuffer
 	deathAnim                 *deathanim.DeathAnim
+	testParticles             *particles.ParticleSystem
 	// Events
 	OnDeath *events.Event
 	// Listeners
@@ -48,13 +52,17 @@ type Player struct {
 }
 
 func (p *Player) Load() {
-
+	playerSpriteAsset := assetloader.NewImageAsset(playerSpritePath)
+	assetloader.AddAsset(playerSpriteAsset)
+	p.sprite = &playerSpriteAsset.Image // ????
 }
 
 func (p *Player) Init(posX, posY float64) {
 	p.SetPos(posX, posY)
 	p.Hitbox = maths.RectFromImage(posX, posY, p.sprite)
 	p.animator.SwitchClip(idleAnim)
+	// TODO: Fill in with real particle systems
+	p.testParticles = errs.Must(particles.FromFile(testParticleSys, rendering.RenderLayers.Foreground))
 }
 
 func (p *Player) getJumpOffset() (float64, float64) {
@@ -152,8 +160,8 @@ func (p *Player) EnterSlamAnim() {
 
 func NewPlayer() *Player {
 	player := &Player{
-		movebox:     movebox.NewMovebox(moveSpeed),
-		sprite:      errs.MustNewImageFromFile(playerSpritePath),
+		movebox: movebox.NewMovebox(moveSpeed),
+		// sprite:      errs.MustNewImageFromFile(playerSpritePath),
 		animator:    animation.NewAnimator(playerAnimationMap),
 		InputBuffer: newInputBuffer(inputBufferDuration),
 		State:       Idle,

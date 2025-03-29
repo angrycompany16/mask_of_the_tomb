@@ -1,7 +1,7 @@
 package camera
 
 import (
-	"mask_of_the_tomb/internal/game/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/maths"
 )
 

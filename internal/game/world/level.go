@@ -6,14 +6,24 @@ import (
 	"mask_of_the_tomb/internal/arrays"
 	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
 	"mask_of_the_tomb/internal/errs"
-	"mask_of_the_tomb/internal/game/camera"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/game/physics"
-	"mask_of_the_tomb/internal/game/rendering"
+	"mask_of_the_tomb/internal/game/world/entities"
 	"mask_of_the_tomb/internal/maths"
 	"slices"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
+)
+
+const (
+	playerSpaceLayerName = "Playerspace"
+	spawnPosEntityName   = "SpawnPosition"
+	doorEntityName       = "Door"
+	spawnPointEntityName = "SpawnPoint"
+	slamboxEntityName    = "Slambox"
+	SpikeIntGridName     = "Spikes"
 )
 
 var layerMap = map[string]*ebiten.Image{
@@ -30,9 +40,9 @@ type Level struct {
 	levelLDTK       *ebitenLDTK.Level
 	TilemapCollider physics.TilemapCollider
 	tileSize        float64
-	hazards         []hazard
-	doors           []door
-	Slamboxes       []*Slambox
+	hazards         []entities.Hazard
+	doors           []entities.Door
+	Slamboxes       []*entities.Slambox
 }
 
 func (l *Level) Update() {
@@ -115,10 +125,10 @@ func (l *Level) GetLevelBounds() (float64, float64) {
 
 func (l *Level) GetDoorHit(playerHitbox *maths.Rect) (hit bool, levelIid, entityIid string) {
 	for _, door := range l.doors {
-		if door.hitbox.Overlapping(playerHitbox) {
+		if door.Hitbox.Overlapping(playerHitbox) {
 			hit = true
-			levelIid = door.levelIid
-			entityIid = door.entityIid
+			levelIid = door.LevelIid
+			entityIid = door.EntityIid
 		}
 	}
 	return
@@ -126,7 +136,7 @@ func (l *Level) GetDoorHit(playerHitbox *maths.Rect) (hit bool, levelIid, entity
 
 func (l *Level) GetHazardHit(playerHitbox *maths.Rect) bool {
 	for _, hazard := range l.hazards {
-		if hazard.hitbox.Overlapping(playerHitbox) {
+		if hazard.Hitbox.Overlapping(playerHitbox) {
 			return true
 		}
 	}
@@ -134,24 +144,24 @@ func (l *Level) GetHazardHit(playerHitbox *maths.Rect) bool {
 }
 
 // Get all the rect colliders that are not connected to slambox
-func (l *Level) DisconnectedColliders(slambox *Slambox) []*physics.RectCollider {
+func (l *Level) DisconnectedColliders(slambox *entities.Slambox) []*physics.RectCollider {
 	// I love writing unreadable code
 	return arrays.MapSlice(
 		arrays.Filter(
-			l.Slamboxes, func(s *Slambox) bool { return !slices.Contains(slambox.ConnectedBoxes, s) && s != slambox },
+			l.Slamboxes, func(s *entities.Slambox) bool { return !slices.Contains(slambox.ConnectedBoxes, s) && s != slambox },
 		),
-		func(s *Slambox) *physics.RectCollider { return &s.Collider },
+		func(s *entities.Slambox) *physics.RectCollider { return &s.Collider },
 	)
 
 }
 
 func (l *Level) GetSlamboxColliders() []*physics.RectCollider {
-	return arrays.MapSlice(l.Slamboxes, func(s *Slambox) *physics.RectCollider { return &s.Collider })
+	return arrays.MapSlice(l.Slamboxes, func(s *entities.Slambox) *physics.RectCollider { return &s.Collider })
 }
 
 // For now we assume that we will only ever be slamming one box at a time, though
 // this may change later
-func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *Slambox {
+func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *entities.Slambox {
 	extendedRect := playerCollider.Extended(dir, 1)
 	for _, slambox := range l.Slamboxes {
 		if extendedRect.Overlapping(&slambox.Collider.Rect) {
@@ -197,12 +207,12 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	for _, layer := range levelLDTK.Layers {
 		for _, entity := range layer.Entities {
 			switch entity.Name {
-			case hazardEntityName:
-				newLevel.hazards = append(newLevel.hazards, newHazard(&entity))
+			case entities.HazardEntityName:
+				newLevel.hazards = append(newLevel.hazards, entities.NewHazard(&entity))
 			case doorEntityName:
-				newLevel.doors = append(newLevel.doors, newDoor(&entity))
+				newLevel.doors = append(newLevel.doors, entities.NewDoor(&entity))
 			case slamboxEntityName:
-				newLevel.Slamboxes = append(newLevel.Slamboxes, newSlambox(&entity))
+				newLevel.Slamboxes = append(newLevel.Slamboxes, entities.NewSlambox(&entity))
 			}
 		}
 	}
@@ -211,7 +221,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	// before we link them together
 	for _, slambox := range newLevel.Slamboxes {
 		for _, otherSlambox := range newLevel.Slamboxes {
-			if slices.Contains(slambox.otherLinkIDs, otherSlambox.LinkID) {
+			if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
 				slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
 			}
 		}

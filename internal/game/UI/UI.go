@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 	"image/color"
-	"mask_of_the_tomb/internal/game/deatheffect"
+	"mask_of_the_tomb/internal/game/UI/screenfade"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -88,7 +88,7 @@ var (
 // TODO: Make menu select into an event (With event info!!!)
 type UI struct {
 	activeMenu  *menu
-	DeathEffect *deatheffect.DeathEffect
+	DeathEffect *screenfade.DeathEffect
 }
 
 type ColorPair struct {
@@ -135,6 +135,6 @@ func (ui *UI) SetScore(score int) {
 func NewUI() *UI {
 	return &UI{
 		activeMenu:  LoadingScreen,
-		DeathEffect: deatheffect.NewDeathEffect(),
+		DeathEffect: screenfade.NewDeathEffect(),
 	}
 }

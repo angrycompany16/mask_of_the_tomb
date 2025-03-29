@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log"
 	"mask_of_the_tomb/internal/game"
-	"mask_of_the_tomb/internal/game/rendering"
-	save "mask_of_the_tomb/internal/game/savesystem"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	save "mask_of_the_tomb/internal/game/core/savesystem"
 	"mask_of_the_tomb/internal/game/world"
 	"path/filepath"
 

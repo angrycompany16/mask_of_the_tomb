@@ -17,7 +17,6 @@ entity interactions
 // - UPDATED ANIMATIONS
 
 // Roadmap for now (in order):
-// - Finish the asset loader, add loading screens
 // - Implement particle systems, make asset file
 // - Add custom asset for UI systems
 // - Add custom asset for animation objects

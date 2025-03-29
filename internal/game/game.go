@@ -6,12 +6,12 @@ import (
 	"time"
 
 	ui "mask_of_the_tomb/internal/game/UI"
-	"mask_of_the_tomb/internal/game/assetloader"
-	"mask_of_the_tomb/internal/game/camera"
-	"mask_of_the_tomb/internal/game/events"
+	"mask_of_the_tomb/internal/game/core/assetloader"
+	"mask_of_the_tomb/internal/game/core/events"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering/camera"
+	save "mask_of_the_tomb/internal/game/core/savesystem"
 	"mask_of_the_tomb/internal/game/player"
-	"mask_of_the_tomb/internal/game/rendering"
-	save "mask_of_the_tomb/internal/game/savesystem"
 	"mask_of_the_tomb/internal/game/world"
 	"mask_of_the_tomb/internal/maths"
 
@@ -51,15 +51,9 @@ type Game struct {
 func (g *Game) Load() {
 	assetloader.AddAsset(&delayAsset)
 	save.GlobalSave.LoadGame()
-	g.world.Load()
 	g.player.Load()
+	g.world.Load()
 
-	// For now, let's just have one loading phase when we open the game
-	// AssetLoader.Load() some assets
-	// When assets should be loaded can be declared in the asset definition (in code,
-	// that is)
-	// Problem: When we for instance load an LDTK level we don't want each asset to
-	// have to take
 	go assetloader.LoadAll(loadFinishedChan)
 }
 
@@ -210,7 +204,6 @@ func (g *Game) Draw() {
 }
 
 func (g *Game) EnterPlayMode() {
-	// g.Init()
 	State = StatePlaying
 	g.gameUI.SwitchActiveMenu(ui.Hud)
 }

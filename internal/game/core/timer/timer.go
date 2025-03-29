@@ -1,7 +1,7 @@
 package timer
 
 import (
-	"mask_of_the_tomb/internal/game/events"
+	"mask_of_the_tomb/internal/game/core/events"
 	"time"
 )
 

@@ -19,9 +19,6 @@ type Asset interface {
 	// Can now create loaders for images, ldtk etc..
 }
 
-type ImageAsset struct {
-}
-
 type FontAsset struct {
 }
 
@@ -40,8 +37,8 @@ type assetLoader struct {
 	loadedAssets []Asset
 }
 
-func AddAsset(asset Asset) {
-	_assetLoader.assetPool = append(_assetLoader.assetPool, asset)
+func AddAsset(assets ...Asset) {
+	_assetLoader.assetPool = append(_assetLoader.assetPool, assets...)
 }
 
 func LoadAll(doneChan chan<- int) {

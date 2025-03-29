@@ -5,8 +5,8 @@ import (
 	"flag"
 	"log"
 	"mask_of_the_tomb/internal/game"
-	"mask_of_the_tomb/internal/game/rendering"
-	save "mask_of_the_tomb/internal/game/savesystem"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	save "mask_of_the_tomb/internal/game/core/savesystem"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -47,13 +47,7 @@ func main() {
 	a := &App{game.NewGame()}
 	a.game.Load()
 
-	// if debugMode {
-	// 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	// 	game.State = game.StatePlaying
-	// 	a.game.EnterPlayMode()
-	// } else {
 	ebiten.SetFullscreen(true)
-	// }
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, game.ErrTerminated) {

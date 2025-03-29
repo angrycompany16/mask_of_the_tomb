@@ -1,21 +1,25 @@
-package world
+package entities
 
 import (
 	"image"
 	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
 	"mask_of_the_tomb/internal/errs"
-	"mask_of_the_tomb/internal/game/camera"
-	"mask_of_the_tomb/internal/game/events"
-	"mask_of_the_tomb/internal/game/movebox"
+	"mask_of_the_tomb/internal/game/core/events"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/game/core/rendering/camera"
+	"mask_of_the_tomb/internal/game/core/timer"
 	"mask_of_the_tomb/internal/game/physics"
-	"mask_of_the_tomb/internal/game/rendering"
-	"mask_of_the_tomb/internal/game/timer"
+	"mask_of_the_tomb/internal/game/physics/movebox"
 	"mask_of_the_tomb/internal/maths"
 	"math"
 	"time"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
+)
+
+const (
+	SlamboxConnectionFieldName = "ConnectedBoxes"
 )
 
 type slamboxState int
@@ -99,7 +103,7 @@ type Slambox struct {
 	Collider                  physics.RectCollider
 	ConnectedBoxes            []*Slambox
 	LinkID                    string   // ID to check for linked boxes
-	otherLinkIDs              []string // ID to check for linked boxes
+	OtherLinkIDs              []string // ID to check for linked boxes
 	sprite                    *ebiten.Image
 	movebox                   *movebox.Movebox
 	state                     slamboxState
@@ -217,7 +221,7 @@ func (s *Slambox) SetPos(x, y float64) {
 	s.movebox.SetPos(x, y)
 }
 
-func newSlambox(
+func NewSlambox(
 	entity *ebitenLDTK.Entity,
 ) *Slambox {
 	newSlambox := Slambox{}
@@ -263,7 +267,7 @@ func newSlambox(
 
 	connectionField := errs.Must(entity.GetFieldByName(SlamboxConnectionFieldName))
 	for _, entityRef := range connectionField.EntityRefArray {
-		newSlambox.otherLinkIDs = append(newSlambox.otherLinkIDs, entityRef.EntityIid)
+		newSlambox.OtherLinkIDs = append(newSlambox.OtherLinkIDs, entityRef.EntityIid)
 	}
 
 	return &newSlambox

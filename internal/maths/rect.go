@@ -1,6 +1,8 @@
 package maths
 
 import (
+	"math/rand/v2"
+
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -78,6 +80,10 @@ func (r *Rect) Overlapping(other *Rect) bool {
 		return true
 	}
 	return false
+}
+
+func (r *Rect) RandomPointInside() (float64, float64) {
+	return Lerp(r.Left(), r.Right(), rand.Float64()), Lerp(r.Bottom(), r.Top(), rand.Float64())
 }
 
 func NewRect(x, y, width, height float64) *Rect {
