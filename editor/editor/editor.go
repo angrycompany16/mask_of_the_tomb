@@ -3,6 +3,7 @@ package editor
 import (
 	"errors"
 	"fmt"
+	"mask_of_the_tomb/editor/fileio"
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/core/assetloader"
 	"path/filepath"
@@ -66,6 +67,9 @@ func (e *Editor) Update() error {
 	case OpeningFile:
 		if submits["path"] != "" {
 			fmt.Println("Searching for file", submits["path"])
+			files := make([]string, 0)
+			fileio.FindFiles(submits["path"], files)
+			// TODO: Dynamically create selectables
 			e.editorUI.SwitchActiveMenu("mainUI")
 			e.state = Preview
 		}

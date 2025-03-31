@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"mask_of_the_tomb/internal/game/UI/search"
 	"mask_of_the_tomb/internal/game/UI/textbox"
 	"mask_of_the_tomb/internal/maths"
 	"os"
@@ -13,6 +14,7 @@ type Menu struct {
 	Textboxes   []*textbox.Textbox    `yaml:"Textboxes"`
 	Selectables []*textbox.Selectable `yaml:"Selectables"`
 	Inputboxes  []*textbox.Inputbox   `yaml:"Inputboxes"`
+	FileSearch  *search.FileSearch    `yaml:"FileSearch"`
 	SelectorPos int
 }
 
