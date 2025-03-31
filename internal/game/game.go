@@ -3,11 +3,13 @@ package game
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/UI/fonts"
 	"mask_of_the_tomb/internal/game/core/assetloader"
+	"mask_of_the_tomb/internal/game/core/assetloader/delayasset"
 	"mask_of_the_tomb/internal/game/core/events"
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
@@ -34,9 +36,13 @@ const (
 )
 
 var (
-	State            GameState
-	loadFinishedChan = make(chan int)
-	delayAsset       = assetloader.NewDelayAsset(time.Second)
+	State             GameState
+	loadFinishedChan  = make(chan int)
+	delayAsset        = delayasset.NewDelayAsset(time.Second)
+	mainMenuPath      = filepath.Join("assets", "menus", "game", "mainmenu.yaml")
+	pauseMenuPath     = filepath.Join("assets", "menus", "game", "pausemenu.yaml")
+	hudPath           = filepath.Join("assets", "menus", "game", "hud.yaml")
+	loadingScreenPath = filepath.Join("assets", "menus", "game", "loadingscreen.yaml")
 )
 
 type Game struct {
@@ -50,11 +56,12 @@ type Game struct {
 }
 
 func (g *Game) Load() {
+	g.gameUI.LoadPreamble(loadingScreenPath)
 	assetloader.AddAsset(&delayAsset)
 	save.GlobalSave.LoadGame()
 	g.player.Load()
 	g.world.Load()
-	g.gameUI.Load()
+	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath)
 	fonts.FontRegistry.Load()
 
 	go assetloader.LoadAll(loadFinishedChan)
@@ -72,10 +79,9 @@ func (g *Game) Init() {
 		(rendering.GameWidth-playerWidth)/2,
 		(rendering.GameHeight-playerHeight)/2,
 	)
-	// g.gameUI.SetScore(0)
 
 	State = StateMainMenu
-	// g.gameUI.SwitchActiveMenu(ui.Mainmenu)
+	g.gameUI.SwitchActiveMenu("mainmenu")
 }
 
 // Design goal: switching on the global state should not be needed in every update
@@ -108,14 +114,13 @@ func (g *Game) Update() error {
 		g.player.Update()
 	case StatePaused:
 		if val, ok := confirmations["Resume"]; ok && val {
-			State = StatePlaying
-			g.gameUI.SwitchActiveMenu(ui.Hud)
+			g.EnterPlayMode()
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			// Save data and stuff
 			// Loading screens
 			// etc
 			State = StateMainMenu
-			g.gameUI.SwitchActiveMenu(ui.Mainmenu)
+			g.gameUI.SwitchActiveMenu("mainmenu")
 		}
 	}
 	return nil
@@ -186,7 +191,7 @@ func (g *Game) updateGameplay() error {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		State = StatePaused
-		g.gameUI.SwitchActiveMenu(ui.Pausemenu)
+		// g.gameUI.SwitchActiveMenu(ui.Pausemenu)
 	}
 
 	return nil
@@ -208,14 +213,14 @@ func (g *Game) Draw() {
 
 func (g *Game) EnterPlayMode() {
 	State = StatePlaying
-	// g.gameUI.SwitchActiveMenu(ui.Hud)
+	g.gameUI.SwitchActiveMenu("hud")
 }
 
 func NewGame() *Game {
 	game := &Game{
 		player: player.NewPlayer(),
 		world:  &world.World{},
-		gameUI: &ui.UI{},
+		gameUI: ui.NewUI(),
 	}
 
 	game.playerDeathListener = events.NewEventListener(game.player.OnDeath)

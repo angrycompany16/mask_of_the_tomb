@@ -1,0 +1,43 @@
+---
+definitions:
+- PrimaryAlign: &AlignStart 0
+- PrimaryAlign: &AlignCenter 1
+- PrimaryAlign: &AlignEnd 2
+- ScreenAlign: &Centered 0
+- ScreenAlign: &TopLeft 1
+
+Name: "openfile"
+Textboxes:
+- Text: "Open file"
+  PosX: 10
+  PosY: 10
+  Color:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  Font: "JSE_AmigaAMOS"
+  FontSize: 32
+  LineSpacing: 10
+  PrimaryAlign: *AlignStart
+  SecondaryAlign: *AlignStart
+  ScreenAlign: *TopLeft
+  ShadowX: 0
+  ShadowY: 0
+Selectables:
+Inputboxes:
+- Name: "path"
+  Textbox:
+    Text: ""
+    PosX: 10
+    PosY: 50
+    Color:
+      Bright: [205, 247, 226, 255]
+      Dark: [199, 176, 139, 255]
+    Font: "JSE_AmigaAMOS"
+    FontSize: 32
+    LineSpacing: 10
+    PrimaryAlign: *AlignStart
+    SecondaryAlign: *AlignStart
+    ScreenAlign: *TopLeft
+    ShadowX: 0
+    ShadowY: 0
+...

@@ -1,40 +1,39 @@
-# - TextAlign
-# AlignStart
-# AlignCenter
-# AlignEnd
-
-# - Screenalign
-# Centered
-# TopLeft
-
 ---
+definitions:
+- PrimaryAlign: &AlignStart 0
+- PrimaryAlign: &AlignCenter 1
+- PrimaryAlign: &AlignEnd 2
+- ScreenAlign: &Centered 0
+- ScreenAlign: &TopLeft 1
+
 Name: "mainmenu"
 Textboxes:
 - Text: "MASK OF THE TOMB"
   PosX: 0
-  PosY: -200
+  PosY: -275
   Color:
     Bright: [205, 247, 226, 255]
     Dark: [199, 176, 139, 255]
-  Font: "JSE_AmigaAmos"
-  FontSize: 64
+  Font: "JSE_AmigaAMOS"
+  FontSize: 72
   LineSpacing: 10
-  PrimaryAlign: AlignCenter
-  SecondaryAlign: AlignCenter
-  ScreenAlign: Centered
+  PrimaryAlign: *AlignCenter
+  SecondaryAlign: *AlignCenter
+  ScreenAlign: *Centered
   ShadowX: -4
   ShadowY: 4
 Selectables:
-- Textbox:
+- Name: "Play"
+  Textbox:
     Text: "Play video game"
     PosX: 0
     PosY: -100
-    Font: "JSE_AmigaAmos"
+    Font: "JSE_AmigaAMOS"
     FontSize: 48
     LineSpacing: 10
-    PrimaryAlign: AlignCenter
-    SecondaryAlign: AlignCenter
-    ScreenAlign: Centered
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
+    ScreenAlign: *Centered
     ShadowX: -4
     ShadowY: 4
   NormalColor:
@@ -43,16 +42,17 @@ Selectables:
   HoverColor:
     Bright: [255, 255, 255, 255]
     Dark: [0, 0, 0, 255]
-- Textbox:
+- Name: "Options"
+  Textbox:
     Text: "Options"
     PosX: 0
     PosY: 0
-    Font: "JSE_AmigaAmos"
+    Font: "JSE_AmigaAMOS"
     FontSize: 48
     LineSpacing: 10
-    PrimaryAlign: AlignCenter
-    SecondaryAlign: AlignCenter
-    ScreenAlign: Centered
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
+    ScreenAlign: *Centered
     ShadowX: -4
     ShadowY: 4
   NormalColor:
@@ -61,16 +61,17 @@ Selectables:
   HoverColor:
     Bright: [255, 255, 255, 255]
     Dark: [0, 0, 0, 255]
-- Textbox:
+- Name: "Quit"
+  Textbox:
     Text: "Don't play video game"
     PosX: 0
-    PosY: 0
-    Font: "JSE_AmigaAmos"
+    PosY: 100
+    Font: "JSE_AmigaAMOS"
     FontSize: 48
     LineSpacing: 10
-    PrimaryAlign: AlignCenter
-    SecondaryAlign: AlignCenter
-    ScreenAlign: Centered
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
+    ScreenAlign: *Centered
     ShadowX: -4
     ShadowY: 4
   NormalColor:

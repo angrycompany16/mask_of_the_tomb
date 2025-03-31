@@ -1,0 +1,68 @@
+---
+definitions:
+- PrimaryAlign: &AlignStart 0
+- PrimaryAlign: &AlignCenter 1
+- PrimaryAlign: &AlignEnd 2
+- ScreenAlign: &Centered 0
+- ScreenAlign: &TopLeft 1
+Name: "pausemenu"
+Textboxes:
+Selectables:
+- Name: "Resume"
+  Textbox:
+    Text: "Resume"
+    PosX: 0
+    PosY: -100
+    Font: "JSE_AmigaAMOS"
+    FontSize: 48
+    LineSpacing: 10
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
+    ScreenAlign: *Centered
+    ShadowX: -4
+    ShadowY: 4
+  NormalColor:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  HoverColor:
+    Bright: [255, 255, 255, 255]
+    Dark: [0, 0, 0, 255]
+- Name: "Options"
+  Textbox:
+    Text: "Options"
+    PosX: 0
+    PosY: 0
+    Font: "JSE_AmigaAMOS"
+    FontSize: 48
+    LineSpacing: 10
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
+    ScreenAlign: *Centered
+    ShadowX: -4
+    ShadowY: 4
+  NormalColor:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  HoverColor:
+    Bright: [255, 255, 255, 255]
+    Dark: [0, 0, 0, 255]
+- Name: "Quit"
+  NormalColor:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  HoverColor:
+    Bright: [255, 255, 255, 255]
+    Dark: [0, 0, 0, 255]
+  Textbox:
+    Text: "Quit"
+    PosX: 0
+    PosY: 100
+    Font: "JSE_AmigaAMOS"
+    FontSize: 48
+    LineSpacing: 10
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
+    ScreenAlign: *Centered
+    ShadowX: -4
+    ShadowY: 4
+...

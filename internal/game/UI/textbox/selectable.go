@@ -11,8 +11,8 @@ type Selectable struct {
 	Textbox     *Textbox            `yaml:"Textbox"`
 	NormalColor colorpair.ColorPair `yaml:"NormalColor"`
 	HoverColor  colorpair.ColorPair `yaml:"HoverColor"`
+	Name        string              `yaml:"Name"`
 	selected    bool
-	Name        string
 }
 
 func (s *Selectable) SetSelected() {
@@ -20,9 +20,10 @@ func (s *Selectable) SetSelected() {
 	s.Textbox.Color = s.HoverColor
 }
 
-func (s *Selectable) GetConfirm() bool {
+func (s *Selectable) GetConfirmed() bool {
 	key := (inpututil.IsKeyJustReleased(ebiten.KeySpace) || inpututil.IsKeyJustReleased(ebiten.KeyEnter))
 	return s.selected && key
+
 }
 
 func (s *Selectable) SetDeselected() {
@@ -33,12 +34,3 @@ func (s *Selectable) SetDeselected() {
 func (s *Selectable) Draw() {
 	s.Textbox.Draw()
 }
-
-// func newSelectable(name string, textbox *Textbox, normalColor, hoverColor ColorPair) *Selectable {
-// 	return &Selectable{
-// 		Textbox:     textbox,
-// 		NormalColor: normalColor,
-// 		HoverColor:  hoverColor,
-// 		Name:        name,
-// 	}
-// }

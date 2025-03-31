@@ -2,7 +2,6 @@ package ui
 
 import (
 	_ "embed"
-	"path/filepath"
 )
 
 const (
@@ -11,6 +10,6 @@ const (
 )
 
 var (
-	// mainFont     = assets.Fonts["JSE_AmigaAmos"]
-	mainMenuPath = filepath.Join("assets", "menus", "game", "mainmenu.yaml")
+// mainFont     = assets.Fonts["JSE_AmigaAmos"]
+// mainMenuPath = filepath.Join("assets", "menus", "game", "mainmenu.yaml")
 )

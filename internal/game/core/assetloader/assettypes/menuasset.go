@@ -7,15 +7,15 @@ import (
 
 type MenuAsset struct {
 	path string
-	menu menu.Menu
+	Menu menu.Menu
 }
 
 func (a *MenuAsset) Load() {
-	a.menu = *errs.Must(menu.FromFile(a.path))
+	a.Menu = *errs.Must(menu.FromFile(a.path))
 }
 
-func NewMenuAsset(path string) *ParticleSystemAsset {
-	return &ParticleSystemAsset{
+func NewMenuAsset(path string) *MenuAsset {
+	return &MenuAsset{
 		path: path,
 	}
 }

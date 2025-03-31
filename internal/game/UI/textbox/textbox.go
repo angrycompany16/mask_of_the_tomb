@@ -1,6 +1,7 @@
 package textbox
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/game/UI/colorpair"
 	"mask_of_the_tomb/internal/game/UI/fonts"
 	"mask_of_the_tomb/internal/game/core/rendering"
@@ -23,7 +24,7 @@ type Textbox struct {
 	PosX           float64             `yaml:"PosX"`
 	PosY           float64             `yaml:"PosY"`
 	Color          colorpair.ColorPair `yaml:"Color"`
-	FontStr        string              `yaml:"Color"`
+	FontStr        string              `yaml:"Font"`
 	font           *text.GoTextFaceSource
 	FontSize       float64     `yaml:"FontSize"`
 	LineSpacing    float64     `yaml:"LineSpacing"`
@@ -31,7 +32,7 @@ type Textbox struct {
 	SecondaryAlign text.Align  `yaml:"SecondaryAlign"`
 	ScreenAlign    ScreenAlign `yaml:"ScreenAlign"`
 	ShadowX        float64     `yaml:"ShadowX"`
-	ShadowY        float64     `yaml:"ShadowX"`
+	ShadowY        float64     `yaml:"ShadowY"`
 }
 
 func (t *Textbox) Draw() {
@@ -49,10 +50,12 @@ func (t *Textbox) Draw() {
 	opText.ColorScale = ebiten.ColorScale{}
 	opText.ColorScale.ScaleWithColor(t.Color.DarkColor)
 
-	text.Draw(rendering.RenderLayers.UI, t.Text, &text.GoTextFace{
-		Source: t.font,
-		Size:   t.FontSize,
-	}, opText)
+	text.Draw(rendering.RenderLayers.UI,
+		t.Text,
+		&text.GoTextFace{
+			Source: t.font,
+			Size:   t.FontSize,
+		}, opText)
 
 	opText.ColorScale = ebiten.ColorScale{}
 	opText.ColorScale.ScaleWithColor(t.Color.BrightColor)
@@ -64,6 +67,12 @@ func (t *Textbox) Draw() {
 	}, opText)
 }
 
-func (t *Textbox) GetFont() {
-	t.font = fonts.FontRegistry.M[t.FontStr]
+func (t *Textbox) SetFont() {
+	font, ok := fonts.FontRegistry.M[t.FontStr]
+	if !ok {
+		fmt.Println("Did not find font", t.FontStr)
+		fmt.Println("Available fonts: ", fonts.FontRegistry.M)
+		panic("")
+	}
+	t.font = font
 }

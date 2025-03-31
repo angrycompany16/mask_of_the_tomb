@@ -9,11 +9,11 @@ import (
 
 type FontAsset struct {
 	src  []byte
-	Font text.GoTextFaceSource
+	Font *text.GoTextFaceSource
 }
 
 func (a *FontAsset) Load() {
-	a.Font = *errs.Must(text.NewGoTextFaceSource(bytes.NewReader(a.src)))
+	a.Font = errs.Must(text.NewGoTextFaceSource(bytes.NewReader(a.src)))
 }
 
 func New(src []byte) *FontAsset {
