@@ -12,6 +12,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// Everything can be rewritten with events...
 // TODO: Make menu select into an event (With event info!!!)
 type UI struct {
 	activeMenu  *menu.Menu
@@ -34,7 +35,6 @@ func (ui *UI) Load(menuPaths ...string) {
 	for _, menuPath := range menuPaths {
 		menuAsset := assettypes.NewMenuAsset(menuPath)
 		assetloader.AddAsset(menuAsset)
-		// menuAsset.Menu.Name is not loaded yet (idiot)
 		ui.menus = append(ui.menus, &menuAsset.Menu)
 	}
 }
@@ -44,14 +44,20 @@ func (ui *UI) Init() {
 
 func (ui *UI) Update() {
 	inputDir := 0
-	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
 		inputDir = 1
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyW) {
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
 		inputDir = -1
 	}
 
 	ui.activeMenu.UpdateSelectables(inputDir)
 	ui.activeMenu.UpdateInputboxes()
+
+	if ui.activeMenu.FileSearch != nil {
+		ui.activeMenu.FileSearch.Update(inputDir)
+		ui.activeMenu.FileSearch.UpdateSearchResults()
+	}
+
 	ui.DeathEffect.Update()
 }
 
@@ -79,6 +85,13 @@ func (ui *UI) GetConfirmations() map[string]bool {
 
 func (ui *UI) GetSubmits() map[string]string {
 	return ui.activeMenu.GetSubmitted()
+}
+
+func (ui *UI) GetFileSearchValue() string {
+	if ui.activeMenu.FileSearch != nil {
+		return ui.activeMenu.FileSearch.Searchfield.Textbox.Text
+	}
+	return ""
 }
 
 // TODO?: replace this?

@@ -24,8 +24,8 @@ func FindFiles(name string, results []string) []string {
 		panic(err)
 	}
 
-	for _, file := range results {
-		fmt.Println(file)
-	}
+	// for _, file := range results {
+	// 	fmt.Println(file)
+	// }
 	return results
 }

@@ -3,7 +3,6 @@ package editor
 import (
 	"errors"
 	"fmt"
-	"mask_of_the_tomb/editor/fileio"
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/core/assetloader"
 	"path/filepath"
@@ -42,7 +41,7 @@ func (e *Editor) Init() {
 
 func (e *Editor) Update() error {
 	e.editorUI.Update()
-	submits := e.editorUI.GetSubmits()
+	// submits := e.editorUI.GetSubmits()
 	switch e.state {
 	case Loading:
 		select {
@@ -65,14 +64,21 @@ func (e *Editor) Update() error {
 			return ErrTerminated
 		}
 	case OpeningFile:
-		if submits["path"] != "" {
-			fmt.Println("Searching for file", submits["path"])
-			files := make([]string, 0)
-			fileio.FindFiles(submits["path"], files)
-			// TODO: Dynamically create selectables
+		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+			fmt.Println(e.editorUI.GetFileSearchValue())
+
 			e.editorUI.SwitchActiveMenu("mainUI")
 			e.state = Preview
 		}
+
+		// if submits["path"] != "" {
+		// 	fmt.Println("Searching for file", submits["path"])
+		// 	files := make([]string, 0)
+		// 	fileio.FindFiles(submits["path"], files)
+		// 	// TODO: Dynamically create selectables
+		// 	e.editorUI.SwitchActiveMenu("mainUI")
+		// 	e.state = Preview
+		// }
 
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 			e.editorUI.SwitchActiveMenu("mainUI")

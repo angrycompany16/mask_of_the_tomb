@@ -18,6 +18,11 @@ type Menu struct {
 	SelectorPos int
 }
 
+// A problem: Right now FileSearch is a pointer, which means that it can be nil sometimes.
+// However, in these cases we cannot update it. However, we don't want to check every time
+// if the filesearch is nil as that's kinda just ugly
+// Might have to figure out something smart
+
 // TODO: Include select for input boxes
 func (m *Menu) UpdateSelectables(dirInput int) {
 	if len(m.Selectables) == 0 {
@@ -52,6 +57,9 @@ func (m *Menu) Draw() {
 	}
 	for _, inputbox := range m.Inputboxes {
 		inputbox.Draw()
+	}
+	if m.FileSearch != nil {
+		m.FileSearch.Draw()
 	}
 }
 
@@ -101,6 +109,13 @@ func FromFile(path string) (*Menu, error) {
 		inputbox.Textbox.SetFont()
 		inputbox.Textbox.Color.LoadColorPair()
 	}
-	// fmt.Println(menu.Inputboxes)
+
+	if menu.FileSearch != nil {
+		menu.FileSearch.Searchfield.Textbox.SetFont()
+		menu.FileSearch.Searchfield.Textbox.Color.LoadColorPair()
+		menu.FileSearch.ResultNormalColor.LoadColorPair()
+		menu.FileSearch.ResultSelectedColor.LoadColorPair()
+	}
+
 	return menu, nil
 }

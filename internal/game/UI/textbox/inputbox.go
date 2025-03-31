@@ -17,6 +17,7 @@ func (i *Inputbox) Update() (string, bool) {
 	keys = ebiten.AppendInputChars(keys)
 	var b strings.Builder
 	b.WriteString(i.Textbox.Text)
+	// TODO: Raise event
 	for _, key := range keys {
 		b.WriteString(string(key))
 	}

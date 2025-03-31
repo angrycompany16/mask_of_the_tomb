@@ -1,7 +1,10 @@
 package colorpair
 
-import "image/color"
+import (
+	"image/color"
+)
 
+// TODO: Write unmarshaler for ColorPair
 type ColorPair struct {
 	Bright      [4]uint8 `yaml:"Bright"`
 	Dark        [4]uint8 `yaml:"Dark"`

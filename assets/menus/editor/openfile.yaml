@@ -23,21 +23,28 @@ Textboxes:
   ShadowX: 0
   ShadowY: 0
 Selectables:
-Inputboxes:
-- Name: "path"
-  Textbox:
-    Text: ""
-    PosX: 10
-    PosY: 50
-    Color:
-      Bright: [205, 247, 226, 255]
-      Dark: [199, 176, 139, 255]
-    Font: "JSE_AmigaAMOS"
-    FontSize: 32
-    LineSpacing: 10
-    PrimaryAlign: *AlignStart
-    SecondaryAlign: *AlignStart
-    ScreenAlign: *TopLeft
-    ShadowX: 0
-    ShadowY: 0
+FileSearch:
+  Name: "path"
+  Searchfield:
+    Textbox:
+      Text: ""
+      PosX: 10
+      PosY: 50
+      Color:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      PrimaryAlign: *AlignStart
+      SecondaryAlign: *AlignStart
+      ScreenAlign: *TopLeft
+      ShadowX: 0
+      ShadowY: 0
+  NormalColor:
+    Bright: [205, 247, 226, 255]
+    Dark: [199, 176, 139, 255]
+  HoverColor:
+    Bright: [255, 255, 255, 255]
+    Dark: [0, 0, 0, 255]
 ...
