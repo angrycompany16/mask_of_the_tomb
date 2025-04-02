@@ -1,5 +1,6 @@
 # TODO: Make
 ---
+Type: "ParticleSystem"
 GlobalSpace: false
 PosX: 100
 PosY: 100

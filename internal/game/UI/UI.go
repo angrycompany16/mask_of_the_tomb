@@ -94,6 +94,10 @@ func (ui *UI) GetFileSearchValue() string {
 	return ""
 }
 
+func (ui *UI) ResetFileSearch() {
+	ui.activeMenu.FileSearch.Searchfield.Textbox.Text = ""
+}
+
 // TODO?: replace this?
 func NewUI() *UI {
 	return &UI{

@@ -3,8 +3,14 @@ package fileio
 import (
 	"fmt"
 	"io/fs"
+	"mask_of_the_tomb/internal/errs"
+	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/game/physics/particles"
+	"os"
 	"path/filepath"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 func FindFiles(name string, results []string) []string {
@@ -24,8 +30,25 @@ func FindFiles(name string, results []string) []string {
 		panic(err)
 	}
 
-	// for _, file := range results {
-	// 	fmt.Println(file)
-	// }
 	return results
+}
+
+func OpenAsset(path string) (string, any) {
+	contents := errs.Must(os.ReadFile(path))
+
+	result := make(map[string]any)
+	err := yaml.Unmarshal(contents, result)
+	if err != nil {
+		fmt.Println("Failed to unmarshal", path)
+		return "", particles.ParticleSystem{}
+	}
+	// fmt.Println("type:", result["Type"])
+	_type := result["Type"].(string)
+	switch _type {
+	case "ParticleSystem":
+		// TODO: Need to add the rendering layer into the file config
+		particleSystem := errs.Must(particles.FromFile(path, rendering.RenderLayers.Playerspace))
+		return _type, particleSystem
+	}
+	return _type, nil
 }

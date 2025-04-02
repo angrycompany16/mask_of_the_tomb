@@ -14,6 +14,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// TODO: Implement stop time so it doesn't run forever
+// TODO: Noise
+
 type ParticleSystem struct {
 	GlobalSpace     bool    `yaml:"GlobalSpace"`
 	PosX            float64 `yaml:"PosX"`
@@ -123,6 +126,7 @@ func (ps *ParticleSystem) newParticle() *Particle {
 		startScale, startScale, ps.EndScale.Eval(),
 		ps.Lifetime.Eval(), 0,
 		startColor, startColor, endColor,
+
 		ps.sprite,
 	}
 }
@@ -146,10 +150,6 @@ func FromFile(path string, layer *ebiten.Image) (*ParticleSystem, error) {
 	ps.layer = layer
 	return ps, nil
 }
-
-// func (ps *ParticleSystem) FromEntity(entityInstance *ebitenLDTK.Entity) *ParticleSystem {
-
-// }
 
 type ParticleBurst struct {
 	Count int     `yaml:"Count"`
