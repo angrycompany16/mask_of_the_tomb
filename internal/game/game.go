@@ -139,9 +139,12 @@ func (g *Game) updateGameplay() error {
 		} else {
 			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.Hitbox, playerMove, g.world.ActiveLevel.GetSlamboxColliders())
 			if newRect != *g.player.Hitbox {
+				// TODO: It's possible that these functions are only every called
+				// together. In that case, merge them
 				g.player.EnterDashAnim()
 				g.player.SetRot(playerMove)
 				g.player.SetTarget(newRect.Left(), newRect.Top())
+				g.player.PlayJumpParticles(playerMove)
 				g.player.State = player.Moving
 			}
 		}

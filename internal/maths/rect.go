@@ -31,7 +31,7 @@ func (r *Rect) Bottom() float64 {
 }
 
 func (r *Rect) Center() (float64, float64) {
-	return r.x + r.width, r.y + r.height
+	return r.x + r.width/2, r.y + r.height/2
 }
 
 func (r *Rect) TopLeft() (float64, float64) {

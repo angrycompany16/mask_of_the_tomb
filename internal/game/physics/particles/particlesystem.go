@@ -16,6 +16,12 @@ import (
 
 // TODO: Implement stop time so it doesn't run forever
 // TODO: Noise
+// TODO: Make burst count random
+// TODO: Make color random
+// TODO: Some kind of air friction coefficient?
+// TODO: Convert angles to degrees
+// NOTE: there's an effective cap on emission (it cannot be higher than 60) because
+// we only ever add one particle to the system
 
 type ParticleSystem struct {
 	GlobalSpace     bool    `yaml:"GlobalSpace"`
@@ -88,6 +94,7 @@ func (ps *ParticleSystem) Draw() {
 		for _, particle := range ps.particles {
 			particle.draw(ps.layer, camX, camY)
 		}
+		// vector.DrawFilledCircle(ps.layer, float32(ps.PosX-camX), float32(ps.PosY-camY), 2, color.RGBA{255, 0, 0, 255}, false)
 		return
 	}
 
@@ -95,7 +102,8 @@ func (ps *ParticleSystem) Draw() {
 	for _, particle := range ps.particles {
 		particle.draw(ps.surf, -float64(s.X)/2, -float64(s.Y)/2)
 	}
-	ebitenrenderutil.DrawAtRotated(ps.surf, ps.layer, ps.PosX-float64(s.X)/2, ps.PosY-float64(s.Y)/2, ps.Angle)
+	ebitenrenderutil.DrawAtRotated(ps.surf, ps.layer, ps.PosX-float64(s.X)/2-camX, ps.PosY-float64(s.Y)/2-camY, ps.Angle, 0.5, 0.5)
+	// vector.DrawFilledCircle(ps.layer, float32(ps.PosX-camX), float32(ps.PosY-camY), 2, color.RGBA{255, 0, 0, 255}, false)
 
 	ps.surf.Clear()
 }

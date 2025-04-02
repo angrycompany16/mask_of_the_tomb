@@ -93,6 +93,11 @@ func (e *Editor) Update() error {
 			e.editorUI.SwitchActiveMenu("openfile")
 			fmt.Println("Open file manager to look for file")
 		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+			if e.activeParticleSystem != nil {
+				e.activeParticleSystem.Play()
+			}
+		}
 		if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyC) {
 			return ErrTerminated
 		}

@@ -1,0 +1,52 @@
+# notes:
+# - No diff between global and local space
+# - Larger particles are slower (naturally)
+---
+Type: "ParticleSystem"
+GlobalSpace: true
+PosX: 0
+PosY: 0
+Angle: 0
+# Emission: 200
+Bursts:
+- Count: 2000 # 4000 particles: The system struggles
+ # 16000 particles: STILL not freezing or crashing
+ # 32000 particles: Veeery slow
+ # 64000 particles: Death and purgatory
+ # In general, bursts of over 2000 particles should be avoided. 2000 is the limit for
+ # smooth performance (for now) Not bad though!
+  Time: 0
+SpawnPosX:
+  Min: -100
+  Max: 100
+SpawnPosY:
+  Min: -100
+  Max: 100
+SpawnVelX:
+  Min: -10
+  Max: 10
+SpawnVelY:
+  Min: -40
+  Max: -10
+SpawnAngle:
+  Min: 0
+  Max: 10
+SpawnAngularVel:
+  Min: 0
+  Max: 1
+StartScale:
+  Min: 0.5
+  Max: 1
+EndScale:
+  Min: 0.0
+  Max: 0.0
+Lifetime:
+  Min: 1.0
+  Max: 2.0
+StartColor: [0, 255, 0, 100]
+EndColor: [255, 0, 0, 0]
+ImageWidth: 1
+ImageHeight: 1
+# TODO: Make smaller scale sprites for small particles
+SpritePath: "assets/sprites/icons/png/square-64x64.png"
+...

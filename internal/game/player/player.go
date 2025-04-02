@@ -3,7 +3,6 @@ package player
 // New task - gameplay / health system
 
 import (
-	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/animation"
 	"mask_of_the_tomb/internal/game/core/assetloader"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
@@ -44,7 +43,8 @@ type Player struct {
 	Disabled                  bool
 	InputBuffer               inputBuffer
 	deathAnim                 *deathanim.DeathAnim
-	testParticles             *particles.ParticleSystem
+	jumpParticlesBroad        *particles.ParticleSystem
+	jumpParticlesTight        *particles.ParticleSystem
 	// Events
 	OnDeath *events.Event
 	// Listeners
@@ -56,6 +56,14 @@ func (p *Player) Load() {
 	playerSpriteAsset := assettypes.NewImageAsset(playerSpritePath)
 	assetloader.AddAsset(playerSpriteAsset)
 	p.sprite = &playerSpriteAsset.Image // ????
+
+	jumpParticlesBroadAsset := assettypes.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.RenderLayers.Playerspace)
+	assetloader.AddAsset(jumpParticlesBroadAsset)
+	p.jumpParticlesBroad = &jumpParticlesBroadAsset.ParticleSystem
+
+	jumpParticlesTightAsset := assettypes.NewParticleSystemAsset(jumpParticlesTightPath, rendering.RenderLayers.Playerspace)
+	assetloader.AddAsset(jumpParticlesTightAsset)
+	p.jumpParticlesTight = &jumpParticlesTightAsset.ParticleSystem
 }
 
 func (p *Player) Init(posX, posY float64) {
@@ -63,7 +71,6 @@ func (p *Player) Init(posX, posY float64) {
 	p.Hitbox = maths.RectFromImage(posX, posY, p.sprite)
 	p.animator.SwitchClip(idleAnim)
 	// TODO: Fill in with real particle systems
-	p.testParticles = errs.Must(particles.FromFile(testParticleSys, rendering.RenderLayers.Foreground))
 }
 
 func (p *Player) getJumpOffset() (float64, float64) {
@@ -157,6 +164,43 @@ func (p *Player) EnterDashAnim() {
 
 func (p *Player) EnterSlamAnim() {
 	p.animator.SwitchClip(slamAnim)
+}
+
+func (p *Player) PlayJumpParticles(direction maths.Direction) {
+	centerX, centerY := p.Hitbox.Center()
+	switch direction {
+	case maths.DirUp:
+		p.jumpParticlesBroad.PosX = centerX
+		p.jumpParticlesBroad.PosY = p.Hitbox.Bottom()
+		p.jumpParticlesTight.PosX = centerX
+		p.jumpParticlesTight.PosY = p.Hitbox.Bottom()
+		p.jumpParticlesBroad.Angle = 0
+		p.jumpParticlesTight.Angle = 0
+	case maths.DirDown:
+		p.jumpParticlesBroad.PosX = centerX
+		p.jumpParticlesBroad.PosY = p.Hitbox.Top()
+		p.jumpParticlesTight.PosX = centerX
+		p.jumpParticlesTight.PosY = p.Hitbox.Top()
+		p.jumpParticlesBroad.Angle = math.Pi
+		p.jumpParticlesTight.Angle = math.Pi
+	case maths.DirRight:
+		p.jumpParticlesBroad.PosX = p.Hitbox.Left()
+		p.jumpParticlesBroad.PosY = centerY
+		p.jumpParticlesTight.PosX = p.Hitbox.Left()
+		p.jumpParticlesTight.PosY = centerY
+		p.jumpParticlesBroad.Angle = math.Pi / 2
+		p.jumpParticlesTight.Angle = math.Pi / 2
+	case maths.DirLeft:
+		p.jumpParticlesBroad.PosX = p.Hitbox.Right()
+		p.jumpParticlesBroad.PosY = centerY
+		p.jumpParticlesTight.PosX = p.Hitbox.Right()
+		p.jumpParticlesTight.PosY = centerY
+		p.jumpParticlesBroad.Angle = 3 * math.Pi / 2
+		p.jumpParticlesTight.Angle = 3 * math.Pi / 2
+	}
+
+	p.jumpParticlesBroad.Play()
+	p.jumpParticlesTight.Play()
 }
 
 func NewPlayer() *Player {

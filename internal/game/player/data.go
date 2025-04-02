@@ -11,5 +11,6 @@ var (
 	dashInitSpritesheetPath = filepath.Join(assetloader.PlayerFolder, "player-init-jump-Sheet.png")
 	dashLoopSpritesheetPath = filepath.Join(assetloader.PlayerFolder, "player-loop-jump-Sheet.png")
 	slamSpritesheetPath     = filepath.Join(assetloader.PlayerFolder, "player-slam-Sheet.png")
-	testParticleSys         = filepath.Join("assets", "particlesystems", "test.yaml")
+	jumpParticlesBroadPath  = filepath.Join("assets", "particlesystems", "player", "jump-broad.yaml")
+	jumpParticlesTightPath  = filepath.Join("assets", "particlesystems", "player", "jump-tight.yaml")
 )

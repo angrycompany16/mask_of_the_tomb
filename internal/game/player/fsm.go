@@ -66,12 +66,14 @@ func (p *Player) Update() {
 	p.InputBuffer.update()
 	p.Hitbox.SetPos(p.movebox.GetPos())
 	p.animator.Update()
-	p.testParticles.Update()
+	p.jumpParticlesBroad.Update()
+	p.jumpParticlesTight.Update()
 }
 
 // TODO: this will be changed back when we add some kind of death (sprite) animation
 func (p *Player) Draw() {
-	p.testParticles.Draw()
+	p.jumpParticlesBroad.Draw()
+	p.jumpParticlesTight.Draw()
 	if p.State == Dying {
 		p.deathAnim.Draw()
 	} else {

@@ -1,0 +1,44 @@
+---
+Type: "ParticleSystem"
+GlobalSpace: false
+PosX: 0
+PosY: 0
+Angle: 0
+Emission: 0
+Bursts:
+- Count: 6
+  Time: 0
+SpawnPosX:
+  Min: -3
+  Max: 3
+SpawnPosY:
+  Min: 0
+  Max: 0
+SpawnVelX:
+  Min: 0
+  Max: 0
+SpawnVelY:
+  Min: -100
+  Max: -40
+SpawnAngle:
+  Min: 0
+  Max: 0
+SpawnAngularVel:
+  Min: 0
+  Max: 0
+StartScale:
+  Min: 0.025
+  Max: 0.07
+EndScale:
+  Min: 0.0
+  Max: 0.0
+Lifetime:
+  Min: 0.1
+  Max: 0.5
+StartColor: [255, 255, 255, 255]
+EndColor: [255, 255, 255, 255]
+ImageWidth: 64
+ImageHeight: 64
+# TODO: Make smaller scale sprites for small particles
+SpritePath: "assets/sprites/icons/png/square-64x64.png"
+...
