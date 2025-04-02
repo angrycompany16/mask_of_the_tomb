@@ -16,6 +16,12 @@ entity interactions
 // - CAMERA SHAKE
 // - UPDATED ANIMATIONS
 
+// Revamped roadmap because I want to create a demo
+// - Implement background color
+// - Implement sound system
+// - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
+// - Start in a certain level
+
 // Roadmap for now (in order):
 // - Implement particle systems, make asset file
 // - Add custom asset for UI systems
@@ -23,14 +29,11 @@ entity interactions
 
 // - Implement generalized input handler
 // - Implement camera shake
-// - Implement sound system
-// - Implement background color
-// - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
 // - Start on levels
-// - Make examples for future reference/testing
 // - Make debug mode work a little better 
 //  - Add the ability to spawn in any level
 //  - Add some useful debug info (fps? maybe something idk)
+// - Remake UI system from scratch with some kind of design in mind
 
 // Backburner
 // - Implement super cool animation technique from aartihificial
