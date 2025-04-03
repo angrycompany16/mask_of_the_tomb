@@ -7,7 +7,6 @@
 camera space
 (Priority: MEDIUM) Split the main Update function into subfunctions for various disjoint 
 entity interactions
-(Priority: MEDIUM) Separate input into its own file, generalize
 (Priority: MEDIUM) Make examples aka non-automated integration tests
 
 // THE MAJOR GRAPHICS/GAME FEEL OVERHAUL
@@ -23,7 +22,6 @@ entity interactions
 // - Start in a certain level
 
 // Roadmap for now (in order):
-// - Implement particle systems, make asset file
 // - Add custom asset for UI systems
 // - Add custom asset for animation objects
 
