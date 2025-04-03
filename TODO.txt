@@ -21,6 +21,14 @@ entity interactions
 // - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
 // - Start in a certain level
 
+// Post-demo: The design/code quality revamp:
+// - Remove the singletons. These should not exist
+// - (Consider) writing integration tests for packages like animation, rendering, sound, etc.
+// - Make an overview of the design of the game
+// - Create principles for the file structure. Right now it's kind of random. 
+// - Generalize the UI system to allow for creation of more arbitrary UIs
+// - Make events easier to use
+
 // Roadmap for now (in order):
 // - Add custom asset for UI systems
 // - Add custom asset for animation objects
@@ -35,6 +43,8 @@ entity interactions
 
 // Backburner
 // - Implement super cool animation technique from aartihificial
+
+// Reconsider the 'data.go' files
 
 Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread
