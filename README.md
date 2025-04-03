@@ -1,6 +1,6 @@
-# I'm making a game in Go
+# Go + ebitengine puzzle platformer
 
-it's just going to be a small game. No need to worry about scope creep, right? (???)
+Small puzzle platformer game written with the Go programming language and ebitengine.
 
 To run the game for yourself, clone the repo and use
 
