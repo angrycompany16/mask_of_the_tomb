@@ -61,6 +61,7 @@ func (ui *UI) Update() {
 	ui.DeathEffect.Update()
 }
 
+// TODO: Try to enable switching active menu with enum instead of string
 func (ui *UI) SwitchActiveMenu(name string) {
 	for _, menu := range ui.menus {
 		if menu.Name != name {

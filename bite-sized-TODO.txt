@@ -1,1 +1,2 @@
-- Make particles spawn only on edges
+- Make particles spawn only on edges (easy mode: just make the particles smaller)
+- Make Slam particles, both applied to player and box

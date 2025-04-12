@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/game"
 	"mask_of_the_tomb/internal/game/core/rendering"
 	save "mask_of_the_tomb/internal/game/core/savesystem"
+	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/world"
 	"path/filepath"
 
@@ -42,7 +43,7 @@ func main() {
 	a.game.Init()
 
 	ebiten.SetFullscreen(true)
-	game.State = game.StatePlaying
+	a.game.State = gamestate.Playing
 	a.game.EnterPlayMode()
 
 	if err := ebiten.RunGame(a); err != nil {

@@ -20,14 +20,18 @@ entity interactions
 // - Implement sound system
 // - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
 // - Start in a certain level
+// - Biome title cards
 
 // Post-demo: The design/code quality revamp:
 // - Remove the singletons. These should not exist
+// - Try to make the packages more independent because right now they really aren't that great
 // - (Consider) writing integration tests for packages like animation, rendering, sound, etc.
 // - Make an overview of the design of the game
 // - Create principles for the file structure. Right now it's kind of random. 
 // - Generalize the UI system to allow for creation of more arbitrary UIs
-// - Make events easier to use
+// - Assets and events have too much overhead / boilerplate code
+//  - Also the asset loader could probably be more thread-safe
+// - Review licensing so I don't get sued
 
 // Roadmap for now (in order):
 // - Add custom asset for UI systems
@@ -53,3 +57,6 @@ It's obviously not feasible to just load every resource on startup
 Another reason for the asset manager: Right now we are loading assets multiple times
 because they aren't stored globally anywhere. This is resource inefficient, with an asset
 manager we could load assets and then cache them for later
+
+Note that it may only be necessary to load some assets on startup (i.e. those that 
+take a lot of time to load)

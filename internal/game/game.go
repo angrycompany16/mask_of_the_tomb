@@ -14,11 +14,15 @@ import (
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	save "mask_of_the_tomb/internal/game/core/savesystem"
+	"mask_of_the_tomb/internal/game/gamestate"
+	"mask_of_the_tomb/internal/game/musicplayer"
 	"mask_of_the_tomb/internal/game/player"
+	"mask_of_the_tomb/internal/game/sound"
 	"mask_of_the_tomb/internal/game/world"
 	"mask_of_the_tomb/internal/maths"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -26,17 +30,8 @@ var (
 	ErrTerminated = errors.New("Terminated")
 )
 
-type GameState int
-
-const (
-	StateLoading GameState = iota
-	StateMainMenu
-	StatePlaying
-	StatePaused
-)
-
 var (
-	State             GameState
+	// State             gamestate.State
 	loadFinishedChan  = make(chan int)
 	delayAsset        = delayasset.NewDelayAsset(time.Second)
 	mainMenuPath      = filepath.Join("assets", "menus", "game", "mainmenu.yaml")
@@ -46,9 +41,12 @@ var (
 )
 
 type Game struct {
-	player *player.Player
-	world  *world.World
-	gameUI *ui.UI
+	State        gamestate.State
+	player       *player.Player
+	world        *world.World
+	gameUI       *ui.UI
+	soundManager *sound.SoundManager
+	musicPlayer  *musicplayer.MusicPlayer
 	// Events
 	// Listeners
 	deathEffectEnterListener *events.EventListener
@@ -67,7 +65,12 @@ func (g *Game) Load() {
 	go assetloader.LoadAll(loadFinishedChan)
 }
 
+// Q: When to play soungs/how to organize it?
+// probably put a sound manager on each object that should play sounds
+// thus we will have some objects dedicated only to sounds such as a music player
+
 func (g *Game) Init() {
+	fmt.Println("init")
 	g.world.Init()
 	g.player.Init(g.world.ActiveLevel.GetSpawnPoint())
 	width, height := g.world.ActiveLevel.GetLevelBounds()
@@ -80,8 +83,13 @@ func (g *Game) Init() {
 		(rendering.GameHeight-playerHeight)/2,
 	)
 
-	State = StateMainMenu
+	g.State = gamestate.MainMenu
 	g.gameUI.SwitchActiveMenu("mainmenu")
+
+	audio.NewContext(48000)
+	// g.soundManager = sound.NewSoundManager(audio.CurrentContext())
+
+	g.musicPlayer = musicplayer.NewMusicPlayer(audio.CurrentContext())
 }
 
 // Design goal: switching on the global state should not be needed in every update
@@ -90,36 +98,38 @@ func (g *Game) Update() error {
 	events.Update()
 	confirmations := g.gameUI.GetConfirmations()
 	g.gameUI.Update()
+	g.musicPlayer.Update(g.State)
+
 	var err error
-	switch State {
-	case StateLoading:
+	switch g.State {
+	case gamestate.Loading:
 		select {
 		case <-loadFinishedChan:
 			fmt.Println("Finished loading")
 			g.Init()
 		default:
 		}
-	case StateMainMenu:
+	case gamestate.MainMenu:
 		if val, ok := confirmations["Play"]; ok && val {
 			g.EnterPlayMode()
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			return ErrTerminated
 		}
-	case StatePlaying:
+	case gamestate.Playing:
 		g.world.Update()
 		err = g.updateGameplay()
 		if err != nil {
 			return err
 		}
 		g.player.Update()
-	case StatePaused:
+	case gamestate.Paused:
 		if val, ok := confirmations["Resume"]; ok && val {
 			g.EnterPlayMode()
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			// Save data and stuff
 			// Loading screens
 			// etc
-			State = StateMainMenu
+			g.State = gamestate.MainMenu
 			g.gameUI.SwitchActiveMenu("mainmenu")
 		}
 	}
@@ -193,7 +203,7 @@ func (g *Game) updateGameplay() error {
 	camera.SetPos(g.player.GetPosCentered())
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		State = StatePaused
+		g.State = gamestate.Paused
 		// g.gameUI.SwitchActiveMenu(ui.Pausemenu)
 	}
 
@@ -202,20 +212,21 @@ func (g *Game) updateGameplay() error {
 
 func (g *Game) Draw() {
 	g.gameUI.Draw()
-	switch State {
-	case StateLoading:
-	case StateMainMenu:
-	case StatePlaying:
+	switch g.State {
+	case gamestate.Loading:
+	case gamestate.MainMenu:
+	case gamestate.Playing:
 		g.world.ActiveLevel.Draw()
 		g.player.Draw()
-	case StatePaused:
+	case gamestate.Paused:
+		// TODO: Add dim and blur filter on pausing the game
 		g.world.ActiveLevel.Draw()
 		g.player.Draw()
 	}
 }
 
 func (g *Game) EnterPlayMode() {
-	State = StatePlaying
+	g.State = gamestate.Playing
 	g.gameUI.SwitchActiveMenu("hud")
 }
 
