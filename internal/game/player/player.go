@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -43,6 +44,8 @@ type Player struct {
 	Disabled                  bool
 	InputBuffer               inputBuffer
 	deathAnim                 *deathanim.DeathAnim
+	jumpSound                 *audio.Player
+	slamSound                 *audio.Player
 	jumpParticlesBroad        *particles.ParticleSystem
 	jumpParticlesTight        *particles.ParticleSystem
 	// Events
@@ -70,7 +73,6 @@ func (p *Player) Init(posX, posY float64) {
 	p.SetPos(posX, posY)
 	p.Hitbox = maths.RectFromImage(posX, posY, p.sprite)
 	p.animator.SwitchClip(idleAnim)
-	// TODO: Fill in with real particle systems
 }
 
 func (p *Player) getJumpOffset() (float64, float64) {
@@ -144,8 +146,9 @@ func (p *Player) IsMoving() bool {
 func (p *Player) Die() {
 	p.Disabled = true
 	p.State = Dying
-	p.deathAnim.Play()
+	p.deathAnim.Play()GetPos
 	// TODO: Make it centered
+	// It seems to be placed on the corner of the player sprite, which is not great
 	p.deathAnim.SetPos(p.movebox.GetPos())
 
 	// May not be necessary

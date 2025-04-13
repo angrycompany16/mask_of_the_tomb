@@ -2,6 +2,7 @@ package musicplayer
 
 import (
 	"bytes"
+	"fmt"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/gamestate"
@@ -14,38 +15,90 @@ import (
 // The last one will have to be done later as it requires proper level transitions
 // Ah and also dim when pausing the game
 
+// TODO: Add multiple sound formats
+
 type SongName int
 
 const (
-	MenuSong SongName = iota
-	LevelSong
+	MenuTheme SongName = iota
+	BasementTheme
+	LibraryTheme
+)
+
+type AmbienceName int
+
+const (
+	MenuAmbience AmbienceName = iota
+	BasementAmbience
+	LibraryAmbience
 )
 
 type MusicPlayer struct {
-	songs map[SongName]*audio.Player
+	songs      map[SongName]*audio.Player
+	activeSong SongName
+	ambience   map[AmbienceName]*audio.Player
 }
 
-func (m *MusicPlayer) Update(state gamestate.State) {
+func (m *MusicPlayer) Update(state gamestate.State, levelBiome string) {
+	if state == gamestate.Loading {
+		return
+	}
+
+	m.TryRestartSong()
 	switch state {
-	case gamestate.Loading:
 	case gamestate.MainMenu:
-		if !m.songs[MenuSong].IsPlaying() {
-			m.songs[MenuSong].Play()
-		}
+		m.PlaySong(MenuTheme)
 	case gamestate.Playing:
-		m.songs[MenuSong].Pause()
+		if song, ok := m.songs[m.activeSong]; ok {
+			song.SetVolume(1.0)
+		}
+		switch levelBiome {
+		case "Basement":
+			m.PlaySong(BasementTheme)
+		case "Library":
+			m.PlaySong(LibraryTheme)
+		default:
+			fmt.Println("Level has no biome, so no song will be played")
+		}
 	case gamestate.Paused:
-		// TODO: Dim the music
+		if song, ok := m.songs[m.activeSong]; ok {
+			song.SetVolume(0.1)
+		}
+	}
+}
+
+func (m *MusicPlayer) TryRestartSong() {
+	if song, ok := m.songs[m.activeSong]; ok {
+		if !song.IsPlaying() {
+			song.Rewind()
+		}
+	}
+}
+
+func (m *MusicPlayer) PlaySong(name SongName) {
+	for _name, song := range m.songs {
+		if _name != name && song.IsPlaying() {
+			song.Pause()
+			song.Rewind()
+		}
+		if _name == name && !song.IsPlaying() {
+			m.activeSong = _name
+			song.Play()
+		}
 	}
 }
 
 func NewMusicPlayer(ctx *audio.Context) *MusicPlayer {
-	stream := errs.Must(mp3.DecodeF32(bytes.NewReader(assets.Menu_mp3)))
-	p := errs.Must(ctx.NewPlayerF32(stream))
-
 	return &MusicPlayer{
 		songs: map[SongName]*audio.Player{
-			MenuSong: p,
+			MenuTheme:     NewPlayer(assets.Menu_mp3, ctx),
+			BasementTheme: NewPlayer(assets.Basement_mp3, ctx),
+			LibraryTheme:  NewPlayer(assets.Library_mp3, ctx),
 		},
 	}
+}
+
+func NewPlayer(src []byte, ctx *audio.Context) *audio.Player {
+	stream := errs.Must(mp3.DecodeF32(bytes.NewReader(src)))
+	return errs.Must(ctx.NewPlayerF32(stream))
 }

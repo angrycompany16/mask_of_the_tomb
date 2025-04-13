@@ -175,6 +175,12 @@ func (l *Level) GetEntityByIid(iid string) (ebitenLDTK.Entity, error) {
 	return l.levelLDTK.GetEntityByIid(iid)
 }
 
+func (l *Level) GetBiome() string {
+	// fmt.Println(l.levelLDTK)
+	field := errs.Must(l.levelLDTK.GetFieldByName("Biome"))
+	return field.Biome
+}
+
 // TODO: Refactor because this is very big
 func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error) {
 	newLevel := &Level{}

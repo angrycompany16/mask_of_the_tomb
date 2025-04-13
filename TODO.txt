@@ -16,11 +16,15 @@ entity interactions
 // - UPDATED ANIMATIONS
 
 // Revamped roadmap because I want to create a demo
-// - Implement background color
 // - Implement sound system
+// - Implement background color
+// - Allow for enums to be loaded from files (a solution to this problem is required)
+// - Generalize the UI system to allow for creation of more arbitrary UIs
+// - Actually make the options menu
 // - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
-// - Start in a certain level
-// - Biome title cards
+// - Allow for run flag to start in a certain level
+// - Add biome title cards
+// - Proper level and scene transitions (dash from one level to the next)
 
 // Post-demo: The design/code quality revamp:
 // - Remove the singletons. These should not exist
@@ -28,7 +32,6 @@ entity interactions
 // - (Consider) writing integration tests for packages like animation, rendering, sound, etc.
 // - Make an overview of the design of the game
 // - Create principles for the file structure. Right now it's kind of random. 
-// - Generalize the UI system to allow for creation of more arbitrary UIs
 // - Assets and events have too much overhead / boilerplate code
 //  - Also the asset loader could probably be more thread-safe
 // - Review licensing so I don't get sued

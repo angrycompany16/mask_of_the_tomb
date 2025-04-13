@@ -17,7 +17,6 @@ import (
 	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/musicplayer"
 	"mask_of_the_tomb/internal/game/player"
-	"mask_of_the_tomb/internal/game/sound"
 	"mask_of_the_tomb/internal/game/world"
 	"mask_of_the_tomb/internal/maths"
 
@@ -31,7 +30,6 @@ var (
 )
 
 var (
-	// State             gamestate.State
 	loadFinishedChan  = make(chan int)
 	delayAsset        = delayasset.NewDelayAsset(time.Second)
 	mainMenuPath      = filepath.Join("assets", "menus", "game", "mainmenu.yaml")
@@ -41,12 +39,11 @@ var (
 )
 
 type Game struct {
-	State        gamestate.State
-	player       *player.Player
-	world        *world.World
-	gameUI       *ui.UI
-	soundManager *sound.SoundManager
-	musicPlayer  *musicplayer.MusicPlayer
+	State       gamestate.State
+	player      *player.Player
+	world       *world.World
+	gameUI      *ui.UI
+	musicPlayer *musicplayer.MusicPlayer
 	// Events
 	// Listeners
 	deathEffectEnterListener *events.EventListener
@@ -64,10 +61,6 @@ func (g *Game) Load() {
 
 	go assetloader.LoadAll(loadFinishedChan)
 }
-
-// Q: When to play soungs/how to organize it?
-// probably put a sound manager on each object that should play sounds
-// thus we will have some objects dedicated only to sounds such as a music player
 
 func (g *Game) Init() {
 	fmt.Println("init")
@@ -87,7 +80,6 @@ func (g *Game) Init() {
 	g.gameUI.SwitchActiveMenu("mainmenu")
 
 	audio.NewContext(48000)
-	// g.soundManager = sound.NewSoundManager(audio.CurrentContext())
 
 	g.musicPlayer = musicplayer.NewMusicPlayer(audio.CurrentContext())
 }
@@ -98,7 +90,12 @@ func (g *Game) Update() error {
 	events.Update()
 	confirmations := g.gameUI.GetConfirmations()
 	g.gameUI.Update()
-	g.musicPlayer.Update(g.State)
+
+	biome := ""
+	if g.world.ActiveLevel != nil {
+		biome = g.world.ActiveLevel.GetBiome()
+	}
+	g.musicPlayer.Update(g.State, biome)
 
 	var err error
 	switch g.State {
@@ -133,6 +130,7 @@ func (g *Game) Update() error {
 			g.gameUI.SwitchActiveMenu("mainmenu")
 		}
 	}
+
 	return nil
 }
 
@@ -204,7 +202,7 @@ func (g *Game) updateGameplay() error {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		g.State = gamestate.Paused
-		// g.gameUI.SwitchActiveMenu(ui.Pausemenu)
+		g.gameUI.SwitchActiveMenu("pausemenu")
 	}
 
 	return nil

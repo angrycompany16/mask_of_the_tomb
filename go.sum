@@ -8,6 +8,8 @@ github.com/angrycompany16/ebiten-LDTK v0.0.0-20250323213356-c3fd61124e1c h1:XYNV
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20250323213356-c3fd61124e1c/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20250323214605-c3dd1b0a4b23 h1:oP6gh6y3PmpVNyF5CXEyuBgKuhG8Uj+wNcOYmzoxHqA=
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20250323214605-c3dd1b0a4b23/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
+github.com/angrycompany16/ebiten-LDTK v0.0.0-20250413093001-8ec128c7e20f h1:O9cbDabywl8POmyLSldtgDbytwGRuFx9GTGnWHPFrMw=
+github.com/angrycompany16/ebiten-LDTK v0.0.0-20250413093001-8ec128c7e20f/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
 github.com/ebitengine/gomobile v0.0.0-20241016134836-cc2e38a7c0ee h1:YoNt0DHeZ92kjR78SfyUn1yEf7KnBypOFlFZO14cJ6w=
 github.com/ebitengine/gomobile v0.0.0-20241016134836-cc2e38a7c0ee/go.mod h1:ZDIonJlTRW7gahIn5dEXZtN4cM8Qwtlduob8cOCflmg=
 github.com/ebitengine/gomobile v0.0.0-20250209143333-6071a2a2351c h1:nCxkoQoJMcVLc5aoMp3ULbfyEMcQjxopBKgNQVBQFXE=
