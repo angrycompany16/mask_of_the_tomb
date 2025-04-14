@@ -1,7 +1,7 @@
 // Game mechanic ideas (how to make unique mechanics?)
-// 1. I've already made the most interesting game mechanic known to mankind
-//    It's smooth sailing from here
-//    Surely :^)
+// 0. Spikes
+// 1. SLAM BOX
+// 2. Teleporters
 
 (Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
 camera space
@@ -16,15 +16,21 @@ entity interactions
 // - UPDATED ANIMATIONS
 
 // Revamped roadmap because I want to create a demo
-// - Implement sound system
-// - Implement background color
 // - Allow for enums to be loaded from files (a solution to this problem is required)
+//   Where is this needed:
+//   - Level biome
+//   - UI asset files
+// - Make assets easier to use
 // - Generalize the UI system to allow for creation of more arbitrary UIs
 // - Actually make the options menu
 // - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
+// - Allow the user to restart by pressing R
 // - Allow for run flag to start in a certain level
 // - Add biome title cards
+// - Implement camera shake
 // - Proper level and scene transitions (dash from one level to the next)
+// - Resolve the many TODOs in the project (at least do a few of them)
+// - Create animation/sprite asset files
 
 // Post-demo: The design/code quality revamp:
 // - Remove the singletons. These should not exist
@@ -32,26 +38,11 @@ entity interactions
 // - (Consider) writing integration tests for packages like animation, rendering, sound, etc.
 // - Make an overview of the design of the game
 // - Create principles for the file structure. Right now it's kind of random. 
-// - Assets and events have too much overhead / boilerplate code
-//  - Also the asset loader could probably be more thread-safe
 // - Review licensing so I don't get sued
-
-// Roadmap for now (in order):
-// - Add custom asset for UI systems
-// - Add custom asset for animation objects
-
+// - Use the race condition checker...
 // - Implement generalized input handler
-// - Implement camera shake
-// - Start on levels
-// - Make debug mode work a little better 
-//  - Add the ability to spawn in any level
-//  - Add some useful debug info (fps? maybe something idk)
-// - Remake UI system from scratch with some kind of design in mind
+// - Reconsider the 'data.go' files
 
-// Backburner
-// - Implement super cool animation technique from aartihificial
-
-// Reconsider the 'data.go' files
 
 Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread

@@ -1,4 +1,4 @@
-package musicplayer
+package sound
 
 import (
 	"bytes"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
+	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
+	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 )
 
 // TODO: Fade music when launching game, switching tracks or (switching levels)
@@ -17,26 +19,36 @@ import (
 
 // TODO: Add multiple sound formats
 
-type SongName int
+// TODO: Integrate music more tightly with LDTK
+
+type AudioFormat int
 
 const (
-	MenuTheme SongName = iota
-	BasementTheme
-	LibraryTheme
+	Mp3 AudioFormat = iota
+	Wav
+	Ogg
 )
 
-type AmbienceName int
+type songName int
 
 const (
-	MenuAmbience AmbienceName = iota
-	BasementAmbience
-	LibraryAmbience
+	menuTheme songName = iota
+	basementTheme
+	libraryTheme
+)
+
+type ambienceName int
+
+const (
+	menuAmbience ambienceName = iota
+	basementAmbience
+	libraryAmbience
 )
 
 type MusicPlayer struct {
-	songs      map[SongName]*audio.Player
-	activeSong SongName
-	ambience   map[AmbienceName]*audio.Player
+	songs      map[songName]*audio.Player
+	activeSong songName
+	ambience   map[ambienceName]*audio.Player
 }
 
 func (m *MusicPlayer) Update(state gamestate.State, levelBiome string) {
@@ -44,19 +56,19 @@ func (m *MusicPlayer) Update(state gamestate.State, levelBiome string) {
 		return
 	}
 
-	m.TryRestartSong()
+	m.tryRestartSong()
 	switch state {
 	case gamestate.MainMenu:
-		m.PlaySong(MenuTheme)
+		m.playSong(menuTheme)
 	case gamestate.Playing:
 		if song, ok := m.songs[m.activeSong]; ok {
 			song.SetVolume(1.0)
 		}
 		switch levelBiome {
 		case "Basement":
-			m.PlaySong(BasementTheme)
+			m.playSong(basementTheme)
 		case "Library":
-			m.PlaySong(LibraryTheme)
+			m.playSong(libraryTheme)
 		default:
 			fmt.Println("Level has no biome, so no song will be played")
 		}
@@ -67,7 +79,7 @@ func (m *MusicPlayer) Update(state gamestate.State, levelBiome string) {
 	}
 }
 
-func (m *MusicPlayer) TryRestartSong() {
+func (m *MusicPlayer) tryRestartSong() {
 	if song, ok := m.songs[m.activeSong]; ok {
 		if !song.IsPlaying() {
 			song.Rewind()
@@ -75,7 +87,7 @@ func (m *MusicPlayer) TryRestartSong() {
 	}
 }
 
-func (m *MusicPlayer) PlaySong(name SongName) {
+func (m *MusicPlayer) playSong(name songName) {
 	for _name, song := range m.songs {
 		if _name != name && song.IsPlaying() {
 			song.Pause()
@@ -90,15 +102,25 @@ func (m *MusicPlayer) PlaySong(name SongName) {
 
 func NewMusicPlayer(ctx *audio.Context) *MusicPlayer {
 	return &MusicPlayer{
-		songs: map[SongName]*audio.Player{
-			MenuTheme:     NewPlayer(assets.Menu_mp3, ctx),
-			BasementTheme: NewPlayer(assets.Basement_mp3, ctx),
-			LibraryTheme:  NewPlayer(assets.Library_mp3, ctx),
+		songs: map[songName]*audio.Player{
+			menuTheme:     NewAudioPlayer(assets.Menu_mp3, ctx, Mp3),
+			basementTheme: NewAudioPlayer(assets.Basement_mp3, ctx, Mp3),
+			libraryTheme:  NewAudioPlayer(assets.Library_mp3, ctx, Mp3),
 		},
 	}
 }
 
-func NewPlayer(src []byte, ctx *audio.Context) *audio.Player {
-	stream := errs.Must(mp3.DecodeF32(bytes.NewReader(src)))
-	return errs.Must(ctx.NewPlayerF32(stream))
+func NewAudioPlayer(src []byte, ctx *audio.Context, format AudioFormat) *audio.Player {
+	switch format {
+	case Mp3:
+		stream := errs.Must(mp3.DecodeF32(bytes.NewReader(src)))
+		return errs.Must(ctx.NewPlayerF32(stream))
+	case Ogg:
+		stream := errs.Must(vorbis.DecodeF32(bytes.NewReader(src)))
+		return errs.Must(ctx.NewPlayerF32(stream))
+	case Wav:
+		stream := errs.Must(wav.DecodeF32(bytes.NewReader(src)))
+		return errs.Must(ctx.NewPlayerF32(stream))
+	}
+	return nil
 }

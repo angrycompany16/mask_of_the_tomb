@@ -45,7 +45,12 @@ func (p *Player) Update() {
 		p.jumpOffset = maths.Clamp(p.jumpOffset, 0, 1000000)
 	case Idle:
 		p.animator.SwitchClip(idleAnim)
+		// p.jumpSound.Pause()
+		// p.jumpSound.Rewind()
 	case Moving:
+		// if !p.jumpSound.IsPlaying() {
+		// 	p.jumpSound.Play()
+		// }
 		p.movebox.Update()
 		_, finished := p.moveFinishedListener.Poll()
 		if finished {

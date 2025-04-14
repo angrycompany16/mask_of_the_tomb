@@ -10,6 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+// TODO: Simplify with if err != nil panic
 func tracedPanic(err error) {
 	pc, file, no, ok := runtime.Caller(2)
 	funcDetails := runtime.FuncForPC(pc)

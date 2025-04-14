@@ -93,6 +93,7 @@ func FromFile(path string) (*Menu, error) {
 	}
 	menu.SelectorPos = 0
 
+	// TODO: Resolve SetFont and LoadColorPair
 	for _, selectable := range menu.Selectables {
 		selectable.NormalColor.LoadColorPair()
 		selectable.HoverColor.LoadColorPair()

@@ -9,6 +9,7 @@ import (
 	save "mask_of_the_tomb/internal/game/core/savesystem"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 )
 
 var (
@@ -43,6 +44,8 @@ func main() {
 
 	ebiten.SetWindowSize(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
 	ebiten.SetWindowTitle("Mask of the tomb")
+
+	audio.NewContext(48000)
 
 	a := &App{game.NewGame()}
 	a.game.Load()

@@ -3,7 +3,9 @@ package world
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"mask_of_the_tomb/internal/arrays"
+	"mask_of_the_tomb/internal/colors"
 	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/core/rendering"
@@ -40,6 +42,7 @@ type Level struct {
 	levelLDTK       *ebitenLDTK.Level
 	TilemapCollider physics.TilemapCollider
 	tileSize        float64
+	bgColor         color.Color
 	hazards         []entities.Hazard
 	doors           []entities.Door
 	Slamboxes       []*entities.Slambox
@@ -56,6 +59,8 @@ func (l *Level) Draw() {
 	for _, box := range l.Slamboxes {
 		box.Draw()
 	}
+
+	rendering.RenderLayers.Background2.Fill(l.bgColor)
 
 	camX, camY := camera.GetPos()
 	// NOTE: we *need* to loop in reverse
@@ -176,7 +181,6 @@ func (l *Level) GetEntityByIid(iid string) (ebitenLDTK.Entity, error) {
 }
 
 func (l *Level) GetBiome() string {
-	// fmt.Println(l.levelLDTK)
 	field := errs.Must(l.levelLDTK.GetFieldByName("Biome"))
 	return field.Biome
 }
@@ -187,6 +191,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.levelLDTK = levelLDTK
 	newLevel.defs = defs
 	newLevel.name = levelLDTK.Name
+	newLevel.bgColor = colors.HexToRGB(levelLDTK.BgColorHex)
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {

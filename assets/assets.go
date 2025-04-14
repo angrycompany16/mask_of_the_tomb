@@ -16,4 +16,7 @@ var (
 
 	//go:embed music/placeholder/game-music-puzzle-strategy-arcade-technology-301226.mp3
 	Library_mp3 []byte
+
+	//go:embed sfx/dash.wav
+	Dash_wav []byte
 )

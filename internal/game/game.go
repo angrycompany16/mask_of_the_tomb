@@ -15,8 +15,8 @@ import (
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	save "mask_of_the_tomb/internal/game/core/savesystem"
 	"mask_of_the_tomb/internal/game/gamestate"
-	"mask_of_the_tomb/internal/game/musicplayer"
 	"mask_of_the_tomb/internal/game/player"
+	"mask_of_the_tomb/internal/game/sound"
 	"mask_of_the_tomb/internal/game/world"
 	"mask_of_the_tomb/internal/maths"
 
@@ -43,7 +43,7 @@ type Game struct {
 	player      *player.Player
 	world       *world.World
 	gameUI      *ui.UI
-	musicPlayer *musicplayer.MusicPlayer
+	musicPlayer *sound.MusicPlayer
 	// Events
 	// Listeners
 	deathEffectEnterListener *events.EventListener
@@ -79,9 +79,7 @@ func (g *Game) Init() {
 	g.State = gamestate.MainMenu
 	g.gameUI.SwitchActiveMenu("mainmenu")
 
-	audio.NewContext(48000)
-
-	g.musicPlayer = musicplayer.NewMusicPlayer(audio.CurrentContext())
+	g.musicPlayer = sound.NewMusicPlayer(audio.CurrentContext())
 }
 
 // Design goal: switching on the global state should not be needed in every update

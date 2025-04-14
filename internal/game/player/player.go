@@ -3,6 +3,7 @@ package player
 // New task - gameplay / health system
 
 import (
+	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/game/animation"
 	"mask_of_the_tomb/internal/game/core/assetloader"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
@@ -11,6 +12,7 @@ import (
 	"mask_of_the_tomb/internal/game/physics/movebox"
 	"mask_of_the_tomb/internal/game/physics/particles"
 	"mask_of_the_tomb/internal/game/player/deathanim"
+	"mask_of_the_tomb/internal/game/sound"
 	"mask_of_the_tomb/internal/maths"
 	"math"
 	"time"
@@ -44,10 +46,10 @@ type Player struct {
 	Disabled                  bool
 	InputBuffer               inputBuffer
 	deathAnim                 *deathanim.DeathAnim
-	jumpSound                 *audio.Player
-	slamSound                 *audio.Player
-	jumpParticlesBroad        *particles.ParticleSystem
-	jumpParticlesTight        *particles.ParticleSystem
+	jumpSound                 *sound.EffectPlayer
+	// slamSound                 *audio.Player
+	jumpParticlesBroad *particles.ParticleSystem
+	jumpParticlesTight *particles.ParticleSystem
 	// Events
 	OnDeath *events.Event
 	// Listeners
@@ -146,7 +148,7 @@ func (p *Player) IsMoving() bool {
 func (p *Player) Die() {
 	p.Disabled = true
 	p.State = Dying
-	p.deathAnim.Play()GetPos
+	p.deathAnim.Play()
 	// TODO: Make it centered
 	// It seems to be placed on the corner of the player sprite, which is not great
 	p.deathAnim.SetPos(p.movebox.GetPos())
@@ -162,6 +164,9 @@ func (p *Player) Respawn() {
 }
 
 func (p *Player) EnterDashAnim() {
+	// Seems like it's unfortunately impossible to play sounds on top of
+	// one another...
+	p.jumpSound.Play()
 	p.animator.SwitchClip(dashInitAnim)
 }
 
@@ -214,6 +219,7 @@ func NewPlayer() *Player {
 		State:       Idle,
 		OnDeath:     events.NewEvent(),
 		deathAnim:   deathanim.NewDeathAnim(),
+		jumpSound:   sound.NewEffectPlayer(assets.Dash_wav, audio.CurrentContext(), sound.Wav),
 	}
 
 	player.moveFinishedListener = events.NewEventListener(player.movebox.OnMoveFinished)

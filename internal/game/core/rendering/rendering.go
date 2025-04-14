@@ -26,6 +26,7 @@ var RenderLayers = newRenderLayers()
 
 func newRenderLayers() (rl renderLayers) {
 	rl = renderLayers{
+		Background2: ebiten.NewImage(GameWidth, GameHeight),
 		Background:  ebiten.NewImage(GameWidth, GameHeight),
 		Midground:   ebiten.NewImage(GameWidth, GameHeight),
 		Playerspace: ebiten.NewImage(GameWidth, GameHeight),
@@ -35,6 +36,7 @@ func newRenderLayers() (rl renderLayers) {
 	}
 
 	rl.layers = []*ebiten.Image{
+		rl.Background2,
 		rl.Background,
 		rl.Midground,
 		rl.Playerspace,

@@ -10,6 +10,8 @@ github.com/angrycompany16/ebiten-LDTK v0.0.0-20250323214605-c3dd1b0a4b23 h1:oP6g
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20250323214605-c3dd1b0a4b23/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20250413093001-8ec128c7e20f h1:O9cbDabywl8POmyLSldtgDbytwGRuFx9GTGnWHPFrMw=
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20250413093001-8ec128c7e20f/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
+github.com/angrycompany16/ebiten-LDTK v0.0.0-20250414173219-9cc73abcec33 h1:o1eXCF1zePCsZxGO7k6MFm1cM6PY8CbLkfy/bl5kcZA=
+github.com/angrycompany16/ebiten-LDTK v0.0.0-20250414173219-9cc73abcec33/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
 github.com/ebitengine/gomobile v0.0.0-20241016134836-cc2e38a7c0ee h1:YoNt0DHeZ92kjR78SfyUn1yEf7KnBypOFlFZO14cJ6w=
 github.com/ebitengine/gomobile v0.0.0-20241016134836-cc2e38a7c0ee/go.mod h1:ZDIonJlTRW7gahIn5dEXZtN4cM8Qwtlduob8cOCflmg=
 github.com/ebitengine/gomobile v0.0.0-20250209143333-6071a2a2351c h1:nCxkoQoJMcVLc5aoMp3ULbfyEMcQjxopBKgNQVBQFXE=
@@ -33,6 +35,10 @@ github.com/hajimehoshi/go-mp3 v0.3.4/go.mod h1:fRtZraRFcWb0pu7ok0LqyFhCUrPeMsGRS
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
 github.com/jezek/xgb v1.1.1 h1:bE/r8ZZtSv7l9gk6nU0mYx51aXrvnyb44892TwSaqS4=
 github.com/jezek/xgb v1.1.1/go.mod h1:nrhwO0FX/enq75I7Y7G8iN1ubpSGZEiA3v9e9GyRFlk=
+github.com/jfreymuth/oggvorbis v1.0.5 h1:u+Ck+R0eLSRhgq8WTmffYnrVtSztJcYrl588DM4e3kQ=
+github.com/jfreymuth/oggvorbis v1.0.5/go.mod h1:1U4pqWmghcoVsCJJ4fRBKv9peUJMBHixthRlBeD6uII=
+github.com/jfreymuth/vorbis v1.0.2 h1:m1xH6+ZI4thH927pgKD8JOH4eaGRm18rEE9/0WKjvNE=
+github.com/jfreymuth/vorbis v1.0.2/go.mod h1:DoftRo4AznKnShRl1GxiTFCseHr4zR9BN3TWXyuzrqQ=
 github.com/pierrec/lz4/v4 v4.1.21 h1:yOVMLb6qSIDP67pl/5F7RepeKYu/VmTyEXvuMI5d9mQ=
 github.com/pierrec/lz4/v4 v4.1.21/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 golang.org/x/image v0.21.0 h1:c5qV36ajHpdj4Qi0GnE0jUc/yuo33OLFaa0d+crTD5s=
