@@ -1,8 +1,9 @@
 package fonts
 
 import (
+	"bytes"
 	"mask_of_the_tomb/assets"
-	"mask_of_the_tomb/internal/game/core/assetloader/fontasset"
+	"mask_of_the_tomb/internal/errs"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
@@ -21,9 +22,8 @@ type Fonts struct {
 }
 
 func (f *Fonts) LoadPreamble() {
-	mainFontAsset := fontasset.New(assets.JSE_AmigaAMOS_ttf)
-	mainFontAsset.Load()
-	f.M["JSE_AmigaAMOS"] = mainFontAsset.Font
+	mainFont := errs.Must(text.NewGoTextFaceSource(bytes.NewReader(assets.JSE_AmigaAMOS_ttf)))
+	f.M["JSE_AmigaAMOS"] = mainFont
 }
 
 func (f *Fonts) Load() {

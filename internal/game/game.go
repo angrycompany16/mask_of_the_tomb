@@ -76,7 +76,7 @@ func (g *Game) Init() {
 	)
 
 	g.State = gamestate.MainMenu
-	g.gameUI.SwitchActiveMenu("mainmenu")
+	g.gameUI.SwitchActiveDisplay("mainmenu")
 
 	g.musicPlayer = sound.NewMusicPlayer(audio.CurrentContext())
 }
@@ -124,7 +124,7 @@ func (g *Game) Update() error {
 			// Loading screens
 			// etc
 			g.State = gamestate.MainMenu
-			g.gameUI.SwitchActiveMenu("mainmenu")
+			g.gameUI.SwitchActiveDisplay("mainmenu")
 		}
 	}
 
@@ -199,7 +199,7 @@ func (g *Game) updateGameplay() error {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		g.State = gamestate.Paused
-		g.gameUI.SwitchActiveMenu("pausemenu")
+		g.gameUI.SwitchActiveDisplay("pausemenu")
 	}
 
 	return nil
@@ -222,7 +222,7 @@ func (g *Game) Draw() {
 
 func (g *Game) EnterPlayMode() {
 	g.State = gamestate.Playing
-	g.gameUI.SwitchActiveMenu("hud")
+	g.gameUI.SwitchActiveDisplay("hud")
 }
 
 func NewGame() *Game {

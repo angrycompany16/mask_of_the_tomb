@@ -2,8 +2,8 @@ package ui
 
 import (
 	"fmt"
+	"mask_of_the_tomb/internal/game/UI/display"
 	"mask_of_the_tomb/internal/game/UI/fonts"
-	"mask_of_the_tomb/internal/game/UI/menu"
 	"mask_of_the_tomb/internal/game/UI/screenfade"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
 
@@ -13,27 +13,33 @@ import (
 
 // Everything can be rewritten with events...
 // TODO: Make menu select into an event (With event info!!!)
+// NOTE: Might be possible to turn menu and screen effect into just one thing
 type UI struct {
-	activeMenu  *menu.Menu
-	menus       []*menu.Menu
-	DeathEffect *screenfade.DeathEffect
+	activeDisplay *display.Display
+	displays      []*display.Display
+	DeathEffect   *screenfade.DeathEffect
 }
 
 // Loads a single menu file and sets it as the active menu
 func (ui *UI) LoadPreamble(path string) {
 	fonts.FontRegistry.LoadPreamble()
-	loadingscreen, err := menu.FromFile(path)
+	loadingscreen, err := display.FromFile(path)
 	if err != nil {
 		panic(err)
 	}
 
-	ui.activeMenu = loadingscreen
+	ui.activeDisplay = loadingscreen
 }
 
 func (ui *UI) Load(menuPaths ...string) {
 	for _, menuPath := range menuPaths {
-		ui.menus = append(ui.menus, assettypes.NewMenuAsset(menuPath))
+		ui.displays = append(ui.displays, assettypes.NewMenuAsset(menuPath))
 	}
+}
+
+func (ui *UI) AddDisplayManual(display *display.Display) {
+	ui.displays = append(ui.displays, display)
+	ui.activeDisplay = display
 }
 
 func (ui *UI) Init() {
@@ -47,25 +53,25 @@ func (ui *UI) Update() {
 		inputDir = -1
 	}
 
-	ui.activeMenu.UpdateSelectables(inputDir)
-	ui.activeMenu.UpdateInputboxes()
+	ui.activeDisplay.UpdateSelectables(inputDir)
+	ui.activeDisplay.UpdateInputboxes()
 
-	if ui.activeMenu.FileSearch != nil {
-		ui.activeMenu.FileSearch.Update(inputDir)
-		ui.activeMenu.FileSearch.UpdateSearchResults()
-	}
+	// if ui.activeMenu.FileSearch != nil {
+	// 	ui.activeMenu.FileSearch.Update(inputDir)
+	// 	ui.activeMenu.FileSearch.UpdateSearchResults()
+	// }
 
 	ui.DeathEffect.Update()
 }
 
 // TODO: Try to enable switching active menu with enum instead of string
-func (ui *UI) SwitchActiveMenu(name string) {
-	for _, menu := range ui.menus {
+func (ui *UI) SwitchActiveDisplay(name string) {
+	for _, menu := range ui.displays {
 		if menu.Name != name {
 			continue
 		}
-		ui.activeMenu = menu
-		ui.activeMenu.SelectorPos = 0
+		ui.activeDisplay = menu
+		// ui.activeMenu.SelectorPos = 0
 		return
 	}
 
@@ -73,33 +79,33 @@ func (ui *UI) SwitchActiveMenu(name string) {
 }
 
 func (ui *UI) Draw() {
-	ui.activeMenu.Draw()
+	ui.activeDisplay.Draw()
 	ui.DeathEffect.Draw()
 }
 
 func (ui *UI) GetConfirmations() map[string]bool {
-	return ui.activeMenu.GetConfirmed()
+	return ui.activeDisplay.GetConfirmed()
 }
 
 func (ui *UI) GetSubmits() map[string]string {
-	return ui.activeMenu.GetSubmitted()
+	return ui.activeDisplay.GetSubmitted()
 }
 
 func (ui *UI) GetFileSearchValue() string {
-	if ui.activeMenu.FileSearch != nil {
-		return ui.activeMenu.FileSearch.Searchfield.Textbox.Text
-	}
+	// if ui.activeMenu.FileSearch != nil {
+	// 	return ui.activeMenu.FileSearch.Searchfield.Textbox.Text
+	// }
 	return ""
 }
 
 func (ui *UI) ResetFileSearch() {
-	ui.activeMenu.FileSearch.Searchfield.Textbox.Text = ""
+	// ui.activeMenu.FileSearch.Searchfield.Textbox.Text = ""
 }
 
 // TODO?: replace this?
 func NewUI() *UI {
 	return &UI{
 		DeathEffect: screenfade.NewDeathEffect(),
-		menus:       make([]*menu.Menu, 0),
+		displays:    make([]*display.Display, 0),
 	}
 }

@@ -70,7 +70,7 @@ func (e *Editor) Update() error {
 		case <-loadFinishedChan:
 			fmt.Println("Finished loading")
 			e.state = Preview
-			e.editorUI.SwitchActiveMenu("mainUI")
+			e.editorUI.SwitchActiveDisplay("mainUI")
 
 			camera.Init(
 				rendering.GameWidth,
@@ -90,7 +90,7 @@ func (e *Editor) Update() error {
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyO) {
 			e.state = OpeningFile
-			e.editorUI.SwitchActiveMenu("openfile")
+			e.editorUI.SwitchActiveDisplay("openfile")
 			fmt.Println("Open file manager to look for file")
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
@@ -113,12 +113,12 @@ func (e *Editor) Update() error {
 				ps.PosX = defaultSpawnX
 				ps.PosY = defaultSpawnY
 			}
-			e.editorUI.SwitchActiveMenu("mainUI")
+			e.editorUI.SwitchActiveDisplay("mainUI")
 			e.state = Preview
 		}
 
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			e.editorUI.SwitchActiveMenu("mainUI")
+			e.editorUI.SwitchActiveDisplay("mainUI")
 			e.state = Preview
 		}
 	}

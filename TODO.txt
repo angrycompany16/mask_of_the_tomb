@@ -16,11 +16,6 @@ entity interactions
 // - UPDATED ANIMATIONS
 
 // Revamped roadmap because I want to create a demo
-// - Allow for enums to be loaded from files (a solution to this problem is required)
-//   Where is this needed:
-//   - Level biome
-//   - UI asset files
-// - Make assets easier to use
 // - Generalize the UI system to allow for creation of more arbitrary UIs
 // - Actually make the options menu
 // - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
