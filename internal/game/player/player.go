@@ -5,7 +5,6 @@ package player
 import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/game/animation"
-	"mask_of_the_tomb/internal/game/core/assetloader"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/game/core/events"
 	"mask_of_the_tomb/internal/game/core/rendering"
@@ -47,9 +46,8 @@ type Player struct {
 	InputBuffer               inputBuffer
 	deathAnim                 *deathanim.DeathAnim
 	jumpSound                 *sound.EffectPlayer
-	// slamSound                 *audio.Player
-	jumpParticlesBroad *particles.ParticleSystem
-	jumpParticlesTight *particles.ParticleSystem
+	jumpParticlesBroad        *particles.ParticleSystem
+	jumpParticlesTight        *particles.ParticleSystem
 	// Events
 	OnDeath *events.Event
 	// Listeners
@@ -57,18 +55,10 @@ type Player struct {
 	clipFinishedListener *events.EventListener
 }
 
-func (p *Player) Load() {
-	playerSpriteAsset := assettypes.NewImageAsset(playerSpritePath)
-	assetloader.AddAsset(playerSpriteAsset)
-	p.sprite = &playerSpriteAsset.Image // ????
-
-	jumpParticlesBroadAsset := assettypes.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.RenderLayers.Playerspace)
-	assetloader.AddAsset(jumpParticlesBroadAsset)
-	p.jumpParticlesBroad = &jumpParticlesBroadAsset.ParticleSystem
-
-	jumpParticlesTightAsset := assettypes.NewParticleSystemAsset(jumpParticlesTightPath, rendering.RenderLayers.Playerspace)
-	assetloader.AddAsset(jumpParticlesTightAsset)
-	p.jumpParticlesTight = &jumpParticlesTightAsset.ParticleSystem
+func (p *Player) CreateAssets() {
+	p.sprite = assettypes.NewImageAsset(playerSpritePath)
+	p.jumpParticlesBroad = assettypes.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.RenderLayers.Playerspace)
+	p.jumpParticlesTight = assettypes.NewParticleSystemAsset(jumpParticlesTightPath, rendering.RenderLayers.Playerspace)
 }
 
 func (p *Player) Init(posX, posY float64) {

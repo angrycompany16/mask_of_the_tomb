@@ -5,7 +5,6 @@ import (
 	"mask_of_the_tomb/internal/game/UI/fonts"
 	"mask_of_the_tomb/internal/game/UI/menu"
 	"mask_of_the_tomb/internal/game/UI/screenfade"
-	"mask_of_the_tomb/internal/game/core/assetloader"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -33,9 +32,7 @@ func (ui *UI) LoadPreamble(path string) {
 
 func (ui *UI) Load(menuPaths ...string) {
 	for _, menuPath := range menuPaths {
-		menuAsset := assettypes.NewMenuAsset(menuPath)
-		assetloader.AddAsset(menuAsset)
-		ui.menus = append(ui.menus, &menuAsset.Menu)
+		ui.menus = append(ui.menus, assettypes.NewMenuAsset(menuPath))
 	}
 }
 

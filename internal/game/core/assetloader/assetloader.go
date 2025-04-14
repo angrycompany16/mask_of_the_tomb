@@ -2,7 +2,6 @@ package assetloader
 
 import (
 	"path/filepath"
-	"slices"
 )
 
 // Useful file paths
@@ -14,15 +13,8 @@ var (
 	_assetLoader             = assetLoader{}
 )
 
-type ShaderAsset struct {
-}
-
-type AnimationAsset struct {
-}
-
 type assetLoader struct {
-	assetPool    []Asset
-	loadedAssets []Asset
+	assetPool []Asset
 }
 
 func AddAsset(assets ...Asset) {
@@ -30,10 +22,8 @@ func AddAsset(assets ...Asset) {
 }
 
 func LoadAll(doneChan chan<- int) {
-	for i, asset := range _assetLoader.assetPool {
+	for _, asset := range _assetLoader.assetPool {
 		asset.Load()
-		_assetLoader.loadedAssets = append(_assetLoader.loadedAssets, asset)
-		_assetLoader.assetPool = slices.Delete(_assetLoader.assetPool, i, i)
 	}
 	doneChan <- 1
 }

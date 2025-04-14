@@ -2,7 +2,6 @@ package world
 
 import (
 	"fmt"
-	"mask_of_the_tomb/internal/game/core/assetloader"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -18,9 +17,9 @@ type World struct {
 }
 
 func (w *World) Load() {
-	worldAsset := assettypes.NewLDTKAsset(LDTKMapPath)
-	assetloader.AddAsset(worldAsset)
-	w.worldLDTK = &worldAsset.World
+	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
+	// assetloader.AddAsset(worldAsset)
+	// w.worldLDTK = &worldAsset.World
 }
 
 func (w *World) Init() {

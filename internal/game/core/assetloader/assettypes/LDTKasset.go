@@ -2,16 +2,15 @@ package assettypes
 
 import (
 	"mask_of_the_tomb/internal/errs"
+	"mask_of_the_tomb/internal/game/core/assetloader"
 	"path/filepath"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
 
 type LDTKAsset struct {
-	path string
-	// TODO: Make into a pointer
+	path  string
 	World ebitenLDTK.World
-	// done  chan int
 }
 
 func (a *LDTKAsset) Load() {
@@ -25,8 +24,11 @@ func (a *LDTKAsset) Load() {
 	}
 }
 
-func NewLDTKAsset(path string) *LDTKAsset {
-	return &LDTKAsset{
+func NewLDTKAsset(path string) *ebitenLDTK.World {
+	LDTKasset := LDTKAsset{
 		path: path,
 	}
+
+	assetloader.AddAsset(&LDTKasset)
+	return &LDTKasset.World
 }

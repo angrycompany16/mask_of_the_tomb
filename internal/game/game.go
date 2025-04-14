@@ -54,7 +54,7 @@ func (g *Game) Load() {
 	g.gameUI.LoadPreamble(loadingScreenPath)
 	assetloader.AddAsset(&delayAsset)
 	save.GlobalSave.LoadGame()
-	g.player.Load()
+	g.player.CreateAssets()
 	g.world.Load()
 	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath)
 	fonts.FontRegistry.Load()
@@ -63,7 +63,6 @@ func (g *Game) Load() {
 }
 
 func (g *Game) Init() {
-	fmt.Println("init")
 	g.world.Init()
 	g.player.Init(g.world.ActiveLevel.GetSpawnPoint())
 	width, height := g.world.ActiveLevel.GetLevelBounds()

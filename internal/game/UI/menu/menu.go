@@ -79,6 +79,10 @@ func (m *Menu) GetSubmitted() map[string]string {
 	return chart
 }
 
+// Want: Some way to group all these functions, which should take in a path and
+// return a pointer to the asset, pool them together and then load them
+// but alas the question is how
+
 func FromFile(path string) (*Menu, error) {
 	menu := &Menu{}
 	file, err := os.Open(path)
