@@ -1,0 +1,89 @@
+---
+definitions:
+- TextAlign: &AlignStart 0
+- TextAlign: &AlignCenter 1
+- TextAlign: &AlignEnd 2
+- ScreenAlign: &ScreenCentered 0
+- ScreenAlign: &ScreenTopLeft 1
+- RectAlign: &RectCentered 0
+- RectAlign: &RectTopLeft 1
+
+Name: "testmenu"
+Root:
+  Children:
+  - Type: "textbox"
+    Text: "The big title, now in glorious format"
+    Color: 
+      Bright: [205, 247, 226, 255]
+      Dark: [199, 176, 139, 255]
+    Font: "JSE_AmigaAMOS"
+    FontSize: 32
+    LineSpacing: 10
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
+    ScreenAlign: *ScreenCentered
+    ShadowX: -2
+    ShadowY: 2
+  - Type: "selectlist"
+    Children:
+    - Type: "button"
+      PosX: 0
+      PosY: -100
+      Text: "Button 1"
+      # Color:
+      #   Bright: [205, 247, 226, 255]
+      #   Dark: [199, 176, 139, 255]
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *ScreenCentered
+      ShadowX: -2
+      ShadowY: 2
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [255, 255, 255, 255]
+        Dark: [0, 0, 0, 255]
+      Name: "Button 1"
+    - Type: "inputfield"
+      PosX: 0
+      PosY: 100
+      Text: "Button 2"
+      # Color:
+      #   Bright: [205, 247, 226, 255]
+      #   Dark: [199, 176, 139, 255]
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *ScreenCentered
+      ShadowX: -2
+      ShadowY: 2
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [255, 255, 255, 255]
+        Dark: [0, 0, 0, 255]
+      Name: Button 2
+    - Type: "slider"
+      PosX: 0
+      PosY: 200
+      Width: 200
+      Height: 100
+      min: 0
+      max: 100
+      knobRadius: 10
+      lineThickness: 2
+      backgroundColorNormal: [10, 10, 10, 255]
+      backgroundColorSelected: [50, 50, 50, 255]
+      knobColor: [100, 100, 100, 255]
+      lineColor: [255, 0, 0, 255]
+      screenAlign: *ScreenCentered
+      rectAlign: *RectCentered
+      Name: Slider 1
+...

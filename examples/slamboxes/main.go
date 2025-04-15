@@ -5,7 +5,6 @@ import (
 	"log"
 	"mask_of_the_tomb/internal/game"
 	"mask_of_the_tomb/internal/game/core/rendering"
-	save "mask_of_the_tomb/internal/game/core/savesystem"
 	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/world"
 	"path/filepath"
@@ -48,7 +47,6 @@ func main() {
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, game.ErrTerminated) {
-			save.GlobalSave.SaveGame()
 			return
 		}
 		log.Fatal(err)

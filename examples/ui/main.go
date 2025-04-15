@@ -3,29 +3,28 @@ package main
 import (
 	"errors"
 	"log"
+	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game"
+	ui "mask_of_the_tomb/internal/game/UI"
+	"mask_of_the_tomb/internal/game/UI/display"
+	"mask_of_the_tomb/internal/game/UI/fonts"
 	"mask_of_the_tomb/internal/game/core/rendering"
-	"mask_of_the_tomb/internal/game/gamestate"
-	"mask_of_the_tomb/internal/game/world"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type App struct {
-	game *game.Game
+	ui *ui.UI
 }
 
 func (a *App) Update() error {
-	err := a.game.Update()
-	if err == game.ErrTerminated {
-		return err
-	}
+	a.ui.Update()
 	return nil
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
-	a.game.Draw()
+	a.ui.Draw()
 	rendering.RenderLayers.Draw(screen)
 }
 
@@ -35,17 +34,20 @@ func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
 
 func main() {
 	ebiten.SetWindowSize(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
-	ebiten.SetWindowTitle("Hazard test")
+	ebiten.SetWindowTitle("UI test")
 
-	a := &App{game.NewGame()}
-	world.LDTKMapPath = filepath.Join("assets", "LDTK", "hazard.ldtk")
-	a.game.Init()
+	app := &App{ui.NewUI()}
+	fonts.LoadPreamble()
+	// rootNode := root.New()
+	// rootNode.AddChild(textbox.New())
+	app.ui.AddDisplayManual(errs.Must(
+		display.FromFile(filepath.Join("assets", "menus", "example", "menu.yaml")),
+	))
+	// filepath.Join("assets", "menus", "example", "menu.yaml") |> display.FromFile |> errs.Must |> app.ui.AddDisplayManual
 
 	ebiten.SetFullscreen(true)
-	a.game.State = gamestate.Playing
-	a.game.EnterPlayMode()
 
-	if err := ebiten.RunGame(a); err != nil {
+	if err := ebiten.RunGame(app); err != nil {
 		if errors.Is(err, game.ErrTerminated) {
 			return
 		}

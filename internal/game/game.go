@@ -36,6 +36,7 @@ var (
 	pauseMenuPath     = filepath.Join("assets", "menus", "game", "pausemenu.yaml")
 	hudPath           = filepath.Join("assets", "menus", "game", "hud.yaml")
 	loadingScreenPath = filepath.Join("assets", "menus", "game", "loadingscreen.yaml")
+	optionsMenuPath   = filepath.Join("assets", "menus", "game", "options.yaml")
 )
 
 type Game struct {
@@ -56,8 +57,8 @@ func (g *Game) Load() {
 	save.GlobalSave.LoadGame()
 	g.player.CreateAssets()
 	g.world.Load()
-	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath)
-	fonts.FontRegistry.Load()
+	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath, optionsMenuPath)
+	fonts.Load()
 
 	go assetloader.LoadAll(loadFinishedChan)
 }
@@ -76,13 +77,14 @@ func (g *Game) Init() {
 	)
 
 	g.State = gamestate.MainMenu
-	g.gameUI.SwitchActiveMenu("mainmenu")
+	g.gameUI.SwitchActiveDisplay("mainmenu")
 
 	g.musicPlayer = sound.NewMusicPlayer(audio.CurrentContext())
 }
 
 // Design goal: switching on the global state should not be needed in every update
 // function, as this (død)
+// TODO: Create an UpdateUI() function
 func (g *Game) Update() error {
 	events.Update()
 	confirmations := g.gameUI.GetConfirmations()
@@ -92,6 +94,7 @@ func (g *Game) Update() error {
 	if g.world.ActiveLevel != nil {
 		biome = g.world.ActiveLevel.GetBiome()
 	}
+
 	g.musicPlayer.Update(g.State, biome)
 
 	var err error
@@ -104,10 +107,16 @@ func (g *Game) Update() error {
 		default:
 		}
 	case gamestate.MainMenu:
+		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+			g.gameUI.SwitchActiveDisplay("mainmenu")
+		}
+
 		if val, ok := confirmations["Play"]; ok && val {
 			g.EnterPlayMode()
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			return ErrTerminated
+		} else if val, ok := confirmations["Options"]; ok && val {
+			g.gameUI.SwitchActiveDisplay("options")
 		}
 	case gamestate.Playing:
 		g.world.Update()
@@ -115,8 +124,19 @@ func (g *Game) Update() error {
 		if err != nil {
 			return err
 		}
+
+		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+			g.State = gamestate.Paused
+			g.gameUI.SwitchActiveDisplay("pausemenu")
+		}
+
 		g.player.Update()
 	case gamestate.Paused:
+		// TODO: Make esc go back to playing state, and implement back button
+		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+			g.gameUI.SwitchActiveDisplay("pausemenu")
+		}
+
 		if val, ok := confirmations["Resume"]; ok && val {
 			g.EnterPlayMode()
 		} else if val, ok := confirmations["Quit"]; ok && val {
@@ -124,7 +144,9 @@ func (g *Game) Update() error {
 			// Loading screens
 			// etc
 			g.State = gamestate.MainMenu
-			g.gameUI.SwitchActiveMenu("mainmenu")
+			g.gameUI.SwitchActiveDisplay("mainmenu")
+		} else if val, ok := confirmations["Options"]; ok && val {
+			g.gameUI.SwitchActiveDisplay("options")
 		}
 	}
 
@@ -197,11 +219,6 @@ func (g *Game) updateGameplay() error {
 
 	camera.SetPos(g.player.GetPosCentered())
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		g.State = gamestate.Paused
-		g.gameUI.SwitchActiveMenu("pausemenu")
-	}
-
 	return nil
 }
 
@@ -222,7 +239,7 @@ func (g *Game) Draw() {
 
 func (g *Game) EnterPlayMode() {
 	g.State = gamestate.Playing
-	g.gameUI.SwitchActiveMenu("hud")
+	g.gameUI.SwitchActiveDisplay("hud")
 }
 
 func NewGame() *Game {

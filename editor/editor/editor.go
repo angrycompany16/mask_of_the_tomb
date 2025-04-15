@@ -6,10 +6,12 @@ import (
 	"mask_of_the_tomb/editor/fileio"
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/core/assetloader"
+	"mask_of_the_tomb/internal/game/core/assetloader/delayasset"
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/game/physics/particles"
 	"path/filepath"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -53,6 +55,9 @@ func (e *Editor) Init() {
 	e.editorUI.LoadPreamble(loadingScreenPath)
 	e.editorUI.Load(uiPath, openFileScreenPath)
 
+	delayAsset := delayasset.NewDelayAsset(time.Second)
+	assetloader.AddAsset(&delayAsset)
+
 	go assetloader.LoadAll(loadFinishedChan)
 }
 
@@ -70,7 +75,7 @@ func (e *Editor) Update() error {
 		case <-loadFinishedChan:
 			fmt.Println("Finished loading")
 			e.state = Preview
-			e.editorUI.SwitchActiveMenu("mainUI")
+			e.editorUI.SwitchActiveDisplay("mainUI")
 
 			camera.Init(
 				rendering.GameWidth,
@@ -90,7 +95,7 @@ func (e *Editor) Update() error {
 		}
 		if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyO) {
 			e.state = OpeningFile
-			e.editorUI.SwitchActiveMenu("openfile")
+			e.editorUI.SwitchActiveDisplay("openfile")
 			fmt.Println("Open file manager to look for file")
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyR) {
@@ -102,6 +107,7 @@ func (e *Editor) Update() error {
 			return ErrTerminated
 		}
 	case OpeningFile:
+		// TODO: Reconfigure with events
 		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 			_type, asset := fileio.OpenAsset(e.editorUI.GetFileSearchValue())
 			switch _type {
@@ -113,12 +119,12 @@ func (e *Editor) Update() error {
 				ps.PosX = defaultSpawnX
 				ps.PosY = defaultSpawnY
 			}
-			e.editorUI.SwitchActiveMenu("mainUI")
+			e.editorUI.SwitchActiveDisplay("mainUI")
 			e.state = Preview
 		}
 
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			e.editorUI.SwitchActiveMenu("mainUI")
+			e.editorUI.SwitchActiveDisplay("mainUI")
 			e.state = Preview
 		}
 	}

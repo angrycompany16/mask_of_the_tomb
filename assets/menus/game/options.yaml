@@ -1,0 +1,64 @@
+---
+definitions:
+- PrimaryAlign: &AlignStart 0
+- PrimaryAlign: &AlignCenter 1
+- PrimaryAlign: &AlignEnd 2
+- ScreenAlign: &ScreenCentered 0
+- ScreenAlign: &ScreenTopLeft 1
+- RectAlign: &RectCentered 0
+- RectAlign: &RectTopLeft 1
+
+Name: "options"
+Root:
+  Children:
+  - Type: "selectlist"
+    Children:
+    - Type: "slider"
+      PosX: 0
+      PosY: -100
+      Width: 200
+      Height: 100
+      min: 0
+      max: 100
+      knobRadius: 10
+      lineThickness: 2
+      backgroundColorNormal: [10, 10, 10, 255]
+      backgroundColorSelected: [50, 50, 50, 255]
+      knobColor: [100, 100, 100, 255]
+      lineColor: [255, 0, 0, 255]
+      screenAlign: *ScreenCentered
+      rectAlign: *RectCentered
+      Name: Master volume
+    - Type: "slider"
+      PosX: 0
+      PosY: 0
+      Width: 200
+      Height: 100
+      min: 0
+      max: 100
+      knobRadius: 10
+      lineThickness: 2
+      backgroundColorNormal: [10, 10, 10, 255]
+      backgroundColorSelected: [50, 50, 50, 255]
+      knobColor: [100, 100, 100, 255]
+      lineColor: [255, 0, 0, 255]
+      screenAlign: *ScreenCentered
+      rectAlign: *RectCentered
+      Name: Music volume
+    - Type: "slider"
+      PosX: 0
+      PosY: 100
+      Width: 200
+      Height: 100
+      min: 0
+      max: 100
+      knobRadius: 10
+      lineThickness: 2
+      backgroundColorNormal: [10, 10, 10, 255]
+      backgroundColorSelected: [50, 50, 50, 255]
+      knobColor: [100, 100, 100, 255]
+      lineColor: [255, 0, 0, 255]
+      screenAlign: *ScreenCentered
+      rectAlign: *RectCentered
+      Name: SFX volume
+...

@@ -7,20 +7,19 @@ definitions:
 - ScreenAlign: &TopLeft 1
 
 Name: "loadingscreen"
-Textboxes:
-- Text: "LOADING"
-  PosX: 0
-  PosY: 0
-  Color:
-    Bright: [205, 247, 226, 255]
-    Dark: [199, 176, 139, 255]
-  Font: "JSE_AmigaAMOS"
-  FontSize: 48
-  LineSpacing: 10
-  PrimaryAlign: *AlignCenter
-  SecondaryAlign: *AlignCenter
-  ScreenAlign: *Centered
-  ShadowX: -4
-  ShadowY: 4
-Selectables:
+Root:
+  Children:
+  - Type: "textbox"
+    Text: "LOADING"
+    Color:
+      Bright: [205, 247, 226, 255]
+      Dark: [199, 176, 139, 255]
+    Font: "JSE_AmigaAMOS"
+    FontSize: 48
+    LineSpacing: 10
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
+    ScreenAlign: *Centered
+    ShadowX: -4
+    ShadowY: 4
 ...

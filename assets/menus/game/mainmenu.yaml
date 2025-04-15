@@ -7,77 +7,89 @@ definitions:
 - ScreenAlign: &TopLeft 1
 
 Name: "mainmenu"
-Textboxes:
-- Text: "MASK OF THE TOMB"
-  PosX: 0
-  PosY: -275
-  Color:
-    Bright: [205, 247, 226, 255]
-    Dark: [199, 176, 139, 255]
-  Font: "JSE_AmigaAMOS"
-  FontSize: 72
-  LineSpacing: 10
-  PrimaryAlign: *AlignCenter
-  SecondaryAlign: *AlignCenter
-  ScreenAlign: *Centered
-  ShadowX: -4
-  ShadowY: 4
-Selectables:
-- Name: "Play"
-  Textbox:
-    Text: "Play video game"
+Root:
+  Children:
+  - Type: "textbox"
     PosX: 0
-    PosY: -100
+    PosY: -275
+    Text: "MASK OF THE TOMB"
+    Color:
+      Bright: [205, 247, 226, 255]
+      Dark: [199, 176, 139, 255]
     Font: "JSE_AmigaAMOS"
-    FontSize: 48
+    FontSize: 72
     LineSpacing: 10
     PrimaryAlign: *AlignCenter
     SecondaryAlign: *AlignCenter
     ScreenAlign: *Centered
     ShadowX: -4
     ShadowY: 4
-  NormalColor:
-    Bright: [205, 247, 226, 255]
-    Dark: [199, 176, 139, 255]
-  HoverColor:
-    Bright: [255, 255, 255, 255]
-    Dark: [0, 0, 0, 255]
-- Name: "Options"
-  Textbox:
-    Text: "Options"
-    PosX: 0
-    PosY: 0
-    Font: "JSE_AmigaAMOS"
-    FontSize: 48
-    LineSpacing: 10
-    PrimaryAlign: *AlignCenter
-    SecondaryAlign: *AlignCenter
-    ScreenAlign: *Centered
-    ShadowX: -4
-    ShadowY: 4
-  NormalColor:
-    Bright: [205, 247, 226, 255]
-    Dark: [199, 176, 139, 255]
-  HoverColor:
-    Bright: [255, 255, 255, 255]
-    Dark: [0, 0, 0, 255]
-- Name: "Quit"
-  Textbox:
-    Text: "Don't play video game"
-    PosX: 0
-    PosY: 100
-    Font: "JSE_AmigaAMOS"
-    FontSize: 48
-    LineSpacing: 10
-    PrimaryAlign: *AlignCenter
-    SecondaryAlign: *AlignCenter
-    ScreenAlign: *Centered
-    ShadowX: -4
-    ShadowY: 4
-  NormalColor:
-    Bright: [205, 247, 226, 255]
-    Dark: [199, 176, 139, 255]
-  HoverColor:
-    Bright: [255, 255, 255, 255]
-    Dark: [0, 0, 0, 255]
+  - Type: "selectlist"
+    Children:
+    - Type: "button"
+      PosX: 0
+      PosY: -100
+      Name: "Play"
+      Text: "Play video game"
+      Font: "JSE_AmigaAMOS"
+      FontSize: 48
+      Color: # TODO: Remove the need to include Color since we have Normal and Selected 
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      LineSpacing: 10
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
+      ShadowX: -4
+      ShadowY: 4
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [255, 255, 255, 255]
+        Dark: [0, 0, 0, 255]
+    - Type: "button"
+      Name: "Options"
+      Text: "Options"
+      PosX: 0
+      PosY: 0
+      Font: "JSE_AmigaAMOS"
+      FontSize: 48
+      Color:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      LineSpacing: 10
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
+      ShadowX: -4
+      ShadowY: 4
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [255, 255, 255, 255]
+        Dark: [0, 0, 0, 255]
+    - Type: "button"
+      Name: "Quit"
+      Text: "Don't play video game"
+      PosX: 0
+      PosY: 100
+      Font: "JSE_AmigaAMOS"
+      FontSize: 48
+      Color:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      LineSpacing: 10
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
+      ShadowX: -4
+      ShadowY: 4
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [255, 255, 255, 255]
+        Dark: [0, 0, 0, 255]
 ...
