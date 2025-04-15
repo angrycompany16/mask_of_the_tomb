@@ -6,14 +6,13 @@ import (
 	"mask_of_the_tomb/internal/game/UI/fonts"
 	"mask_of_the_tomb/internal/game/UI/screenfade"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
-
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
+
+// TODO: Reset selector position on active menu change
+// TODO: allow for optional borders on elements (shouldn't be too hard)
 
 // Everything can be rewritten with events...
 // TODO: Make menu select into an event (With event info!!!)
-// NOTE: Might be possible to turn menu and screen effect into just one thing
 type UI struct {
 	activeDisplay *display.Display
 	displays      []*display.Display
@@ -22,7 +21,7 @@ type UI struct {
 
 // Loads a single menu file and sets it as the active menu
 func (ui *UI) LoadPreamble(path string) {
-	fonts.FontRegistry.LoadPreamble()
+	fonts.LoadPreamble()
 	loadingscreen, err := display.FromFile(path)
 	if err != nil {
 		panic(err)
@@ -46,20 +45,7 @@ func (ui *UI) Init() {
 }
 
 func (ui *UI) Update() {
-	inputDir := 0
-	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-		inputDir = 1
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-		inputDir = -1
-	}
-
-	ui.activeDisplay.UpdateSelectables(inputDir)
-	ui.activeDisplay.UpdateInputboxes()
-
-	// if ui.activeMenu.FileSearch != nil {
-	// 	ui.activeMenu.FileSearch.Update(inputDir)
-	// 	ui.activeMenu.FileSearch.UpdateSearchResults()
-	// }
+	ui.activeDisplay.Update()
 
 	ui.DeathEffect.Update()
 }

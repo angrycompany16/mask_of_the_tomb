@@ -3,12 +3,13 @@ package main
 import (
 	"errors"
 	"log"
+	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game"
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/UI/display"
-	"mask_of_the_tomb/internal/game/UI/node/root"
-	"mask_of_the_tomb/internal/game/UI/node/textbox"
+	"mask_of_the_tomb/internal/game/UI/fonts"
 	"mask_of_the_tomb/internal/game/core/rendering"
+	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -36,13 +37,13 @@ func main() {
 	ebiten.SetWindowTitle("UI test")
 
 	app := &App{ui.NewUI()}
-
-	rootNode := root.New()
-	rootNode.AddChild(textbox.New())
-	app.ui.AddDisplayManual(&display.Display{
-		Name: "Test display",
-		Root: rootNode,
-	})
+	fonts.LoadPreamble()
+	// rootNode := root.New()
+	// rootNode.AddChild(textbox.New())
+	app.ui.AddDisplayManual(errs.Must(
+		display.FromFile(filepath.Join("assets", "menus", "example", "menu.yaml")),
+	))
+	// filepath.Join("assets", "menus", "example", "menu.yaml") |> display.FromFile |> errs.Must |> app.ui.AddDisplayManual
 
 	ebiten.SetFullscreen(true)
 

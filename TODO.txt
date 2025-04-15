@@ -16,8 +16,6 @@ entity interactions
 // - UPDATED ANIMATIONS
 
 // Revamped roadmap because I want to create a demo
-// - Generalize the UI system to allow for creation of more arbitrary UIs
-// - Actually make the options menu
 // - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
 // - Allow the user to restart by pressing R
 // - Allow for run flag to start in a certain level
@@ -37,7 +35,7 @@ entity interactions
 // - Use the race condition checker...
 // - Implement generalized input handler
 // - Reconsider the 'data.go' files
-
+// - Improve the asset loader, turn into actual editor
 
 Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread

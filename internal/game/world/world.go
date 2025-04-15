@@ -18,8 +18,6 @@ type World struct {
 
 func (w *World) Load() {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
-	// assetloader.AddAsset(worldAsset)
-	// w.worldLDTK = &worldAsset.World
 }
 
 func (w *World) Init() {

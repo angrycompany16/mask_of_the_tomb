@@ -6,30 +6,31 @@ definitions:
 - ScreenAlign: &Centered 0
 - ScreenAlign: &TopLeft 1
 
+
 Name: "openfile"
-Textboxes:
-- Text: "Open file"
-  PosX: 10
-  PosY: 10
-  Color:
-    Bright: [205, 247, 226, 255]
-    Dark: [199, 176, 139, 255]
-  Font: "JSE_AmigaAMOS"
-  FontSize: 32
-  LineSpacing: 10
-  PrimaryAlign: *AlignStart
-  SecondaryAlign: *AlignStart
-  ScreenAlign: *TopLeft
-  ShadowX: 0
-  ShadowY: 0
-Selectables:
-FileSearch:
-  Name: "path"
-  Searchfield:
-    Textbox:
-      Text: ""
-      PosX: 10
-      PosY: 50
+Root:
+  Children:
+  - Type: "textbox"
+    Text: "Open file"
+    PosX: 10
+    PosY: 10
+    Color:
+      Bright: [205, 247, 226, 255]
+      Dark: [199, 176, 139, 255]
+    Font: "JSE_AmigaAMOS"
+    FontSize: 32
+    LineSpacing: 10
+    PrimaryAlign: *AlignStart
+    SecondaryAlign: *AlignStart
+    ScreenAlign: *TopLeft
+    ShadowX: 0
+    ShadowY: 0
+  - Type: "filesearch"
+    Name: "Throngler"
+    PosX: 10
+    PosY: 50
+    Children:
+    - Type: "inputfield"
       Color:
         Bright: [205, 247, 226, 255]
         Dark: [199, 176, 139, 255]
@@ -39,12 +40,57 @@ FileSearch:
       PrimaryAlign: *AlignStart
       SecondaryAlign: *AlignStart
       ScreenAlign: *TopLeft
-      ShadowX: 0
-      ShadowY: 0
-  NormalColor:
-    Bright: [205, 247, 226, 255]
-    Dark: [199, 176, 139, 255]
-  HoverColor:
-    Bright: [255, 255, 255, 255]
-    Dark: [0, 0, 0, 255]
+      ShadowX: -2
+      ShadowY: 2
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [255, 255, 255, 255]
+        Dark: [0, 0, 0, 255]
+      Name: "Search input"
+    - Type: "selectlist"
+      PosY: 50
+
+# Name: "openfile"
+# Textboxes:
+# - Text: "Open file"
+#   PosX: 10
+#   PosY: 10
+#   Color:
+#     Bright: [205, 247, 226, 255]
+#     Dark: [199, 176, 139, 255]
+#   Font: "JSE_AmigaAMOS"
+#   FontSize: 32
+#   LineSpacing: 10
+#   PrimaryAlign: *AlignStart
+#   SecondaryAlign: *AlignStart
+#   ScreenAlign: *TopLeft
+#   ShadowX: 0
+#   ShadowY: 0
+# Selectables:
+# FileSearch:
+#   Name: "path"
+#   Searchfield:
+#     Textbox:
+#       Text: ""
+#       PosX: 10
+#       PosY: 50
+#       Color:
+#         Bright: [205, 247, 226, 255]
+#         Dark: [199, 176, 139, 255]
+#       Font: "JSE_AmigaAMOS"
+#       FontSize: 32
+#       LineSpacing: 10
+#       PrimaryAlign: *AlignStart
+#       SecondaryAlign: *AlignStart
+#       ScreenAlign: *TopLeft
+#       ShadowX: 0
+#       ShadowY: 0
+#   NormalColor:
+#     Bright: [205, 247, 226, 255]
+#     Dark: [199, 176, 139, 255]
+#   HoverColor:
+#     Bright: [255, 255, 255, 255]
+#     Dark: [0, 0, 0, 255]
 ...

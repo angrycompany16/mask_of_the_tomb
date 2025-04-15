@@ -6,10 +6,12 @@ import (
 	"mask_of_the_tomb/editor/fileio"
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/core/assetloader"
+	"mask_of_the_tomb/internal/game/core/assetloader/delayasset"
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/game/physics/particles"
 	"path/filepath"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -52,6 +54,9 @@ type Editor struct {
 func (e *Editor) Init() {
 	e.editorUI.LoadPreamble(loadingScreenPath)
 	e.editorUI.Load(uiPath, openFileScreenPath)
+
+	delayAsset := delayasset.NewDelayAsset(time.Second)
+	assetloader.AddAsset(&delayAsset)
 
 	go assetloader.LoadAll(loadFinishedChan)
 }
@@ -102,6 +107,7 @@ func (e *Editor) Update() error {
 			return ErrTerminated
 		}
 	case OpeningFile:
+		// TODO: Reconfigure with events
 		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 			_type, asset := fileio.OpenAsset(e.editorUI.GetFileSearchValue())
 			switch _type {

@@ -2,27 +2,46 @@ package colorpair
 
 import (
 	"image/color"
+	"mask_of_the_tomb/internal/errs"
+	"strconv"
+
+	"gopkg.in/yaml.v3"
 )
 
-// TODO: Write unmarshaler for ColorPair
 type ColorPair struct {
-	Bright      [4]uint8 `yaml:"Bright"`
-	Dark        [4]uint8 `yaml:"Dark"`
 	BrightColor color.Color
 	DarkColor   color.Color
 }
 
-func (cp *ColorPair) LoadColorPair() {
-	cp.BrightColor = color.RGBA{
-		R: cp.Bright[0],
-		G: cp.Bright[1],
-		B: cp.Bright[2],
-		A: cp.Bright[3],
+func (cp *ColorPair) UnmarshalYAML(node *yaml.Node) error {
+	for i, content := range node.Content {
+		if content.Value == "Bright" || content.Value == "Dark" {
+			colorValue := node.Content[i+1].Content
+
+			parseColor := func(i int) uint8 {
+				return uint8(errs.Must(strconv.ParseInt(colorValue[i].Value, 10, 16)))
+			}
+
+			switch content.Value {
+			case "Bright":
+				cp.BrightColor = color.RGBA{parseColor(0), parseColor(1), parseColor(2), parseColor(3)}
+			case "Dark":
+				cp.DarkColor = color.RGBA{parseColor(0), parseColor(1), parseColor(2), parseColor(3)}
+			}
+		}
 	}
-	cp.DarkColor = color.RGBA{
-		R: cp.Dark[0],
-		G: cp.Dark[1],
-		B: cp.Dark[2],
-		A: cp.Dark[3],
+	return nil
+}
+
+type YAMLColor struct {
+	color.Color
+}
+
+func (c *YAMLColor) UnmarshalYAML(node *yaml.Node) error {
+	parseColor := func(i int) uint8 {
+		return uint8(errs.Must(strconv.ParseInt(node.Content[i].Value, 10, 16)))
 	}
+
+	c.Color = color.RGBA{parseColor(0), parseColor(1), parseColor(2), parseColor(3)}
+	return nil
 }
