@@ -20,9 +20,6 @@ type TilemapCollider struct {
 	grid.Tilemap[int]
 }
 
-// Problem: We need to avoid actually colliding with the rects we are connected to
-
-// TODO: Add the ability to link rects together and then we are gucci
 // Round the size up to the nearest size fitting the grid
 // Project that sized-up rect
 // Finally find how far it actually is from hitting the griddy and move it that far

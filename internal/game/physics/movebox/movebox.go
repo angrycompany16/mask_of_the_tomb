@@ -37,6 +37,7 @@ func (m *Movebox) Update() {
 	}
 
 	if m.posX == m.targetPosX && m.posY == m.targetPosY {
+		// fmt.Println("Move event raised")
 		m.OnMoveFinished.Raise(events.EventInfo{})
 	}
 }

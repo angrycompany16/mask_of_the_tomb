@@ -10,7 +10,7 @@ Name: "hud"
 Root:
   Children:
   - Type: "textbox"
-    Text: "Press 'R' to restart"
+    Text: "Press R to restart"
     PosX: 0
     PosY: 0
     Color:

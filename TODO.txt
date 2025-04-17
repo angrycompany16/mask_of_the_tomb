@@ -16,16 +16,18 @@ entity interactions
 // - UPDATED ANIMATIONS
 
 // Revamped roadmap because I want to create a demo
-// - Make slambox positions persist on changing rooms (But probably not with quitting the game!)
-// - Allow the user to restart by pressing R
-// - Allow for run flag to start in a certain level
 // - Add biome title cards
+// - Add level title cards
+// - Make some actual levels
+// - Finish slam animation
+// - Remake dash animation
 // - Implement camera shake
 // - Proper level and scene transitions (dash from one level to the next)
 // - Resolve the many TODOs in the project (at least do a few of them)
-// - Create animation/sprite asset files
 
 // Post-demo: The design/code quality revamp:
+// - UI sounds
+// - Allow for run flag to start in a certain level
 // - Remove the singletons. These should not exist
 // - Try to make the packages more independent because right now they really aren't that great
 // - (Consider) writing integration tests for packages like animation, rendering, sound, etc.
@@ -36,6 +38,7 @@ entity interactions
 // - Implement generalized input handler
 // - Reconsider the 'data.go' files
 // - Improve the asset loader, turn into actual editor
+// - Create animation/sprite asset files
 
 Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread

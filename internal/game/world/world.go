@@ -14,6 +14,13 @@ var (
 type World struct {
 	worldLDTK   *ebitenLDTK.World
 	ActiveLevel *Level
+	levelMemory map[string]levelMemory
+}
+
+func NewWorld() *World {
+	return &World{
+		levelMemory: make(map[string]levelMemory),
+	}
 }
 
 func (w *World) Load() {
@@ -29,6 +36,10 @@ func (w *World) Update() {
 }
 
 func ChangeActiveLevel[T string | int](world *World, id T) error {
+	if world.ActiveLevel != nil {
+		world.levelMemory[world.ActiveLevel.levelLDTK.Iid] = levelMemory{world.ActiveLevel.slamboxes}
+	}
+
 	var newLevelLDTK ebitenLDTK.Level
 	var err error
 
@@ -56,6 +67,11 @@ func ChangeActiveLevel[T string | int](world *World, id T) error {
 	if err != nil {
 		return err
 	}
+
+	if memory, ok := world.levelMemory[newLevelLDTK.Iid]; ok {
+		newLevel.restoreFromMemory(&memory)
+	}
+
 	world.ActiveLevel = newLevel
 	return nil
 }

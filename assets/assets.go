@@ -19,4 +19,10 @@ var (
 
 	//go:embed sfx/dash.wav
 	Dash_wav []byte
+
+	//go:embed sfx/slam.wav
+	Slam_wav []byte
+
+	//go:embed sfx/death.mp3
+	Death_mp3 []byte
 )

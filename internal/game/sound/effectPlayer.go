@@ -32,6 +32,7 @@ func playAudio(player audio.Player) {
 	}
 }
 
+// TODO: Add volume parameter 0-1
 func NewEffectPlayer(src []byte, ctx *audio.Context, format AudioFormat) *EffectPlayer {
 	var player *audio.Player
 	switch format {

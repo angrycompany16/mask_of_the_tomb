@@ -2,6 +2,7 @@ package player
 
 import (
 	"mask_of_the_tomb/internal/ebitenrenderutil"
+	"mask_of_the_tomb/internal/game/core/events"
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/maths"
@@ -18,11 +19,12 @@ const (
 
 // FINALLY it feels good
 func (p *Player) StartSlamming(direction maths.Direction) {
-	// TODO: orient player properly
+	p.dashSound.Play()
 	p.direction = maths.Opposite(direction)
 	p.animator.SwitchClip(slamAnim)
 	p.State = Slamming
 	p.jumpOffsetvel = 2.5
+	p.canPlaySlamSound = true
 }
 
 func (p *Player) Update() {
@@ -43,33 +45,37 @@ func (p *Player) Update() {
 
 		p.jumpOffset += p.jumpOffsetvel
 		p.jumpOffset = maths.Clamp(p.jumpOffset, 0, 1000000)
+		if p.jumpOffset == 0 && p.canPlaySlamSound {
+			p.slamSound.Play()
+			p.canPlaySlamSound = false
+		}
 	case Idle:
 		p.animator.SwitchClip(idleAnim)
-		// p.jumpSound.Pause()
-		// p.jumpSound.Rewind()
 	case Moving:
-		// if !p.jumpSound.IsPlaying() {
-		// 	p.jumpSound.Play()
-		// }
 		p.movebox.Update()
 		_, finished := p.moveFinishedListener.Poll()
-		if finished {
+		if finished && p.InputBuffer.Read() == maths.DirNone {
 			p.direction = maths.Opposite(p.direction)
 			p.State = Idle
 		}
 	case Dying:
 		p.animator.SwitchClip(idleAnim)
 		p.deathAnim.Update()
-		// Update death animation
 	}
 
-	direction := p.getMoveInput()
+	direction := p.readMoveInput()
 	if direction != maths.DirNone {
 		p.InputBuffer.set(direction)
 	}
 
+	playerMove := p.InputBuffer.Read()
+
+	if playerMove != maths.DirNone && p.CanMove() && !p.Disabled {
+		p.OnMove.Raise(events.EventInfo{Data: playerMove})
+	}
+
 	p.InputBuffer.update()
-	p.Hitbox.SetPos(p.movebox.GetPos())
+	p.hitbox.SetPos(p.movebox.GetPos())
 	p.animator.Update()
 	p.jumpParticlesBroad.Update()
 	p.jumpParticlesTight.Update()
@@ -84,7 +90,7 @@ func (p *Player) Draw() {
 	} else {
 		posX, posY := p.movebox.GetPos()
 		camX, camY := camera.GetPos()
-		jumpOffsetX, jumpOffsetY := p.getJumpOffset()
+		jumpOffsetX, jumpOffsetY := p.calculateJumpOffset()
 		ebitenrenderutil.DrawAtRotated(
 			p.animator.GetSprite(),
 			rendering.RenderLayers.Playerspace,
@@ -95,4 +101,14 @@ func (p *Player) Draw() {
 			0.5,
 		)
 	}
+	// vector.StrokeRect(
+	// 	rendering.RenderLayers.Playerspace,
+	// 	float32(p.hitbox.Left()),
+	// 	float32(p.hitbox.Top()),
+	// 	float32(p.hitbox.Width()),
+	// 	float32(p.hitbox.Height()),
+	// 	1,
+	// 	color.RGBA{255, 0, 0, 255},
+	// 	false,
+	// )
 }

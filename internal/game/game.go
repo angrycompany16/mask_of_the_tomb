@@ -22,6 +22,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -49,6 +50,7 @@ type Game struct {
 	// Listeners
 	deathEffectEnterListener *events.EventListener
 	playerDeathListener      *events.EventListener
+	playerMoveListener       *events.EventListener
 }
 
 func (g *Game) Load() {
@@ -96,6 +98,7 @@ func (g *Game) Update() error {
 	}
 
 	g.musicPlayer.Update(g.State, biome)
+	ebitenutil.DebugPrint(rendering.RenderLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 
 	var err error
 	switch g.State {
@@ -153,35 +156,28 @@ func (g *Game) Update() error {
 	return nil
 }
 
+// TODO: Revamp and shorten this function, move more logic into player
 func (g *Game) updateGameplay() error {
-	playerMove := g.player.InputBuffer.Read()
-
-	// TODO: Change this by listening to player move event?
-	if playerMove != maths.DirNone && g.player.CanMove() && !g.player.Disabled {
-		g.player.InputBuffer.Clear()
-		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.Hitbox, playerMove)
+	if eventInfo, ok := g.playerMoveListener.Poll(); ok {
+		moveDir := eventInfo.Data.(maths.Direction)
+		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
 		if slambox != nil {
-			g.player.StartSlamming(playerMove)
-			slambox.DoSlam(playerMove, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.DisconnectedColliders(slambox))
+			g.player.StartSlamming(moveDir)
+			slambox.DoSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox))
 		} else {
-			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.Hitbox, playerMove, g.world.ActiveLevel.GetSlamboxColliders())
-			if newRect != *g.player.Hitbox {
-				// TODO: It's possible that these functions are only every called
-				// together. In that case, merge them
-				g.player.EnterDashAnim()
-				g.player.SetRot(playerMove)
-				g.player.SetTarget(newRect.Left(), newRect.Top())
-				g.player.PlayJumpParticles(playerMove)
-				g.player.State = player.Moving
+			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), moveDir, g.world.ActiveLevel.GetSlamboxColliders())
+			if newRect != *g.player.GetHitbox() {
+				g.player.Dash(moveDir, newRect.Left(), newRect.Top())
 			}
 		}
 	}
 
 	if g.player.GetLevelSwapInput() {
-		hit, levelIid, entityIid := g.world.ActiveLevel.GetDoorHit(g.player.Hitbox)
+		hit, levelIid, entityIid := g.world.ActiveLevel.GetDoorHit(g.player.GetHitbox())
 
 		if hit {
 			err := world.ChangeActiveLevel(g.world, levelIid)
+			// TODO: On changing active level, store the slambox positions in some kind of short-term memory
 			if err != nil {
 				fmt.Println("Error occured when swapping to level with iid: ", levelIid)
 				return err
@@ -199,8 +195,9 @@ func (g *Game) updateGameplay() error {
 		}
 	}
 
-	damage := g.world.ActiveLevel.GetHazardHit(g.player.Hitbox)
-	if damage && !g.player.Disabled {
+	restartPrompted := inpututil.IsKeyJustReleased(ebiten.KeyR)
+	wasHit := g.world.ActiveLevel.GetHazardHit(g.player.GetHitbox())
+	if wasHit && !g.player.Disabled || restartPrompted {
 		fmt.Println("Dead")
 		g.player.Die()
 		g.gameUI.DeathEffect.StartEnter()
@@ -245,11 +242,12 @@ func (g *Game) EnterPlayMode() {
 func NewGame() *Game {
 	game := &Game{
 		player: player.NewPlayer(),
-		world:  &world.World{},
+		world:  world.NewWorld(),
 		gameUI: ui.NewUI(),
 	}
 
 	game.playerDeathListener = events.NewEventListener(game.player.OnDeath)
 	game.deathEffectEnterListener = events.NewEventListener(game.gameUI.DeathEffect.OnFinishEnter)
+	game.playerMoveListener = events.NewEventListener(game.player.OnMove)
 	return game
 }
