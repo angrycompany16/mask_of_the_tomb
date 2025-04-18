@@ -46,8 +46,7 @@ func (ui *UI) Init() {
 
 func (ui *UI) Update() {
 	ui.activeDisplay.Update()
-
-	ui.DeathEffect.Update()
+	// ui.DeathEffect.Update()
 }
 
 // TODO: Try to enable switching active menu with enum instead of string

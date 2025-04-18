@@ -21,7 +21,7 @@ import (
 
 const (
 	playerSpaceLayerName = "Playerspace"
-	spawnPosEntityName   = "SpawnPosition"
+	spawnPosEntityName   = "DefaultSpawnPos"
 	doorEntityName       = "Door"
 	spawnPointEntityName = "SpawnPoint"
 	slamboxEntityName    = "Slambox"
@@ -43,6 +43,7 @@ type Level struct {
 	TilemapCollider physics.TilemapCollider
 	tileSize        float64
 	bgColor         color.Color
+	resetX, resetY  float64
 	hazards         []entities.Hazard
 	doors           []entities.Door
 	slamboxes       []*entities.Slambox
@@ -112,7 +113,6 @@ func (l *Level) Update() {
 	}
 }
 
-// TODO: Fill the background with backgroundColor from LDTK
 func (l *Level) Draw() {
 	for _, box := range l.slamboxes {
 		box.Draw()
@@ -142,23 +142,7 @@ func (l *Level) Draw() {
 }
 
 // ------ GETTERS ------
-func (l *Level) GetSpawnPoint() (float64, float64) {
-	for _, layer := range l.levelLDTK.Layers {
-		for _, entity := range layer.Entities {
-			if entity.Name != spawnPosEntityName {
-				continue
-			}
-			return entity.Px[0], entity.Px[1]
-		}
-	}
-	return 0, 0
-}
-
-func (l *Level) GetLevelBounds() (float64, float64) {
-	return l.levelLDTK.PxWid, l.levelLDTK.PxHei
-}
-
-func (l *Level) GetDoorHit(playerHitbox *maths.Rect) (hit bool, levelIid, entityIid string) {
+func (l *Level) CheckDoorOverlap(playerHitbox *maths.Rect) (hit bool, levelIid, entityIid string) {
 	for _, door := range l.doors {
 		if door.Hitbox.Overlapping(playerHitbox) {
 			hit = true
@@ -206,13 +190,29 @@ func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *
 	return nil
 }
 
-func (l *Level) GetEntityByIid(iid string) (ebitenLDTK.Entity, error) {
-	return l.levelLDTK.GetEntityByIid(iid)
-}
-
 func (l *Level) GetBiome() string {
 	field := errs.Must(l.levelLDTK.GetFieldByName("Biome"))
 	return field.Biome
+}
+
+func (l *Level) GetBounds() (float64, float64) {
+	return l.levelLDTK.PxWid, l.levelLDTK.PxHei
+}
+
+func (l *Level) GetDefaultSpawnPoint() (float64, float64) {
+	for _, layer := range l.levelLDTK.Layers {
+		for _, entity := range layer.Entities {
+			if entity.Name != spawnPosEntityName {
+				continue
+			}
+			return entity.Px[0], entity.Px[1]
+		}
+	}
+	return 0, 0
+}
+
+func (l *Level) GetResetPoint() (float64, float64) {
+	return l.resetX, l.resetY
 }
 
 // ------ INTERNAL ------

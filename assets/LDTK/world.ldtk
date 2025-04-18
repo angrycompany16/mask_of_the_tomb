@@ -11,7 +11,7 @@
 	"iid": "94589810-c210-11ef-b2e6-99619d5a4f10",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 473703,
-	"nextUid": 271,
+	"nextUid": 272,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "GridVania",
@@ -4182,7 +4182,7 @@
 		}
 	], "entities": [
 		{
-			"identifier": "SpawnPosition",
+			"identifier": "DefaultSpawnPos",
 			"uid": 7,
 			"tags": [],
 			"exportToToc": false,
@@ -4542,6 +4542,43 @@
 			"allowedRefsEntityUid": null,
 			"allowedRefTags": [],
 			"tilesetUid": null
+		},
+		{
+			"identifier": "Title",
+			"doc": null,
+			"__type": "String",
+			"uid": 271,
+			"type": "F_String",
+			"isArray": false,
+			"canBeNull": true,
+			"arrayMinLength": null,
+			"arrayMaxLength": null,
+			"editorDisplayMode": "Hidden",
+			"editorDisplayScale": 1,
+			"editorDisplayPos": "Above",
+			"editorLinkStyle": "StraightArrow",
+			"editorDisplayColor": null,
+			"editorAlwaysShow": false,
+			"editorShowInWorld": true,
+			"editorCutLongValues": true,
+			"editorTextSuffix": null,
+			"editorTextPrefix": null,
+			"useForSmartColor": false,
+			"exportToToc": false,
+			"searchable": false,
+			"min": null,
+			"max": null,
+			"regex": null,
+			"acceptFileTypes": null,
+			"defaultOverride": null,
+			"textLanguageMode": null,
+			"symmetricalRef": false,
+			"autoChainRef": true,
+			"allowOutOfLevelRef": true,
+			"allowedRefs": "OnlySame",
+			"allowedRefsEntityUid": null,
+			"allowedRefTags": [],
+			"tilesetUid": null
 		}
 	] },
 	"levels": [
@@ -4564,7 +4601,13 @@
 			"__smartColor": "#7E7884",
 			"__bgPos": null,
 			"externalRelPath": null,
-			"fieldInstances": [{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] }],
+			"fieldInstances": [
+				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Test level 1", "__tile": null, "defUid": 271, "realEditorValues": [{
+					"id": "V_String",
+					"params": ["Test level 1"]
+				}] }
+			],
 			"layerInstances": [
 				{
 					"__identifier": "Entities",
@@ -4591,7 +4634,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "SpawnPosition",
+							"__identifier": "DefaultSpawnPos",
 							"__grid": [4,4],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -7326,7 +7369,13 @@
 			"__smartColor": "#7E7884",
 			"__bgPos": null,
 			"externalRelPath": null,
-			"fieldInstances": [{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] }],
+			"fieldInstances": [
+				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Test level 2", "__tile": null, "defUid": 271, "realEditorValues": [{
+					"id": "V_String",
+					"params": ["Test level 2"]
+				}] }
+			],
 			"layerInstances": [
 				{
 					"__identifier": "Entities",
@@ -7374,6 +7423,22 @@
 								"params": ["3e4f47c0-e920-11ef-bce8-0f09867aa4fa"]
 							}] }],
 							"__worldX": 496,
+							"__worldY": 240
+						},
+						{
+							"__identifier": "DefaultSpawnPos",
+							"__grid": [13,128],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#FFED22",
+							"iid": "57015be0-1030-11f0-86c8-615969cdf484",
+							"width": 16,
+							"height": 16,
+							"defUid": 7,
+							"px": [52,512],
+							"fieldInstances": [],
+							"__worldX": 532,
 							"__worldY": 240
 						}
 					]
@@ -13710,10 +13775,13 @@
 			"__smartColor": "#827875",
 			"__bgPos": null,
 			"externalRelPath": null,
-			"fieldInstances": [{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Library", "__tile": null, "defUid": 182, "realEditorValues": [{
-				"id": "V_String",
-				"params": ["Library"]
-			}] }],
+			"fieldInstances": [
+				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Library", "__tile": null, "defUid": 182, "realEditorValues": [{
+					"id": "V_String",
+					"params": ["Library"]
+				}] },
+				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] }
+			],
 			"layerInstances": [
 				{
 					"__identifier": "Entities",

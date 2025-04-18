@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"mask_of_the_tomb/internal/errs"
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/UI/fonts"
 	"mask_of_the_tomb/internal/game/core/assetloader"
@@ -28,6 +29,7 @@ import (
 
 var (
 	ErrTerminated = errors.New("Terminated")
+	InitLevelName string
 )
 
 var (
@@ -49,7 +51,6 @@ type Game struct {
 	// Events
 	// Listeners
 	deathEffectEnterListener *events.EventListener
-	playerDeathListener      *events.EventListener
 	playerMoveListener       *events.EventListener
 }
 
@@ -66,14 +67,13 @@ func (g *Game) Load() {
 }
 
 func (g *Game) Init() {
-	g.world.Init()
-	g.player.Init(g.world.ActiveLevel.GetSpawnPoint())
-	width, height := g.world.ActiveLevel.GetLevelBounds()
+	g.world.Init(InitLevelName)
+	g.player.Init(g.world.ActiveLevel.GetResetPoint())
 	playerWidth, playerHeight := g.player.GetSize()
 
+	w, h := g.world.ActiveLevel.GetBounds()
 	camera.Init(
-		width,
-		height,
+		w, h,
 		(rendering.GameWidth-playerWidth)/2,
 		(rendering.GameHeight-playerHeight)/2,
 	)
@@ -172,33 +172,16 @@ func (g *Game) updateGameplay() error {
 		}
 	}
 
-	if g.player.GetLevelSwapInput() {
-		hit, levelIid, entityIid := g.world.ActiveLevel.GetDoorHit(g.player.GetHitbox())
-
-		if hit {
-			err := world.ChangeActiveLevel(g.world, levelIid)
-			// TODO: On changing active level, store the slambox positions in some kind of short-term memory
-			if err != nil {
-				fmt.Println("Error occured when swapping to level with iid: ", levelIid)
-				return err
-			}
-
-			camera.SetBorders(g.world.ActiveLevel.GetLevelBounds())
-
-			otherSideDoor, err := g.world.ActiveLevel.GetEntityByIid(entityIid)
-			if err != nil {
-				fmt.Println("Didn't find the other side door, iid ", entityIid)
-				return err
-			}
-			posX, posY := otherSideDoor.Px[0], otherSideDoor.Px[1]
-			g.player.SetPos(posX, posY)
-		}
+	doorOverlap, levelIid, doorEntityIid := g.world.ActiveLevel.CheckDoorOverlap(g.player.GetHitbox())
+	if g.player.GetLevelSwapInput() && doorOverlap && !g.player.Disabled {
+		errs.MustSingle(world.ChangeActiveLevel(g.world, levelIid, doorEntityIid))
+		camera.SetBorders(g.world.ActiveLevel.GetBounds())
+		g.player.SetPos(g.world.ActiveLevel.GetResetPoint())
 	}
 
 	restartPrompted := inpututil.IsKeyJustReleased(ebiten.KeyR)
 	wasHit := g.world.ActiveLevel.GetHazardHit(g.player.GetHitbox())
 	if wasHit && !g.player.Disabled || restartPrompted {
-		fmt.Println("Dead")
 		g.player.Die()
 		g.gameUI.DeathEffect.StartEnter()
 	}
@@ -213,6 +196,7 @@ func (g *Game) updateGameplay() error {
 	}
 
 	g.player.Update()
+	g.gameUI.DeathEffect.Update()
 
 	camera.SetPos(g.player.GetPosCentered())
 
@@ -246,7 +230,6 @@ func NewGame() *Game {
 		gameUI: ui.NewUI(),
 	}
 
-	game.playerDeathListener = events.NewEventListener(game.player.OnDeath)
 	game.deathEffectEnterListener = events.NewEventListener(game.gameUI.DeathEffect.OnFinishEnter)
 	game.playerMoveListener = events.NewEventListener(game.player.OnMove)
 	return game

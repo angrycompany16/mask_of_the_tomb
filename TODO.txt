@@ -5,24 +5,19 @@
 
 (Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
 camera space
-(Priority: MEDIUM) Split the main Update function into subfunctions for various disjoint 
-entity interactions
-(Priority: MEDIUM) Make examples aka non-automated integration tests
 
-// THE MAJOR GRAPHICS/GAME FEEL OVERHAUL
-// - PARTICLE SYSTEMS
-// - SHADOWS AND LIGHTING (NORMAL MAPPED) eeeh mby not (not yet, that is)
-// - CAMERA SHAKE
-// - UPDATED ANIMATIONS
+Bug list:
+- Sometimes spamming pause/play while respawning causes the player to not appear
+  at all (SEVERITY: LOW)
 
 // Revamped roadmap because I want to create a demo
-// - Add biome title cards
 // - Add level title cards
-// - Make some actual levels
-// - Finish slam animation
-// - Remake dash animation
 // - Implement camera shake
 // - Proper level and scene transitions (dash from one level to the next)
+// - Make some actual levels
+// - Finish slam animation
+// - Add biome title cards
+// - Remake dash animation
 // - Resolve the many TODOs in the project (at least do a few of them)
 
 // Post-demo: The design/code quality revamp:

@@ -40,6 +40,7 @@ func (d *DeathEffect) Update() {
 		if 1-d.alpha <= 0.01 {
 			d.alpha = 1
 			d.OnFinishEnter.Raise(events.EventInfo{})
+			d.state = exit
 		}
 	case exit:
 		d.alpha = maths.Lerp(d.alpha, -2, 0.01)

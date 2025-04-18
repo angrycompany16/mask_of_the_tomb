@@ -31,8 +31,8 @@ func newRenderLayers() (rl renderLayers) {
 		Midground:   ebiten.NewImage(GameWidth, GameHeight),
 		Playerspace: ebiten.NewImage(GameWidth, GameHeight),
 		Foreground:  ebiten.NewImage(GameWidth, GameHeight),
-		UI:          ebiten.NewImage(GameWidth*PixelScale, GameHeight*PixelScale),
 		Overlay:     ebiten.NewImage(GameWidth, GameHeight),
+		UI:          ebiten.NewImage(GameWidth*PixelScale, GameHeight*PixelScale),
 	}
 
 	rl.layers = []*ebiten.Image{
@@ -41,8 +41,8 @@ func newRenderLayers() (rl renderLayers) {
 		rl.Midground,
 		rl.Playerspace,
 		rl.Foreground,
-		rl.UI,
 		rl.Overlay,
+		rl.UI,
 	}
 
 	return

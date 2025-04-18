@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	debugMode bool
+	debugMode     bool
+	initLevelName string
 )
 
 type App struct {
@@ -39,6 +40,7 @@ func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
 
 func main() {
 	flag.BoolVar(&debugMode, "debug", false, "enable debug mode")
+	flag.StringVar(&game.InitLevelName, "initlevel", "", "Level in which to spawn the player")
 
 	flag.Parse()
 

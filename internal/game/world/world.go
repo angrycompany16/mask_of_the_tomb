@@ -2,13 +2,10 @@ package world
 
 import (
 	"fmt"
+	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
-)
-
-var (
-	InitLevelIid = "Level_0"
 )
 
 type World struct {
@@ -27,15 +24,18 @@ func (w *World) Load() {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
 }
 
-func (w *World) Init() {
-	ChangeActiveLevel(w, InitLevelIid)
+func (w *World) Init(initLevelName string) {
+	if initLevelName == "" {
+		initLevelName = w.worldLDTK.Levels[0].Name
+	}
+	ChangeActiveLevel(w, initLevelName, "")
 }
 
 func (w *World) Update() {
 	w.ActiveLevel.Update()
 }
 
-func ChangeActiveLevel[T string | int](world *World, id T) error {
+func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) error {
 	if world.ActiveLevel != nil {
 		world.levelMemory[world.ActiveLevel.levelLDTK.Iid] = levelMemory{world.ActiveLevel.slamboxes}
 	}
@@ -72,11 +72,17 @@ func ChangeActiveLevel[T string | int](world *World, id T) error {
 		newLevel.restoreFromMemory(&memory)
 	}
 
+	newLevel.resetX, newLevel.resetY = newLevel.GetDefaultSpawnPoint()
+	if doorIid != "" {
+		doorEntity := errs.Must(newLevel.levelLDTK.GetEntityByIid(doorIid))
+		newLevel.resetX, newLevel.resetY = doorEntity.Px[0], doorEntity.Px[1]
+	}
 	world.ActiveLevel = newLevel
 	return nil
 }
 
 func (w *World) ResetActiveLevel() (float64, float64) {
+	_resetX, _resetY := w.ActiveLevel.GetResetPoint()
 	levelLDTK := *w.ActiveLevel.levelLDTK
 	defs := *w.ActiveLevel.defs
 	newLevel, err := newLevel(&levelLDTK, &defs)
@@ -85,5 +91,7 @@ func (w *World) ResetActiveLevel() (float64, float64) {
 	}
 
 	w.ActiveLevel = newLevel
-	return w.ActiveLevel.GetSpawnPoint()
+	w.ActiveLevel.resetX = _resetX
+	w.ActiveLevel.resetY = _resetY
+	return _resetX, _resetY
 }
