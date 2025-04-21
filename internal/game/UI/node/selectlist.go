@@ -44,3 +44,8 @@ func (s *SelectList) Draw(offsetX, offsetY float64, parentWidth, parentHeight fl
 	w, h := inheritSize(s.Width, s.Height, parentWidth, parentHeight)
 	s.DrawChildren(offsetX+s.PosX, offsetY+s.PosY, w, h)
 }
+
+func (s *SelectList) Reset() {
+	s.SelectorPos = 0
+	s.ResetChildren()
+}

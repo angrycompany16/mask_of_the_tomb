@@ -51,6 +51,11 @@ func (i *InputField) Draw(offsetX, offsetY float64, parentWidth, parentHeight fl
 	i.Button.Draw(offsetX, offsetY, w, h)
 }
 
+func (i *InputField) Reset() {
+	i.Textbox.Text = ""
+	i.ResetChildren()
+}
+
 // func (i *InputField) Reset() {
 // 	i.Textbox.Text = ""
 // }

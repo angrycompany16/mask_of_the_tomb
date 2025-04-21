@@ -10,7 +10,7 @@
 	},
 	"iid": "94589810-c210-11ef-b2e6-99619d5a4f10",
 	"jsonVersion": "1.5.3",
-	"appBuildId": 473703,
+	"appBuildId": 484725,
 	"nextUid": 272,
 	"identifierStyle": "Capitalize",
 	"toc": [],
@@ -13830,6 +13830,22 @@
 							}] }],
 							"__worldX": 48,
 							"__worldY": 288
+						},
+						{
+							"__identifier": "DefaultSpawnPos",
+							"__grid": [12,12],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#FFED22",
+							"iid": "fe656ca0-1030-11f0-9f62-1b6ba5e4cbe4",
+							"width": 16,
+							"height": 16,
+							"defUid": 7,
+							"px": [48,48],
+							"fieldInstances": [],
+							"__worldX": 48,
+							"__worldY": 320
 						}
 					]
 				},

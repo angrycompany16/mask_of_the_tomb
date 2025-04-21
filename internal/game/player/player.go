@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -62,9 +61,9 @@ func NewPlayer() *Player {
 		OnDeath:     events.NewEvent(),
 		OnMove:      events.NewEvent(),
 		deathAnim:   deathanim.NewDeathAnim(),
-		dashSound:   sound.NewEffectPlayer(assets.Dash_wav, audio.CurrentContext(), sound.Wav),
-		slamSound:   sound.NewEffectPlayer(assets.Slam_wav, audio.CurrentContext(), sound.Wav),
-		deathSound:  sound.NewEffectPlayer(assets.Death_mp3, audio.CurrentContext(), sound.Mp3),
+		dashSound:   sound.NewEffectPlayer(assets.Dash_wav, sound.Wav),
+		slamSound:   sound.NewEffectPlayer(assets.Slam_wav, sound.Wav),
+		deathSound:  sound.NewEffectPlayer(assets.Death_mp3, sound.Mp3),
 	}
 
 	player.moveFinishedListener = events.NewEventListener(player.movebox.OnMoveFinished)

@@ -17,8 +17,6 @@ import (
 // The last one will have to be done later as it requires proper level transitions
 // Ah and also dim when pausing the game
 
-// TODO: Add multiple sound formats
-
 // TODO: Integrate music more tightly with LDTK
 
 type AudioFormat int

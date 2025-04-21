@@ -51,6 +51,8 @@ func (ui *UI) Update() {
 
 // TODO: Try to enable switching active menu with enum instead of string
 func (ui *UI) SwitchActiveDisplay(name string) {
+	ui.activeDisplay.Root.Reset()
+
 	for _, menu := range ui.displays {
 		if menu.Name != name {
 			continue

@@ -43,7 +43,7 @@ func main() {
 
 	ebiten.SetFullscreen(true)
 	a.game.State = gamestate.Playing
-	a.game.EnterPlayMode()
+	// a.game.EnterPlayMode()
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, game.ErrTerminated) {

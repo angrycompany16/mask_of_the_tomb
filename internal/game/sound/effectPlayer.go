@@ -3,6 +3,7 @@ package sound
 import (
 	"bytes"
 	"mask_of_the_tomb/internal/errs"
+	"mask_of_the_tomb/internal/game/sound/audiocontext"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
@@ -33,18 +34,18 @@ func playAudio(player audio.Player) {
 }
 
 // TODO: Add volume parameter 0-1
-func NewEffectPlayer(src []byte, ctx *audio.Context, format AudioFormat) *EffectPlayer {
+func NewEffectPlayer(src []byte, format AudioFormat) *EffectPlayer {
 	var player *audio.Player
 	switch format {
 	case Mp3:
 		stream := errs.Must(mp3.DecodeF32(bytes.NewReader(src)))
-		player = errs.Must(ctx.NewPlayerF32(stream))
+		player = errs.Must(audiocontext.Current().NewPlayerF32(stream))
 	case Ogg:
 		stream := errs.Must(vorbis.DecodeF32(bytes.NewReader(src)))
-		player = errs.Must(ctx.NewPlayerF32(stream))
+		player = errs.Must(audiocontext.Current().NewPlayerF32(stream))
 	case Wav:
 		stream := errs.Must(wav.DecodeF32(bytes.NewReader(src)))
-		player = errs.Must(ctx.NewPlayerF32(stream))
+		player = errs.Must(audiocontext.Current().NewPlayerF32(stream))
 	}
 	return &EffectPlayer{player}
 }

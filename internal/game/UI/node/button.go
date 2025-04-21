@@ -1,11 +1,15 @@
 package node
 
 import (
+	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/game/UI/colorpair"
+	"mask_of_the_tomb/internal/game/sound"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
+
+var buttonSound = sound.NewEffectPlayer(assets.Select_ogg, sound.Ogg)
 
 type Button struct {
 	Textbox       `yaml:",inline"`
@@ -21,6 +25,10 @@ func (b *Button) Update(confirmations map[string]bool) {
 }
 
 func (b *Button) SetSelected() {
+	if !b.selected {
+		buttonSound.Play()
+	}
+
 	b.selected = true
 	b.Color = b.SelectedColor
 }

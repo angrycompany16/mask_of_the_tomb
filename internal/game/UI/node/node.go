@@ -3,6 +3,7 @@ package node
 type Node interface {
 	Draw(offsetX, offsetY float64, parentWidth, parentHeight float64)
 	Update(confirmations map[string]bool)
+	Reset()
 
 	AddChild(node NodeContainer)
 }
@@ -25,6 +26,12 @@ func (n *NodeData) UpdateChildren(confirmations map[string]bool) {
 func (n *NodeData) DrawChildren(offsetX, offsetY float64, parentWidth, parentHeight float64) {
 	for _, child := range n.Children {
 		child.Draw(offsetX, offsetY, parentWidth, parentHeight)
+	}
+}
+
+func (n *NodeData) ResetChildren() {
+	for _, child := range n.Children {
+		child.Reset()
 	}
 }
 

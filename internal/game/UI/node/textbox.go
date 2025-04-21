@@ -65,3 +65,7 @@ func (t *Textbox) Draw(offsetX, offsetY float64, parentWidth, parentHeight float
 		Size:   t.FontSize,
 	}, opText)
 }
+
+func (t *Textbox) Reset() {
+	t.ResetChildren()
+}

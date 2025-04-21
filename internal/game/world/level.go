@@ -12,6 +12,7 @@ import (
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/game/physics"
 	"mask_of_the_tomb/internal/game/world/entities"
+	"mask_of_the_tomb/internal/game/world/levelmemory"
 	"mask_of_the_tomb/internal/maths"
 	"slices"
 
@@ -178,6 +179,12 @@ func (l *Level) GetSlamboxColliders() []*physics.RectCollider {
 	return arrays.MapSlice(l.slamboxes, func(s *entities.Slambox) *physics.RectCollider { return &s.Collider })
 }
 
+func (l *Level) GetSlamboxPositions() []levelmemory.SlamboxPosition {
+	return arrays.MapSlice(l.slamboxes, func(s *entities.Slambox) levelmemory.SlamboxPosition {
+		return levelmemory.SlamboxPosition{X: s.Collider.Left(), Y: s.Collider.Top()}
+	})
+}
+
 // For now we assume that we will only ever be slamming one box at a time, though
 // this may change later
 func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *entities.Slambox {
@@ -215,6 +222,10 @@ func (l *Level) GetResetPoint() (float64, float64) {
 	return l.resetX, l.resetY
 }
 
+func (l *Level) GetName() string {
+	return l.levelLDTK.Name
+}
+
 // ------ INTERNAL ------
 func drawTile(
 	tiles []ebitenLDTK.Tile,
@@ -245,14 +256,20 @@ func drawTile(
 	}
 }
 
-func (l *Level) restoreFromMemory(levelMemory *levelMemory) {
-	l.slamboxes = levelMemory.slamboxes
+func (l *Level) restoreFromMemory(levelMemory *levelmemory.LevelMemory) {
+	// l.slamboxes = levelMemory.Slamboxes
 
-	for _, slambox := range l.slamboxes {
-		for _, otherSlambox := range l.slamboxes {
-			if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
-				slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
-			}
-		}
+	// for _, slambox := range l.slamboxes {
+	// 	for _, otherSlambox := range l.slamboxes {
+	// 		if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
+	// 			slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
+	// 		}
+	// 	}
+	// }
+
+	for i, slambox := range l.slamboxes {
+		pos := levelMemory.SlamboxPositions[i]
+		fmt.Println("Setting slambox pos to", pos)
+		slambox.SetPos(pos.X, pos.Y)
 	}
 }

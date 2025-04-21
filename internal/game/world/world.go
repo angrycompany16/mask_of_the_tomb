@@ -4,19 +4,21 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
+	save "mask_of_the_tomb/internal/game/core/savesystem"
+	"mask_of_the_tomb/internal/game/world/levelmemory"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
 
 type World struct {
-	worldLDTK   *ebitenLDTK.World
-	ActiveLevel *Level
-	levelMemory map[string]levelMemory
+	worldLDTK        *ebitenLDTK.World
+	ActiveLevel      *Level
+	worldStateMemory map[string]levelmemory.LevelMemory
 }
 
 func NewWorld() *World {
 	return &World{
-		levelMemory: make(map[string]levelMemory),
+		worldStateMemory: make(map[string]levelmemory.LevelMemory),
 	}
 }
 
@@ -24,22 +26,33 @@ func (w *World) Load() {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
 }
 
-func (w *World) Init(initLevelName string) {
+func (w *World) Init(initLevelName string, gameData save.GameData) {
 	if initLevelName == "" {
-		initLevelName = w.worldLDTK.Levels[0].Name
+		if gameData.SpawnRoomName != "" {
+			initLevelName = gameData.SpawnRoomName
+		} else {
+			initLevelName = w.worldLDTK.Levels[0].Name
+		}
+	}
+
+	for id, levelmemory := range gameData.WorldStateMemory {
+		w.worldStateMemory[id] = levelmemory
 	}
 	ChangeActiveLevel(w, initLevelName, "")
+}
+
+func (w *World) LoadMemory(memory map[string]levelmemory.LevelMemory) {
 }
 
 func (w *World) Update() {
 	w.ActiveLevel.Update()
 }
 
-func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) error {
-	if world.ActiveLevel != nil {
-		world.levelMemory[world.ActiveLevel.levelLDTK.Iid] = levelMemory{world.ActiveLevel.slamboxes}
-	}
+func (w *World) GetWorldStateMemory() map[string]levelmemory.LevelMemory {
+	return w.worldStateMemory
+}
 
+func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) error {
 	var newLevelLDTK ebitenLDTK.Level
 	var err error
 
@@ -68,9 +81,14 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) error
 		return err
 	}
 
-	if memory, ok := world.levelMemory[newLevelLDTK.Iid]; ok {
+	if memory, ok := world.worldStateMemory[newLevelLDTK.Iid]; ok {
 		newLevel.restoreFromMemory(&memory)
 	}
+
+	if world.ActiveLevel != nil {
+		world.SaveLevel(world.ActiveLevel)
+	}
+	world.SaveLevel(newLevel)
 
 	newLevel.resetX, newLevel.resetY = newLevel.GetDefaultSpawnPoint()
 	if doorIid != "" {
@@ -81,16 +99,17 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) error
 	return nil
 }
 
+func (w *World) SaveLevel(level *Level) {
+	w.worldStateMemory[level.levelLDTK.Iid] = levelmemory.LevelMemory{level.GetSlamboxPositions()}
+}
+
 func (w *World) ResetActiveLevel() (float64, float64) {
 	_resetX, _resetY := w.ActiveLevel.GetResetPoint()
-	levelLDTK := *w.ActiveLevel.levelLDTK
-	defs := *w.ActiveLevel.defs
-	newLevel, err := newLevel(&levelLDTK, &defs)
-	if err != nil {
-		panic(fmt.Sprintln("Could not reset level", w.ActiveLevel.name))
-	}
 
-	w.ActiveLevel = newLevel
+	// reset slambox positions
+	level := w.worldStateMemory[w.ActiveLevel.levelLDTK.Iid]
+	w.ActiveLevel.restoreFromMemory(&level)
+	// reset player position
 	w.ActiveLevel.resetX = _resetX
 	w.ActiveLevel.resetY = _resetY
 	return _resetX, _resetY

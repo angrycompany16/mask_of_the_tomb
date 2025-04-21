@@ -56,3 +56,7 @@ func (f *FileSearch) UpdateSearchResults() {
 		offset += resultTextBox.FontSize
 	}
 }
+
+func (f *FileSearch) Reset() {
+	f.ResetChildren()
+}

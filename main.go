@@ -6,15 +6,12 @@ import (
 	"log"
 	"mask_of_the_tomb/internal/game"
 	"mask_of_the_tomb/internal/game/core/rendering"
-	save "mask_of_the_tomb/internal/game/core/savesystem"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/audio"
 )
 
 var (
-	debugMode     bool
-	initLevelName string
+	debugMode bool
 )
 
 type App struct {
@@ -47,8 +44,6 @@ func main() {
 	ebiten.SetWindowSize(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
 	ebiten.SetWindowTitle("Mask of the tomb")
 
-	audio.NewContext(48000)
-
 	a := &App{game.NewGame()}
 	a.game.Load()
 
@@ -56,7 +51,7 @@ func main() {
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, game.ErrTerminated) {
-			save.GlobalSave.SaveGame()
+			// save.GlobalSave.SaveGame()
 			return
 		}
 		log.Fatal(err)

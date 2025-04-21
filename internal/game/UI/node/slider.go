@@ -98,6 +98,10 @@ func (s *Slider) Draw(offsetX, offsetY float64, parentWidth, parentHeight float6
 	)
 }
 
+func (s *Slider) Reset() {
+	s.ResetChildren()
+}
+
 func (s *Slider) SetSelected() {
 	s.selected = true
 }

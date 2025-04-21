@@ -18,12 +18,11 @@ import (
 	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/player"
 	"mask_of_the_tomb/internal/game/sound"
+	"mask_of_the_tomb/internal/game/sound/audiocontext"
 	"mask_of_the_tomb/internal/game/world"
 	"mask_of_the_tomb/internal/maths"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/audio"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -57,9 +56,8 @@ type Game struct {
 func (g *Game) Load() {
 	g.gameUI.LoadPreamble(loadingScreenPath)
 	assetloader.AddAsset(&delayAsset)
-	save.GlobalSave.LoadGame()
-	g.player.CreateAssets()
 	g.world.Load()
+	g.player.CreateAssets()
 	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath, optionsMenuPath)
 	fonts.Load()
 
@@ -67,26 +65,11 @@ func (g *Game) Load() {
 }
 
 func (g *Game) Init() {
-	g.world.Init(InitLevelName)
-	g.player.Init(g.world.ActiveLevel.GetResetPoint())
-	playerWidth, playerHeight := g.player.GetSize()
-
-	w, h := g.world.ActiveLevel.GetBounds()
-	camera.Init(
-		w, h,
-		(rendering.GameWidth-playerWidth)/2,
-		(rendering.GameHeight-playerHeight)/2,
-	)
-
-	g.State = gamestate.MainMenu
+	// g.world.Init(InitLevelName)
 	g.gameUI.SwitchActiveDisplay("mainmenu")
-
-	g.musicPlayer = sound.NewMusicPlayer(audio.CurrentContext())
+	g.musicPlayer = sound.NewMusicPlayer(audiocontext.Current().Context)
 }
 
-// Design goal: switching on the global state should not be needed in every update
-// function, as this (død)
-// TODO: Create an UpdateUI() function
 func (g *Game) Update() error {
 	events.Update()
 	confirmations := g.gameUI.GetConfirmations()
@@ -98,15 +81,16 @@ func (g *Game) Update() error {
 	}
 
 	g.musicPlayer.Update(g.State, biome)
-	ebitenutil.DebugPrint(rendering.RenderLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
+	// ebitenutil.DebugPrint(rendering.RenderLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 
 	var err error
 	switch g.State {
 	case gamestate.Loading:
 		select {
 		case <-loadFinishedChan:
-			fmt.Println("Finished loading")
+			fmt.Println("Finished loading stage")
 			g.Init()
+			g.State = gamestate.MainMenu
 		default:
 		}
 	case gamestate.MainMenu:
@@ -115,7 +99,19 @@ func (g *Game) Update() error {
 		}
 
 		if val, ok := confirmations["Play"]; ok && val {
-			g.EnterPlayMode()
+			saveData := save.LoadGame()
+			g.world.Init(InitLevelName, saveData)
+			g.player.Init(g.world.ActiveLevel.GetResetPoint())
+			playerWidth, playerHeight := g.player.GetSize()
+
+			w, h := g.world.ActiveLevel.GetBounds()
+			camera.Init(
+				w, h,
+				(rendering.GameWidth-playerWidth)/2,
+				(rendering.GameHeight-playerHeight)/2,
+			)
+			g.gameUI.SwitchActiveDisplay("hud")
+			g.State = gamestate.Playing
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			return ErrTerminated
 		} else if val, ok := confirmations["Options"]; ok && val {
@@ -141,11 +137,14 @@ func (g *Game) Update() error {
 		}
 
 		if val, ok := confirmations["Resume"]; ok && val {
-			g.EnterPlayMode()
+			g.State = gamestate.Playing
+			g.gameUI.SwitchActiveDisplay("hud")
 		} else if val, ok := confirmations["Quit"]; ok && val {
-			// Save data and stuff
-			// Loading screens
-			// etc
+			g.world.SaveLevel(g.world.ActiveLevel)
+			save.SaveGame(save.GameData{
+				WorldStateMemory: g.world.GetWorldStateMemory(),
+				SpawnRoomName:    g.world.ActiveLevel.GetName(),
+			})
 			g.State = gamestate.MainMenu
 			g.gameUI.SwitchActiveDisplay("mainmenu")
 		} else if val, ok := confirmations["Options"]; ok && val {
@@ -216,11 +215,6 @@ func (g *Game) Draw() {
 		g.world.ActiveLevel.Draw()
 		g.player.Draw()
 	}
-}
-
-func (g *Game) EnterPlayMode() {
-	g.State = gamestate.Playing
-	g.gameUI.SwitchActiveDisplay("hud")
 }
 
 func NewGame() *Game {

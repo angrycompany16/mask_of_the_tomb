@@ -25,4 +25,7 @@ var (
 
 	//go:embed sfx/death.mp3
 	Death_mp3 []byte
+
+	//go:embed sfx/select.ogg
+	Select_ogg []byte
 )

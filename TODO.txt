@@ -11,10 +11,11 @@ Bug list:
   at all (SEVERITY: LOW)
 
 // Revamped roadmap because I want to create a demo
-// - Add level title cards
 // - Implement camera shake
+// - Implement some kind of switch or smth as persistent progress
 // - Proper level and scene transitions (dash from one level to the next)
 // - Make some actual levels
+// - Add level title cards
 // - Finish slam animation
 // - Add biome title cards
 // - Remake dash animation
