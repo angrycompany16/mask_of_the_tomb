@@ -55,14 +55,3 @@ func (i *InputField) Reset() {
 	i.Textbox.Text = ""
 	i.ResetChildren()
 }
-
-// func (i *InputField) Reset() {
-// 	i.Textbox.Text = ""
-// }
-
-// func (i *InputField) Read() string {
-// 	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
-// 		return i.Textbox.Text
-// 	}
-// 	return ""
-// }

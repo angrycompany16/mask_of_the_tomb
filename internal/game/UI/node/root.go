@@ -1,10 +1,5 @@
 package node
 
-import "fmt"
-
-// NOTE: Embedded structs can also be used for custom
-// unmarshaling
-
 type Root struct {
 	NodeData `yaml:",inline"`
 }
@@ -19,6 +14,5 @@ func (r *Root) Draw(offsetX, offsetY float64, parentWidth, parentHeight float64)
 }
 
 func (r *Root) Reset() {
-	fmt.Println("Reset")
 	r.ResetChildren()
 }

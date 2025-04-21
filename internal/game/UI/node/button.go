@@ -47,3 +47,7 @@ func (b *Button) Draw(offsetX, offsetY float64, parentWidth, parentHeight float6
 	b.DrawChildren(offsetX+b.PosX, offsetY+b.PosY, w, h)
 	b.Textbox.Draw(offsetX, offsetY, w, h)
 }
+
+func (b *Button) Reset() {
+	b.ResetChildren()
+}

@@ -10,6 +10,10 @@ import (
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
 
+const (
+	firstLevelName = "Level_1"
+)
+
 type World struct {
 	worldLDTK        *ebitenLDTK.World
 	ActiveLevel      *Level
@@ -31,7 +35,7 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 		if gameData.SpawnRoomName != "" {
 			initLevelName = gameData.SpawnRoomName
 		} else {
-			initLevelName = w.worldLDTK.Levels[0].Name
+			initLevelName = firstLevelName
 		}
 	}
 

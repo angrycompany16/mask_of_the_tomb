@@ -11,15 +11,19 @@ Bug list:
   at all (SEVERITY: LOW)
 
 // Revamped roadmap because I want to create a demo
-// - Implement camera shake
-// - Implement some kind of switch or smth as persistent progress
-// - Proper level and scene transitions (dash from one level to the next)
 // - Make some actual levels
+// - Make camera zones for levels with large screens
+// - Implement some kind of switch or smth as persistent progress
 // - Add level title cards
 // - Finish slam animation
 // - Add biome title cards
 // - Remake dash animation
 // - Resolve the many TODOs in the project (at least do a few of them)
+// - Art/idea for level transitions
+// - Right now the game crashes if doors have a missing entity ref. Probably nice
+//   to fix this or at least give a better warning in ebiten-LDTK.
+
+// - Cheap hack for camera shake: Set the background color to the same as the darkest color in the tileset
 
 // Post-demo: The design/code quality revamp:
 // - UI sounds
@@ -35,6 +39,7 @@ Bug list:
 // - Reconsider the 'data.go' files
 // - Improve the asset loader, turn into actual editor
 // - Create animation/sprite asset files
+// - Create a timer class
 
 Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread

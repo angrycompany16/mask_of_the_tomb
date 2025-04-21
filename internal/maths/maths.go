@@ -3,6 +3,7 @@ package maths
 import (
 	"image/color"
 	"math"
+	"math/rand/v2"
 )
 
 type Direction int
@@ -78,4 +79,8 @@ func Mix(a, b color.Color, t float64) color.Color {
 		uint16(Lerp(float64(bA), float64(bB), t)),
 		uint16(Lerp(float64(aA), float64(aB), t)),
 	}
+}
+
+func RandomRange(min, max float64) float64 {
+	return rand.Float64()*(max-min) + min
 }

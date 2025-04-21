@@ -48,6 +48,7 @@ func (p *Player) Update() {
 		if p.jumpOffset == 0 && p.canPlaySlamSound {
 			p.slamSound.Play()
 			p.canPlaySlamSound = false
+			camera.Shake(0.5, 10, 1)
 		}
 	case Idle:
 		p.animator.SwitchClip(idleAnim)

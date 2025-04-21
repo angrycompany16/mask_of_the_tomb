@@ -257,19 +257,9 @@ func drawTile(
 }
 
 func (l *Level) restoreFromMemory(levelMemory *levelmemory.LevelMemory) {
-	// l.slamboxes = levelMemory.Slamboxes
-
-	// for _, slambox := range l.slamboxes {
-	// 	for _, otherSlambox := range l.slamboxes {
-	// 		if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
-	// 			slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
-	// 		}
-	// 	}
-	// }
-
 	for i, slambox := range l.slamboxes {
 		pos := levelMemory.SlamboxPositions[i]
-		fmt.Println("Setting slambox pos to", pos)
+		// fmt.Println("Setting slambox pos to", pos)
 		slambox.SetPos(pos.X, pos.Y)
 	}
 }

@@ -11673,6 +11673,22 @@
 							"__worldY": 768
 						},
 						{
+							"__identifier": "Door",
+							"__grid": [112,56],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#76D758",
+							"iid": "8f9a99e0-1030-11f0-9400-1f093d7aea9c",
+							"width": 16,
+							"height": 16,
+							"defUid": 11,
+							"px": [896,448],
+							"fieldInstances": [{ "__identifier": "OtherSide", "__type": "EntityRef", "__value": null, "__tile": null, "defUid": 13, "realEditorValues": [] }],
+							"__worldX": 1376,
+							"__worldY": 992
+						},
+						{
 							"__identifier": "Hazard",
 							"__grid": [27,31],
 							"__pivot": [0,0],
@@ -17879,22 +17895,6 @@
 								"params": ["175921e0-1030-11f0-9400-f304d1d4c463"]
 							}] }],
 							"__worldX": 1696,
-							"__worldY": 1056
-						},
-						{
-							"__identifier": "DefaultSpawnPos",
-							"__grid": [11,30],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#FFED22",
-							"iid": "3192ffe0-1030-11f0-9400-ef20dc5c55a1",
-							"width": 16,
-							"height": 16,
-							"defUid": 7,
-							"px": [88,240],
-							"fieldInstances": [],
-							"__worldX": 1768,
 							"__worldY": 1056
 						}
 					]

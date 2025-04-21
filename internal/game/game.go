@@ -65,7 +65,6 @@ func (g *Game) Load() {
 }
 
 func (g *Game) Init() {
-	// g.world.Init(InitLevelName)
 	g.gameUI.SwitchActiveDisplay("mainmenu")
 	g.musicPlayer = sound.NewMusicPlayer(audiocontext.Current().Context)
 }
@@ -74,6 +73,7 @@ func (g *Game) Update() error {
 	events.Update()
 	confirmations := g.gameUI.GetConfirmations()
 	g.gameUI.Update()
+	camera.Update()
 
 	biome := ""
 	if g.world.ActiveLevel != nil {
