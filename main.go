@@ -38,6 +38,7 @@ func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
 func main() {
 	flag.BoolVar(&debugMode, "debug", false, "enable debug mode")
 	flag.StringVar(&game.InitLevelName, "initlevel", "", "Level in which to spawn the player")
+	flag.IntVar(&game.SaveProfile, "saveprofile", 1, "Profile to use for saving/loading (99 for dev save)")
 
 	flag.Parse()
 
@@ -51,7 +52,6 @@ func main() {
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, game.ErrTerminated) {
-			// save.GlobalSave.SaveGame()
 			return
 		}
 		log.Fatal(err)

@@ -11,6 +11,9 @@ Bug list:
   at all (SEVERITY: LOW)
 
 // Revamped roadmap because I want to create a demo
+// - Create intro sequence when opening the game for the first time
+// - Remove the spawnpos system and just spawn at doors instead
+//   - Or potentially use savepoints but that's stupid and makes no sense
 // - Add biome title cards
 // - Add room title cards
 // - Make some actual levels

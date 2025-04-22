@@ -28,4 +28,7 @@ var (
 
 	//go:embed sfx/select.ogg
 	Select_ogg []byte
+
+	//go:embed sfx/text-scroll.ogg
+	Text_scroll_ogg []byte
 )

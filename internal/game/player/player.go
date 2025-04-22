@@ -78,8 +78,9 @@ func (p *Player) CreateAssets() {
 	p.jumpParticlesTight = assettypes.NewParticleSystemAsset(jumpParticlesTightPath, rendering.RenderLayers.Playerspace)
 }
 
-func (p *Player) Init(posX, posY float64) {
+func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.SetPos(posX, posY)
+	p.direction = direction
 	p.hitbox = maths.RectFromImage(posX, posY, p.sprite)
 	p.animator.SwitchClip(idleAnim)
 }

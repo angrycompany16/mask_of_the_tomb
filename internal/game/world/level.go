@@ -21,12 +21,14 @@ import (
 )
 
 const (
-	playerSpaceLayerName = "Playerspace"
-	spawnPosEntityName   = "DefaultSpawnPos"
-	doorEntityName       = "Door"
-	spawnPointEntityName = "SpawnPoint"
-	slamboxEntityName    = "Slambox"
-	SpikeIntGridName     = "Spikes"
+	entityLayerName        = "Entities"
+	playerSpaceLayerName   = "Playerspace"
+	spawnPosEntityName     = "DefaultSpawnPos"
+	doorEntityName         = "Door"
+	spawnPointEntityName   = "SpawnPoint"
+	slamboxEntityName      = "Slambox"
+	SpikeIntGridName       = "Spikes"
+	gameEntryPosEntityName = "GameEntryPos"
 )
 
 var layerMap = map[string]*ebiten.Image{
@@ -224,6 +226,16 @@ func (l *Level) GetResetPoint() (float64, float64) {
 
 func (l *Level) GetName() string {
 	return l.levelLDTK.Name
+}
+
+func (l *Level) GetGameEntryPos() (float64, float64) {
+	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(entityLayerName))
+	for _, entity := range entityLayer.Entities {
+		if entity.Name == gameEntryPosEntityName {
+			return entity.Px[0], entity.Px[1]
+		}
+	}
+	return 0, 0
 }
 
 // ------ INTERNAL ------

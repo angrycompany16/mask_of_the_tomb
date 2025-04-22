@@ -26,9 +26,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+const (
+	gameEntryDirection = maths.DirDown
+)
+
 var (
 	ErrTerminated = errors.New("Terminated")
 	InitLevelName string
+	SaveProfile   int
 )
 
 var (
@@ -39,6 +44,7 @@ var (
 	hudPath           = filepath.Join("assets", "menus", "game", "hud.yaml")
 	loadingScreenPath = filepath.Join("assets", "menus", "game", "loadingscreen.yaml")
 	optionsMenuPath   = filepath.Join("assets", "menus", "game", "options.yaml")
+	introScreenPath   = filepath.Join("assets", "menus", "game", "intro.yaml")
 )
 
 type Game struct {
@@ -58,7 +64,7 @@ func (g *Game) Load() {
 	assetloader.AddAsset(&delayAsset)
 	g.world.Load()
 	g.player.CreateAssets()
-	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath, optionsMenuPath)
+	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath, optionsMenuPath, introScreenPath)
 	fonts.Load()
 
 	go assetloader.LoadAll(loadFinishedChan)
@@ -99,9 +105,15 @@ func (g *Game) Update() error {
 		}
 
 		if val, ok := confirmations["Play"]; ok && val {
-			saveData := save.LoadGame()
-			g.world.Init(InitLevelName, saveData)
-			g.player.Init(g.world.ActiveLevel.GetResetPoint())
+			gameData := save.LoadGame(SaveProfile)
+			g.world.Init(InitLevelName, gameData)
+			if gameData.SpawnRoomName == "" {
+				g.State = gamestate.Intro
+				return nil
+			}
+			// TODO: Convert to single function
+			spawnX, spawnY := g.world.ActiveLevel.GetResetPoint()
+			g.player.Init(spawnX, spawnY, maths.DirNone)
 			playerWidth, playerHeight := g.player.GetSize()
 
 			w, h := g.world.ActiveLevel.GetBounds()
@@ -116,6 +128,27 @@ func (g *Game) Update() error {
 			return ErrTerminated
 		} else if val, ok := confirmations["Options"]; ok && val {
 			g.gameUI.SwitchActiveDisplay("options")
+		}
+	case gamestate.Intro:
+		g.gameUI.SwitchActiveDisplay("intro")
+		if val, ok := confirmations["Introtext"]; ok && val {
+			spawnX, spawnY := g.world.ActiveLevel.GetGameEntryPos()
+			g.player.Init(spawnX, spawnY, gameEntryDirection)
+			playerWidth, playerHeight := g.player.GetSize()
+
+			w, h := g.world.ActiveLevel.GetBounds()
+			camera.Init(
+				w, h,
+				(rendering.GameWidth-playerWidth)/2,
+				(rendering.GameHeight-playerHeight)/2,
+			)
+			g.gameUI.SwitchActiveDisplay("hud")
+			g.State = gamestate.Playing
+
+			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), gameEntryDirection, g.world.ActiveLevel.GetSlamboxColliders())
+			if newRect != *g.player.GetHitbox() {
+				g.player.Dash(gameEntryDirection, newRect.Left(), newRect.Top())
+			}
 		}
 	case gamestate.Playing:
 		g.world.Update()
@@ -144,7 +177,7 @@ func (g *Game) Update() error {
 			save.SaveGame(save.GameData{
 				WorldStateMemory: g.world.GetWorldStateMemory(),
 				SpawnRoomName:    g.world.ActiveLevel.GetName(),
-			})
+			}, SaveProfile)
 			g.State = gamestate.MainMenu
 			g.gameUI.SwitchActiveDisplay("mainmenu")
 		} else if val, ok := confirmations["Options"]; ok && val {

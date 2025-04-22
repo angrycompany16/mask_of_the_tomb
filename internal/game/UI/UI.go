@@ -58,7 +58,6 @@ func (ui *UI) SwitchActiveDisplay(name string) {
 			continue
 		}
 		ui.activeDisplay = menu
-		// ui.activeMenu.SelectorPos = 0
 		return
 	}
 

@@ -2,6 +2,7 @@ package save
 
 import (
 	"encoding/json"
+	"fmt"
 	"mask_of_the_tomb/internal/errs"
 	"mask_of_the_tomb/internal/files"
 	"mask_of_the_tomb/internal/game/world/levelmemory"
@@ -9,18 +10,15 @@ import (
 	"path/filepath"
 )
 
-var (
-	savePath = filepath.Join("save", "savedata.json")
-)
-
 type GameData struct {
 	WorldStateMemory map[string]levelmemory.LevelMemory
 	SpawnRoomName    string
 }
 
-func SaveGame(data GameData) {
+func SaveGame(data GameData, profile int) {
 	// fmt.Println("Saving game.....")
 	// defer fmt.Println("Done!")
+	savePath := getSavePath(profile)
 	exists := errs.Must(files.Exists(savePath))
 	if !exists {
 		os.MkdirAll(filepath.Dir(savePath), os.ModePerm)
@@ -30,12 +28,13 @@ func SaveGame(data GameData) {
 	errs.MustSingle(json.NewEncoder(file).Encode(&data))
 }
 
-func LoadGame() GameData {
+func LoadGame(profile int) GameData {
 	// fmt.Println("Loading game.....")
 	// defer fmt.Println("Done!")
+	savePath := getSavePath(profile)
 	exists := errs.Must(files.Exists(savePath))
 	if !exists {
-		SaveGame(GameData{})
+		SaveGame(GameData{}, profile)
 		return GameData{}
 	}
 
@@ -45,4 +44,8 @@ func LoadGame() GameData {
 
 	errs.MustSingle(json.NewDecoder(file).Decode(&gameData))
 	return gameData
+}
+
+func getSavePath(profile int) string {
+	return filepath.Join("save", fmt.Sprintf("save%d.json", profile))
 }

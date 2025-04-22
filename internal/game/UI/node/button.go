@@ -25,6 +25,9 @@ func (b *Button) Update(confirmations map[string]bool) {
 }
 
 func (b *Button) SetSelected() {
+	// TODO: Annoyingly, this also runs when we call
+	// switchActiveDisplay(), because that calls reset which sets the
+	// selector pos to 0. Pls fix
 	if !b.selected {
 		buttonSound.Play()
 	}

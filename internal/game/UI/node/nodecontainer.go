@@ -32,6 +32,8 @@ func (n *NodeContainer) UnmarshalYAML(value *yaml.Node) error {
 		resultNode = &FileSearch{}
 	case "slider":
 		resultNode = &Slider{}
+	case "dialogue":
+		resultNode = &Dialogue{}
 	}
 
 	err := value.Decode(resultNode)

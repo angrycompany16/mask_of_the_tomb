@@ -32,10 +32,10 @@ func (w *World) Load() {
 
 func (w *World) Init(initLevelName string, gameData save.GameData) {
 	if initLevelName == "" {
-		if gameData.SpawnRoomName != "" {
-			initLevelName = gameData.SpawnRoomName
-		} else {
+		if gameData.SpawnRoomName == "" {
 			initLevelName = firstLevelName
+		} else {
+			initLevelName = gameData.SpawnRoomName
 		}
 	}
 
