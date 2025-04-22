@@ -11,12 +11,13 @@ Bug list:
   at all (SEVERITY: LOW)
 
 // Revamped roadmap because I want to create a demo
+// - Add biome title cards
+// - Add room title cards
 // - Make some actual levels
 // - Make camera zones for levels with large screens
 // - Implement some kind of switch or smth as persistent progress
 // - Add level title cards
 // - Finish slam animation
-// - Add biome title cards
 // - Remake dash animation
 // - Resolve the many TODOs in the project (at least do a few of them)
 // - Art/idea for level transitions
