@@ -9,6 +9,7 @@ import (
 	"mask_of_the_tomb/internal/errs"
 	ui "mask_of_the_tomb/internal/game/UI"
 	"mask_of_the_tomb/internal/game/UI/fonts"
+	"mask_of_the_tomb/internal/game/UI/overlay"
 	"mask_of_the_tomb/internal/game/core/assetloader"
 	"mask_of_the_tomb/internal/game/core/assetloader/delayasset"
 	"mask_of_the_tomb/internal/game/core/events"
@@ -206,7 +207,16 @@ func (g *Game) updateGameplay() error {
 
 	doorOverlap, levelIid, doorEntityIid := g.world.ActiveLevel.CheckDoorOverlap(g.player.GetHitbox())
 	if g.player.GetLevelSwapInput() && doorOverlap && !g.player.Disabled {
-		errs.MustSingle(world.ChangeActiveLevel(g.world, levelIid, doorEntityIid))
+		newBiome := errs.Must(world.ChangeActiveLevel(g.world, levelIid, doorEntityIid))
+		if newBiome != "" {
+			titleCardOverlay := g.gameUI.GetOverlay("titlecard")
+			titleCard, ok := titleCardOverlay.OverlayContent.(*overlay.TitleCard)
+			if !ok {
+				panic("Shit and piss")
+			}
+			titleCard.ChangeText(newBiome)
+			titleCardOverlay.StartFadeIn()
+		}
 		camera.SetBorders(g.world.ActiveLevel.GetBounds())
 		g.player.SetPos(g.world.ActiveLevel.GetResetPoint())
 	}
@@ -215,7 +225,8 @@ func (g *Game) updateGameplay() error {
 	wasHit := g.world.ActiveLevel.GetHazardHit(g.player.GetHitbox())
 	if wasHit && !g.player.Disabled || restartPrompted {
 		g.player.Die()
-		g.gameUI.DeathEffect.StartEnter()
+		screenFade := g.gameUI.GetOverlay("screenfade")
+		screenFade.StartFadeIn()
 	}
 
 	_, raised := g.deathEffectEnterListener.Poll()
@@ -224,11 +235,17 @@ func (g *Game) updateGameplay() error {
 		g.player.SetPos(posX, posY)
 		g.player.Respawn()
 
-		g.gameUI.DeathEffect.StartExit()
+		screenFade := g.gameUI.GetOverlay("screenfade")
+		screenFade.StartFadeOut()
+	}
+
+	titlecard := g.gameUI.GetOverlay("titlecard")
+	if titlecard.IdleTime > 2 {
+		fmt.Println(titlecard.IdleTime)
+		titlecard.StartFadeOut()
 	}
 
 	g.player.Update()
-	g.gameUI.DeathEffect.Update()
 
 	camera.SetPos(g.player.GetPosCentered())
 
@@ -257,7 +274,8 @@ func NewGame() *Game {
 		gameUI: ui.NewUI(),
 	}
 
-	game.deathEffectEnterListener = events.NewEventListener(game.gameUI.DeathEffect.OnFinishEnter)
+	screenFade := game.gameUI.GetOverlay("screenfade")
+	game.deathEffectEnterListener = events.NewEventListener(screenFade.OnFinishEnter)
 	game.playerMoveListener = events.NewEventListener(game.player.OnMove)
 	return game
 }

@@ -15,6 +15,7 @@ const (
 )
 
 type World struct {
+	currentBiome     string
 	worldLDTK        *ebitenLDTK.World
 	ActiveLevel      *Level
 	worldStateMemory map[string]levelmemory.LevelMemory
@@ -56,7 +57,7 @@ func (w *World) GetWorldStateMemory() map[string]levelmemory.LevelMemory {
 	return w.worldStateMemory
 }
 
-func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) error {
+func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (string, error) {
 	var newLevelLDTK ebitenLDTK.Level
 	var err error
 
@@ -69,20 +70,20 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) error
 			newLevelLDTK, Ierr = world.worldLDTK.GetLevelByIid(levelId)
 			if Ierr != nil {
 				fmt.Println("Error when switching levels by Iid (id string)")
-				return Ierr
+				return "", Ierr
 			}
 		}
 	case int:
 		newLevelLDTK, err = world.worldLDTK.GetLevelByUid(levelId)
 		if err != nil {
 			fmt.Println("Error when switching levels (id int)")
-			return err
+			return "", err
 		}
 	}
 
 	newLevel, err := newLevel(&newLevelLDTK, &world.worldLDTK.Defs)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if memory, ok := world.worldStateMemory[newLevelLDTK.Iid]; ok {
@@ -98,9 +99,16 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) error
 	if doorIid != "" {
 		doorEntity := errs.Must(newLevel.levelLDTK.GetEntityByIid(doorIid))
 		newLevel.resetX, newLevel.resetY = doorEntity.Px[0], doorEntity.Px[1]
+		// play biome animation if updated
+		if newLevel.GetBiome() != world.currentBiome {
+			world.ActiveLevel = newLevel
+			world.currentBiome = newLevel.GetBiome()
+			return newLevel.GetBiome(), err
+		}
 	}
 	world.ActiveLevel = newLevel
-	return nil
+	world.currentBiome = newLevel.GetBiome()
+	return "", nil
 }
 
 func (w *World) SaveLevel(level *Level) {

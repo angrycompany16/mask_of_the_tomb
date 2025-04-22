@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/game/UI/display"
 	"mask_of_the_tomb/internal/game/UI/fonts"
-	"mask_of_the_tomb/internal/game/UI/screenfade"
+	"mask_of_the_tomb/internal/game/UI/overlay"
 	"mask_of_the_tomb/internal/game/core/assetloader/assettypes"
 )
 
@@ -16,7 +16,7 @@ import (
 type UI struct {
 	activeDisplay *display.Display
 	displays      []*display.Display
-	DeathEffect   *screenfade.DeathEffect
+	overlays      map[string]*overlay.Overlay
 }
 
 // Loads a single menu file and sets it as the active menu
@@ -46,7 +46,9 @@ func (ui *UI) Init() {
 
 func (ui *UI) Update() {
 	ui.activeDisplay.Update()
-	// ui.DeathEffect.Update()
+	for _, overlay := range ui.overlays {
+		overlay.Update()
+	}
 }
 
 // TODO: Try to enable switching active menu with enum instead of string
@@ -64,9 +66,15 @@ func (ui *UI) SwitchActiveDisplay(name string) {
 	panic(fmt.Sprintln("Failed to switch to menu with name", name))
 }
 
+func (ui *UI) GetOverlay(name string) *overlay.Overlay {
+	return ui.overlays[name]
+}
+
 func (ui *UI) Draw() {
 	ui.activeDisplay.Draw()
-	ui.DeathEffect.Draw()
+	for _, overlay := range ui.overlays {
+		overlay.Draw()
+	}
 }
 
 func (ui *UI) GetConfirmations() map[string]bool {
@@ -77,21 +85,12 @@ func (ui *UI) GetSubmits() map[string]string {
 	return ui.activeDisplay.GetSubmitted()
 }
 
-func (ui *UI) GetFileSearchValue() string {
-	// if ui.activeMenu.FileSearch != nil {
-	// 	return ui.activeMenu.FileSearch.Searchfield.Textbox.Text
-	// }
-	return ""
-}
-
-func (ui *UI) ResetFileSearch() {
-	// ui.activeMenu.FileSearch.Searchfield.Textbox.Text = ""
-}
-
-// TODO?: replace this?
 func NewUI() *UI {
 	return &UI{
-		DeathEffect: screenfade.NewDeathEffect(),
-		displays:    make([]*display.Display, 0),
+		displays: make([]*display.Display, 0),
+		overlays: map[string]*overlay.Overlay{
+			"screenfade": overlay.NewOverlay(overlay.NewScreenFade()),
+			"titlecard":  overlay.NewOverlay(overlay.NewTitleCard()),
+		},
 	}
 }

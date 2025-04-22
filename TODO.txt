@@ -11,11 +11,12 @@ Bug list:
   at all (SEVERITY: LOW)
 
 // Revamped roadmap because I want to create a demo
+// - Generalized overlay
+// - Add biome title cards
+// - Add room title cards
 // - Create intro sequence when opening the game for the first time
 // - Remove the spawnpos system and just spawn at doors instead
 //   - Or potentially use savepoints but that's stupid and makes no sense
-// - Add biome title cards
-// - Add room title cards
 // - Make some actual levels
 // - Make camera zones for levels with large screens
 // - Implement some kind of switch or smth as persistent progress
@@ -26,10 +27,12 @@ Bug list:
 // - Art/idea for level transitions
 // - Right now the game crashes if doors have a missing entity ref. Probably nice
 //   to fix this or at least give a better warning in ebiten-LDTK.
+// - Add a way to skip intro cutscene
 
 // - Cheap hack for camera shake: Set the background color to the same as the darkest color in the tileset
 
 // Post-demo: The design/code quality revamp:
+// - Rewrite the overlay system from scratch because it's just so terrible and can't do what i want it to do
 // - UI sounds
 // - Allow for run flag to start in a certain level
 // - Remove the singletons. These should not exist

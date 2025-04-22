@@ -26,6 +26,10 @@ func LoadPreamble() {
 	_fonts["JSE_AmigaAMOS"] = errs.Must(text.NewGoTextFaceSource(bytes.NewReader(assets.JSE_AmigaAMOS_ttf)))
 }
 
+func GetFont(name string) *text.GoTextFaceSource {
+	return _fonts[name]
+}
+
 func Load() {
 
 }
