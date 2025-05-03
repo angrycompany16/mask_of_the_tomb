@@ -149,7 +149,8 @@ func (l *Level) Draw() {
 		"Strength":  0.7,
 		"Threshold": 0.4,
 		// "Color":     [4]float64{0.0, 0.0, 0.0, 1.0},
-		"Color": [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
+		"Color":  [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
+		"Center": [2]float64{0.5, 0.5},
 	}
 	shaderOp.Blend = lerpBlend
 	rendering.RenderLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
