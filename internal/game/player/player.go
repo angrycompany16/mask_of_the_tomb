@@ -124,6 +124,11 @@ func (p *Player) SetPos(x, y float64) {
 	p.movebox.SetPos(x, y)
 }
 
+func (p *Player) SetHitboxPos(x, y float64) {
+	p.movebox.SetPos(x, y)
+	p.hitbox.SetPos(x, y)
+}
+
 func (p *Player) Die() {
 	p.Disabled = true
 	p.State = Dying

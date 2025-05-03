@@ -6,6 +6,7 @@ import (
 	"log"
 	"mask_of_the_tomb/internal/game"
 	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/game/timeutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -49,6 +50,11 @@ func main() {
 	a.game.Load()
 
 	ebiten.SetFullscreen(true)
+
+	timeutil.Init()
+
+	// shader := errs.Must(ebiten.NewShader(assets.Fog_kage))
+	// func(in any) {}(shader)
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, game.ErrTerminated) {

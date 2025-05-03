@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/arrays"
 	"mask_of_the_tomb/internal/colors"
 	ebitenrenderutil "mask_of_the_tomb/internal/ebitenrenderutil"
@@ -11,6 +12,7 @@ import (
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/game/physics"
+	"mask_of_the_tomb/internal/game/timeutil"
 	"mask_of_the_tomb/internal/game/world/entities"
 	"mask_of_the_tomb/internal/game/world/levelmemory"
 	"mask_of_the_tomb/internal/maths"
@@ -31,13 +33,24 @@ const (
 	gameEntryPosEntityName = "GameEntryPos"
 )
 
-var layerMap = map[string]*ebiten.Image{
-	"Foreground":       rendering.RenderLayers.Foreground,
-	"PlayerspaceAlt":   rendering.RenderLayers.Playerspace,
-	"Playerspace":      rendering.RenderLayers.Playerspace,
-	"MidgroundSprites": rendering.RenderLayers.Midground,
-	"BackgroundTiles":  rendering.RenderLayers.Background,
-}
+var (
+	layerMap = map[string]*ebiten.Image{
+		"Foreground":       rendering.RenderLayers.Foreground,
+		"PlayerspaceAlt":   rendering.RenderLayers.Playerspace,
+		"Playerspace":      rendering.RenderLayers.Playerspace,
+		"Props":            rendering.RenderLayers.Midground,
+		"MidgroundSprites": rendering.RenderLayers.Midground,
+		"BackgroundTiles":  rendering.RenderLayers.Background,
+	}
+	lerpBlend = ebiten.Blend{
+		BlendFactorSourceRGB:        ebiten.BlendFactorSourceAlpha,
+		BlendFactorSourceAlpha:      ebiten.BlendFactorZero,
+		BlendFactorDestinationRGB:   ebiten.BlendFactorOneMinusSourceAlpha,
+		BlendFactorDestinationAlpha: ebiten.BlendFactorZero,
+		BlendOperationRGB:           ebiten.BlendOperationAdd,
+		BlendOperationAlpha:         ebiten.BlendOperationAdd,
+	}
+)
 
 type Level struct {
 	name            string
@@ -46,6 +59,8 @@ type Level struct {
 	TilemapCollider physics.TilemapCollider
 	tileSize        float64
 	bgColor         color.Color
+	fogLayer        *ebiten.Image
+	fogShader       *ebiten.Shader
 	resetX, resetY  float64
 	hazards         []entities.Hazard
 	doors           []entities.Door
@@ -60,6 +75,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.defs = defs
 	newLevel.name = levelLDTK.Name
 	newLevel.bgColor = colors.HexToRGB(levelLDTK.BgColorHex)
+	newLevel.fogLayer = ebiten.NewImage(rendering.GameWidth, rendering.GameHeight)
+	newLevel.fogShader = errs.Must(ebiten.NewShader(assets.Fog_kage))
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
@@ -122,6 +139,20 @@ func (l *Level) Draw() {
 	}
 
 	rendering.RenderLayers.Background2.Fill(l.bgColor)
+
+	// Render fog layer
+	shaderOp := ebiten.DrawRectShaderOptions{}
+	shaderOp.Uniforms = map[string]any{
+		"Time":      timeutil.GetTime() / 10000000,
+		"Amplitude": 1.0,
+		"Frequency": 0.015,
+		"Strength":  0.7,
+		"Threshold": 0.4,
+		// "Color":     [4]float64{0.0, 0.0, 0.0, 1.0},
+		"Color": [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
+	}
+	shaderOp.Blend = lerpBlend
+	rendering.RenderLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
 
 	camX, camY := camera.GetPos()
 	// NOTE: we *need* to loop in reverse
@@ -209,13 +240,18 @@ func (l *Level) GetBounds() (float64, float64) {
 }
 
 func (l *Level) GetDefaultSpawnPoint() (float64, float64) {
-	for _, layer := range l.levelLDTK.Layers {
-		for _, entity := range layer.Entities {
-			if entity.Name != spawnPosEntityName {
-				continue
-			}
-			return entity.Px[0], entity.Px[1]
+	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(entityLayerName))
+	for _, entity := range entityLayer.Entities {
+		if entity.Name != spawnPosEntityName {
+			continue
 		}
+		return entity.Px[0], entity.Px[1]
+	}
+	for _, entity := range entityLayer.Entities {
+		if entity.Name != doorEntityName {
+			continue
+		}
+		return entity.Px[0], entity.Px[1]
 	}
 	return 0, 0
 }
@@ -269,9 +305,17 @@ func drawTile(
 }
 
 func (l *Level) restoreFromMemory(levelMemory *levelmemory.LevelMemory) {
-	for i, slambox := range l.slamboxes {
-		pos := levelMemory.SlamboxPositions[i]
-		// fmt.Println("Setting slambox pos to", pos)
-		slambox.SetPos(pos.X, pos.Y)
+	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(entityLayerName))
+	for _, entity := range entityLayer.Entities {
+		if entity.Name != slamboxEntityName {
+			continue
+		}
+
+		for _, slambox := range l.slamboxes {
+			if slambox.LinkID != entity.Iid {
+				continue
+			}
+			slambox.SetPos(entity.Px[0], entity.Px[1])
+		}
 	}
 }

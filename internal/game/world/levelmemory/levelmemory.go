@@ -5,5 +5,5 @@ type SlamboxPosition struct {
 }
 
 type LevelMemory struct {
-	SlamboxPositions []SlamboxPosition
+	// SlamboxPositions []SlamboxPosition
 }

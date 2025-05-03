@@ -1,7 +1,7 @@
 // Game mechanic ideas (how to make unique mechanics?)
 // 0. Spikes
 // 1. SLAM BOX
-// 2. Teleporters
+// 3. One-way platforms
 
 (Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
 camera space
@@ -9,6 +9,24 @@ camera space
 Bug list:
 - Sometimes spamming pause/play while respawning causes the player to not appear
   at all (SEVERITY: LOW)
+- Dashing in the same direction as a moving slambox causes the player to hit the slambox and stop in mid 
+  air
+
+Levels:
+ - Background ambience (something needs to be moving)
+ - Very very simple lighting
+ - Make it impossible to slam when there is a roof right above
+ - One-way platforms
+ - "In-level text" entity
+ - Animated sprites
+  - 
+ - Tutorial section
+ - Teleporter / door visuals
+ - Larger sprites in levels (?)
+ - Basic enemies (?)
+ - Allow for spikes on top of slam boxes
+
+ - NPC stuff
 
 // Revamped roadmap because I want to create a demo
 // - Generalized overlay

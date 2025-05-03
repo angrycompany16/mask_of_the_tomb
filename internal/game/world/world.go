@@ -112,7 +112,7 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 }
 
 func (w *World) SaveLevel(level *Level) {
-	w.worldStateMemory[level.levelLDTK.Iid] = levelmemory.LevelMemory{level.GetSlamboxPositions()}
+	// w.worldStateMemory[level.levelLDTK.Iid] = levelmemory.LevelMemory{level.GetSlamboxPositions()}
 }
 
 func (w *World) ResetActiveLevel() (float64, float64) {

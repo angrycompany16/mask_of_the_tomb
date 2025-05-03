@@ -35,7 +35,8 @@ func (tc *TitleCard) Draw(t float64) {
 	opText.LayoutOptions.PrimaryAlign = text.AlignCenter
 	opText.LayoutOptions.SecondaryAlign = text.AlignCenter
 	opText.ColorScale = ebiten.ColorScale{}
-	opText.Blend = lerpBlend
+	opText.Blend = ebiten.BlendSourceOver
+	// opText.Blend = lerpBlend
 	opText.ColorScale.SetR(textColor[0])
 	opText.ColorScale.SetG(textColor[1])
 	opText.ColorScale.SetB(textColor[2])

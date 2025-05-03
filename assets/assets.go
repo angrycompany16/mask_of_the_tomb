@@ -31,4 +31,7 @@ var (
 
 	//go:embed sfx/text-scroll.ogg
 	Text_scroll_ogg []byte
+
+	//go:embed shaders/fog.kage
+	Fog_kage []byte
 )

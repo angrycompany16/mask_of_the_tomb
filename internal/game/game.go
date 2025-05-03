@@ -24,6 +24,7 @@ import (
 	"mask_of_the_tomb/internal/maths"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -88,7 +89,7 @@ func (g *Game) Update() error {
 	}
 
 	g.musicPlayer.Update(g.State, biome)
-	// ebitenutil.DebugPrint(rendering.RenderLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
+	ebitenutil.DebugPrint(rendering.RenderLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 
 	var err error
 	switch g.State {
@@ -218,7 +219,7 @@ func (g *Game) updateGameplay() error {
 			titleCardOverlay.StartFadeIn()
 		}
 		camera.SetBorders(g.world.ActiveLevel.GetBounds())
-		g.player.SetPos(g.world.ActiveLevel.GetResetPoint())
+		g.player.SetHitboxPos(g.world.ActiveLevel.GetResetPoint())
 	}
 
 	restartPrompted := inpututil.IsKeyJustReleased(ebiten.KeyR)
