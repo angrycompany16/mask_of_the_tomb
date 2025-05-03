@@ -2,8 +2,6 @@
 
 package main
 
-const ASPECT = 1.7777777778
-
 var Time float
 var Amplitude float
 var Frequency float
@@ -11,6 +9,14 @@ var Strength float
 var Threshold float
 var Color vec4
 var Center vec2
+var Resolution vec2
+
+// --- ALT COLORS ---
+// BRIGHT := vec4(58.0 / 255.0, 92.0 / 255.0, 133.0 / 255.0, 1.0)
+// MEDIUM_BRIGHT := vec4(37.0 / 255.0, 49.0 / 255.0, 94.0 / 255.0, 1.0)
+// MEDIUM_DARK := vec4(36.0 / 255.0, 30.0 / 255.0, 68.0 / 255.0, 1.0)
+// DARK := vec4(25.0 / 255.0, 16.0 / 255.0, 46.0 / 255.0, 1.0)
+// BLACK := vec4(0.0, 0.0, 0.0, 1.0)
 
 // We need to hard code :død_og_bedervelse:
 func Fragment(dstPos vec4, srcPos vec2) vec4 {
@@ -19,21 +25,14 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
     MEDIUM_DARK := vec4(25.0 / 255.0, 16.0 / 255.0, 46.0 / 255.0, 1.0)
     DARK := vec4(21.0 / 255.0, 10.0 / 255.0, 31.0 / 255.0, 1.0)
 
-
-    // BRIGHT := vec4(58.0 / 255.0, 92.0 / 255.0, 133.0 / 255.0, 1.0)
-    // MEDIUM_BRIGHT := vec4(37.0 / 255.0, 49.0 / 255.0, 94.0 / 255.0, 1.0)
-    // MEDIUM_DARK := vec4(36.0 / 255.0, 30.0 / 255.0, 68.0 / 255.0, 1.0)
-    // DARK := vec4(25.0 / 255.0, 16.0 / 255.0, 46.0 / 255.0, 1.0)
-    // BLACK := vec4(0.0, 0.0, 0.0, 1.0)
-
     octave1 := Amplitude * cnoise(vec3(srcPos * Frequency, Time))
     octave2 := Amplitude * 0.5 * cnoise(vec3(srcPos * Frequency * 2.0, Time))
     octave3 := Amplitude * 0.25 * cnoise(vec3(srcPos * Frequency * 4.0, Time))
     octave4 := Amplitude * 0.125 * cnoise(vec3(srcPos * Frequency * 8.0, Time))
 
     noise := octave1 + octave2 + octave3 + octave4
-    // falloff := distance(srcPos, Center) / 100
-    falloff := 0.0
+    pos := srcPos / Resolution
+    falloff := clip(distance(pos, Center)*1.4, 0.35)
     noise *= falloff
 
     var color vec4
@@ -50,7 +49,6 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
 }
 
 func clip(x float, threshold float) float {
-    // return 1.0
     return clamp((x - threshold) / (1 - threshold), 0.0, 1.0)
 }
 

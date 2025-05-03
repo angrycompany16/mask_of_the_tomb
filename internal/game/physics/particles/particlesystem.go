@@ -15,13 +15,13 @@ import (
 )
 
 // TODO: Implement stop time so it doesn't run forever
-// TODO: Noise
 // TODO: Make burst count random
 // TODO: Make color random
 // TODO: Some kind of air friction coefficient?
 // TODO: Convert angles to degrees
 // NOTE: there's an effective cap on emission (it cannot be higher than 60) because
 // we only ever add one particle to the system
+// TODO: Make it thread safe
 
 type ParticleSystem struct {
 	GlobalSpace     bool    `yaml:"GlobalSpace"`
@@ -40,15 +40,18 @@ type ParticleSystem struct {
 	StartScale      maths.RandomFloat64 `yaml:"StartScale"`
 	EndScale        maths.RandomFloat64 `yaml:"EndScale"`
 	Lifetime        maths.RandomFloat64 `yaml:"Lifetime"`
+	NoiseFactorX    maths.RandomFloat64 `yaml:"NoiseFactorX"`
+	NoiseFactorY    maths.RandomFloat64 `yaml:"NoiseFactorY"`
 	t               float64
-	StartColor      [4]uint8      `yaml:"StartColor"`
-	EndColor        [4]uint8      `yaml:"EndColor"`
-	ImageWidth      int           `yaml:"ImageWidth"`
-	ImageHeight     int           `yaml:"ImageHeight"`
-	SpritePath      string        `yaml:"SpritePath"`
-	surf            *ebiten.Image // The surf that the particles are drawn onto
-	sprite          *ebiten.Image // The sprite for the particles
-	layer           *ebiten.Image
+	// TODO: Use ebiten.color
+	StartColor  [4]uint8      `yaml:"StartColor"`
+	EndColor    [4]uint8      `yaml:"EndColor"`
+	ImageWidth  int           `yaml:"ImageWidth"`
+	ImageHeight int           `yaml:"ImageHeight"`
+	SpritePath  string        `yaml:"SpritePath"`
+	surf        *ebiten.Image // The surf that the particles are drawn onto
+	sprite      *ebiten.Image // The sprite for the particles
+	layer       *ebiten.Image
 }
 
 func (ps *ParticleSystem) Play() {
@@ -94,7 +97,6 @@ func (ps *ParticleSystem) Draw() {
 		for _, particle := range ps.particles {
 			particle.draw(ps.layer, camX, camY)
 		}
-		// vector.DrawFilledCircle(ps.layer, float32(ps.PosX-camX), float32(ps.PosY-camY), 2, color.RGBA{255, 0, 0, 255}, false)
 		return
 	}
 
@@ -103,7 +105,6 @@ func (ps *ParticleSystem) Draw() {
 		particle.draw(ps.surf, -float64(s.X)/2, -float64(s.Y)/2)
 	}
 	ebitenrenderutil.DrawAtRotated(ps.surf, ps.layer, ps.PosX-float64(s.X)/2-camX, ps.PosY-float64(s.Y)/2-camY, ps.Angle, 0.5, 0.5)
-	// vector.DrawFilledCircle(ps.layer, float32(ps.PosX-camX), float32(ps.PosY-camY), 2, color.RGBA{255, 0, 0, 255}, false)
 
 	ps.surf.Clear()
 }
@@ -134,7 +135,7 @@ func (ps *ParticleSystem) newParticle() *Particle {
 		startScale, startScale, ps.EndScale.Eval(),
 		ps.Lifetime.Eval(), 0,
 		startColor, startColor, endColor,
-
+		ps.NoiseFactorX.Eval(), ps.NoiseFactorY.Eval(),
 		ps.sprite,
 	}
 }

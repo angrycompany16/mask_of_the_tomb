@@ -259,11 +259,11 @@ func (g *Game) Draw() {
 	case gamestate.Loading:
 	case gamestate.MainMenu:
 	case gamestate.Playing:
-		g.world.ActiveLevel.Draw()
+		g.world.ActiveLevel.Draw(g.player.GetPosCentered())
 		g.player.Draw()
 	case gamestate.Paused:
 		// TODO: Add dim and blur filter on pausing the game
-		g.world.ActiveLevel.Draw()
+		g.world.ActiveLevel.Draw(g.player.GetPosCentered())
 		g.player.Draw()
 	}
 }

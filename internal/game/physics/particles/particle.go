@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"mask_of_the_tomb/internal/ebitenrenderutil"
 	"mask_of_the_tomb/internal/maths"
+	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/colorm"
@@ -16,6 +17,7 @@ type Particle struct {
 	startScale, scale, endScale float64
 	lifetime, t                 float64 // seconds
 	startColor, color, endColor color.Color
+	noiseFactorX, noiseFactorY  float64
 	sprite                      *ebiten.Image
 }
 
@@ -34,6 +36,8 @@ func (p *Particle) update() bool {
 	p.angle += p.angleVel * dt
 	p.posX += p.velX * dt
 	p.posY += p.velY * dt
+	p.velX += (rand.Float64() - 0.5) * p.noiseFactorX
+	p.velY += (rand.Float64() - 0.5) * p.noiseFactorY
 	p.color = maths.Mix(p.startColor, p.endColor, p.t/p.lifetime)
 
 	return false

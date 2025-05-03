@@ -1,0 +1,27 @@
+//kage:unit pixels
+
+package main
+
+const (
+    VIGNETTE_RADIUS = 0.3
+    VIGNETTE_ALPHA = 0.75
+)
+
+var (
+	Resolution vec2
+)
+
+func Fragment(dstPos vec4, srcPos vec2) vec4 {
+	pos := srcPos.xy
+	pos /= Resolution
+	pos -= vec2(0.5)
+
+	c := circle(pos, VIGNETTE_RADIUS)
+	c = smoothstep(0.0, 0.5, c)
+
+	return vec4(0.0, 0.0, 0.0, c * VIGNETTE_ALPHA)
+}
+
+func circle(pos vec2, radius float) float {
+	return length(pos) - radius
+}

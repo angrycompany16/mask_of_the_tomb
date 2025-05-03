@@ -34,4 +34,13 @@ var (
 
 	//go:embed shaders/fog.kage
 	Fog_kage []byte
+
+	//go:embed shaders/vignette.kage
+	Vignette_kage []byte
+
+	//go:embed shaders/lights_additive.kage
+	Lights_additive_kage []byte
+
+	//go:embed shaders/lights_subtractive.kage
+	Lights_subtractive_kage []byte
 )

@@ -12,10 +12,12 @@ import (
 	"mask_of_the_tomb/internal/game/core/rendering"
 	"mask_of_the_tomb/internal/game/core/rendering/camera"
 	"mask_of_the_tomb/internal/game/physics"
+	"mask_of_the_tomb/internal/game/physics/particles"
 	"mask_of_the_tomb/internal/game/timeutil"
 	"mask_of_the_tomb/internal/game/world/entities"
 	"mask_of_the_tomb/internal/game/world/levelmemory"
 	"mask_of_the_tomb/internal/maths"
+	"path/filepath"
 	"slices"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -50,21 +52,25 @@ var (
 		BlendOperationRGB:           ebiten.BlendOperationAdd,
 		BlendOperationAlpha:         ebiten.BlendOperationAdd,
 	}
+	particleSysPath = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
 )
 
 type Level struct {
-	name            string
-	defs            *ebitenLDTK.Defs
-	levelLDTK       *ebitenLDTK.Level
-	TilemapCollider physics.TilemapCollider
-	tileSize        float64
-	bgColor         color.Color
-	fogLayer        *ebiten.Image
-	fogShader       *ebiten.Shader
-	resetX, resetY  float64
-	hazards         []entities.Hazard
-	doors           []entities.Door
-	slamboxes       []*entities.Slambox
+	name                    string
+	defs                    *ebitenLDTK.Defs
+	levelLDTK               *ebitenLDTK.Level
+	TilemapCollider         physics.TilemapCollider
+	tileSize                float64
+	bgColor                 color.Color
+	fogShader               *ebiten.Shader
+	vignetteShader          *ebiten.Shader
+	lightsAdditiveShader    *ebiten.Shader
+	lightsSubtractiveShader *ebiten.Shader
+	resetX, resetY          float64
+	ambientParticles        *particles.ParticleSystem
+	hazards                 []entities.Hazard
+	doors                   []entities.Door
+	slamboxes               []*entities.Slambox
 }
 
 // ------ CONSTRUCTOR ------
@@ -75,8 +81,11 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.defs = defs
 	newLevel.name = levelLDTK.Name
 	newLevel.bgColor = colors.HexToRGB(levelLDTK.BgColorHex)
-	newLevel.fogLayer = ebiten.NewImage(rendering.GameWidth, rendering.GameHeight)
 	newLevel.fogShader = errs.Must(ebiten.NewShader(assets.Fog_kage))
+	newLevel.vignetteShader = errs.Must(ebiten.NewShader(assets.Vignette_kage))
+	newLevel.lightsAdditiveShader = errs.Must(ebiten.NewShader(assets.Lights_additive_kage))
+	newLevel.lightsSubtractiveShader = errs.Must(ebiten.NewShader(assets.Lights_subtractive_kage))
+	newLevel.ambientParticles = errs.Must(particles.FromFile(particleSysPath, rendering.RenderLayers.Foreground))
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
@@ -131,9 +140,10 @@ func (l *Level) Update() {
 	for _, slambox := range l.slamboxes {
 		slambox.Update()
 	}
+	l.ambientParticles.Update()
 }
 
-func (l *Level) Draw() {
+func (l *Level) Draw(playerX, playerY float64) {
 	for _, box := range l.slamboxes {
 		box.Draw()
 	}
@@ -143,17 +153,32 @@ func (l *Level) Draw() {
 	// Render fog layer
 	shaderOp := ebiten.DrawRectShaderOptions{}
 	shaderOp.Uniforms = map[string]any{
-		"Time":      timeutil.GetTime() / 10000000,
-		"Amplitude": 1.0,
-		"Frequency": 0.015,
-		"Strength":  0.7,
-		"Threshold": 0.4,
-		// "Color":     [4]float64{0.0, 0.0, 0.0, 1.0},
-		"Color":  [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
-		"Center": [2]float64{0.5, 0.5},
+		"Time":       timeutil.GetTime() / 10000000,
+		"Amplitude":  1.0,
+		"Frequency":  0.025,
+		"Strength":   0.7,
+		"Threshold":  0.4,
+		"Color":      [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
+		"Center":     [2]float64{0.5, 0.5},
+		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
+	}
+	shaderOp.Blend = ebiten.BlendSourceOver
+	rendering.RenderLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
+
+	shaderOp.Uniforms = map[string]any{
+		"PlayerPos":  [2]float64{playerX, playerY},
+		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
 	}
 	shaderOp.Blend = lerpBlend
-	rendering.RenderLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
+	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsAdditiveShader, &shaderOp)
+
+	l.ambientParticles.Draw()
+
+	shaderOp.Blend = ebiten.BlendSourceOver
+	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsSubtractiveShader, &shaderOp)
+
+	shaderOp.Blend = ebiten.BlendSourceOver
+	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
 
 	camX, camY := camera.GetPos()
 	// NOTE: we *need* to loop in reverse

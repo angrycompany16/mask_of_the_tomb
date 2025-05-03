@@ -1,0 +1,23 @@
+//kage:unit pixels
+
+package main
+
+const (
+    PLAYER_LIGHT_RADIUS = 0.01
+)
+
+var (
+    PlayerPos vec2
+    Resolution vec2
+)
+
+func Fragment(dstPos vec4, srcPos vec2) vec4 {
+    falloff := clip(distance(srcPos, PlayerPos)*PLAYER_LIGHT_RADIUS, 0.2)
+    darkening_color := falloff * vec4(0.0, 0.0, 0.0, 0.4)
+    
+	return darkening_color
+}
+
+func clip(x float, threshold float) float {
+    return clamp((x - threshold) / (1 - threshold), 0.0, 1.0)
+}

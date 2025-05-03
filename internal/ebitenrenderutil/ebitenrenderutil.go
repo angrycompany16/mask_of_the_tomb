@@ -61,6 +61,7 @@ func DrawAtRotatedScaled(src, dst *ebiten.Image, x, y, angle, scaleX, scaleY flo
 	pivotX, pivotY := unpackPivot(pivot...)
 	pivotX, pivotY = getPivotPx(src, pivotX, pivotY)
 	op := &ebiten.DrawImageOptions{}
+	op.Blend = ebiten.BlendSourceOut
 
 	op.GeoM.Scale(scaleX, scaleY)
 	op.GeoM.Translate(pivotX*(1-scaleX), pivotY*(1-scaleY))

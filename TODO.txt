@@ -13,15 +13,14 @@ Bug list:
   air
 
 Levels:
- - Background ambience (something needs to be moving)
- - Very very simple lighting
- - Make it impossible to slam when there is a roof right above
+ - Teleporter / door visuals
  - One-way platforms
- - "In-level text" entity
+ - Level transitions (shader O_o)
+
+ - Make it impossible to slam when there is a roof right above
  - Animated sprites
   - 
- - Tutorial section
- - Teleporter / door visuals
+ - "In-level text" entity
  - Larger sprites in levels (?)
  - Basic enemies (?)
  - Allow for spikes on top of slam boxes
