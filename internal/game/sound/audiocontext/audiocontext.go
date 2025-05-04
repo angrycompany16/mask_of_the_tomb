@@ -12,7 +12,7 @@ type GlobalAudioContext struct {
 
 func Current() *GlobalAudioContext {
 	if _globalAudioContext == nil {
-		_globalAudioContext = &GlobalAudioContext{audio.NewContext(48000)}
+		_globalAudioContext = &GlobalAudioContext{audio.NewContext(44100)}
 	}
 	return _globalAudioContext
 }
