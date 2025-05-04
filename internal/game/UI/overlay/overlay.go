@@ -1,6 +1,7 @@
 package overlay
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/game/core/events"
 	"mask_of_the_tomb/internal/maths"
 )
@@ -63,7 +64,7 @@ func (oi *Overlay) fadeOut() {
 	// oi.state = exit
 	oi.t = maths.Lerp(oi.t, -2, 0.01)
 	if oi.t <= 0.01 {
-		// fmt.Println("Faded out")
+		fmt.Println("Faded out")
 		oi.t = 0
 		oi.OnFinishExit.Raise(events.EventInfo{})
 		oi.state = off

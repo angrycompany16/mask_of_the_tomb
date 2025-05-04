@@ -10,19 +10,18 @@ Bug list:
 - Sometimes spamming pause/play while respawning causes the player to not appear
   at all (SEVERITY: LOW)
 - Dashing in the same direction as a moving slambox causes the player to hit the slambox and stop in mid 
-  air
+  air (SEVERITY: LOW)
 
 Levels:
  - Teleporter / door visuals
  - One-way platforms
+ - Proper level transition sequence to avoid large slowdown due to asset loading
  - Level transitions (shader O_o)
+ - Breathing lights
 
  - Make it impossible to slam when there is a roof right above
  - Animated sprites
   - 
- - "In-level text" entity
- - Larger sprites in levels (?)
- - Basic enemies (?)
  - Allow for spikes on top of slam boxes
 
  - NPC stuff

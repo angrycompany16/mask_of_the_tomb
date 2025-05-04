@@ -233,7 +233,6 @@ func NewSlambox(
 	newSlambox.moveFinishedEventListener = events.NewEventListener(newSlambox.movebox.OnMoveFinished)
 	newSlambox.slamTimer = timer.NewTimer(time.Millisecond * 500)
 	newSlambox.slamTimer.Pause()
-	// newSlambox.SlamTimerFinished = events.NewEvent()
 	newSlambox.slamTimerEventListener = events.NewEventListener(newSlambox.slamTimer.TimedoutEvent)
 
 	tilemap := errs.MustNewImageFromFile(SlamboxTilemapPath)

@@ -31,7 +31,7 @@ func (w *World) Load() {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
 }
 
-func (w *World) Init(initLevelName string, gameData save.GameData) {
+func (w *World) Init(initLevelName string, gameData save.GameData) string {
 	if initLevelName == "" {
 		if gameData.SpawnRoomName == "" {
 			initLevelName = firstLevelName
@@ -43,7 +43,7 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 	for id, levelmemory := range gameData.WorldStateMemory {
 		w.worldStateMemory[id] = levelmemory
 	}
-	ChangeActiveLevel(w, initLevelName, "")
+	return errs.Must(ChangeActiveLevel(w, initLevelName, ""))
 }
 
 func (w *World) LoadMemory(memory map[string]levelmemory.LevelMemory) {

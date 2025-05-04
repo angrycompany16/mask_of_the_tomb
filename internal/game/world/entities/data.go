@@ -7,4 +7,5 @@ import (
 
 var (
 	SlamboxTilemapPath = filepath.Join(assetloader.EnvironmentTilemapFolder, "playerspace_tilemap.png")
+	doorSpritePath     = filepath.Join("assets", "sprites", "environment", "entities", "export", "teleporter.png")
 )
