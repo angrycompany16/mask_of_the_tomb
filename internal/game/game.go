@@ -28,6 +28,30 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// TODO: Important: Make the game more modular
+// It would be really nice to be able to make examples where you can set up a
+// basic game/entity system, and from there mix and match components as you'd like
+// For example having a player without a world, a world without an opening sequence
+// etc...
+
+// Q: What is fundamental to game.go?
+// A: State machine, connecting systems
+// What more?
+
+// Q: What's the easiest possible way to connect different entities together?
+//
+
+// Entity template:
+// Update (in WorldInfo)
+// However, we need to ensure that
+
+// System idea:
+// Have some kind of central distributor which every entity in the game can query
+// This will essentially act like a
+
+// Connect all systems via messagetypes package
+// Contains
+
 const (
 	gameEntryDirection = maths.DirDown
 )
@@ -191,6 +215,8 @@ func (g *Game) Update() error {
 }
 
 // TODO: Revamp and shorten this function, move more logic into player
+
+// Q: How could this logic be expressed if entities were more separated?
 func (g *Game) updateGameplay() error {
 	if eventInfo, ok := g.playerMoveListener.Poll(); ok {
 		moveDir := eventInfo.Data.(maths.Direction)

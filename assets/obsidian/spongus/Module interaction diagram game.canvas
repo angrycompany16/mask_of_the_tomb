@@ -1,0 +1,22 @@
+{
+	"nodes":[
+		{"id":"8923fb95bf4b68bc","x":-141,"y":-96,"width":141,"height":76,"type":"text","text":"# Main"},
+		{"id":"5fae02e098155237","x":-216,"y":-400,"width":291,"height":121,"type":"text","text":"# Spawn \"game\" bundle\n"},
+		{"id":"1aedc3efad10a143","x":-757,"y":-371,"width":250,"height":60,"type":"text","text":"# Update loop"},
+		{"id":"8b4fb781a69974f5","x":-757,"y":-126,"width":250,"height":68,"type":"text","text":"# World"},
+		{"id":"7bbbcb9c2650a62d","x":-1040,"y":-124,"width":250,"height":66,"type":"text","text":"# Player"},
+		{"id":"a4be8188183f6f13","x":-466,"y":-126,"width":250,"height":68,"type":"text","text":"# Sounds etc.."},
+		{"id":"885c9fcb9e99c6f9","x":-811,"y":220,"width":359,"height":59,"type":"text","text":"# ResourceManager"},
+		{"id":"12386108c8283457","x":-1420,"y":-58,"width":297,"height":213,"type":"text","text":"Data model where interactions are (in theory) always handled via resources (data sharing) and events (synchronization)"}
+	],
+	"edges":[
+		{"id":"089336a5e0021acc","fromNode":"8923fb95bf4b68bc","fromSide":"top","toNode":"5fae02e098155237","toSide":"bottom"},
+		{"id":"d0eb7150bcfe1c13","fromNode":"5fae02e098155237","fromSide":"left","toNode":"1aedc3efad10a143","toSide":"right","label":"Spawns entities"},
+		{"id":"7c006c4d2273e939","fromNode":"1aedc3efad10a143","fromSide":"bottom","toNode":"7bbbcb9c2650a62d","toSide":"top"},
+		{"id":"7817a7757fece2de","fromNode":"1aedc3efad10a143","fromSide":"bottom","toNode":"8b4fb781a69974f5","toSide":"top"},
+		{"id":"9f2cf3d8a0ec934e","fromNode":"1aedc3efad10a143","fromSide":"bottom","toNode":"a4be8188183f6f13","toSide":"top"},
+		{"id":"4c8fd914c4d88dd0","fromNode":"8b4fb781a69974f5","fromSide":"bottom","toNode":"885c9fcb9e99c6f9","toSide":"top","label":"Publishes *and* reads"},
+		{"id":"81db05f629ec06c7","fromNode":"a4be8188183f6f13","fromSide":"bottom","toNode":"885c9fcb9e99c6f9","toSide":"top"},
+		{"id":"ebaee5f269301cb2","fromNode":"7bbbcb9c2650a62d","fromSide":"bottom","toNode":"885c9fcb9e99c6f9","toSide":"left","label":"Publishes player data"}
+	]
+}

@@ -65,6 +65,8 @@ Levels:
 // - Create animation/sprite asset files
 // - Create a timer class
 
+FIX THE EDITOR
+
 Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread
 so that we can display a loading screen or something while loading our assets
