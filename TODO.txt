@@ -28,6 +28,10 @@ Levels:
  - NPC stuff
 
 // Revamped roadmap because I want to create a demo
+// - Think through some of the singleton classes. One method which can be very useful
+//   in removing singleton instances is a context data type
+// - Try to maybe convert some of the core / library packages or structs into something
+//   that it exposed by an interface, but has no specific implementation
 // - Generalized overlay
 // - Add biome title cards
 // - Add room title cards
@@ -66,6 +70,9 @@ Levels:
 // - Create a timer class
 
 FIX THE EDITOR
+Consider switching into one repo for assets and one for code? or maybe that's not such
+a good idea idk
+Could also just reduce the size of the assets folder you know
 
 Consideration: asset manager:
 Why do we need this? Well, we should be performing the loading of sprites in another thread

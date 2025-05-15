@@ -2,9 +2,13 @@ package assets
 
 import (
 	_ "embed"
+	"path/filepath"
 )
 
 var (
+	EnvironmentTilemapFolder = filepath.Join("assets", "sprites", "environment", "tilemaps", "export")
+	PlayerFolder             = filepath.Join("assets", "sprites", "player", "export")
+
 	//go:embed fonts/JSE_AmigaAMOS.ttf
 	JSE_AmigaAMOS_ttf []byte
 

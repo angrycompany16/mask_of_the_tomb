@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	save "mask_of_the_tomb/internal/game/core/savesystem"
+	save "mask_of_the_tomb/internal/libraries/savesystem"
 )
 
 var saveProfile int

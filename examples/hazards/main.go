@@ -3,10 +3,9 @@ package main
 import (
 	"errors"
 	"log"
-	"mask_of_the_tomb/internal/game"
-	"mask_of_the_tomb/internal/game/core/rendering"
-	"mask_of_the_tomb/internal/game/gamestate"
-	"mask_of_the_tomb/internal/game/world"
+	"mask_of_the_tomb/internal/libraries/rendering"
+	"mask_of_the_tomb/internal/plugins/world"
+	"mask_of_the_tomb/internal/transformers/game"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -39,11 +38,9 @@ func main() {
 
 	a := &App{game.NewGame()}
 	world.LDTKMapPath = filepath.Join("assets", "LDTK", "hazard.ldtk")
-	a.game.Init()
+	a.game.Load()
 
 	ebiten.SetFullscreen(true)
-	a.game.State = gamestate.Playing
-	// a.game.EnterPlayMode()
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, game.ErrTerminated) {

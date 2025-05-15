@@ -1,0 +1,23 @@
+{
+	"nodes":[
+		{"id":"831e5f920349b31e","type":"text","text":"# Libraries\n- Import ONLY ebitengine and other common things, few dependencies (Core among other things) and NO inter-dependencies\n- Define some kind of central piece of functionality such as game, world, player etc.\n- Libraries can also just define simple functionality, like in the case of ebitenrenderutil","x":-380,"y":-280,"width":440,"height":400},
+		{"id":"26e1ff564e8894d6","type":"text","text":"# Plugins\n- Define the interactions between the different library modules\n- Should be kept as small and simple as possible. High resolution is good\n- Also a method for bundling plugins should be achieved\n- NOTE: asset definitions are an example of plugins","x":140,"y":-280,"width":440,"height":400},
+		{"id":"bbd949059b6ce6fd","type":"text","text":"# Core\n- A set of base functionality and utilities that allows the libraries to work","x":-380,"y":200,"width":440,"height":247},
+		{"id":"5a05b910f5d5e844","type":"text","text":"A nice use case: We want to copy one specific library over to another project. Then we (always) copy core, the library and then we write / reuse any plugins which depend on that library. \nYEAH :D","x":134,"y":201,"width":366,"height":199},
+		{"id":"754553ed29a4974e","type":"text","text":"Exception: main.go will probably need to import the rendering library and such, so main itself should also be considered a plugin","x":540,"y":201,"width":366,"height":199},
+		{"id":"78d55507be66e404","type":"text","text":"# Main/game\n- Connects plugins, manages high-level / simple QoL code, and runs main update loop","x":686,"y":-280,"width":440,"height":400},
+		{"id":"786b492674ff3b1f","x":-436,"y":533,"width":436,"height":307,"type":"text","text":"# Can we generalize?\nSplit the application into \"layers\"\nLayer 1 has 0 dependencies\nLayer 2 has dependencies from layer 1 and below\nLayer 3 has dependencies from layer 2 and below\netc...\n"},
+		{"id":"5f7ea2e001defcfa","x":234,"y":566,"width":250,"height":74,"type":"text","text":"# Layer 1\n"},
+		{"id":"c59202ddde0957e9","type":"text","text":"# Layer 1\n","x":234,"y":766,"width":250,"height":74},
+		{"id":"5173f21f6f439924","type":"text","text":"# Layer 1\n","x":234,"y":960,"width":250,"height":74},
+		{"id":"dc60cb3ed5dce641","x":640,"y":580,"width":600,"height":186,"type":"text","text":"A challenge:\nConsider the save system and world.\nThe save system needs info from the world to know what to save, but the world also needs info from the save system to know what was just loaded\n"},
+		{"id":"3a87f43a88e5fb62","x":640,"y":840,"width":366,"height":143,"type":"text","text":"Ideally we want as few layers with as many modules as possible"}
+	],
+	"edges":[
+		{"id":"022f29f996499199","fromNode":"bbd949059b6ce6fd","fromSide":"top","toNode":"831e5f920349b31e","toSide":"bottom"},
+		{"id":"b8227a8a09c9ea33","fromNode":"831e5f920349b31e","fromSide":"right","toNode":"26e1ff564e8894d6","toSide":"left"},
+		{"id":"bd4664cd2b963e26","fromNode":"26e1ff564e8894d6","fromSide":"right","toNode":"78d55507be66e404","toSide":"left"},
+		{"id":"363d7a8684e5eceb","fromNode":"c59202ddde0957e9","fromSide":"top","toNode":"5f7ea2e001defcfa","toSide":"bottom","label":"Connects modules in"},
+		{"id":"0f74c25cbc1329b5","fromNode":"5173f21f6f439924","fromSide":"top","toNode":"c59202ddde0957e9","toSide":"bottom","label":"Connects modules in"}
+	]
+}

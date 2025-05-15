@@ -3,12 +3,11 @@ package main
 import (
 	"errors"
 	"log"
-	"mask_of_the_tomb/internal/errs"
-	"mask_of_the_tomb/internal/game"
-	ui "mask_of_the_tomb/internal/game/UI"
-	"mask_of_the_tomb/internal/game/UI/display"
-	"mask_of_the_tomb/internal/game/UI/fonts"
-	"mask_of_the_tomb/internal/game/core/rendering"
+	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/libraries/rendering"
+	ui "mask_of_the_tomb/internal/plugins/UI"
+	"mask_of_the_tomb/internal/transformers/game"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -37,11 +36,11 @@ func main() {
 	ebiten.SetWindowTitle("UI test")
 
 	app := &App{ui.NewUI()}
-	fonts.LoadPreamble()
+	assetloader.LoadPreamble()
 	// rootNode := root.New()
 	// rootNode.AddChild(textbox.New())
 	app.ui.AddDisplayManual(errs.Must(
-		display.FromFile(filepath.Join("assets", "menus", "example", "menu.yaml")),
+		ui.FromFile(filepath.Join("assets", "menus", "example", "menu.yaml")),
 	))
 	// filepath.Join("assets", "menus", "example", "menu.yaml") |> display.FromFile |> errs.Must |> app.ui.AddDisplayManual
 

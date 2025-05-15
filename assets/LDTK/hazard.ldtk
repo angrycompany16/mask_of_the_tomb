@@ -10,7 +10,7 @@
 	},
 	"iid": "ca57f330-e920-11ef-98cf-75da41bf02a6",
 	"jsonVersion": "1.5.3",
-	"appBuildId": 473703,
+	"appBuildId": 484725,
 	"nextUid": 90,
 	"identifierStyle": "Capitalize",
 	"toc": [],
@@ -857,7 +857,7 @@
 			]
 		},
 		{
-			"identifier": "SpawnPosition",
+			"identifier": "DefaultSpawnPos",
 			"uid": 81,
 			"tags": [],
 			"exportToToc": false,
@@ -1035,7 +1035,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "SpawnPosition",
+							"__identifier": "DefaultSpawnPos",
 							"__grid": [18,17],
 							"__pivot": [0,0],
 							"__tags": [],
