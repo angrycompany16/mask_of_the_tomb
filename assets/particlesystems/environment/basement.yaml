@@ -4,7 +4,7 @@ GlobalSpace: true
 PosX: 0
 PosY: 0
 Angle: 0
-Emission: 10
+Emission: 0.5
 Bursts:
 - Count: 0
   Time: 0
@@ -18,8 +18,8 @@ SpawnVelX:
   Min: 0
   Max: 0
 SpawnVelY:
-  Min: -40
-  Max: -10
+  Min: -10
+  Max: 0
 SpawnAngle:
   Min: 0
   Max: 4
@@ -27,8 +27,8 @@ SpawnAngularVel:
   Min: 0
   Max: 0.5
 StartScale:
-  Min: 0.1
-  Max: 0.3
+  Min: 0.7
+  Max: 1.5
 EndScale:
   Min: 0.0
   Max: 0.0
@@ -41,10 +41,9 @@ NoiseFactorX:
 NoiseFactorY:
   Min: 0.0
   Max: 5.0
-StartColor: [0, 0, 0, 255]
-EndColor: [0, 0, 0, 255]
+StartColor: [255, 255, 255, 255]
+EndColor: [255, 255, 255, 255]
 ImageWidth: 480
 ImageHeight: 270
-# TODO: Make smaller scale sprites for small particles
-SpritePath: "assets/sprites/icons/png/square-64x64.png"
+SpritePath: assets/sprites/environment/particles/export/star.png
 ...

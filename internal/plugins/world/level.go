@@ -82,6 +82,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.lightsAdditiveShader = errs.Must(ebiten.NewShader(assets.Lights_additive_kage))
 	newLevel.lightsSubtractiveShader = errs.Must(ebiten.NewShader(assets.Lights_subtractive_kage))
 	newLevel.ambientParticles = errs.Must(particles.FromFile(particleSysPath, rendering.RenderLayers.Foreground))
+	// TODO: set particle system bounds based on level size
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
@@ -195,6 +196,23 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 			drawTile(layer.AutoLayerTiles, &tileset, targetRenderLayer, tileset.TileGridSize, camX, camY)
 		}
 	}
+
+	pXrel := playerX - camX
+	pYrel := playerY - camY
+	shaderOp.Uniforms = map[string]any{
+		"PlayerPos":  [2]float64{pXrel, pYrel},
+		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
+	}
+	shaderOp.Blend = lerpBlend
+	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsAdditiveShader, &shaderOp)
+
+	l.ambientParticles.Draw()
+
+	shaderOp.Blend = ebiten.BlendSourceOver
+	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsSubtractiveShader, &shaderOp)
+
+	shaderOp.Blend = ebiten.BlendSourceOver
+	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
 }
 
 // ------ GETTERS ------

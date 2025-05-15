@@ -10,18 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-// TODO: Check if this is actually correct as it still seems to blend
-// with the background
-var lerpBlend = ebiten.Blend{
-	BlendFactorSourceRGB:        ebiten.BlendFactorSourceAlpha,
-	BlendFactorSourceAlpha:      ebiten.BlendFactorZero,
-	BlendFactorDestinationRGB:   ebiten.BlendFactorOneMinusSourceAlpha,
-	BlendFactorDestinationAlpha: ebiten.BlendFactorDefault,
-	BlendOperationRGB:           ebiten.BlendOperationAdd,
-	BlendOperationAlpha:         ebiten.BlendOperationAdd,
-}
-
-var textColor = []float32{255, 0, 0}
+var textColor = []float32{1, 1, 1}
 
 type TitleCard struct {
 	text  string
@@ -35,11 +24,10 @@ func (tc *TitleCard) Draw(t float64) {
 	opText.LayoutOptions.PrimaryAlign = text.AlignCenter
 	opText.LayoutOptions.SecondaryAlign = text.AlignCenter
 	opText.ColorScale = ebiten.ColorScale{}
-	opText.Blend = ebiten.BlendSourceOver
-	// opText.Blend = lerpBlend
-	opText.ColorScale.SetR(textColor[0])
-	opText.ColorScale.SetG(textColor[1])
-	opText.ColorScale.SetB(textColor[2])
+
+	opText.ColorScale.SetR(textColor[0] * float32(t))
+	opText.ColorScale.SetG(textColor[1] * float32(t))
+	opText.ColorScale.SetB(textColor[2] * float32(t))
 	opText.ColorScale.SetA(float32(t))
 	opText.GeoM.Translate(rendering.GameWidth*rendering.PixelScale/2, rendering.GameHeight*rendering.PixelScale/2)
 

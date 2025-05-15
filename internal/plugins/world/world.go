@@ -35,7 +35,7 @@ func (w *World) Load() {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
 }
 
-func (w *World) Init(initLevelName string, gameData save.GameData) {
+func (w *World) Init(initLevelName string, gameData save.GameData) string {
 	if initLevelName == "" {
 		if gameData.SpawnRoomName == "" {
 			initLevelName = firstLevelName

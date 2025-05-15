@@ -234,7 +234,6 @@ func NewSlambox(
 	newSlambox.movebox = movebox.NewMovebox(moveSpeed)
 	newSlambox.SetPos(entity.Px[0], entity.Px[1])
 	newSlambox.moveFinishedEventListener = events.NewEventListener(newSlambox.movebox.OnMoveFinished)
-
 	tilemap := errs.MustNewImageFromFile(SlamboxTilemapPath)
 
 	newSlambox.sprite = ebiten.NewImage(int(entity.Width), int(entity.Height))
