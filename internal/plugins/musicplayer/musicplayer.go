@@ -90,7 +90,7 @@ func NewMusicPlayer(ctx *audio.Context) *MusicPlayer {
 	return &MusicPlayer{
 		songs: map[songName]*audio.Player{
 			menuTheme:     sound.LoadAudio(assets.Menu_mp3, sound.Mp3),
-			basementTheme: sound.LoadAudio(assets.Basement_mp3, sound.Mp3),
+			basementTheme: sound.LoadAudio(assets.Basement_wav, sound.Wav),
 			libraryTheme:  sound.LoadAudio(assets.Library_mp3, sound.Mp3),
 		},
 	}

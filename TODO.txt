@@ -2,6 +2,8 @@
 // 0. Spikes
 // 1. SLAM BOX
 // 3. One-way platforms
+// 4. Teleporters
+// 5. what else?
 
 (Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
 camera space
@@ -11,9 +13,9 @@ Bug list:
   at all (SEVERITY: LOW)
 - Dashing in the same direction as a moving slambox causes the player to hit the slambox and stop in mid 
   air (SEVERITY: LOW)
+- 44100 Hz audio does not seem to work on arch, which is quite a huge problem
 
 Levels:
- - Teleporter / door visuals
  - One-way platforms
  - Proper level transition sequence to avoid large slowdown due to asset loading
  - Level transitions (shader O_o)

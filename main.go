@@ -1,3 +1,34 @@
+// package main
+
+// import (
+// 	"log"
+
+// 	"github.com/hajimehoshi/ebiten/v2"
+// 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+// )
+
+// type Game struct{}
+
+// func (g *Game) Update() error {
+// 	return nil
+// }
+
+// func (g *Game) Draw(screen *ebiten.Image) {
+// 	ebitenutil.DebugPrint(screen, "Hello, World!")
+// }
+
+// func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+// 	return 320, 240
+// }
+
+// func main() {
+// 	ebiten.SetWindowSize(640, 480)
+// 	ebiten.SetWindowTitle("Hello, World!")
+// 	if err := ebiten.RunGame(&Game{}); err != nil {
+// 		log.Fatal(err)
+// 	}
+// }
+
 package main
 
 import (
@@ -9,28 +40,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
-
-// Q: Do we want to add everything in main?
-// A: No, probably not. However, it would be nice if we could create these
-// kinds of "bundles" for grouping together components that are frequently used
-// together. Adding the components separately would be very nice though
-
-// The ideal main.go
-// Add these entity bundles
-// Connect interactions like this
-
-// Another thing to consider:
-// It might be worth to modularize in terms of different stages of the game,
-// so that one can for example easily create a game without a menu stage,
-// without an intro stage of without a loading stage.
-
-// The solution to it all?
-// Separate modules into their own self-contained units, and then write
-// separate interaction modules between these
-
-// OR: structure into plugins and libraries
-// plugins utilize libraries
-// Libraries provide core functionality through public methods
 
 var (
 	debugMode bool
@@ -73,7 +82,7 @@ func main() {
 	ebiten.SetFullscreen(true)
 
 	if err := ebiten.RunGame(a); err != nil {
-		if errors.Is(err, game.ErrTerminated) {
+		if errors.Is(err, errors.ErrUnsupported) {
 			return
 		}
 		log.Fatal(err)

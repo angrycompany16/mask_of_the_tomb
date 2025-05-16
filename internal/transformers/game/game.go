@@ -30,7 +30,7 @@ const (
 )
 
 var (
-	ErrTerminated = errors.New("Terminated")
+	ErrTerminated = errors.New("Terminatednow")
 	InitLevelName string
 	SaveProfile   int
 )
