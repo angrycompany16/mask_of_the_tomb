@@ -206,7 +206,7 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 	shaderOp.Blend = lerpBlend
 	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsAdditiveShader, &shaderOp)
 
-	l.ambientParticles.Draw()
+	l.ambientParticles.Draw(camX, camY)
 
 	shaderOp.Blend = ebiten.BlendSourceOver
 	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsSubtractiveShader, &shaderOp)
