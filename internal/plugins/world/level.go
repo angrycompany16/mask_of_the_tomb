@@ -40,19 +40,27 @@ var (
 		BlendOperationRGB:           ebiten.BlendOperationAdd,
 		BlendOperationAlpha:         ebiten.BlendOperationAdd,
 	}
-	particleSysPath = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
+	particleSysPath              = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
+	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "tilemaps", "export", "playerspace_tilemap_normal.png")
+	// midgroundNormalTilemapPath   = filepath.Join("assets", "sprites", "environment", "tilemaps", "export", "midground_tilemap_normal.png")
+	// TODO: *very* temporary solution
+	playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
+	// midgroundNormalTilemap   = errs.MustNewImageFromFile(midgroundNormalTilemapPath)
 )
 
 type Level struct {
-	name            string
-	defs            *ebitenLDTK.Defs
-	levelLDTK       *ebitenLDTK.Level
-	TilemapCollider physics.TilemapCollider
-	tileSize        float64
-	bgColor         color.Color
+	name                     string
+	defs                     *ebitenLDTK.Defs
+	levelLDTK                *ebitenLDTK.Level
+	TilemapCollider          physics.TilemapCollider
+	tileSize                 float64
+	bgColor                  color.Color
+	playerspaceNormalTilemap *ebiten.Image
+	midgroundNormalTilemap   *ebiten.Image
 
 	// Probably convert into struct in rendering.go
-	layers rendering.LayerList
+	colorLayers  rendering.LayerList
+	normalLayers rendering.LayerList
 	// foreground  *ebiten.Image
 	// playerspace *ebiten.Image
 	// midground   *ebiten.Image
@@ -132,16 +140,16 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		slambox.CreateSprite()
 	}
 
-	// Pre-render level
-	newLevel.layers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
+	newLevel.colorLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
+	newLevel.normalLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
 
 	layerMap := map[string]*ebiten.Image{
-		"Foreground":       newLevel.layers.Foreground,
-		"PlayerspaceAlt":   newLevel.layers.Playerspace,
-		"Playerspace":      newLevel.layers.Playerspace,
-		"Props":            newLevel.layers.Midground,
-		"MidgroundSprites": newLevel.layers.Midground,
-		"BackgroundTiles":  newLevel.layers.Background,
+		"Foreground":       newLevel.colorLayers.Foreground,
+		"PlayerspaceAlt":   newLevel.colorLayers.Playerspace,
+		"Playerspace":      newLevel.colorLayers.Playerspace,
+		"Props":            newLevel.colorLayers.Midground,
+		"MidgroundSprites": newLevel.colorLayers.Midground,
+		"BackgroundTiles":  newLevel.colorLayers.Background,
 	}
 
 	for i := len(newLevel.levelLDTK.Layers) - 1; i >= 0; i-- {
@@ -153,13 +161,37 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			continue
 		}
 
-		if layer.Type == ebitenLDTK.LayerTypeTiles {
-			tileset := errs.Must(newLevel.defs.GetTilesetByUid(layer.TilesetUid))
-			drawTiles(layer.GridTiles, &tileset, targetRenderLayer, tileset.TileGridSize)
-		} else if layer.Type == ebitenLDTK.LayerTypeIntGrid {
-			tileset := errs.Must(newLevel.defs.GetTilesetByUid(layer.TilesetUid))
-			drawTiles(layer.AutoLayerTiles, &tileset, targetRenderLayer, tileset.TileGridSize)
+		if layer.Type == ebitenLDTK.LayerTypeEntities {
+			continue
 		}
+
+		var tiles []ebitenLDTK.Tile
+		if layer.Type == ebitenLDTK.LayerTypeTiles {
+			tiles = layer.GridTiles
+		} else if layer.Type == ebitenLDTK.LayerTypeIntGrid {
+			tiles = layer.AutoLayerTiles
+		}
+
+		// for _, tileset := range defs.Tilesets {
+		// 	fmt.Println(tileset.Uid)
+		// }
+		// // fmt.Println(newLevel.defs.Tilesets)
+		// fmt.Println(layer.TilesetUid)
+		// fmt.Println(layer.Type)
+		// fmt.Println("Done")
+		tileset := errs.Must(newLevel.defs.GetTilesetByUid(layer.TilesetUid))
+		tilesize := tileset.TileGridSize
+		tilesetImage := tileset.Image
+
+		if targetRenderLayer == newLevel.colorLayers.Midground {
+			// tilesetImage = midgroundNormalTilemap
+			// drawTiles(tiles, tilesetImage, newLevel.normalLayers.Midground, tilesize)
+		} else if targetRenderLayer == newLevel.colorLayers.Playerspace {
+			tilesetImage = playerspaceNormalTilemap
+			drawTiles(tiles, tilesetImage, newLevel.normalLayers.Playerspace, tilesize)
+		}
+
+		drawTiles(tiles, tilesetImage, targetRenderLayer, tilesize)
 	}
 
 	return newLevel, nil
@@ -226,7 +258,7 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 	trueCamX, trueCamY := rendering.GetStablePos()
 
 	shaderOp.Images = [4]*ebiten.Image{
-		l.layers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GameWidth), int(trueCamY+rendering.GameHeight))).(*ebiten.Image),
+		l.colorLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GameWidth), int(trueCamY+rendering.GameHeight))).(*ebiten.Image),
 		nil,
 		nil,
 		nil,
@@ -244,7 +276,9 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 	}
 
 	// rendering.RenderLayers.Midground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
-	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
+	// rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
+
+	l.normalLayers.DrawOnto(&rendering.ScreenLayers, -camX, -camY)
 
 	// pXrel := playerX - camX
 	// pYrel := playerY - camY
@@ -371,7 +405,7 @@ func (l *Level) GetGameEntryPos() (float64, float64) {
 // ------ INTERNAL ------
 func drawTiles(
 	tiles []ebitenLDTK.Tile,
-	tileset *ebitenLDTK.Tileset,
+	tileset *ebiten.Image,
 	targetLayer *ebiten.Image,
 	tileSize float64,
 	// camX, camY float64,
@@ -387,7 +421,7 @@ func drawTiles(
 			scaleX, scaleY = -1, -1
 		}
 
-		ebitenrenderutil.DrawAtScaled(tileset.Image.SubImage(
+		ebitenrenderutil.DrawAtScaled(tileset.SubImage(
 			image.Rect(
 				int(tile.Src[0]),
 				int(tile.Src[1]),
