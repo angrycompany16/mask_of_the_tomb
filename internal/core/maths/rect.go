@@ -72,13 +72,17 @@ func (r *Rect) Draw(surf *ebiten.Image) {
 }
 
 func (r *Rect) Overlapping(other *Rect) bool {
-	if r.Left() < other.Right() &&
+	return r.Left() < other.Right() &&
 		r.Right() > other.Left() &&
 		r.Top() < other.Bottom() &&
-		r.Bottom() > other.Top() {
-		return true
-	}
-	return false
+		r.Bottom() > other.Top()
+}
+
+func (r *Rect) IsWithin(x, y float64) bool {
+	return x <= r.Right() &&
+		r.Left() <= x &&
+		r.Top() <= y &&
+		r.Bottom() >= y
 }
 
 func (r *Rect) RandomPointInside() (float64, float64) {

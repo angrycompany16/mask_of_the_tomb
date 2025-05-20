@@ -25,7 +25,7 @@ func (a *App) Update() error {
 
 func (a *App) Draw(screen *ebiten.Image) {
 	a.game.Draw()
-	rendering.RenderLayers.Draw(screen)
+	rendering.ScreenLayers.Draw(screen)
 }
 
 func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {

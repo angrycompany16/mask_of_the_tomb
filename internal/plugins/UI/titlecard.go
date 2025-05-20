@@ -31,7 +31,7 @@ func (tc *TitleCard) Draw(t float64) {
 	opText.ColorScale.SetA(float32(t))
 	opText.GeoM.Translate(rendering.GameWidth*rendering.PixelScale/2, rendering.GameHeight*rendering.PixelScale/2)
 
-	text.Draw(rendering.RenderLayers.UI,
+	text.Draw(rendering.ScreenLayers.UI,
 		tc.text,
 		&text.GoTextFace{
 			Source: tc.font,

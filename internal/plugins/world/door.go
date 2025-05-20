@@ -23,7 +23,7 @@ type Door struct {
 
 func (d *Door) Draw(camX, camY float64) {
 	x, y := d.Hitbox.TopLeft()
-	ebitenrenderutil.DrawAt(d.sprite, rendering.RenderLayers.Playerspace, x-camX, y-camY)
+	ebitenrenderutil.DrawAt(d.sprite, rendering.ScreenLayers.Playerspace, x-camX, y-camY)
 }
 
 func NewDoor(

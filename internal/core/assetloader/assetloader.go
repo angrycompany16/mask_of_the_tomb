@@ -6,6 +6,7 @@ var (
 	}
 )
 
+// Time to make it even simpler: It's literally just going to be a map
 // Very simple asset loader interface
 type Asset interface {
 	Load()
@@ -22,6 +23,10 @@ func Exists(hash string) (Asset, bool) {
 
 func Load(hash string, asset Asset) {
 	_assetLoader.assetPool[hash] = asset
+}
+
+func GetAsset(name string) Asset {
+	return _assetLoader.assetPool[name]
 }
 
 func LoadAll(doneChan chan<- int) {

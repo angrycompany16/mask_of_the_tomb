@@ -19,7 +19,7 @@ type ScreenFade struct {
 func (d *ScreenFade) Draw(t float64) {
 	alpha := uint8(t * 255)
 	d.image.Fill(color.RGBA{OverlayColor[0], OverlayColor[1], OverlayColor[2], alpha})
-	ebitenrenderutil.DrawAt(d.image, rendering.RenderLayers.Overlay, 0, 0)
+	ebitenrenderutil.DrawAt(d.image, rendering.ScreenLayers.Overlay, 0, 0)
 }
 
 func NewScreenFade() OverlayContent {

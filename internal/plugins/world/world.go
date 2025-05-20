@@ -2,6 +2,8 @@ package world
 
 import (
 	"fmt"
+	"mask_of_the_tomb/assets"
+	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
@@ -11,7 +13,9 @@ import (
 )
 
 var (
-	LDTKMapPath = filepath.Join("assets", "LDTK", "world.ldtk")
+	LDTKMapPath        = filepath.Join("assets", "LDTK", "world.ldtk")
+	slamboxTilemapPath = filepath.Join(assets.EnvironmentTilemapFolder, "slambox_tilemap.png")
+	// slamboxTilemap     *ebiten.Image
 )
 
 const (
@@ -33,6 +37,7 @@ func NewWorld() *World {
 
 func (w *World) Load() {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
+	assetloader.Load("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
 }
 
 func (w *World) Init(initLevelName string, gameData save.GameData) {

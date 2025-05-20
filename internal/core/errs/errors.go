@@ -23,6 +23,7 @@ func tracedPanic(err error) {
 
 func MustNewImageFromFile(path string) *ebiten.Image {
 	img, _, err := ebitenutil.NewImageFromFile(path)
+	// img, _, err :=
 	if err != nil {
 		panic(err)
 	}

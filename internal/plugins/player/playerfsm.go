@@ -92,7 +92,7 @@ func (p *Player) Draw(camX, camY float64) {
 		jumpOffsetX, jumpOffsetY := p.calculateJumpOffset()
 		ebitenrenderutil.DrawAtRotated(
 			p.animator.GetSprite(),
-			rendering.RenderLayers.Playerspace,
+			rendering.ScreenLayers.Playerspace,
 			posX-camX-jumpOffsetX,
 			posY-camY-jumpOffsetY,
 			maths.ToRadians(p.direction),

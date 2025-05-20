@@ -57,6 +57,7 @@ func (a *Animation) Update() {
 		return
 	}
 
+	// TODO: replace with ticker
 	a.t += 0.008333333 // ? Why ? I don't knwo man. For some reason it is quite accurate
 	if a.t > a.frameDelay {
 		a.t = 0

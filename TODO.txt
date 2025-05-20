@@ -1,9 +1,24 @@
 // Game mechanic ideas (how to make unique mechanics?)
 // 0. Spikes
-// 1. SLAM BOX
+// 1. SLAM BOX (These should be improved. Add (1) the ability to add spikes to 
+slamboxes and (2) the ability to connect slamboxes in "any" configuration)
 // 3. One-way platforms
 // 4. Teleporters
-// 5. what else?
+// 5. Lazers and light sensors?
+// 6. Buttons which can be activated by the player?
+// 7. Shrink and grow in size
+// 8. Stoppers / catchers
+// 9. 
+// what else?
+
+
+Theme idea:
+Take inspiration from DSFWAN albums? For example, we can have
+- One section inspired by dream desert
+- One inspired by above / below babylon's hanging gardens
+- One inspired by Perli tal-Passat (Which basement kind of already is)
+- One inspired by the purple album (name unknown)
+
 
 (Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
 camera space
@@ -20,29 +35,22 @@ Levels:
  - Proper level transition sequence to avoid large slowdown due to asset loading
  - Level transitions (shader O_o)
  - Breathing lights
-
  - Make it impossible to slam when there is a roof right above
  - Animated sprites
   - 
  - Allow for spikes on top of slam boxes
-
  - NPC stuff
 
 // Revamped roadmap because I want to create a demo
+// - Spikes on slamboxes
 // - Think through some of the singleton classes. One method which can be very useful
 //   in removing singleton instances is a context data type
 // - Try to maybe convert some of the core / library packages or structs into something
+// - Consider redoing the lighting maybe?
+        Convert to palette perfect lighting
 //   that it exposed by an interface, but has no specific implementation
-// - Generalized overlay
-// - Add biome title cards
 // - Add room title cards
-// - Create intro sequence when opening the game for the first time
-// - Remove the spawnpos system and just spawn at doors instead
-//   - Or potentially use savepoints but that's stupid and makes no sense
-// - Make some actual levels
-// - Make camera zones for levels with large screens
-// - Implement some kind of switch or smth as persistent progress
-// - Add level title cards
+// - Implement some kind of switch or lever as persistent progress
 // - Finish slam animation
 // - Remake dash animation
 // - Resolve the many TODOs in the project (at least do a few of them)
@@ -55,33 +63,17 @@ Levels:
 
 // Post-demo: The design/code quality revamp:
 // - Rewrite the overlay system from scratch because it's just so terrible and can't do what i want it to do
-// - UI sounds
 // - Allow for run flag to start in a certain level
 // - Remove the singletons. These should not exist
-// - Try to make the packages more independent because right now they really aren't that great
 // - (Consider) writing integration tests for packages like animation, rendering, sound, etc.
 // - Make an overview of the design of the game
-// - Create principles for the file structure. Right now it's kind of random. 
 // - Review licensing so I don't get sued
 // - Use the race condition checker...
 // - Implement generalized input handler
-// - Reconsider the 'data.go' files
 // - Improve the asset loader, turn into actual editor
 // - Create animation/sprite asset files
-// - Create a timer class
 
 FIX THE EDITOR
 Consider switching into one repo for assets and one for code? or maybe that's not such
 a good idea idk
 Could also just reduce the size of the assets folder you know
-
-Consideration: asset manager:
-Why do we need this? Well, we should be performing the loading of sprites in another thread
-so that we can display a loading screen or something while loading our assets
-It's obviously not feasible to just load every resource on startup
-Another reason for the asset manager: Right now we are loading assets multiple times
-because they aren't stored globally anywhere. This is resource inefficient, with an asset
-manager we could load assets and then cache them for later
-
-Note that it may only be necessary to load some assets on startup (i.e. those that 
-take a lot of time to load)

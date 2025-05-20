@@ -18,6 +18,7 @@ func (a *fontAsset) Load() {
 }
 
 func NewFontAsset(src []byte) *text.GoTextFaceSource {
+	// TODO: Do NOT do this
 	asset, exists := assetloader.Exists(string(src))
 	if exists {
 		return &asset.(*fontAsset).Font

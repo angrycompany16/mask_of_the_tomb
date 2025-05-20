@@ -49,7 +49,7 @@ func (t *Textbox) Draw(offsetX, offsetY float64, parentWidth, parentHeight float
 		opText.GeoM.Translate(parentWidth/2, parentHeight/2)
 	}
 
-	text.Draw(rendering.RenderLayers.UI,
+	text.Draw(rendering.ScreenLayers.UI,
 		t.Text,
 		&text.GoTextFace{
 			Source: t.Font.GoTextFaceSource,
@@ -60,7 +60,7 @@ func (t *Textbox) Draw(offsetX, offsetY float64, parentWidth, parentHeight float
 	opText.ColorScale.ScaleWithColor(t.Color.BrightColor)
 
 	opText.GeoM.Translate(-t.ShadowX, t.ShadowY)
-	text.Draw(rendering.RenderLayers.UI, t.Text, &text.GoTextFace{
+	text.Draw(rendering.ScreenLayers.UI, t.Text, &text.GoTextFace{
 		Source: t.Font.GoTextFaceSource,
 		Size:   t.FontSize,
 	}, opText)

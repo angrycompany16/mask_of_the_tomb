@@ -48,9 +48,20 @@ func Update() {
 
 func GetPos() (float64, float64) {
 	if _camera.height == 272 {
+		return _camera.posX + _camera.shakeOffsetX, _camera.posY + _camera.shakeOffsetY + 1
+	}
+	return _camera.posX + _camera.shakeOffsetX, _camera.posY + _camera.shakeOffsetY
+}
+
+func GetStablePos() (float64, float64) {
+	if _camera.height == 272 {
 		return _camera.posX, _camera.posY + 1
 	}
 	return _camera.posX, _camera.posY
+}
+
+func GetShake() (float64, float64) {
+	return _camera.shakeOffsetX, _camera.shakeOffsetY
 }
 
 func SetPos(x, y float64) {
@@ -61,8 +72,8 @@ func SetPos(x, y float64) {
 	}
 	_camera.posX = maths.Clamp(x-_camera.offsetX, 0, _camera.width-GameWidth)
 	_camera.posY = maths.Clamp(y-_camera.offsetY, _camera.screenPadding/2, _camera.height-GameHeight-_camera.screenPadding/2)
-	_camera.posX += _camera.shakeOffsetX
-	_camera.posY += _camera.shakeOffsetY
+	// _camera.posX += _camera.shakeOffsetX
+	// _camera.posY += _camera.shakeOffsetY
 }
 
 func SetBorders(width, height float64) {

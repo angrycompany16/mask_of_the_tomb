@@ -9,7 +9,6 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
-	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/gamestate"
 	"mask_of_the_tomb/internal/libraries/rendering"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
@@ -18,7 +17,6 @@ import (
 	"mask_of_the_tomb/internal/plugins/player"
 	"mask_of_the_tomb/internal/plugins/world"
 	"path/filepath"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -30,14 +28,13 @@ const (
 )
 
 var (
-	ErrTerminated = errors.New("Terminatednow")
-	InitLevelName string
+	ErrTerminated = errors.New("Terminated")
+	InitLevelName = "Level_0"
 	SaveProfile   int
 )
 
 var (
 	loadFinishedChan  = make(chan int)
-	delayAsset        = assettypes.NewDelayAsset(time.Second)
 	mainMenuPath      = filepath.Join("assets", "menus", "game", "mainmenu.yaml")
 	pauseMenuPath     = filepath.Join("assets", "menus", "game", "pausemenu.yaml")
 	hudPath           = filepath.Join("assets", "menus", "game", "hud.yaml")
@@ -60,7 +57,6 @@ type Game struct {
 
 func (g *Game) Load() {
 	g.gameUI.LoadPreamble(loadingScreenPath)
-	assetloader.Load("a", &delayAsset)
 	g.world.Load()
 	g.player.CreateAssets()
 	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath, optionsMenuPath, introScreenPath)
@@ -75,16 +71,9 @@ func (g *Game) Init() {
 
 func (g *Game) Update() error {
 	events.Update()
-	confirmations := g.gameUI.GetConfirmations()
 	g.gameUI.Update()
 	rendering.Update()
 
-	biome := ""
-	if g.world.ActiveLevel != nil {
-		biome = g.world.ActiveLevel.GetBiome()
-	}
-
-	g.musicPlayer.Update(g.State.S, biome)
 	ebitenutil.DebugPrint(rendering.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 
 	var err error
@@ -93,21 +82,7 @@ func (g *Game) Update() error {
 		if _, done := concurrency.Poll(loadFinishedChan); done {
 			fmt.Println("Finished loading stage")
 			g.Init()
-			g.State.S = gamestate.MainMenu
-		}
-	case gamestate.MainMenu:
-		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.gameUI.SwitchActiveDisplay("mainmenu")
-		}
-
-		if val, ok := confirmations["Play"]; ok && val {
-			gameData := save.LoadGame(SaveProfile)
-			g.world.Init(InitLevelName, gameData)
-			if gameData.SpawnRoomName == "" {
-				g.State.S = gamestate.Intro
-				return nil
-			}
-			// TODO: Convert to single function
+			g.world.Init(InitLevelName, save.GameData{""})
 			spawnX, spawnY := g.world.ActiveLevel.GetResetPoint()
 			g.player.Init(spawnX, spawnY, maths.DirNone)
 			playerWidth, playerHeight := g.player.GetSize()
@@ -120,31 +95,6 @@ func (g *Game) Update() error {
 			)
 			g.gameUI.SwitchActiveDisplay("hud")
 			g.State.S = gamestate.Playing
-		} else if val, ok := confirmations["Quit"]; ok && val {
-			return ErrTerminated
-		} else if val, ok := confirmations["Options"]; ok && val {
-			g.gameUI.SwitchActiveDisplay("options")
-		}
-	case gamestate.Intro:
-		g.gameUI.SwitchActiveDisplay("intro")
-		if val, ok := confirmations["Introtext"]; ok && val {
-			spawnX, spawnY := g.world.ActiveLevel.GetGameEntryPos()
-			g.player.Init(spawnX, spawnY, gameEntryDirection)
-			playerWidth, playerHeight := g.player.GetSize()
-
-			w, h := g.world.ActiveLevel.GetBounds()
-			rendering.Init(
-				w, h,
-				(rendering.GameWidth-playerWidth)/2,
-				(rendering.GameHeight-playerHeight)/2,
-			)
-			g.gameUI.SwitchActiveDisplay("hud")
-			g.State.S = gamestate.Playing
-
-			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), gameEntryDirection, g.world.ActiveLevel.GetSlamboxColliders())
-			if newRect != *g.player.GetHitbox() {
-				g.player.Dash(gameEntryDirection, newRect.Left(), newRect.Top())
-			}
 		}
 	case gamestate.Playing:
 		g.State.GameTime += 0.016666
@@ -154,31 +104,7 @@ func (g *Game) Update() error {
 			return err
 		}
 
-		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.State.S = gamestate.Paused
-			g.gameUI.SwitchActiveDisplay("pausemenu")
-		}
-
 		g.player.Update()
-	case gamestate.Paused:
-		// TODO: Make esc go back to playing state, and implement back button
-		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.gameUI.SwitchActiveDisplay("pausemenu")
-		}
-
-		if val, ok := confirmations["Resume"]; ok && val {
-			g.State.S = gamestate.Playing
-			g.gameUI.SwitchActiveDisplay("hud")
-		} else if val, ok := confirmations["Quit"]; ok && val {
-			g.world.SaveLevel(g.world.ActiveLevel)
-			save.SaveGame(save.GameData{
-				SpawnRoomName: g.world.ActiveLevel.GetName(),
-			}, SaveProfile)
-			g.State.S = gamestate.MainMenu
-			g.gameUI.SwitchActiveDisplay("mainmenu")
-		} else if val, ok := confirmations["Options"]; ok && val {
-			g.gameUI.SwitchActiveDisplay("options")
-		}
 	}
 
 	return nil

@@ -47,4 +47,13 @@ var (
 
 	//go:embed shaders/lights_subtractive.kage
 	Lights_subtractive_kage []byte
+
+	//go:embed shaders/pixel_lights.kage
+	Pixel_lights_kage []byte
+
+	//go:embed sprites/environment/tilemaps/export/slambox_tilemap.png
+	Slambox_tilemap []byte
+
+	//go:embed sprites/player/export/player.png
+	Player_sprite []byte
 )

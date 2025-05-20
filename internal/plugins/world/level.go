@@ -32,14 +32,6 @@ const (
 )
 
 var (
-	layerMap = map[string]*ebiten.Image{
-		"Foreground":       rendering.RenderLayers.Foreground,
-		"PlayerspaceAlt":   rendering.RenderLayers.Playerspace,
-		"Playerspace":      rendering.RenderLayers.Playerspace,
-		"Props":            rendering.RenderLayers.Midground,
-		"MidgroundSprites": rendering.RenderLayers.Midground,
-		"BackgroundTiles":  rendering.RenderLayers.Background,
-	}
 	lerpBlend = ebiten.Blend{
 		BlendFactorSourceRGB:        ebiten.BlendFactorSourceAlpha,
 		BlendFactorSourceAlpha:      ebiten.BlendFactorZero,
@@ -52,21 +44,31 @@ var (
 )
 
 type Level struct {
-	name                    string
-	defs                    *ebitenLDTK.Defs
-	levelLDTK               *ebitenLDTK.Level
-	TilemapCollider         physics.TilemapCollider
-	tileSize                float64
-	bgColor                 color.Color
-	fogShader               *ebiten.Shader
-	vignetteShader          *ebiten.Shader
-	lightsAdditiveShader    *ebiten.Shader
-	lightsSubtractiveShader *ebiten.Shader
-	resetX, resetY          float64
-	ambientParticles        *particles.ParticleSystem
-	hazards                 []Hazard
-	doors                   []Door
-	slamboxes               []*Slambox
+	name            string
+	defs            *ebitenLDTK.Defs
+	levelLDTK       *ebitenLDTK.Level
+	TilemapCollider physics.TilemapCollider
+	tileSize        float64
+	bgColor         color.Color
+
+	// Probably convert into struct in rendering.go
+	layers rendering.LayerList
+	// foreground  *ebiten.Image
+	// playerspace *ebiten.Image
+	// midground   *ebiten.Image
+	// background  *ebiten.Image
+
+	fogShader      *ebiten.Shader
+	vignetteShader *ebiten.Shader
+	// lightsAdditiveShader    *ebiten.Shader
+	// lightsSubtractiveShader *ebiten.Shader
+	lightsPixelShader *ebiten.Shader
+	pixelLightShader  *ebiten.Shader
+	resetX, resetY    float64
+	ambientParticles  *particles.ParticleSystem
+	hazards           []Hazard
+	doors             []Door
+	slamboxes         []*Slambox
 }
 
 // ------ CONSTRUCTOR ------
@@ -79,10 +81,9 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.bgColor = colors.HexToRGB(levelLDTK.BgColorHex)
 	newLevel.fogShader = errs.Must(ebiten.NewShader(assets.Fog_kage))
 	newLevel.vignetteShader = errs.Must(ebiten.NewShader(assets.Vignette_kage))
-	newLevel.lightsAdditiveShader = errs.Must(ebiten.NewShader(assets.Lights_additive_kage))
-	newLevel.lightsSubtractiveShader = errs.Must(ebiten.NewShader(assets.Lights_subtractive_kage))
-	newLevel.ambientParticles = errs.Must(particles.FromFile(particleSysPath, rendering.RenderLayers.Foreground))
+	newLevel.lightsPixelShader = errs.Must(ebiten.NewShader(assets.Pixel_lights_kage))
 	// TODO: set particle system bounds based on level size
+	newLevel.ambientParticles = errs.Must(particles.FromFile(particleSysPath, rendering.ScreenLayers.Foreground))
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
@@ -124,8 +125,40 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	for _, slambox := range newLevel.slamboxes {
 		for _, otherSlambox := range newLevel.slamboxes {
 			if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
+				// TODO: Change to LinkBox() method
 				slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
 			}
+		}
+		slambox.CreateSprite()
+	}
+
+	// Pre-render level
+	newLevel.layers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
+
+	layerMap := map[string]*ebiten.Image{
+		"Foreground":       newLevel.layers.Foreground,
+		"PlayerspaceAlt":   newLevel.layers.Playerspace,
+		"Playerspace":      newLevel.layers.Playerspace,
+		"Props":            newLevel.layers.Midground,
+		"MidgroundSprites": newLevel.layers.Midground,
+		"BackgroundTiles":  newLevel.layers.Background,
+	}
+
+	for i := len(newLevel.levelLDTK.Layers) - 1; i >= 0; i-- {
+		layer := newLevel.levelLDTK.Layers[i]
+
+		targetRenderLayer, ok := layerMap[layer.Name]
+		if !ok && (layer.Type == ebitenLDTK.LayerTypeIntGrid || layer.Type == ebitenLDTK.LayerTypeTiles) {
+			fmt.Printf("Layer with name %s does not have a rendering layer\n", layer.Name)
+			continue
+		}
+
+		if layer.Type == ebitenLDTK.LayerTypeTiles {
+			tileset := errs.Must(newLevel.defs.GetTilesetByUid(layer.TilesetUid))
+			drawTiles(layer.GridTiles, &tileset, targetRenderLayer, tileset.TileGridSize)
+		} else if layer.Type == ebitenLDTK.LayerTypeIntGrid {
+			tileset := errs.Must(newLevel.defs.GetTilesetByUid(layer.TilesetUid))
+			drawTiles(layer.AutoLayerTiles, &tileset, targetRenderLayer, tileset.TileGridSize)
 		}
 	}
 
@@ -140,18 +173,24 @@ func (l *Level) Update() {
 	l.ambientParticles.Update()
 }
 
+// Draw the level only once
+// Note: Only a few things need to be rendered multiple times:
+// Dynamic objects
+// Shaders
+// Basically we can draw the level only once and then draw that texture onto
+// the screen instead of drawing each tile every frame
+// Optimization yeah
 func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 	for _, box := range l.slamboxes {
 		box.Draw(camX, camY)
 	}
 
-	rendering.RenderLayers.Background2.Fill(l.bgColor)
+	rendering.ScreenLayers.Background2.Fill(l.bgColor)
 
 	// Render fog layer
 	shaderOp := ebiten.DrawRectShaderOptions{}
 	shaderOp.Uniforms = map[string]any{
-		"Time": time / 5,
-		// "Time":       timeutil.GetTime() / 10000000, // TODO: Where is timeutil?
+		"Time":       time / 5,
 		"Amplitude":  1.0,
 		"Frequency":  0.025,
 		"Strength":   0.7,
@@ -161,58 +200,70 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
 	}
 	shaderOp.Blend = ebiten.BlendSourceOver
-	rendering.RenderLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
+	// TODO: Move fog with camera position
+	rendering.ScreenLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
 
 	shaderOp.Uniforms = map[string]any{
 		"PlayerPos":  [2]float64{playerX, playerY},
 		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
 	}
-	shaderOp.Blend = lerpBlend
-	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsAdditiveShader, &shaderOp)
+	// shaderOp.Blend = lerpBlend
+	// rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsAdditiveShader, &shaderOp)
 
 	l.ambientParticles.Draw(camX, camY)
 
-	shaderOp.Blend = ebiten.BlendSourceOver
-	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsSubtractiveShader, &shaderOp)
+	// l.layers.DrawOnto(&rendering.ScreenLayers, -camX, -camY)
+	// rendering.ScreenLayers.Background.
+
+	// shaderOp.Blend = ebiten.BlendSourceOver
+	// rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsSubtractiveShader, &shaderOp)
 
 	shaderOp.Blend = ebiten.BlendSourceOver
-	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
+	rendering.ScreenLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
 
-	// NOTE: we *need* to loop in reverse
-	for i := len(l.levelLDTK.Layers) - 1; i >= 0; i-- {
-		layer := l.levelLDTK.Layers[i]
+	// Draw lighting on both midground and playerspace
+	// This creates problems with camera shake
+	trueCamX, trueCamY := rendering.GetStablePos()
 
-		targetRenderLayer, ok := layerMap[layer.Name]
-		if !ok && (layer.Type == ebitenLDTK.LayerTypeIntGrid || layer.Type == ebitenLDTK.LayerTypeTiles) {
-			fmt.Printf("Layer with name %s does not have a rendering layer\n", layer.Name)
-			continue
-		}
-
-		if layer.Type == ebitenLDTK.LayerTypeTiles {
-			tileset := errs.Must(l.defs.GetTilesetByUid(layer.TilesetUid))
-			drawTile(layer.GridTiles, &tileset, targetRenderLayer, tileset.TileGridSize, camX, camY)
-		} else if layer.Type == ebitenLDTK.LayerTypeIntGrid {
-			tileset := errs.Must(l.defs.GetTilesetByUid(layer.TilesetUid))
-			drawTile(layer.AutoLayerTiles, &tileset, targetRenderLayer, tileset.TileGridSize, camX, camY)
-		}
+	shaderOp.Images = [4]*ebiten.Image{
+		l.layers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GameWidth), int(trueCamY+rendering.GameHeight))).(*ebiten.Image),
+		nil,
+		nil,
+		nil,
 	}
 
-	pXrel := playerX - camX
-	pYrel := playerY - camY
+	playerXrel := playerX - camX
+	playerYrel := playerY - camY
+
+	shakeX, shakeY := rendering.GetShake()
 	shaderOp.Uniforms = map[string]any{
-		"PlayerPos":  [2]float64{pXrel, pYrel},
-		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
+		"CamShake":     [2]float64{shakeX, shakeY},
+		"AmbientLight": [4]float64{0.0, 0.0, 0.0, 1.0},
+		"LightPos0":    [3]float64{playerXrel, playerYrel, 0.0},
+		"LightColor0":  [3]float64{1.0, 0.0, 0.0},
 	}
-	shaderOp.Blend = lerpBlend
-	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsAdditiveShader, &shaderOp)
 
-	l.ambientParticles.Draw(camX, camY)
+	// rendering.RenderLayers.Midground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
+	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
 
-	shaderOp.Blend = ebiten.BlendSourceOver
-	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsSubtractiveShader, &shaderOp)
+	// pXrel := playerX - camX
+	// pYrel := playerY - camY
+	// shaderOp.Uniforms = map[string]any{
+	// 	"PlayerPos":  [2]float64{pXrel, pYrel},
+	// 	"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
+	// }
+	// shaderOp.Blend = lerpBlend
+	// rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsAdditiveShader, &shaderOp)
 
-	shaderOp.Blend = ebiten.BlendSourceOver
-	rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
+	// l.ambientParticles.Draw(camX, camY)
+
+	// shaderOp.Blend = ebiten.BlendSourceOver
+	// rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsSubtractiveShader, &shaderOp)
+
+	// shaderOp.Blend = ebiten.BlendSourceOver
+	// rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
+
+	// rendering.RenderLayers.Playerspace.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
 }
 
 // ------ GETTERS ------
@@ -318,11 +369,12 @@ func (l *Level) GetGameEntryPos() (float64, float64) {
 }
 
 // ------ INTERNAL ------
-func drawTile(
+func drawTiles(
 	tiles []ebitenLDTK.Tile,
 	tileset *ebitenLDTK.Tileset,
 	targetLayer *ebiten.Image,
-	tileSize, camX, camY float64,
+	tileSize float64,
+	// camX, camY float64,
 ) {
 	for _, tile := range tiles {
 		scaleX, scaleY := 1.0, 1.0
@@ -334,6 +386,7 @@ func drawTile(
 		case ebitenLDTK.OrientationFlipXY:
 			scaleX, scaleY = -1, -1
 		}
+
 		ebitenrenderutil.DrawAtScaled(tileset.Image.SubImage(
 			image.Rect(
 				int(tile.Src[0]),
@@ -343,7 +396,18 @@ func drawTile(
 			),
 		).(*ebiten.Image),
 			targetLayer,
-			tile.Px[0]-camX, tile.Px[1]-camY, scaleX, scaleY, 0.5, 0.5)
+			tile.Px[0], tile.Px[1], scaleX, scaleY, 0.5, 0.5)
+
+		// ebitenrenderutil.DrawAtScaled(tileset.Image.SubImage(
+		// 	image.Rect(
+		// 		int(tile.Src[0]),
+		// 		int(tile.Src[1]),
+		// 		int(tile.Src[0]+tileSize),
+		// 		int(tile.Src[1]+tileSize),
+		// 	),
+		// ).(*ebiten.Image),
+		// 	targetLayer,
+		// 	tile.Px[0]-camX, tile.Px[1]-camY, scaleX, scaleY, 0.5, 0.5)
 	}
 }
 

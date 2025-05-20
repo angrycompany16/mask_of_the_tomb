@@ -94,8 +94,8 @@ func (ps *ParticleSystem) Update() {
 	}
 }
 
+// TODO: Maybe take in the layer as a function parameter?
 func (ps *ParticleSystem) Draw(camX, camY float64) {
-	// camX, camY := camera.GetPos()
 	if ps.GlobalSpace {
 		for _, particle := range ps.particles {
 			particle.draw(ps.layer, camX, camY)

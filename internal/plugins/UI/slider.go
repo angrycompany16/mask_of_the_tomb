@@ -66,7 +66,7 @@ func (s *Slider) Draw(offsetX, offsetY float64, parentWidth, parentHeight float6
 	}
 
 	vector.DrawFilledRect(
-		rendering.RenderLayers.UI,
+		rendering.ScreenLayers.UI,
 		float32(rectX),
 		float32(rectY),
 		float32(s.Width),
@@ -77,7 +77,7 @@ func (s *Slider) Draw(offsetX, offsetY float64, parentWidth, parentHeight float6
 
 	padding := min(s.Width/2, s.Height/2)
 	vector.StrokeLine(
-		rendering.RenderLayers.UI,
+		rendering.ScreenLayers.UI,
 		float32(rectX+padding),
 		float32(rectY+padding),
 		float32(rectX+s.Width-padding),
@@ -89,7 +89,7 @@ func (s *Slider) Draw(offsetX, offsetY float64, parentWidth, parentHeight float6
 
 	t := s.val / (s.Max - s.Min)
 	vector.DrawFilledCircle(
-		rendering.RenderLayers.UI,
+		rendering.ScreenLayers.UI,
 		float32((1-t)*(rectX+padding)+t*(rectX+s.Width-padding)),
 		float32(rectY+padding),
 		float32(s.KnobRadius),

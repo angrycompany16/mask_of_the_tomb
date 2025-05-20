@@ -75,7 +75,7 @@ func (g *Game) Update() error {
 	g.gameUI.Update()
 	rendering.Update()
 
-	ebitenutil.DebugPrint(rendering.RenderLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
+	ebitenutil.DebugPrint(rendering.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 
 	var err error
 	switch g.State.S {
@@ -156,7 +156,7 @@ func (g *Game) updateGameplay() error {
 		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
 		if slambox != nil {
 			g.player.StartSlamming(moveDir)
-			slambox.DoSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox))
+			slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox))
 		} else {
 			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), moveDir, g.world.ActiveLevel.GetSlamboxColliders())
 			if newRect != *g.player.GetHitbox() {

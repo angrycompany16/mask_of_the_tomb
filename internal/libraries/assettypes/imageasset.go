@@ -1,31 +1,27 @@
 package assettypes
 
 import (
-	"mask_of_the_tomb/internal/core/assetloader"
-	"mask_of_the_tomb/internal/core/errs"
+	"bytes"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-type imageAsset struct {
-	path  string
-	Image ebiten.Image
+type ImageAsset struct {
+	src   []byte
+	Image *ebiten.Image
 }
 
-func (a *imageAsset) Load() {
-	a.Image = *errs.MustNewImageFromFile(a.path)
+func (a *ImageAsset) Load() {
+	img, _, err := ebitenutil.NewImageFromReader(bytes.NewReader(a.src))
+	a.Image = img
+	if err != nil {
+		panic(err)
+	}
 }
 
-func NewImageAsset(path string) *ebiten.Image {
-	asset, exists := assetloader.Exists(path)
-	if exists {
-		return &asset.(*imageAsset).Image
+func MakeImageAsset(src []byte) *ImageAsset {
+	return &ImageAsset{
+		src: src,
 	}
-
-	imageAsset := imageAsset{
-		path: path,
-	}
-
-	assetloader.Load(path, &imageAsset)
-	return &imageAsset.Image
 }

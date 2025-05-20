@@ -2,25 +2,21 @@ package world
 
 import (
 	"image"
-	"mask_of_the_tomb/assets"
+	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/concurrency"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/movebox"
 	"mask_of_the_tomb/internal/libraries/physics"
 	"mask_of_the_tomb/internal/libraries/rendering"
 	"math"
-	"path/filepath"
 	"time"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
-)
-
-var (
-	SlamboxTilemapPath = filepath.Join(assets.EnvironmentTilemapFolder, "playerspace_tilemap.png")
 )
 
 const (
@@ -42,7 +38,42 @@ const (
 	tileSize                   = 8
 )
 
+type TilePresence int
+
+const (
+	FREE TilePresence = iota
+	NONE
+	EXIST
+)
+
+type pattern [8]TilePresence
+type tileData [8]bool
+
 var (
+	TopLeftInner = image.Rect(
+		int(tilesRegionX+tileSize*3),
+		int(tilesRegionY),
+		int(tilesRegionX+tileSize*4),
+		int(tilesRegionY+tileSize),
+	)
+	TopRightInner = image.Rect(
+		int(tilesRegionX+tileSize*4),
+		int(tilesRegionY),
+		int(tilesRegionX+tileSize*5),
+		int(tilesRegionY+tileSize),
+	)
+	BottomLeftInner = image.Rect(
+		int(tilesRegionX+tileSize*3),
+		int(tilesRegionY+tileSize),
+		int(tilesRegionX+tileSize*4),
+		int(tilesRegionY+tileSize*2),
+	)
+	BottomRightInner = image.Rect(
+		int(tilesRegionX+tileSize*4),
+		int(tilesRegionY+tileSize),
+		int(tilesRegionX+tileSize*5),
+		int(tilesRegionY+tileSize*2),
+	)
 	TopLeft = image.Rect(
 		int(tilesRegionX),
 		int(tilesRegionY),
@@ -97,6 +128,55 @@ var (
 		int(tilesRegionX+3*tileSize),
 		int(tilesRegionY+3*tileSize),
 	)
+
+	TopLeftInnerPattern = pattern{
+		NONE, EXIST, FREE,
+		EXIST /**/, FREE,
+		FREE, FREE, EXIST}
+	TopRightInnerPattern = pattern{
+		FREE, EXIST, NONE,
+		FREE /**/, EXIST,
+		EXIST, FREE, FREE}
+	BottomLeftInnerPattern = pattern{
+		FREE, FREE, EXIST,
+		EXIST /**/, FREE,
+		NONE, EXIST, FREE}
+	BottomRightInnerPattern = pattern{
+		EXIST, FREE, FREE,
+		FREE /**/, EXIST,
+		FREE, EXIST, NONE}
+	TopLeftPattern = pattern{
+		NONE, NONE, FREE,
+		NONE /**/, FREE,
+		FREE, FREE, FREE}
+	TopRightPattern = pattern{
+		FREE, NONE, NONE,
+		FREE /**/, NONE,
+		FREE, FREE, FREE}
+	BottomLeftPattern = pattern{
+		FREE, FREE, FREE,
+		NONE /**/, FREE,
+		NONE, NONE, FREE}
+	BottomRightPattern = pattern{
+		FREE, FREE, FREE,
+		FREE /**/, NONE,
+		FREE, NONE, NONE}
+	LeftPattern = pattern{
+		FREE, FREE, FREE,
+		NONE /**/, EXIST,
+		FREE, FREE, FREE}
+	RightPattern = pattern{
+		FREE, FREE, FREE,
+		EXIST /**/, NONE,
+		FREE, FREE, FREE}
+	TopPattern = pattern{
+		FREE, NONE, FREE,
+		FREE /**/, FREE,
+		FREE, EXIST, FREE}
+	BottomPattern = pattern{
+		FREE, EXIST, FREE,
+		FREE /**/, FREE,
+		FREE, NONE, FREE}
 )
 
 type SlamContext struct {
@@ -110,6 +190,7 @@ type Slambox struct {
 	ConnectedBoxes            []*Slambox
 	LinkID                    string   // ID to check for linked boxes
 	OtherLinkIDs              []string // ID to check for linked boxes
+	tilemap                   *ebiten.Image
 	sprite                    *ebiten.Image
 	movebox                   *movebox.Movebox
 	state                     slamboxState
@@ -140,7 +221,7 @@ func (s *Slambox) Update() {
 
 func (s *Slambox) Draw(camX, camY float64) {
 	x, y := s.movebox.GetPos()
-	ebitenrenderutil.DrawAt(s.sprite, rendering.RenderLayers.Playerspace, x-camX, y-camY)
+	ebitenrenderutil.DrawAt(s.sprite, rendering.ScreenLayers.Playerspace, x-camX, y-camY)
 }
 
 // Projects a slambox through the environment given by slamctx
@@ -184,6 +265,7 @@ func (s *Slambox) Slam(slamCtx SlamContext) {
 			otherProjRect.SetPos(otherProjRect.Left()+offset, otherSlambox.Collider.Top())
 		}
 		otherSlambox.SetTarget(otherProjRect.Left(), otherProjRect.Top())
+		// TODO: set position of any connected components
 	}
 
 	offset := math.Abs(dist - shortestDist)
@@ -198,11 +280,12 @@ func (s *Slambox) Slam(slamCtx SlamContext) {
 	case maths.DirLeft:
 		projectedSlamboxRect.SetPos(projectedSlamboxRect.Left()+offset, s.Collider.Top())
 	}
+	// TODO: set position of any connected components
 
 	s.SetTarget(projectedSlamboxRect.Left(), projectedSlamboxRect.Top())
 }
 
-func (s *Slambox) DoSlam(direction maths.Direction, tilemapCollider *physics.TilemapCollider, disconnectedColliders []*physics.RectCollider) {
+func (s *Slambox) StartSlam(direction maths.Direction, tilemapCollider *physics.TilemapCollider, disconnectedColliders []*physics.RectCollider) {
 	s.slamTimer = time.NewTimer(slamDelay)
 	s.state = waiting
 	s.currentSlamCtx = SlamContext{
@@ -224,6 +307,91 @@ func (s *Slambox) SetPos(x, y float64) {
 	s.movebox.SetPos(x, y)
 }
 
+func matchPattern(in tileData, comp pattern) bool {
+	for i := 0; i < 8; i++ {
+		if comp[i] == FREE {
+			continue
+		} else if comp[i] == NONE && in[i] {
+			return false
+		} else if comp[i] == EXIST && !in[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Slambox) CreateSprite() {
+	slamboxTilemap := assetloader.GetAsset("slamboxTilemap").(*assettypes.ImageAsset).Image
+
+	check := func(i, j int) {
+		localX, localY := float64(i*tileSize), float64(j*tileSize)
+		worldX := localX + s.Collider.Left() + tileSize/2
+		worldY := localY + s.Collider.Top() + tileSize/2
+
+		var ul, um, ur, ml, mr, bl, bm, br bool
+		for _, otherBox := range append(s.ConnectedBoxes, s) {
+			ul = ul || otherBox.Collider.Rect.IsWithin(worldX-tileSize, worldY-tileSize)
+			um = um || otherBox.Collider.Rect.IsWithin(worldX, worldY-tileSize)
+			ur = ur || otherBox.Collider.Rect.IsWithin(worldX+tileSize, worldY-tileSize)
+			ml = ml || otherBox.Collider.Rect.IsWithin(worldX-tileSize, worldY)
+			mr = mr || otherBox.Collider.Rect.IsWithin(worldX+tileSize, worldY)
+			bl = bl || otherBox.Collider.Rect.IsWithin(worldX-tileSize, worldY+tileSize)
+			bm = bm || otherBox.Collider.Rect.IsWithin(worldX, worldY+tileSize)
+			br = br || otherBox.Collider.Rect.IsWithin(worldX+tileSize, worldY+tileSize)
+		}
+
+		tileData := tileData{
+			ul, um, ur, ml, mr, bl, bm, br,
+		}
+
+		// fmt.Println(slamboxTilemap)
+		if matchPattern(tileData, TopLeftInnerPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(TopLeftInner).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, TopRightInnerPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(TopRightInner).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, BottomLeftInnerPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(BottomLeftInner).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, BottomRightInnerPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(BottomRightInner).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, TopLeftPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(TopLeft).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, TopRightPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(TopRight).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, BottomLeftPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(BottomLeft).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, BottomRightPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(BottomRight).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, LeftPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(Left).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, RightPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(Right).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, TopPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(Top).(*ebiten.Image), s.sprite, localX, localY)
+		} else if matchPattern(tileData, BottomPattern) {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(Bottom).(*ebiten.Image), s.sprite, localX, localY)
+		} else {
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(Center).(*ebiten.Image), s.sprite, localX, localY)
+		}
+	}
+
+	for i := 0; i < int(s.Collider.Width()/tileSize); i++ {
+		check(i, 0)
+		check(i, int(s.Collider.Height()/tileSize-1))
+	}
+
+	for i := 0; i < int(s.Collider.Height()/tileSize); i++ {
+		check(0, i)
+		check(int(s.Collider.Width()/tileSize-1), i)
+	}
+
+	for i := 1; i < int(s.Collider.Width()/tileSize-1); i++ {
+		for j := 1; j < int(s.Collider.Height()/tileSize-1); j++ {
+			localX, localY := float64(i*tileSize), float64(j*tileSize)
+			ebitenrenderutil.DrawAt(slamboxTilemap.SubImage(Center).(*ebiten.Image), s.sprite, localX, localY)
+		}
+	}
+}
+
 func NewSlambox(
 	entity *ebitenLDTK.Entity,
 ) *Slambox {
@@ -234,35 +402,9 @@ func NewSlambox(
 	newSlambox.movebox = movebox.NewMovebox(moveSpeed)
 	newSlambox.SetPos(entity.Px[0], entity.Px[1])
 	newSlambox.moveFinishedEventListener = events.NewEventListener(newSlambox.movebox.OnMoveFinished)
-	tilemap := errs.MustNewImageFromFile(SlamboxTilemapPath)
+	// newSlambox.tilemap = assettypes.NewImageAsset(slamboxTilemapPath)
 
 	newSlambox.sprite = ebiten.NewImage(int(entity.Width), int(entity.Height))
-
-	// Render from tilemap
-	// Draw corners
-	ebitenrenderutil.DrawAt(tilemap.SubImage(TopLeft).(*ebiten.Image), newSlambox.sprite, 0, 0)
-	ebitenrenderutil.DrawAt(tilemap.SubImage(TopRight).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, 0)
-	ebitenrenderutil.DrawAt(tilemap.SubImage(BottomLeft).(*ebiten.Image), newSlambox.sprite, 0, entity.Height-tileSize)
-	ebitenrenderutil.DrawAt(tilemap.SubImage(BottomRight).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, entity.Height-tileSize)
-
-	// Draw edges
-	for i := 1; i < int(entity.Width/tileSize)-1; i++ {
-		ebitenrenderutil.DrawAt(tilemap.SubImage(Top).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), 0)
-		ebitenrenderutil.DrawAt(tilemap.SubImage(Bottom).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), entity.Height-tileSize)
-	}
-
-	for i := 1; i < int(entity.Height/tileSize)-1; i++ {
-		ebitenrenderutil.DrawAt(tilemap.SubImage(Left).(*ebiten.Image), newSlambox.sprite, 0, float64(i*tileSize))
-		ebitenrenderutil.DrawAt(tilemap.SubImage(Right).(*ebiten.Image), newSlambox.sprite, entity.Width-tileSize, float64(i*tileSize))
-	}
-
-	// Draw interior
-	for i := 1; i < int(entity.Width/tileSize)-1; i++ {
-		for j := 1; j < int(entity.Height/tileSize)-1; j++ {
-			ebitenrenderutil.DrawAt(tilemap.SubImage(Center).(*ebiten.Image), newSlambox.sprite, float64(i*tileSize), float64(j*tileSize))
-		}
-	}
-
 	connectionField := errs.Must(entity.GetFieldByName(SlamboxConnectionFieldName))
 	for _, entityRef := range connectionField.EntityRefArray {
 		newSlambox.OtherLinkIDs = append(newSlambox.OtherLinkIDs, entityRef.EntityIid)

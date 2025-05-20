@@ -11,7 +11,7 @@
 	"iid": "ca57f330-e920-11ef-98cf-75da41bf02a6",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 484725,
-	"nextUid": 85,
+	"nextUid": 88,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "Free",
@@ -744,6 +744,43 @@
 					"allowedRefsEntityUid": null,
 					"allowedRefTags": [],
 					"tilesetUid": null
+				},
+				{
+					"identifier": "ConnectedComponents",
+					"doc": null,
+					"__type": "Array<EntityRef>",
+					"uid": 87,
+					"type": "F_EntityRef",
+					"isArray": true,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "RefLinkBetweenCenters",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "CurvedArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": null,
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": false,
+					"allowOutOfLevelRef": false,
+					"allowedRefs": "Any",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
 				}
 			]
 		},
@@ -781,6 +818,79 @@
 			"pivotX": 0,
 			"pivotY": 0,
 			"fieldDefs": []
+		},
+		{
+			"identifier": "Hazard",
+			"uid": 85,
+			"tags": [],
+			"exportToToc": false,
+			"allowOutOfBounds": false,
+			"doc": null,
+			"width": 8,
+			"height": 8,
+			"resizableX": true,
+			"resizableY": true,
+			"minWidth": 8,
+			"maxWidth": null,
+			"minHeight": 8,
+			"maxHeight": null,
+			"keepAspectRatio": false,
+			"tileOpacity": 1,
+			"fillOpacity": 1,
+			"lineOpacity": 1,
+			"hollow": false,
+			"color": "#FF0044",
+			"renderMode": "Rectangle",
+			"showName": true,
+			"tilesetId": null,
+			"tileRenderMode": "FitInside",
+			"tileRect": null,
+			"uiTileRect": null,
+			"nineSliceBorders": [],
+			"maxCount": 0,
+			"limitScope": "PerLevel",
+			"limitBehavior": "MoveLastOne",
+			"pivotX": 0,
+			"pivotY": 0,
+			"fieldDefs": [
+				{
+					"identifier": "Damage",
+					"doc": null,
+					"__type": "Float",
+					"uid": 86,
+					"type": "F_Float",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "Hidden",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "StraightArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": { "id": "V_Float", "params": [1] },
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
+				}
+			]
 		}
 	], "tilesets": [
 		{
@@ -880,21 +990,24 @@
 							"height": 32,
 							"defUid": 1,
 							"px": [104,168],
-							"fieldInstances": [{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [{
-								"entityIid": "91abb640-e920-11ef-a853-dfa79b8e6717",
-								"layerIid": "9ac99d20-e920-11ef-98cf-995957388ca4",
-								"levelIid": "ca581a40-e920-11ef-98cf-852457be218b",
-								"worldIid": "ca57f331-e920-11ef-98cf-0b8107c083c5"
-							}], "__tile": null, "defUid": 83, "realEditorValues": [{
-								"id": "V_String",
-								"params": ["91abb640-e920-11ef-a853-dfa79b8e6717"]
-							}] }],
+							"fieldInstances": [
+								{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [{
+									"entityIid": "91abb640-e920-11ef-a853-dfa79b8e6717",
+									"layerIid": "9ac99d20-e920-11ef-98cf-995957388ca4",
+									"levelIid": "ca581a40-e920-11ef-98cf-852457be218b",
+									"worldIid": "ca57f331-e920-11ef-98cf-0b8107c083c5"
+								}], "__tile": null, "defUid": 83, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["91abb640-e920-11ef-a853-dfa79b8e6717"]
+								}] },
+								{ "__identifier": "ConnectedComponents", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 87, "realEditorValues": [] }
+							],
 							"__worldX": 104,
 							"__worldY": 168
 						},
 						{
 							"__identifier": "Slambox",
-							"__grid": [4,9],
+							"__grid": [11,18],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
@@ -903,18 +1016,45 @@
 							"width": 16,
 							"height": 40,
 							"defUid": 1,
-							"px": [32,72],
-							"fieldInstances": [{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [{
-								"entityIid": "a35e44e0-e920-11ef-98cf-c3d6807a276a",
-								"layerIid": "9ac99d20-e920-11ef-98cf-995957388ca4",
-								"levelIid": "ca581a40-e920-11ef-98cf-852457be218b",
-								"worldIid": "ca57f331-e920-11ef-98cf-0b8107c083c5"
-							}], "__tile": null, "defUid": 83, "realEditorValues": [{
-								"id": "V_String",
-								"params": ["a35e44e0-e920-11ef-98cf-c3d6807a276a"]
-							}] }],
-							"__worldX": 32,
-							"__worldY": 72
+							"px": [88,144],
+							"fieldInstances": [
+								{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [{
+									"entityIid": "a35e44e0-e920-11ef-98cf-c3d6807a276a",
+									"layerIid": "9ac99d20-e920-11ef-98cf-995957388ca4",
+									"levelIid": "ca581a40-e920-11ef-98cf-852457be218b",
+									"worldIid": "ca57f331-e920-11ef-98cf-0b8107c083c5"
+								}], "__tile": null, "defUid": 83, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["a35e44e0-e920-11ef-98cf-c3d6807a276a"]
+								}] },
+								{ "__identifier": "ConnectedComponents", "__type": "Array<EntityRef>", "__value": [{
+									"entityIid": "bd7bb1a0-1030-11f0-8345-199c36af73d5",
+									"layerIid": "9ac99d20-e920-11ef-98cf-995957388ca4",
+									"levelIid": "ca581a40-e920-11ef-98cf-852457be218b",
+									"worldIid": "ca57f331-e920-11ef-98cf-0b8107c083c5"
+								}], "__tile": null, "defUid": 87, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["bd7bb1a0-1030-11f0-8345-199c36af73d5"]
+								}] }
+							],
+							"__worldX": 88,
+							"__worldY": 144
+						},
+						{
+							"__identifier": "Hazard",
+							"__grid": [10,18],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#FF0044",
+							"iid": "bd7bb1a0-1030-11f0-8345-199c36af73d5",
+							"width": 8,
+							"height": 40,
+							"defUid": 85,
+							"px": [80,144],
+							"fieldInstances": [{ "__identifier": "Damage", "__type": "Float", "__value": 1, "__tile": null, "defUid": 86, "realEditorValues": [] }],
+							"__worldX": 80,
+							"__worldY": 144
 						}
 					]
 				},

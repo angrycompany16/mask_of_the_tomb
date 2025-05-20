@@ -77,7 +77,7 @@ func (d *DeathAnim) Draw(camX, camY float64) {
 			false,
 		)
 
-		ebitenrenderutil.DrawAt(d.circleSurfaces[i], rendering.RenderLayers.Overlay, xPos-camX, yPos-camY, 0.5, 0.5)
+		ebitenrenderutil.DrawAt(d.circleSurfaces[i], rendering.ScreenLayers.Overlay, xPos-camX, yPos-camY, 0.5, 0.5)
 	}
 }
 

@@ -2,6 +2,7 @@ package player
 
 import (
 	"mask_of_the_tomb/assets"
+	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/libraries/animation"
@@ -96,12 +97,13 @@ func NewPlayer() *Player {
 // ------ INIT ------
 func (p *Player) CreateAssets() {
 	// TODO: Rewrite with new asset loader
-	p.sprite = assettypes.NewImageAsset(playerSpritePath)
-	p.jumpParticlesBroad = particles.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.RenderLayers.Playerspace)
-	p.jumpParticlesTight = particles.NewParticleSystemAsset(jumpParticlesTightPath, rendering.RenderLayers.Playerspace)
+	assetloader.Load("playerSprite", assettypes.MakeImageAsset(assets.Player_sprite))
+	p.jumpParticlesBroad = particles.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.ScreenLayers.Playerspace)
+	p.jumpParticlesTight = particles.NewParticleSystemAsset(jumpParticlesTightPath, rendering.ScreenLayers.Playerspace)
 }
 
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
+	p.sprite = assetloader.GetAsset("playerSprite").(*assettypes.ImageAsset).Image
 	p.SetPos(posX, posY)
 	p.direction = direction
 	p.hitbox = maths.RectFromImage(posX, posY, p.sprite)
