@@ -23,7 +23,7 @@ var (
 func Fragment(dstPos vec4, srcPos vec2) vec4 {
     // Calculating and adjusting normals
     linearNormalSample := imageSrc2At(srcPos - CamShake)
-    normal := linearNormalSample.xyz * 2.0 - 1.15
+    normal := linearNormalSample.xyz * 2.0 - 1
     if normal.x > -0.05 && normal.x < 0.05 && normal.y > -0.05 && normal.y < 0.05 {
         normal = vec3(0.0, 0.0, 1.0)
     }

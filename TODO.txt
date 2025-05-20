@@ -29,6 +29,7 @@ Bug list:
 - Dashing in the same direction as a moving slambox causes the player to hit the slambox and stop in mid 
   air (SEVERITY: LOW)
 - 44100 Hz audio does not seem to work on arch, which is quite a huge problem
+- Pausing while an area title card is playing makes it not fade away
 
 Levels:
  - One-way platforms
