@@ -4,41 +4,259 @@ package main
 
 var (
     CamShake vec2
-    Pos0 vec2
-    InnerRadius0 float
-    OuterRadius0 float
-    Color0 vec3
+    Time float
 
-    // LightPos1 vec2
-    // LightColor1 vec4
+    PositionsX [10]float
+    PositionsY [10]float
+    InnerRadii [10]float
+    OuterRadii [10]float
+    Intensities [10]float
+    ZOffsets [10]float
+    NoiseValues [10]float
+    ColorsR [10]float
+    ColorsG [10]float
+    ColorsB [10]float
 
-    // LightPos2 vec2
-    // LightColor2 vec4
-
-    AmbientLight vec4
+    AmbientLight vec3
 )
 
-// What should be shaded?
 func Fragment(dstPos vec4, srcPos vec2) vec4 {
-    normal := imageSrc2At(srcPos - CamShake).xyz
+    // Calculating and adjusting normals
+    linearNormalSample := imageSrc2At(srcPos - CamShake)
+    normal := linearNormalSample.xyz * 2.0 - 1.15
+    if normal.x > -0.05 && normal.x < 0.05 && normal.y > -0.05 && normal.y < 0.05 {
+        normal = vec3(0.0, 0.0, 1.0)
+    }
 
-    // Need position relative to object
-    attenuation := 1-smoothstep(InnerRadius0, OuterRadius0, distance(srcPos, Pos0))
-    direction := vec3(normalize(Pos0), 0.0)
-    diffuseStrength := max(0.0, dot(normalize(normal), direction))
+    lighting := vec3(0)
 
-    // diffuseLight := vec4(diffuseStrength * LightColor0, 1.0)
-    // lightDist0 := distance(LightPos0, srcPos) / 1000.0
+    // Point lights
+    for i := 0; i < 10; i++ {
+        pos := vec2(PositionsX[i], PositionsY[i])
+        color := vec3(ColorsR[i], ColorsG[i], ColorsB[i])
+        attenuation := 1-smoothstep(InnerRadii[i], OuterRadii[i], distance(srcPos, pos))
+        direction := vec3(normalize(pos - srcPos), ZOffsets[i])
+        direction.y *= -1
+        diffuseStrength := max(0.0, dot(normal, direction))
+        noiseFactor := cnoise(vec3(srcPos * 0.1, Time * 2)) * smoothstep(70, 150, distance(srcPos, pos))
+        strength := diffuseStrength * attenuation * Intensities[i] * (1 - noiseFactor)
+        
+        // color.r *= 
+        // color.g *= cnoise(vec3(srcPos * 0.1, Time))
+        // color.b *= cnoise(vec3(srcPos * 0.1, Time))
+        // if distance(srcPos, pos) > 30.0 {
+        //     // strength *= cnoise(vec3(srcPos * 0.1, Time))
+        // }
+        lighting += strength * color
+    }
 
-    // lighting := AmbientLight + diffuseLight
+    lighting += AmbientLight
 
-    // srcColor := imageSrc0At(srcPos - CamShake)
+    srcColor := imageSrc1At(srcPos - CamShake)
     
-    // // color = modelColor * lighting
-    // color := srcColor * lighting
-    return vec4(vec3(attenuation*diffuseStrength), 1.0)
+    color := srcColor.xyz * lighting
+    return vec4(getNearest(color, srcColor.xyz), srcColor.a)
 }
 
-func clip(x float, threshold float) float {
-    return clamp((x - threshold) / (1 - threshold), 0.0, 1.0)
+func srgbToLinear(color vec4) vec4 {
+	return vec4(
+		pow(color.rgb, vec3(2.2)),
+		color.a,
+	)
+}
+
+func hashFractSin(p vec2) float {
+	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)   
+}
+
+// Make shader respect ramp
+func getNearest(color vec3, srcColor vec3) vec3 {
+    // Vines Flexible Linear Ramps Palette
+    // Source: https://lospec.com/palette-list/vines-flexible-linear-ramps
+    darkPurple1 := vec3(0.082, 0.039, 0.122)
+    darkPurple2 := vec3(0.157, 0.043, 0.149)
+    darkPurple3 := vec3(0.212, 0.063, 0.153)
+    darkRed1 := vec3(0.408, 0.094, 0.141)
+    red1 := vec3(0.706, 0.137, 0.075)
+    orange1 := vec3(0.957, 0.408, 0.043)
+    yellow1 := vec3(0.957, 0.753, 0.278)
+    offWhite1 := vec3(1.0, 0.992, 0.941)
+
+    darkBlue1 := vec3(0.047, 0.075, 0.153)
+    darkTeal1 := vec3(0.012, 0.157, 0.169)
+    teal1 := vec3(0.035, 0.286, 0.247)
+    green1 := vec3(0.067, 0.514, 0.216)
+    brightGreen1 := vec3(0.341, 0.773, 0.169)
+    lightGreen1 := vec3(0.725, 0.929, 0.369)
+
+    darkPurple4 := vec3(0.102, 0.067, 0.18)
+    purple1 := vec3(0.161, 0.098, 0.271)
+    purple2 := vec3(0.369, 0.11, 0.353)
+    magenta1 := vec3(0.561, 0.09, 0.404)
+    pink1 := vec3(0.957, 0.365, 0.573)
+    lightPink1 := vec3(0.996, 0.706, 0.545)
+
+    darkBlue2 := vec3(0.055, 0.035, 0.184)
+    darkBlue3 := vec3(0.106, 0.094, 0.325)
+    blue1 := vec3(0.133, 0.176, 0.506)
+    brightBlue1 := vec3(0.275, 0.357, 0.906)
+    lightBlue1 := vec3(0.165, 0.753, 0.949)
+    cyan1 := vec3(0.49, 0.949, 0.812)
+
+    darkPurple5 := vec3(0.133, 0.047, 0.153)
+    darkRed2 := vec3(0.184, 0.075, 0.086)
+    darkRed3 := vec3(0.263, 0.118, 0.118)
+    brown1 := vec3(0.455, 0.204, 0.102)
+    orange2 := vec3(0.686, 0.365, 0.137)
+    lightOrange1 := vec3(0.973, 0.6, 0.227)
+
+    darkBlue4 := vec3(0.098, 0.063, 0.18)
+    darkBlue5 := vec3(0.141, 0.118, 0.267)
+    blue2 := vec3(0.145, 0.192, 0.369)
+    blue3 := vec3(0.227, 0.357, 0.522)
+    lightBlue2 := vec3(0.337, 0.631, 0.749)
+    lightCyan1 := vec3(0.592, 0.882, 0.824)
+
+    // Create the array
+    palette := [38]vec3{
+        darkPurple1, darkPurple2, darkPurple3, darkRed1, red1, orange1, yellow1, offWhite1,
+        darkBlue1, darkTeal1, teal1, green1, brightGreen1, lightGreen1,
+        darkPurple4, purple1, purple2, magenta1, pink1, lightPink1,
+        darkBlue2, darkBlue3, blue1, brightBlue1, lightBlue1, cyan1,
+        darkPurple5, darkRed2, darkRed3, brown1, orange2, lightOrange1,
+        darkBlue4, darkBlue5, blue2, blue3, lightBlue2, lightCyan1,
+    }
+
+    // redRamp := [8]vec3 {
+    //     darkPurple1, darkPurple2, darkPurple3, darkRed1, red1, orange1, yellow1, offWhite1,
+    // }
+    // greenRamp := [8]vec3 {
+    //     darkPurple1, darkBlue1, darkTeal1, teal1, green1, brightGreen1, lightGreen1,
+    // }
+    // purpleRamp := [8]vec3 {
+    //     darkPurple1, darkPurple4, purple1, purple2, magenta1, pink1, lightPink1,
+    // }
+    // blueRamp := [8]vec3 {
+    //     darkPurple1, darkBlue2, darkBlue3, blue1, brightBlue1, lightBlue1, cyan1,
+    // }
+    // brownRamp := [8]vec3 {
+    //     darkPurple1, darkPurple5, darkRed2, darkRed3, brown1, orange2, lightOrange1, yellow1,
+    // }
+    // cyanRamp := [8]vec3 {
+    //     darkPurple1, darkBlue4, darkBlue5, blue2, blue3, lightBlue2, lightCyan1,
+    // }
+
+    // sourceRamp := redRamp
+
+    // Identify the ramp
+    // for i := 0; i < 8; i++ {
+    //     redDist := distance(redRamp[i], srcColor)
+    //     greenDist := distance(greenRamp[i], srcColor)
+    //     purpleDist := distance(purpleRamp[i], srcColor)
+    //     blueDist := distance(blueRamp[i], srcColor)
+    //     brownDist := distance(brownRamp[i], srcColor)
+    //     cyanDist := distance(cyanRamp[i], srcColor)
+
+    //     if redDist < 0.01 {
+    //         sourceRamp = redRamp
+    //     } else if greenDist < 0.01 {
+    //         sourceRamp = greenRamp
+    //     } else if purpleDist < 0.01 {
+    //         sourceRamp = purpleRamp
+    //     } else if blueDist < 0.01 {
+    //         sourceRamp = blueRamp
+    //     } else if brownDist < 0.01 {
+    //         sourceRamp = brownRamp
+    //     } else if cyanDist < 0.01 {
+    //         sourceRamp = cyanRamp
+    //     }
+    // }
+
+    // Find nearest color in ramp
+    shortestDist := 10000.0
+    shortestDistIndex := 0
+    for i := 0; i < 38; i++ {
+        dist := distance(color, palette[i])
+        if dist < shortestDist {
+            shortestDistIndex = i
+            shortestDist = dist
+        }
+    }
+    
+    return palette[shortestDistIndex]
+}
+
+//	Classic Perlin 3D Noise 
+//	by Stefan Gustavson (https://github.com/stegu/webgl-noise)
+//
+func permute(x vec4)vec4{return mod(((x*34.0)+1.0)*x, 289.0)}
+func taylorInvSqrt(r vec4)vec4{return 1.79284291400159 - 0.85373472095314 * r}
+func fade(t vec3) vec3{return t*t*t*(t*(t*6.0-15.0)+10.0)}
+
+func cnoise(P vec3)float{
+  Pi0 := floor(P) // Integer part for indexing
+  Pi1 := Pi0 + vec3(1.0) // Integer part + 1
+  Pi0 = mod(Pi0, 289.0)
+  Pi1 = mod(Pi1, 289.0)
+  Pf0 := fract(P) // Fractional part for interpolation
+  Pf1 := Pf0 - vec3(1.0) // Fractional part - 1.0
+  ix := vec4(Pi0.x, Pi1.x, Pi0.x, Pi1.x)
+  iy := vec4(Pi0.yy, Pi1.yy)
+  iz0 := Pi0.zzzz
+  iz1 := Pi1.zzzz
+
+    ixy := permute(permute(ix) + iy)
+    ixy0 := permute(ixy + iz0)
+    ixy1 := permute(ixy + iz1)
+
+  gx0 := ixy0 / 7.0
+  gy0 := fract(floor(gx0) / 7.0) - 0.5
+  gx0 = fract(gx0)
+  gz0 := vec4(0.5) - abs(gx0) - abs(gy0)
+  sz0 := step(gz0, vec4(0.0))
+  gx0 -= sz0 * (step(0.0, gx0) - 0.5)
+  gy0 -= sz0 * (step(0.0, gy0) - 0.5)
+
+  gx1 := ixy1 / 7.0
+  gy1 := fract(floor(gx1) / 7.0) - 0.5
+  gx1 = fract(gx1)
+  gz1 := vec4(0.5) - abs(gx1) - abs(gy1)
+  sz1 := step(gz1, vec4(0.0))
+  gx1 -= sz1 * (step(0.0, gx1) - 0.5)
+  gy1 -= sz1 * (step(0.0, gy1) - 0.5)
+
+  g000 := vec3(gx0.x,gy0.x,gz0.x)
+  g100 := vec3(gx0.y,gy0.y,gz0.y)
+  g010 := vec3(gx0.z,gy0.z,gz0.z)
+  g110 := vec3(gx0.w,gy0.w,gz0.w)
+  g001 := vec3(gx1.x,gy1.x,gz1.x)
+  g101 := vec3(gx1.y,gy1.y,gz1.y)
+  g011 := vec3(gx1.z,gy1.z,gz1.z)
+  g111 := vec3(gx1.w,gy1.w,gz1.w)
+
+  norm0 := taylorInvSqrt(vec4(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)))
+  g000 *= norm0.x
+  g010 *= norm0.y
+  g100 *= norm0.z
+  g110 *= norm0.w
+  norm1 := taylorInvSqrt(vec4(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)))
+  g001 *= norm1.x
+  g011 *= norm1.y
+  g101 *= norm1.z
+  g111 *= norm1.w
+
+  n000 := dot(g000, Pf0)
+  n100 := dot(g100, vec3(Pf1.x, Pf0.yz))
+  n010 := dot(g010, vec3(Pf0.x, Pf1.y, Pf0.z))
+  n110 := dot(g110, vec3(Pf1.xy, Pf0.z))
+  n001 := dot(g001, vec3(Pf0.xy, Pf1.z))
+  n101 := dot(g101, vec3(Pf1.x, Pf0.y, Pf1.z))
+  n011 := dot(g011, vec3(Pf0.x, Pf1.yz))
+  n111 := dot(g111, Pf1)
+
+  fade_xyz := fade(Pf0)
+  n_z := mix(vec4(n000, n100, n010, n110), vec4(n001, n101, n011, n111), fade_xyz.z)
+  n_yz := mix(n_z.xy, n_z.zw, fade_xyz.y)
+  n_xyz := mix(n_yz.x, n_yz.y, fade_xyz.x) 
+  return 2.2 * n_xyz
 }
