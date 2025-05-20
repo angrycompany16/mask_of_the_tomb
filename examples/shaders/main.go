@@ -3,13 +3,11 @@ package main
 import (
 	"errors"
 	"log"
-	"mask_of_the_tomb/examples/slamboxes/game"
+	"mask_of_the_tomb/examples/shaders/game"
 	"mask_of_the_tomb/internal/libraries/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
-
-// TODO: Add some kind of staging so that we can skip for instance the cutscene
 
 type App struct {
 	game *game.Game

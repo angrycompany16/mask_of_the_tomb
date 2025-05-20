@@ -221,24 +221,24 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 
 	// Render fog layer
 	shaderOp := ebiten.DrawRectShaderOptions{}
-	shaderOp.Uniforms = map[string]any{
-		"Time":       time / 5,
-		"Amplitude":  1.0,
-		"Frequency":  0.025,
-		"Strength":   0.7,
-		"Threshold":  0.4,
-		"Color":      [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
-		"Center":     [2]float64{0.5, 0.5},
-		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
-	}
-	shaderOp.Blend = ebiten.BlendSourceOver
+	// shaderOp.Uniforms = map[string]any{
+	// 	"Time":       time / 5,
+	// 	"Amplitude":  1.0,
+	// 	"Frequency":  0.025,
+	// 	"Strength":   0.7,
+	// 	"Threshold":  0.4,
+	// 	"Color":      [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
+	// 	"Center":     [2]float64{0.5, 0.5},
+	// 	"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
+	// }
+	// shaderOp.Blend = ebiten.BlendSourceOver
 	// TODO: Move fog with camera position
-	rendering.ScreenLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
+	// rendering.ScreenLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
 
-	shaderOp.Uniforms = map[string]any{
-		"PlayerPos":  [2]float64{playerX, playerY},
-		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
-	}
+	// shaderOp.Uniforms = map[string]any{
+	// 	"PlayerPos":  [2]float64{playerX, playerY},
+	// 	"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
+	// }
 	// shaderOp.Blend = lerpBlend
 	// rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsAdditiveShader, &shaderOp)
 
@@ -250,35 +250,35 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 	// shaderOp.Blend = ebiten.BlendSourceOver
 	// rendering.RenderLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsSubtractiveShader, &shaderOp)
 
-	shaderOp.Blend = ebiten.BlendSourceOver
-	rendering.ScreenLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
+	// shaderOp.Blend = ebiten.BlendSourceOver
+	// rendering.ScreenLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
 
 	// Draw lighting on both midground and playerspace
 	// This creates problems with camera shake
 	trueCamX, trueCamY := rendering.GetStablePos()
 
 	shaderOp.Images = [4]*ebiten.Image{
+		// NEVER touch this texture argument. EVER.
+		nil,
 		l.colorLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GameWidth), int(trueCamY+rendering.GameHeight))).(*ebiten.Image),
-		nil,
-		nil,
+		l.normalLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GameWidth), int(trueCamY+rendering.GameHeight))).(*ebiten.Image),
 		nil,
 	}
-
-	playerXrel := playerX - camX
-	playerYrel := playerY - camY
 
 	shakeX, shakeY := rendering.GetShake()
 	shaderOp.Uniforms = map[string]any{
 		"CamShake":     [2]float64{shakeX, shakeY},
 		"AmbientLight": [4]float64{0.0, 0.0, 0.0, 1.0},
-		"LightPos0":    [3]float64{playerXrel, playerYrel, 0.0},
-		"LightColor0":  [3]float64{1.0, 0.0, 0.0},
+		"Pos0":         [2]float64{playerX - camX, playerY - camY},
+		"InnerRadius0": 0.0,
+		"OuterRadius0": 300.0,
+		"Color0":       [3]float64{1.0, 0.0, 0.0},
 	}
 
 	// rendering.RenderLayers.Midground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
-	// rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
+	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
 
-	l.normalLayers.DrawOnto(&rendering.ScreenLayers, -camX, -camY)
+	// l.normalLayers.DrawOnto(&rendering.ScreenLayers, -camX, -camY)
 
 	// pXrel := playerX - camX
 	// pYrel := playerY - camY

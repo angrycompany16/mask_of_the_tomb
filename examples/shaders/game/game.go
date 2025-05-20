@@ -1,4 +1,4 @@
-package exampletransformers
+package game
 
 import (
 	"errors"
@@ -41,6 +41,7 @@ var (
 	loadingScreenPath = filepath.Join("assets", "menus", "game", "loadingscreen.yaml")
 	optionsMenuPath   = filepath.Join("assets", "menus", "game", "options.yaml")
 	introScreenPath   = filepath.Join("assets", "menus", "game", "intro.yaml")
+	LDTKMapPath       = filepath.Join("assets", "LDTK", "shaders.ldtk")
 )
 
 type Game struct {
@@ -57,7 +58,7 @@ type Game struct {
 
 func (g *Game) Load() {
 	g.gameUI.LoadPreamble(loadingScreenPath)
-	g.world.Load()
+	g.world.Load(LDTKMapPath)
 	g.player.CreateAssets()
 	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath, optionsMenuPath, introScreenPath)
 
@@ -71,7 +72,6 @@ func (g *Game) Init() {
 
 func (g *Game) Update() error {
 	events.Update()
-	confirmations := g.gameUI.GetConfirmations()
 	g.gameUI.Update()
 	rendering.Update()
 
@@ -83,14 +83,6 @@ func (g *Game) Update() error {
 		if _, done := concurrency.Poll(loadFinishedChan); done {
 			fmt.Println("Finished loading stage")
 			g.Init()
-			g.State.S = gamestate.MainMenu
-		}
-	case gamestate.MainMenu:
-		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.gameUI.SwitchActiveDisplay("mainmenu")
-		}
-
-		if val, ok := confirmations["Play"]; ok && val {
 			g.world.Init(InitLevelName, save.GameData{""})
 			spawnX, spawnY := g.world.ActiveLevel.GetResetPoint()
 			g.player.Init(spawnX, spawnY, maths.DirNone)
@@ -104,10 +96,6 @@ func (g *Game) Update() error {
 			)
 			g.gameUI.SwitchActiveDisplay("hud")
 			g.State.S = gamestate.Playing
-		} else if val, ok := confirmations["Quit"]; ok && val {
-			return ErrTerminated
-		} else if val, ok := confirmations["Options"]; ok && val {
-			g.gameUI.SwitchActiveDisplay("options")
 		}
 	case gamestate.Playing:
 		g.State.GameTime += 0.016666
@@ -117,31 +105,7 @@ func (g *Game) Update() error {
 			return err
 		}
 
-		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.State.S = gamestate.Paused
-			g.gameUI.SwitchActiveDisplay("pausemenu")
-		}
-
 		g.player.Update()
-	case gamestate.Paused:
-		// TODO: Make esc go back to playing state, and implement back button
-		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.gameUI.SwitchActiveDisplay("pausemenu")
-		}
-
-		if val, ok := confirmations["Resume"]; ok && val {
-			g.State.S = gamestate.Playing
-			g.gameUI.SwitchActiveDisplay("hud")
-		} else if val, ok := confirmations["Quit"]; ok && val {
-			g.world.SaveLevel(g.world.ActiveLevel)
-			save.SaveGame(save.GameData{
-				SpawnRoomName: g.world.ActiveLevel.GetName(),
-			}, SaveProfile)
-			g.State.S = gamestate.MainMenu
-			g.gameUI.SwitchActiveDisplay("mainmenu")
-		} else if val, ok := confirmations["Options"]; ok && val {
-			g.gameUI.SwitchActiveDisplay("options")
-		}
 	}
 
 	return nil

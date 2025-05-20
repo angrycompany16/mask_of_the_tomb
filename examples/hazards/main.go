@@ -4,9 +4,7 @@ import (
 	"errors"
 	"log"
 	"mask_of_the_tomb/internal/libraries/rendering"
-	"mask_of_the_tomb/internal/plugins/world"
 	"mask_of_the_tomb/internal/transformers/game"
-	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -37,7 +35,7 @@ func main() {
 	ebiten.SetWindowTitle("Hazard test")
 
 	a := &App{game.NewGame()}
-	world.LDTKMapPath = filepath.Join("assets", "LDTK", "hazard.ldtk")
+	// world.LDTKMapPath = filepath.Join("assets", "LDTK", "hazard.ldtk")
 	a.game.Load()
 
 	ebiten.SetFullscreen(true)

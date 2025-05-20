@@ -44,6 +44,7 @@ var (
 	loadingScreenPath = filepath.Join("assets", "menus", "game", "loadingscreen.yaml")
 	optionsMenuPath   = filepath.Join("assets", "menus", "game", "options.yaml")
 	introScreenPath   = filepath.Join("assets", "menus", "game", "intro.yaml")
+	LDTKMapPath       = filepath.Join("assets", "LDTK", "world.ldtk")
 )
 
 type Game struct {
@@ -61,7 +62,7 @@ type Game struct {
 func (g *Game) Load() {
 	g.gameUI.LoadPreamble(loadingScreenPath)
 	assetloader.Load("a", &delayAsset)
-	g.world.Load()
+	g.world.Load(LDTKMapPath)
 	g.player.CreateAssets()
 	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath, optionsMenuPath, introScreenPath)
 

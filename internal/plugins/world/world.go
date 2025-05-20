@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	LDTKMapPath        = filepath.Join("assets", "LDTK", "world.ldtk")
 	slamboxTilemapPath = filepath.Join(assets.EnvironmentTilemapFolder, "slambox_tilemap.png")
 	// slamboxTilemap     *ebiten.Image
 )
@@ -35,7 +34,7 @@ func NewWorld() *World {
 	}
 }
 
-func (w *World) Load() {
+func (w *World) Load(LDTKMapPath string) {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
 	assetloader.Load("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
 }
