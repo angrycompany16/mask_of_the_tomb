@@ -11,15 +11,15 @@ const (
 	hazardDamageFieldName = "Damage"
 )
 
-type Hazard struct {
+type hazard struct {
 	Hitbox maths.Rect
 	Damage float64
 }
 
 func NewHazard(
 	entity *ebitenLDTK.Entity,
-) Hazard {
-	newHazard := Hazard{}
+) hazard {
+	newHazard := hazard{}
 	newHazard.Hitbox = *RectFromEntity(entity)
 
 	for _, fieldInstance := range entity.Fields {

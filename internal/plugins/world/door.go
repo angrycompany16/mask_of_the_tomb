@@ -14,22 +14,22 @@ const (
 	doorOtherSideFieldName = "OtherSide"
 )
 
-type Door struct {
+type door struct {
 	LevelIid  string
 	EntityIid string
 	Hitbox    maths.Rect
 	sprite    *ebiten.Image
 }
 
-func (d *Door) Draw(camX, camY float64) {
+func (d *door) Draw(camX, camY float64) {
 	x, y := d.Hitbox.TopLeft()
 	ebitenrenderutil.DrawAt(d.sprite, rendering.ScreenLayers.Playerspace, x-camX, y-camY)
 }
 
 func NewDoor(
 	entityInstance *ebitenLDTK.Entity,
-) Door {
-	newDoor := Door{}
+) door {
+	newDoor := door{}
 	newDoor.Hitbox = *RectFromEntity(entityInstance)
 
 	fieldInstance := errs.Must(entityInstance.GetFieldByName(doorOtherSideFieldName))

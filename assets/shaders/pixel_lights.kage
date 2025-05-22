@@ -58,15 +58,28 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
     return vec4(getNearest(color, srcColor.xyz), srcColor.a)
 }
 
-func srgbToLinear(color vec4) vec4 {
-	return vec4(
-		pow(color.rgb, vec3(2.2)),
-		color.a,
-	)
+func srgbToLinear(color vec3) vec3 {
+	return pow(color.rgb, vec3(2.2))
 }
 
-func hashFractSin(p vec2) float {
-	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)   
+// Credit: https://gist.github.com/earthbound19/e7fe15fdf8ca3ef814750a61bc75b5ce
+func rgbToOklab(color vec3) vec3 {
+  // This is my undersanding: JavaScript canvas and many other virtual and literal devices use gamma-corrected (non-linear lightness) RGB, or sRGB. To convert sRGB values for manipulation in the Oklab color space, you must first convert them to linear RGB. Where Oklab interfaces with RGB it expects and returns linear RGB values. This next step converts (via a function) sRGB to linear RGB for Oklab to use:
+  linearColor := srgbToLinear(color)
+  // This is the Oklab math:
+  l := dot(linearColor, vec3(0.4122214708, 0.5363325363, 0.0514459929))
+  m := dot(linearColor, vec3(0.2119034982, 0.6806995451, 0.1073969566))
+  s := dot(linearColor, vec3(0.0883024619, 0.2817188376, 0.6299787005))
+  
+  l = pow(l, 0.33333333)
+  m = pow(m, 0.33333333)
+  s = pow(s, 0.33333333)
+
+  return vec3(
+    l * 0.2104542553 + m * 0.7936177850 - s * 0.0040720468,
+    l * 1.9779984951 - m * 2.4285922050 + s * 0.4505937099,
+    l * 0.0259040371 + m * 0.7827717662 - s * 0.8086757660,
+  )
 }
 
 // Make shader respect ramp
@@ -176,7 +189,8 @@ func getNearest(color vec3, srcColor vec3) vec3 {
     shortestDist := 10000.0
     shortestDistIndex := 0
     for i := 0; i < 38; i++ {
-        dist := distance(color, palette[i])
+        // dist := distance(color, palette[i])
+        dist := distance(rgbToOklab(color), rgbToOklab(palette[i]))
         if dist < shortestDist {
             shortestDistIndex = i
             shortestDist = dist

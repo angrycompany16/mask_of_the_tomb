@@ -9,6 +9,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/libraries/gamestate"
 	"mask_of_the_tomb/internal/libraries/rendering"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
@@ -98,7 +99,7 @@ func (g *Game) Update() error {
 			g.State.S = gamestate.Playing
 		}
 	case gamestate.Playing:
-		g.State.GameTime += 0.016666
+		resources.Time += 0.016666
 		g.world.Update()
 		err = g.updateGameplay()
 		if err != nil {

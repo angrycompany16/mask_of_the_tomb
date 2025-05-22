@@ -58,6 +58,19 @@ func Lerp(a, b, t float64) float64 {
 	return a*(1.0-t) + b*t
 }
 
+func SmoothStep(edge0, edge1, t float64) float64 {
+	t = Clamp((t-edge0)/(edge1-edge0), 0, 1)
+	return t * t * (3 - 2*t)
+}
+
+func Length(x ...float64) float64 {
+	l := 0.0
+	for _, x_i := range x {
+		l += x_i * x_i
+	}
+	return math.Sqrt(l)
+}
+
 func Mod(x, m int) int {
 	return (x%m + m) % m
 }

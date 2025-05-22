@@ -9,6 +9,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/gamestate"
 	"mask_of_the_tomb/internal/libraries/rendering"
@@ -148,8 +149,11 @@ func (g *Game) Update() error {
 			}
 		}
 	case gamestate.Playing:
+		resources.Time += 0.016666
 		g.State.GameTime += 0.016666
-		g.world.Update()
+		velX, velY := g.player.GetMovementSize()
+		posX, posY := g.player.GetPosCentered()
+		g.world.Update(posX, posY, velX, velY)
 		err = g.updateGameplay()
 		if err != nil {
 			return err
@@ -258,14 +262,14 @@ func (g *Game) Draw() {
 	case gamestate.Playing:
 		pX, pY := g.player.GetPosCentered()
 		cX, cY := rendering.GetPos()
-		g.world.ActiveLevel.Draw(pX, pY, cX, cY, g.State.GameTime)
 		g.player.Draw(cX, cY)
+		g.world.ActiveLevel.Draw(pX, pY, cX, cY, g.State.GameTime)
 	case gamestate.Paused:
 		// TODO: Add dim and blur filter on pausing the game
 		pX, pY := g.player.GetPosCentered()
 		cX, cY := rendering.GetPos()
-		g.world.ActiveLevel.Draw(pX, pY, cX, cY, g.State.GameTime)
 		g.player.Draw(cX, cY)
+		g.world.ActiveLevel.Draw(pX, pY, cX, cY, g.State.GameTime)
 	}
 }
 

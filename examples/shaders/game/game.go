@@ -9,6 +9,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/libraries/gamestate"
 	"mask_of_the_tomb/internal/libraries/rendering"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
@@ -16,6 +17,7 @@ import (
 	"mask_of_the_tomb/internal/plugins/musicplayer"
 	"mask_of_the_tomb/internal/plugins/player"
 	"mask_of_the_tomb/internal/plugins/world"
+	"math/rand/v2"
 	"path/filepath"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -68,6 +70,7 @@ func (g *Game) Load() {
 func (g *Game) Init() {
 	g.gameUI.SwitchActiveDisplay("mainmenu")
 	g.musicPlayer = musicplayer.NewMusicPlayer(audiocontext.Current().Context)
+	resources.GrassWindSeed = rand.Int64()
 }
 
 func (g *Game) Update() error {

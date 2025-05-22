@@ -29,6 +29,7 @@ const (
 	slamboxEntityName      = "Slambox"
 	SpikeIntGridName       = "Spikes"
 	gameEntryPosEntityName = "GameEntryPos"
+	grassEntityName        = "Grass"
 )
 
 var (
@@ -57,26 +58,18 @@ type Level struct {
 	bgColor                  color.Color
 	playerspaceNormalTilemap *ebiten.Image
 	midgroundNormalTilemap   *ebiten.Image
-
-	// Probably convert into struct in rendering.go
-	colorLayers  rendering.LayerList
-	normalLayers rendering.LayerList
-	// foreground  *ebiten.Image
-	// playerspace *ebiten.Image
-	// midground   *ebiten.Image
-	// background  *ebiten.Image
-
-	fogShader      *ebiten.Shader
-	vignetteShader *ebiten.Shader
-	// lightsAdditiveShader    *ebiten.Shader
-	// lightsSubtractiveShader *ebiten.Shader
-	lightsPixelShader *ebiten.Shader
-	pixelLightShader  *ebiten.Shader
-	resetX, resetY    float64
-	ambientParticles  *particles.ParticleSystem
-	hazards           []Hazard
-	doors             []Door
-	slamboxes         []*Slambox
+	colorLayers              rendering.LayerList
+	normalLayers             rendering.LayerList
+	fogShader                *ebiten.Shader
+	vignetteShader           *ebiten.Shader
+	lightsPixelShader        *ebiten.Shader
+	pixelLightShader         *ebiten.Shader
+	resetX, resetY           float64
+	ambientParticles         *particles.ParticleSystem
+	hazards                  []hazard
+	doors                    []door
+	slamboxes                []*Slambox
+	grassEntities            []grass
 }
 
 // ------ CONSTRUCTOR ------
@@ -92,6 +85,18 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.lightsPixelShader = errs.Must(ebiten.NewShader(assets.Pixel_lights_kage))
 	// TODO: set particle system bounds based on level size
 	newLevel.ambientParticles = errs.Must(particles.FromFile(particleSysPath, rendering.ScreenLayers.Foreground))
+
+	newLevel.colorLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
+	newLevel.normalLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
+
+	layerMap := map[string]*ebiten.Image{
+		"Foreground":       newLevel.colorLayers.Foreground,
+		"PlayerspaceAlt":   newLevel.colorLayers.Playerspace,
+		"Playerspace":      newLevel.colorLayers.Playerspace,
+		"Props":            newLevel.colorLayers.Midground,
+		"MidgroundSprites": newLevel.colorLayers.Midground,
+		"BackgroundTiles":  newLevel.colorLayers.Background,
+	}
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
@@ -124,6 +129,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 				newLevel.doors = append(newLevel.doors, NewDoor(&entity))
 			case slamboxEntityName:
 				newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity))
+			case grassEntityName:
+				newLevel.grassEntities = append(newLevel.grassEntities, NewGrass(&entity, 16, rendering.ScreenLayers.Playerspace))
 			}
 		}
 	}
@@ -140,18 +147,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		slambox.CreateSprite()
 	}
 
-	newLevel.colorLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
-	newLevel.normalLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
-
-	layerMap := map[string]*ebiten.Image{
-		"Foreground":       newLevel.colorLayers.Foreground,
-		"PlayerspaceAlt":   newLevel.colorLayers.Playerspace,
-		"Playerspace":      newLevel.colorLayers.Playerspace,
-		"Props":            newLevel.colorLayers.Midground,
-		"MidgroundSprites": newLevel.colorLayers.Midground,
-		"BackgroundTiles":  newLevel.colorLayers.Background,
-	}
-
+	// Optimization yeah
 	for i := len(newLevel.levelLDTK.Layers) - 1; i >= 0; i-- {
 		layer := newLevel.levelLDTK.Layers[i]
 
@@ -190,23 +186,24 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 }
 
 // ------ ENTITY ------
-func (l *Level) Update() {
+func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	for _, slambox := range l.slamboxes {
 		slambox.Update()
 	}
+	for _, grassEntity := range l.grassEntities {
+		grassEntity.Update(playerX, playerY, playerVelX, playerVelY)
+	}
+
 	l.ambientParticles.Update()
 }
 
-// Draw the level only once
-// Note: Only a few things need to be rendered multiple times:
-// Dynamic objects
-// Shaders
-// Basically we can draw the level only once and then draw that texture onto
-// the screen instead of drawing each tile every frame
-// Optimization yeah
 func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 	for _, box := range l.slamboxes {
 		box.Draw(camX, camY)
+	}
+
+	for _, grassEntity := range l.grassEntities {
+		grassEntity.Draw(camX, camY)
 	}
 
 	rendering.ScreenLayers.Background2.Fill(l.bgColor)
@@ -232,6 +229,9 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 	// Draw lighting on both midground and playerspace
 	trueCamX, trueCamY := rendering.GetStablePos()
 
+	// TODO: Add yet another image which has dynamic objects drawn onto it
+	// and is cleared every frame so that dynamic objects also can interact with
+	// lights.
 	shaderOp.Images = [4]*ebiten.Image{
 		// NEVER touch the first texture argument. EVER.
 		nil,
@@ -251,11 +251,11 @@ func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
 		"InnerRadii":   [10]float64{0.0},
 		"OuterRadii":   [10]float64{200.0},
 		"ZOffsets":     [10]float64{0.2},
-		"Intensities":  [10]float64{2.0},
+		"Intensities":  [10]float64{1.0},
 		"ColorsR":      [10]float64{1.0},
 		"ColorsG":      [10]float64{1.0},
 		"ColorsB":      [10]float64{1.0},
-		"AmbientLight": [3]float64{0.2, 0.2, 0.2},
+		"AmbientLight": [3]float64{0.4, 0.4, 0.4},
 	}
 
 	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)

@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/aquilax/go-perlin v1.1.0 // indirect
 	github.com/ebitengine/gomobile v0.0.0-20250209143333-6071a2a2351c // indirect
 	github.com/ebitengine/hideconsole v1.0.0 // indirect
 	github.com/ebitengine/oto/v3 v3.3.3 // indirect

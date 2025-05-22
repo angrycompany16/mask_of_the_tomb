@@ -2,6 +2,7 @@ package world
 
 import (
 	"fmt"
+	"image/color"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var (
@@ -48,6 +50,10 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 		}
 	}
 
+	// RMEOVE
+	vector.StrokeLine(grassSprite, 2, 0, 2, 12, 2, color.RGBA{0, 255, 0, 255}, false)
+	// RMEOVE
+
 	// for id, levelmemory := range gameData.WorldStateMemory {
 	// w.worldStateMemory[id] = levelmemory
 	// }
@@ -57,8 +63,8 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 func (w *World) LoadMemory(memory map[string]LevelMemory) {
 }
 
-func (w *World) Update() {
-	w.ActiveLevel.Update()
+func (w *World) Update(playerX, playerY, playerVelX, playerVelY float64) {
+	w.ActiveLevel.Update(playerX, playerY, playerVelX, playerVelY)
 }
 
 func (w *World) GetWorldStateMemory() map[string]LevelMemory {
