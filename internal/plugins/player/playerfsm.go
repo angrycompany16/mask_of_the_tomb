@@ -4,7 +4,8 @@ import (
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
-	"mask_of_the_tomb/internal/libraries/rendering"
+	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/libraries/camera"
 )
 
 type playerState int
@@ -47,7 +48,7 @@ func (p *Player) Update() {
 		if p.jumpOffset == 0 && p.canPlaySlamSound {
 			p.slamSound.Play()
 			p.canPlaySlamSound = false
-			rendering.ShakeCamera(0.4, 7, 1)
+			camera.Shake(0.4, 7, 1)
 		}
 	case Idle:
 		p.animator.SwitchClip(idleAnim)
@@ -82,19 +83,20 @@ func (p *Player) Update() {
 }
 
 // TODO: this will be changed back when we add some kind of death (sprite) animation
-func (p *Player) Draw(camX, camY float64) {
-	p.jumpParticlesBroad.Draw(camX, camY)
-	p.jumpParticlesTight.Draw(camX, camY)
+func (p *Player) Draw(ctx rendering.Ctx) {
+	p.jumpParticlesBroad.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Playerspace))
+	p.jumpParticlesTight.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Playerspace))
+
 	if p.State == Dying {
-		p.deathAnim.Draw(camX, camY)
+		p.deathAnim.Draw(ctx)
 	} else {
 		posX, posY := p.movebox.GetPos()
 		jumpOffsetX, jumpOffsetY := p.calculateJumpOffset()
 		ebitenrenderutil.DrawAtRotated(
 			p.animator.GetSprite(),
-			rendering.ScreenLayers.Playerspace,
-			posX-camX-jumpOffsetX,
-			posY-camY-jumpOffsetY,
+			ctx.Dst,
+			posX-ctx.CamX-jumpOffsetX,
+			posY-ctx.CamY-jumpOffsetY,
 			maths.ToRadians(p.direction),
 			0.5,
 			0.5,

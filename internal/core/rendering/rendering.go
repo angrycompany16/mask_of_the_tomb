@@ -1,14 +1,14 @@
 package rendering
 
 import (
-	"mask_of_the_tomb/internal/core/ebitenrenderutil"
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// TODO: Consider merging rendering and ebitenrenderutil
+
 const (
-	GameWidth, GameHeight = 480.0, 270.0
-	PixelScale            = 4.0
+	GAME_WIDTH, GAME_HEIGHT = 480.0, 270.0
+	PIXEL_SCALE             = 4.0
 )
 
 type LayerList struct {
@@ -22,7 +22,7 @@ type LayerList struct {
 	layers      []*ebiten.Image
 }
 
-var ScreenLayers = NewLayerList(GameWidth, GameHeight)
+var ScreenLayers = NewLayerList(GAME_WIDTH, GAME_HEIGHT)
 
 func NewLayerList(w, h int) LayerList {
 	layerList := LayerList{
@@ -33,7 +33,7 @@ func NewLayerList(w, h int) LayerList {
 		Foreground:  ebiten.NewImage(w, h),
 		Overlay:     ebiten.NewImage(w, h),
 		// TODO: Maybe find a better way to do this
-		UI: ebiten.NewImage(w*PixelScale, h*PixelScale),
+		UI: ebiten.NewImage(w*PIXEL_SCALE, h*PIXEL_SCALE),
 	}
 
 	layerList.layers = []*ebiten.Image{
@@ -51,14 +51,19 @@ func NewLayerList(w, h int) LayerList {
 
 func (r *LayerList) Draw(screen *ebiten.Image) {
 	for _, layer := range r.layers {
-		scaleFactor := GameWidth * PixelScale / float64(layer.Bounds().Dx())
-		ebitenrenderutil.DrawAtScaled(layer, screen, 0, 0, scaleFactor, scaleFactor)
+		scaleFactor := GAME_WIDTH * PIXEL_SCALE / float64(layer.Bounds().Dx())
+		op := ebiten.DrawImageOptions{}
+		op.GeoM.Scale(scaleFactor, scaleFactor)
+		screen.DrawImage(layer, &op)
+		// ebitenrenderutil.DrawAtScaled(layer, screen, 0, 0, scaleFactor, scaleFactor)
 		layer.Clear()
 	}
 }
 
 func (r *LayerList) DrawOnto(other *LayerList, x, y float64) {
 	for i, layer := range r.layers {
-		ebitenrenderutil.DrawAt(layer, other.layers[i], x, y)
+		op := ebiten.DrawImageOptions{}
+		other.layers[i].DrawImage(layer, &op)
+		// ebitenrenderutil.DrawAt(layer, other.layers[i], x, y)
 	}
 }

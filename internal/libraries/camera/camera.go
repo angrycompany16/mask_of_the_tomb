@@ -1,7 +1,8 @@
-package rendering
+package camera
 
 import (
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/rendering"
 )
 
 var (
@@ -70,8 +71,8 @@ func SetPos(x, y float64) {
 	} else {
 		_camera.screenPadding = 0
 	}
-	_camera.posX = maths.Clamp(x-_camera.offsetX, 0, _camera.width-GameWidth)
-	_camera.posY = maths.Clamp(y-_camera.offsetY, _camera.screenPadding/2, _camera.height-GameHeight-_camera.screenPadding/2)
+	_camera.posX = maths.Clamp(x-_camera.offsetX, 0, _camera.width-rendering.GAME_WIDTH)
+	_camera.posY = maths.Clamp(y-_camera.offsetY, _camera.screenPadding/2, _camera.height-rendering.GAME_HEIGHT-_camera.screenPadding/2)
 	// _camera.posX += _camera.shakeOffsetX
 	// _camera.posY += _camera.shakeOffsetY
 }
@@ -81,7 +82,7 @@ func SetBorders(width, height float64) {
 	_camera.height = height
 }
 
-func ShakeCamera(duration, strength, damping float64) {
+func Shake(duration, strength, damping float64) {
 	_camera.shakeTime = 0
 	_camera.shakeDuration = duration
 	_camera.shakeStrength = strength

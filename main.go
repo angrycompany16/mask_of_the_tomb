@@ -35,7 +35,7 @@ import (
 	"errors"
 	"flag"
 	"log"
-	"mask_of_the_tomb/internal/libraries/rendering"
+	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/transformers/game"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -63,7 +63,7 @@ func (a *App) Draw(screen *ebiten.Image) {
 }
 
 func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
-	return rendering.GameWidth * rendering.PixelScale, rendering.GameHeight * rendering.PixelScale
+	return rendering.GAME_WIDTH * rendering.PIXEL_SCALE, rendering.GAME_HEIGHT * rendering.PIXEL_SCALE
 }
 
 func main() {
@@ -73,7 +73,7 @@ func main() {
 
 	flag.Parse()
 
-	ebiten.SetWindowSize(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
+	ebiten.SetWindowSize(rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
 	ebiten.SetWindowTitle("Mask of the tomb")
 
 	a := &App{game.NewGame()}

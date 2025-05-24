@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/errs"
-	"mask_of_the_tomb/internal/libraries/rendering"
+	"mask_of_the_tomb/internal/core/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -29,7 +29,7 @@ func (tc *TitleCard) Draw(t float64) {
 	opText.ColorScale.SetG(textColor[1] * float32(t))
 	opText.ColorScale.SetB(textColor[2] * float32(t))
 	opText.ColorScale.SetA(float32(t))
-	opText.GeoM.Translate(rendering.GameWidth*rendering.PixelScale/2, rendering.GameHeight*rendering.PixelScale/2)
+	opText.GeoM.Translate(rendering.GAME_WIDTH*rendering.PIXEL_SCALE/2, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE/2)
 
 	text.Draw(rendering.ScreenLayers.UI,
 		tc.text,
@@ -46,6 +46,6 @@ func (tc *TitleCard) ChangeText(text string) {
 func NewTitleCard() OverlayContent {
 	return &TitleCard{
 		font:  errs.Must(text.NewGoTextFaceSource(bytes.NewReader(assets.JSE_AmigaAMOS_ttf))),
-		image: ebiten.NewImage(rendering.GameWidth, rendering.GameHeight),
+		image: ebiten.NewImage(rendering.GAME_WIDTH, rendering.GAME_HEIGHT),
 	}
 }

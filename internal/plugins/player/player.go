@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/inputbuffer"
@@ -13,7 +14,6 @@ import (
 	"mask_of_the_tomb/internal/libraries/sound"
 	"path/filepath"
 
-	"mask_of_the_tomb/internal/libraries/rendering"
 	"math"
 	"time"
 

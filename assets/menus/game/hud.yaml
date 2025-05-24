@@ -11,8 +11,6 @@ Root:
   Children:
   - Type: "textbox"
     Text: "Press R to restart"
-    PosX: 0
-    PosY: 0
     Color:
       Bright: [205, 247, 226, 255]
       Dark: [199, 176, 139, 255]
@@ -22,6 +20,4 @@ Root:
     PrimaryAlign: *AlignStart
     SecondaryAlign: *AlignStart
     ScreenAlign: *TopLeft
-    ShadowX: 0
-    ShadowY: 0
 ...

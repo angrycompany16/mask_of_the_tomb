@@ -56,4 +56,7 @@ var (
 
 	//go:embed sprites/player/export/player.png
 	Player_sprite []byte
+
+	//go:embed sprites/environment/entities/export/grass.png
+	Grass_tiles []byte
 )

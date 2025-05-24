@@ -1,10 +1,10 @@
-package world
+package door
 
 import (
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
-	"mask_of_the_tomb/internal/libraries/rendering"
+	"mask_of_the_tomb/internal/core/rendering"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -21,18 +21,23 @@ type Door struct {
 	sprite    *ebiten.Image
 }
 
-func (d *Door) Draw(camX, camY float64) {
+func (d *Door) Draw(ctx rendering.Ctx) {
 	x, y := d.Hitbox.TopLeft()
-	ebitenrenderutil.DrawAt(d.sprite, rendering.ScreenLayers.Playerspace, x-camX, y-camY)
+	ebitenrenderutil.DrawAt(d.sprite, ctx.Dst, x-ctx.CamX, y-ctx.CamY)
 }
 
 func NewDoor(
-	entityInstance *ebitenLDTK.Entity,
+	entity *ebitenLDTK.Entity,
 ) Door {
 	newDoor := Door{}
-	newDoor.Hitbox = *RectFromEntity(entityInstance)
+	newDoor.Hitbox = *maths.NewRect(
+		entity.Px[0],
+		entity.Px[1],
+		entity.Width,
+		entity.Height,
+	)
 
-	fieldInstance := errs.Must(entityInstance.GetFieldByName(doorOtherSideFieldName))
+	fieldInstance := errs.Must(entity.GetFieldByName(doorOtherSideFieldName))
 	newDoor.LevelIid = fieldInstance.EntityRef.LevelIid
 	newDoor.EntityIid = fieldInstance.EntityRef.EntityIid
 

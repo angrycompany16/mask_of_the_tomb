@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/fileio"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/rendering"
 	"path/filepath"
 	"time"
 
@@ -95,10 +96,10 @@ func (ps *ParticleSystem) Update() {
 }
 
 // TODO: Maybe take in the layer as a function parameter?
-func (ps *ParticleSystem) Draw(camX, camY float64) {
+func (ps *ParticleSystem) Draw(ctx rendering.Ctx) {
 	if ps.GlobalSpace {
 		for _, particle := range ps.particles {
-			particle.draw(ps.layer, camX, camY)
+			particle.draw(ctx.Dst, ctx.CamX, ctx.CamY)
 		}
 		return
 	}
@@ -107,7 +108,11 @@ func (ps *ParticleSystem) Draw(camX, camY float64) {
 	for _, particle := range ps.particles {
 		particle.draw(ps.surf, -float64(s.X)/2, -float64(s.Y)/2)
 	}
-	ebitenrenderutil.DrawAtRotated(ps.surf, ps.layer, ps.PosX-float64(s.X)/2-camX, ps.PosY-float64(s.Y)/2-camY, ps.Angle, 0.5, 0.5)
+	ebitenrenderutil.DrawAtRotated(
+		ps.surf, ctx.Dst,
+		ps.PosX-float64(s.X)/2-ctx.CamX,
+		ps.PosY-float64(s.Y)/2-ctx.CamY,
+		ps.Angle, 0.5, 0.5)
 
 	ps.surf.Clear()
 }

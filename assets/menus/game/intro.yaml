@@ -10,20 +10,15 @@ Name: "intro"
 Root:
   Children:
   - Type: "dialogue"
-    PosX: 0
-    PosY: 0
-    Text: ""
     Color:
       Bright: [205, 247, 226, 255]
       Dark: [199, 176, 139, 255]
     Font: "JSE_AmigaAMOS"
     FontSize: 36
     LineSpacing: 50
-    PrimaryAlign: *AlignCenter
-    SecondaryAlign: *AlignCenter
+    PrimaryAlign: *AlignEnd
+    SecondaryAlign: *AlignEnd
     ScreenAlign: *Centered
-    ShadowX: 0
-    ShadowY: 0
     Name: "Introtext"
     RevealTime: 0.04
     Lines:

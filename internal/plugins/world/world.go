@@ -37,6 +37,7 @@ func NewWorld() *World {
 func (w *World) Load(LDTKMapPath string) {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
 	assetloader.Load("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
+	assetloader.Load("grassTilemap", assettypes.MakeImageAsset(assets.Grass_tiles))
 }
 
 func (w *World) Init(initLevelName string, gameData save.GameData) {
@@ -48,6 +49,10 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 		}
 	}
 
+	// RMEOVE
+	// vector.StrokeLine(grassSprite, 2, 0, 2, 12, 2, color.RGBA{0, 255, 0, 255}, false)
+	// RMEOVE
+
 	// for id, levelmemory := range gameData.WorldStateMemory {
 	// w.worldStateMemory[id] = levelmemory
 	// }
@@ -57,8 +62,8 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 func (w *World) LoadMemory(memory map[string]LevelMemory) {
 }
 
-func (w *World) Update() {
-	w.ActiveLevel.Update()
+func (w *World) Update(playerX, playerY, playerVelX, playerVelY float64) {
+	w.ActiveLevel.Update(playerX, playerY, playerVelX, playerVelY)
 }
 
 func (w *World) GetWorldStateMemory() map[string]LevelMemory {

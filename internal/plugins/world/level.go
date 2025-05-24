@@ -9,10 +9,16 @@ import (
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/libraries/camera"
 	"mask_of_the_tomb/internal/libraries/colors"
+	"mask_of_the_tomb/internal/libraries/entities/door"
+	"mask_of_the_tomb/internal/libraries/entities/grass"
+	"mask_of_the_tomb/internal/libraries/entities/hazard"
+	"mask_of_the_tomb/internal/libraries/entities/slambox"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
-	"mask_of_the_tomb/internal/libraries/rendering"
 	"path/filepath"
 	"slices"
 
@@ -29,6 +35,8 @@ const (
 	slamboxEntityName      = "Slambox"
 	SpikeIntGridName       = "Spikes"
 	gameEntryPosEntityName = "GameEntryPos"
+	grassEntityName        = "Grass"
+	HazardEntityName       = "Hazard"
 )
 
 var (
@@ -57,26 +65,19 @@ type Level struct {
 	bgColor                  color.Color
 	playerspaceNormalTilemap *ebiten.Image
 	midgroundNormalTilemap   *ebiten.Image
-
-	// Probably convert into struct in rendering.go
-	colorLayers  rendering.LayerList
-	normalLayers rendering.LayerList
-	// foreground  *ebiten.Image
-	// playerspace *ebiten.Image
-	// midground   *ebiten.Image
-	// background  *ebiten.Image
-
-	fogShader      *ebiten.Shader
-	vignetteShader *ebiten.Shader
-	// lightsAdditiveShader    *ebiten.Shader
-	// lightsSubtractiveShader *ebiten.Shader
-	lightsPixelShader *ebiten.Shader
-	pixelLightShader  *ebiten.Shader
-	resetX, resetY    float64
-	ambientParticles  *particles.ParticleSystem
-	hazards           []Hazard
-	doors             []Door
-	slamboxes         []*Slambox
+	tileLayers               rendering.LayerList
+	normalLayers             rendering.LayerList
+	frameLayers              rendering.LayerList
+	fogShader                *ebiten.Shader
+	vignetteShader           *ebiten.Shader
+	lightsPixelShader        *ebiten.Shader
+	pixelLightShader         *ebiten.Shader
+	resetX, resetY           float64
+	ambientParticles         *particles.ParticleSystem
+	hazards                  []hazard.Hazard
+	doors                    []door.Door
+	slamboxes                []*slambox.Slambox
+	grassEntities            []grass.Grass
 }
 
 // ------ CONSTRUCTOR ------
@@ -92,6 +93,22 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.lightsPixelShader = errs.Must(ebiten.NewShader(assets.Pixel_lights_kage))
 	// TODO: set particle system bounds based on level size
 	newLevel.ambientParticles = errs.Must(particles.FromFile(particleSysPath, rendering.ScreenLayers.Foreground))
+
+	// Most of these layers are completely unnecessary, so maybe it would be a good idea to
+	// delete a few of them to save eerformance
+	// After all we do have some pretty dramatic frame drops when switching levels
+	newLevel.tileLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
+	newLevel.normalLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
+	newLevel.frameLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
+
+	layerMap := map[string]*ebiten.Image{
+		"Foreground":       newLevel.tileLayers.Foreground,
+		"PlayerspaceAlt":   newLevel.tileLayers.Playerspace,
+		"Playerspace":      newLevel.tileLayers.Playerspace,
+		"Props":            newLevel.tileLayers.Midground,
+		"MidgroundSprites": newLevel.tileLayers.Midground,
+		"BackgroundTiles":  newLevel.tileLayers.Background,
+	}
 
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
@@ -119,11 +136,13 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		for _, entity := range layer.Entities {
 			switch entity.Name {
 			case HazardEntityName:
-				newLevel.hazards = append(newLevel.hazards, NewHazard(&entity))
+				newLevel.hazards = append(newLevel.hazards, hazard.NewHazard(&entity))
 			case doorEntityName:
-				newLevel.doors = append(newLevel.doors, NewDoor(&entity))
+				newLevel.doors = append(newLevel.doors, door.NewDoor(&entity))
 			case slamboxEntityName:
-				newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity))
+				newLevel.slamboxes = append(newLevel.slamboxes, slambox.NewSlambox(&entity))
+			case grassEntityName:
+				newLevel.grassEntities = append(newLevel.grassEntities, grass.NewGrass(&entity, 16, rendering.ScreenLayers.Playerspace))
 			}
 		}
 	}
@@ -140,18 +159,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		slambox.CreateSprite()
 	}
 
-	newLevel.colorLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
-	newLevel.normalLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
-
-	layerMap := map[string]*ebiten.Image{
-		"Foreground":       newLevel.colorLayers.Foreground,
-		"PlayerspaceAlt":   newLevel.colorLayers.Playerspace,
-		"Playerspace":      newLevel.colorLayers.Playerspace,
-		"Props":            newLevel.colorLayers.Midground,
-		"MidgroundSprites": newLevel.colorLayers.Midground,
-		"BackgroundTiles":  newLevel.colorLayers.Background,
-	}
-
+	// Optimization yeah
 	for i := len(newLevel.levelLDTK.Layers) - 1; i >= 0; i-- {
 		layer := newLevel.levelLDTK.Layers[i]
 
@@ -176,10 +184,10 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		tilesize := tileset.TileGridSize
 		tilesetImage := tileset.Image
 
-		if targetRenderLayer == newLevel.colorLayers.Midground {
+		if targetRenderLayer == newLevel.tileLayers.Midground {
 			// tilesetImage = midgroundNormalTilemap
 			// drawTiles(tiles, tilesetImage, newLevel.normalLayers.Midground, tilesize)
-		} else if targetRenderLayer == newLevel.colorLayers.Playerspace {
+		} else if targetRenderLayer == newLevel.tileLayers.Playerspace {
 			drawTiles(tiles, playerspaceNormalTilemap, newLevel.normalLayers.Playerspace, tilesize)
 		}
 
@@ -190,77 +198,85 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 }
 
 // ------ ENTITY ------
-func (l *Level) Update() {
+func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	for _, slambox := range l.slamboxes {
 		slambox.Update()
 	}
+	for _, grassEntity := range l.grassEntities {
+		grassEntity.Update(playerX, playerY, playerVelX, playerVelY)
+	}
+
 	l.ambientParticles.Update()
 }
 
-// Draw the level only once
-// Note: Only a few things need to be rendered multiple times:
-// Dynamic objects
-// Shaders
-// Basically we can draw the level only once and then draw that texture onto
-// the screen instead of drawing each tile every frame
-// Optimization yeah
-func (l *Level) Draw(playerX, playerY, camX, camY, time float64) {
-	for _, box := range l.slamboxes {
-		box.Draw(camX, camY)
-	}
-
+func (l *Level) Draw(drawCtx rendering.Ctx) {
+	l.frameLayers.Playerspace.Clear()
 	rendering.ScreenLayers.Background2.Fill(l.bgColor)
 
 	// Render fog layer
 	shaderOp := ebiten.DrawRectShaderOptions{}
 	shaderOp.Uniforms = map[string]any{
-		"Time":       time / 5,
+		"Time":       resources.Time / 5,
 		"Amplitude":  1.0,
 		"Frequency":  0.025,
 		"Strength":   0.7,
 		"Threshold":  0.4,
 		"Color":      [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
 		"Center":     [2]float64{0.5, 0.5},
-		"Resolution": [2]float64{rendering.GameWidth, rendering.GameHeight},
+		"Resolution": [2]float64{rendering.GAME_WIDTH, rendering.GAME_HEIGHT},
 	}
 	shaderOp.Blend = ebiten.BlendSourceOver
 	// TODO: Move fog with camera position
-	rendering.ScreenLayers.Background2.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.fogShader, &shaderOp)
+	rendering.ScreenLayers.Background2.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.fogShader, &shaderOp)
 
-	rendering.ScreenLayers.Foreground.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.vignetteShader, &shaderOp)
+	rendering.ScreenLayers.Foreground.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.vignetteShader, &shaderOp)
+
+	for _, box := range l.slamboxes {
+		box.Draw(rendering.WithLayer(drawCtx, l.frameLayers.Playerspace))
+	}
+
+	for _, grassEntity := range l.grassEntities {
+		grassEntity.Draw(rendering.WithLayer(drawCtx, l.frameLayers.Playerspace))
+	}
+
+	ebitenrenderutil.DrawAt(l.tileLayers.Playerspace, l.frameLayers.Playerspace, 0, 0)
 
 	// Draw lighting on both midground and playerspace
-	trueCamX, trueCamY := rendering.GetStablePos()
+	trueCamX, trueCamY := camera.GetStablePos()
+
+	// TODO: Add yet another image which has dynamic objects drawn onto it
+	// and is cleared every frame so that dynamic objects also can interact with
+	// lights.
 
 	shaderOp.Images = [4]*ebiten.Image{
 		// NEVER touch the first texture argument. EVER.
 		nil,
-		l.colorLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GameWidth), int(trueCamY+rendering.GameHeight))).(*ebiten.Image),
-		l.normalLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GameWidth), int(trueCamY+rendering.GameHeight))).(*ebiten.Image),
+		l.frameLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GAME_WIDTH), int(trueCamY+rendering.GAME_HEIGHT))).(*ebiten.Image),
+		l.normalLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GAME_WIDTH), int(trueCamY+rendering.GAME_HEIGHT))).(*ebiten.Image),
 		nil,
 	}
 
-	shakeX, shakeY := rendering.GetShake()
+	shakeX, shakeY := camera.GetShake()
 
 	// TODO: Helper fcn
 	shaderOp.Uniforms = map[string]any{
 		"CamShake":     [2]float64{shakeX, shakeY},
-		"Time":         time / 5,
-		"PositionsX":   [10]float64{playerX - camX},
-		"PositionsY":   [10]float64{playerY - camY},
+		"Time":         resources.Time / 5,
+		"PositionsX":   [10]float64{drawCtx.PlayerX - drawCtx.CamX},
+		"PositionsY":   [10]float64{drawCtx.PlayerY - drawCtx.CamY},
 		"InnerRadii":   [10]float64{0.0},
 		"OuterRadii":   [10]float64{200.0},
 		"ZOffsets":     [10]float64{0.2},
-		"Intensities":  [10]float64{2.0},
+		"Intensities":  [10]float64{0.6},
 		"ColorsR":      [10]float64{1.0},
 		"ColorsG":      [10]float64{1.0},
 		"ColorsB":      [10]float64{1.0},
 		"AmbientLight": [3]float64{0.2, 0.2, 0.2},
 	}
 
-	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GameWidth, rendering.GameHeight, l.lightsPixelShader, &shaderOp)
+	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.lightsPixelShader, &shaderOp)
 
-	l.ambientParticles.Draw(camX, camY)
+	l.ambientParticles.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Foreground))
 }
 
 // ------ GETTERS ------
@@ -285,30 +301,30 @@ func (l *Level) GetHazardHit(playerHitbox *maths.Rect) bool {
 }
 
 // Get all the rect colliders that are not connected to slambox
-func (l *Level) GetDisconnectedColliders(slambox *Slambox) []*physics.RectCollider {
+func (l *Level) GetDisconnectedColliders(_slambox *slambox.Slambox) []*physics.RectCollider {
 	// I love writing unreadable code
 	return arrays.MapSlice(
 		arrays.Filter(
-			l.slamboxes, func(s *Slambox) bool { return !slices.Contains(slambox.ConnectedBoxes, s) && s != slambox },
+			l.slamboxes, func(s *slambox.Slambox) bool { return !slices.Contains(_slambox.ConnectedBoxes, s) && s != _slambox },
 		),
-		func(s *Slambox) *physics.RectCollider { return &s.Collider },
+		func(s *slambox.Slambox) *physics.RectCollider { return &s.Collider },
 	)
 
 }
 
 func (l *Level) GetSlamboxColliders() []*physics.RectCollider {
-	return arrays.MapSlice(l.slamboxes, func(s *Slambox) *physics.RectCollider { return &s.Collider })
+	return arrays.MapSlice(l.slamboxes, func(s *slambox.Slambox) *physics.RectCollider { return &s.Collider })
 }
 
 func (l *Level) GetSlamboxPositions() []SlamboxPosition {
-	return arrays.MapSlice(l.slamboxes, func(s *Slambox) SlamboxPosition {
+	return arrays.MapSlice(l.slamboxes, func(s *slambox.Slambox) SlamboxPosition {
 		return SlamboxPosition{X: s.Collider.Left(), Y: s.Collider.Top()}
 	})
 }
 
 // For now we assume that we will only ever be slamming one box at a time, though
 // this may change later
-func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *Slambox {
+func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *slambox.Slambox {
 	extendedRect := playerCollider.Extended(dir, 1)
 	for _, slambox := range l.slamboxes {
 		if extendedRect.Overlapping(&slambox.Collider.Rect) {

@@ -5,7 +5,7 @@ import (
 	"log"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
-	"mask_of_the_tomb/internal/libraries/rendering"
+	"mask_of_the_tomb/internal/libraries/camera"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/transformers/game"
 	"path/filepath"
@@ -24,15 +24,15 @@ func (a *App) Update() error {
 
 func (a *App) Draw(screen *ebiten.Image) {
 	a.ui.Draw()
-	rendering.ScreenLayers.Draw(screen)
+	camera.ScreenLayers.Draw(screen)
 }
 
 func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
-	return rendering.GameWidth * rendering.PixelScale, rendering.GameHeight * rendering.PixelScale
+	return camera.GameWidth * camera.PixelScale, camera.GameHeight * camera.PixelScale
 }
 
 func main() {
-	ebiten.SetWindowSize(rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
+	ebiten.SetWindowSize(camera.GameWidth*camera.PixelScale, camera.GameHeight*camera.PixelScale)
 	ebiten.SetWindowTitle("UI test")
 
 	app := &App{ui.NewUI()}

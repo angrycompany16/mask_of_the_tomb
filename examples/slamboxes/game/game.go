@@ -9,8 +9,9 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/libraries/camera"
 	"mask_of_the_tomb/internal/libraries/gamestate"
-	"mask_of_the_tomb/internal/libraries/rendering"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/plugins/musicplayer"
@@ -73,9 +74,9 @@ func (g *Game) Init() {
 func (g *Game) Update() error {
 	events.Update()
 	g.gameUI.Update()
-	rendering.Update()
+	camera.Update()
 
-	ebitenutil.DebugPrint(rendering.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
+	ebitenutil.DebugPrint(camera.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 
 	var err error
 	switch g.State.S {
@@ -89,16 +90,16 @@ func (g *Game) Update() error {
 			playerWidth, playerHeight := g.player.GetSize()
 
 			w, h := g.world.ActiveLevel.GetBounds()
-			rendering.Init(
+			camera.Init(
 				w, h,
-				(rendering.GameWidth-playerWidth)/2,
-				(rendering.GameHeight-playerHeight)/2,
+				(camera.GameWidth-playerWidth)/2,
+				(camera.GameHeight-playerHeight)/2,
 			)
 			g.gameUI.SwitchActiveDisplay("hud")
 			g.State.S = gamestate.Playing
 		}
 	case gamestate.Playing:
-		g.State.GameTime += 0.016666
+		resources.Time += 0.016666
 		g.world.Update()
 		err = g.updateGameplay()
 		if err != nil {
@@ -141,7 +142,7 @@ func (g *Game) updateGameplay() error {
 			titleCard.ChangeText(newBiome)
 			titleCardOverlay.StartFadeIn()
 		}
-		rendering.SetBorders(g.world.ActiveLevel.GetBounds())
+		camera.SetBorders(g.world.ActiveLevel.GetBounds())
 		g.player.SetHitboxPos(g.world.ActiveLevel.GetResetPoint())
 	}
 
@@ -171,7 +172,7 @@ func (g *Game) updateGameplay() error {
 
 	g.player.Update()
 
-	rendering.SetPos(g.player.GetPosCentered())
+	camera.SetPos(g.player.GetPosCentered())
 
 	return nil
 }
@@ -183,13 +184,13 @@ func (g *Game) Draw() {
 	case gamestate.MainMenu:
 	case gamestate.Playing:
 		pX, pY := g.player.GetPosCentered()
-		cX, cY := rendering.GetPos()
+		cX, cY := camera.GetPos()
 		g.world.ActiveLevel.Draw(pX, pY, cX, cY, g.State.GameTime)
 		g.player.Draw(cX, cY)
 	case gamestate.Paused:
 		// TODO: Add dim and blur filter on pausing the game
 		pX, pY := g.player.GetPosCentered()
-		cX, cY := rendering.GetPos()
+		cX, cY := camera.GetPos()
 		g.world.ActiveLevel.Draw(pX, pY, cX, cY, g.State.GameTime)
 		g.player.Draw(cX, cY)
 	}

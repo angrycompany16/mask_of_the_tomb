@@ -3,7 +3,7 @@ package ui
 import (
 	"image/color"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
-	"mask_of_the_tomb/internal/libraries/rendering"
+	"mask_of_the_tomb/internal/core/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -24,6 +24,6 @@ func (d *ScreenFade) Draw(t float64) {
 
 func NewScreenFade() OverlayContent {
 	return &ScreenFade{
-		image: ebiten.NewImage(rendering.GameWidth, rendering.GameHeight),
+		image: ebiten.NewImage(rendering.GAME_WIDTH, rendering.GAME_HEIGHT),
 	}
 }

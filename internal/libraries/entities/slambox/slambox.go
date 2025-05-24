@@ -1,4 +1,4 @@
-package world
+package slambox
 
 import (
 	"image"
@@ -8,10 +8,10 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/movebox"
 	"mask_of_the_tomb/internal/libraries/physics"
-	"mask_of_the_tomb/internal/libraries/rendering"
 	"math"
 	"time"
 
@@ -219,9 +219,9 @@ func (s *Slambox) Update() {
 	}
 }
 
-func (s *Slambox) Draw(camX, camY float64) {
+func (s *Slambox) Draw(drawCtx rendering.Ctx) {
 	x, y := s.movebox.GetPos()
-	ebitenrenderutil.DrawAt(s.sprite, rendering.ScreenLayers.Playerspace, x-camX, y-camY)
+	ebitenrenderutil.DrawAt(s.sprite, drawCtx.Dst, x, y)
 }
 
 // Projects a slambox through the environment given by slamctx
@@ -396,7 +396,12 @@ func NewSlambox(
 	entity *ebitenLDTK.Entity,
 ) *Slambox {
 	newSlambox := Slambox{}
-	newSlambox.Collider = physics.NewRectCollider(*RectFromEntity(entity))
+	newSlambox.Collider = physics.NewRectCollider(*maths.NewRect(
+		entity.Px[0],
+		entity.Px[1],
+		entity.Width,
+		entity.Height,
+	))
 	newSlambox.ConnectedBoxes = make([]*Slambox, 0)
 	newSlambox.LinkID = entity.Iid
 	newSlambox.movebox = movebox.NewMovebox(moveSpeed)

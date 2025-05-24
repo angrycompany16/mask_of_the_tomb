@@ -20,6 +20,6 @@ Root:
     PrimaryAlign: *AlignCenter
     SecondaryAlign: *AlignCenter
     ScreenAlign: *Centered
-    ShadowX: -4
-    ShadowY: 4
+    ShadowX: 4
+    ShadowY: -4
 ...

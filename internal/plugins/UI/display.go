@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"mask_of_the_tomb/internal/libraries/rendering"
+	"mask_of_the_tomb/internal/core/rendering"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -19,7 +19,7 @@ func (d *Display) Update() {
 }
 
 func (d *Display) Draw() {
-	d.Root.Draw(0, 0, rendering.GameWidth*rendering.PixelScale, rendering.GameHeight*rendering.PixelScale)
+	d.Root.Draw(0, 0, rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
 }
 
 func (d *Display) GetConfirmed() map[string]bool {

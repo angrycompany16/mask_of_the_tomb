@@ -1,4 +1,4 @@
-package world
+package hazard
 
 import (
 	"mask_of_the_tomb/internal/core/maths"
@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	HazardEntityName      = "Hazard"
 	hazardDamageFieldName = "Damage"
 )
 
@@ -20,7 +19,12 @@ func NewHazard(
 	entity *ebitenLDTK.Entity,
 ) Hazard {
 	newHazard := Hazard{}
-	newHazard.Hitbox = *RectFromEntity(entity)
+	newHazard.Hitbox = *maths.NewRect(
+		entity.Px[0],
+		entity.Px[1],
+		entity.Width,
+		entity.Height,
+	)
 
 	for _, fieldInstance := range entity.Fields {
 		if fieldInstance.Name == hazardDamageFieldName {

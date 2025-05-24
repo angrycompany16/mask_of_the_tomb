@@ -25,14 +25,14 @@ Root:
       PrimaryAlign: *AlignCenter
       SecondaryAlign: *AlignCenter
       ScreenAlign: *Centered
-      ShadowX: -4
-      ShadowY: 4
+      ShadowX: 4
+      ShadowY: -4
       NormalColor:
         Bright: [205, 247, 226, 255]
         Dark: [199, 176, 139, 255]
       SelectedColor:
-        Bright: [255, 255, 255, 255]
-        Dark: [0, 0, 0, 255]
+        Bright: [0, 0, 0, 0]
+        Dark: [255, 255, 255, 255]
     - Type: "button"
       Name: "Options"
       Text: "Options"
@@ -47,14 +47,14 @@ Root:
       PrimaryAlign: *AlignCenter
       SecondaryAlign: *AlignCenter
       ScreenAlign: *Centered
-      ShadowX: -4
-      ShadowY: 4
+      ShadowX: 4
+      ShadowY: -4
       NormalColor:
         Bright: [205, 247, 226, 255]
         Dark: [199, 176, 139, 255]
       SelectedColor:
-        Bright: [255, 255, 255, 255]
-        Dark: [0, 0, 0, 255]
+        Bright: [0, 0, 0, 0]
+        Dark: [255, 255, 255, 255]
     - Type: "button"
       Name: "Quit"
       Text: "Quit"
@@ -69,12 +69,12 @@ Root:
       PrimaryAlign: *AlignCenter
       SecondaryAlign: *AlignCenter
       ScreenAlign: *Centered
-      ShadowX: -4
-      ShadowY: 4
+      ShadowX: 4
+      ShadowY: -4
       NormalColor:
         Bright: [205, 247, 226, 255]
         Dark: [199, 176, 139, 255]
       SelectedColor:
-        Bright: [255, 255, 255, 255]
-        Dark: [0, 0, 0, 255]
+        Bright: [0, 0, 0, 0]
+        Dark: [255, 255, 255, 255]
 ...

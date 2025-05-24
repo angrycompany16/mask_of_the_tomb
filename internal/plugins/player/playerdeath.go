@@ -6,8 +6,8 @@ import (
 	"image/color"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/libraries/colors"
-	"mask_of_the_tomb/internal/libraries/rendering"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -52,7 +52,7 @@ func (d *DeathAnim) Update() {
 	}
 }
 
-func (d *DeathAnim) Draw(camX, camY float64) {
+func (d *DeathAnim) Draw(ctx rendering.Ctx) {
 	if !d.playing {
 		return
 	}
@@ -77,7 +77,7 @@ func (d *DeathAnim) Draw(camX, camY float64) {
 			false,
 		)
 
-		ebitenrenderutil.DrawAt(d.circleSurfaces[i], rendering.ScreenLayers.Overlay, xPos-camX, yPos-camY, 0.5, 0.5)
+		ebitenrenderutil.DrawAt(d.circleSurfaces[i], rendering.ScreenLayers.Overlay, xPos-ctx.CamX, yPos-ctx.CamY, 0.5, 0.5)
 	}
 }
 
