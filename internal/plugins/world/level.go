@@ -6,21 +6,25 @@ import (
 	"image/color"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/arrays"
+	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
+	threads "mask_of_the_tomb/internal/core/threads"
+	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/camera"
 	"mask_of_the_tomb/internal/libraries/colors"
 	"mask_of_the_tomb/internal/libraries/entities/door"
 	"mask_of_the_tomb/internal/libraries/entities/grass"
 	"mask_of_the_tomb/internal/libraries/entities/hazard"
-	"mask_of_the_tomb/internal/libraries/entities/slambox"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
+	"math"
 	"path/filepath"
 	"slices"
+	"time"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -50,10 +54,9 @@ var (
 	}
 	particleSysPath              = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
 	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "tilemaps", "export", "playerspace_tilemap_normal.png")
-	// midgroundNormalTilemapPath   = filepath.Join("assets", "sprites", "environment", "tilemaps", "export", "midground_tilemap_normal.png")
 	// TODO: *very* temporary solution
 	playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
-	// midgroundNormalTilemap   = errs.MustNewImageFromFile(midgroundNormalTilemapPath)
+	playerLightRadius        = 200.0
 )
 
 type Level struct {
@@ -72,11 +75,12 @@ type Level struct {
 	vignetteShader           *ebiten.Shader
 	lightsPixelShader        *ebiten.Shader
 	pixelLightShader         *ebiten.Shader
+	playerLightBreatheTicker time.Ticker
 	resetX, resetY           float64
 	ambientParticles         *particles.ParticleSystem
-	hazards                  []hazard.Hazard
+	slamboxes                []*Slambox
+	hazards                  []*hazard.Hazard
 	doors                    []door.Door
-	slamboxes                []*slambox.Slambox
 	grassEntities            []grass.Grass
 }
 
@@ -93,6 +97,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.lightsPixelShader = errs.Must(ebiten.NewShader(assets.Pixel_lights_kage))
 	// TODO: set particle system bounds based on level size
 	newLevel.ambientParticles = errs.Must(particles.FromFile(particleSysPath, rendering.ScreenLayers.Foreground))
+	newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)
 
 	// Most of these layers are completely unnecessary, so maybe it would be a good idea to
 	// delete a few of them to save eerformance
@@ -140,7 +145,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			case doorEntityName:
 				newLevel.doors = append(newLevel.doors, door.NewDoor(&entity))
 			case slamboxEntityName:
-				newLevel.slamboxes = append(newLevel.slamboxes, slambox.NewSlambox(&entity))
+				newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity))
 			case grassEntityName:
 				newLevel.grassEntities = append(newLevel.grassEntities, grass.NewGrass(&entity, 16, rendering.ScreenLayers.Playerspace))
 			}
@@ -150,13 +155,21 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	// NOTE: We need to loop twice to ensure that all slamboxes have been added
 	// before we link them together
 	for _, slambox := range newLevel.slamboxes {
+		for _, hazard := range newLevel.hazards {
+			if slices.Contains(slambox.attachedHazardIDs, hazard.LinkID) {
+				slambox.attachedHazards = append(slambox.attachedHazards, hazard)
+				hazard.PosOffsetX = hazard.Hitbox.Left() - slambox.Collider.Left()
+				hazard.PosOffsetY = hazard.Hitbox.Top() - slambox.Collider.Top()
+			}
+		}
+
 		for _, otherSlambox := range newLevel.slamboxes {
 			if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
-				// TODO: Change to LinkBox() method
 				slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
 			}
 		}
-		slambox.CreateSprite()
+		slambox.CreateSprite(assetloader.GetAsset("slamboxTilemap").(*assettypes.ImageAsset).Image)
+		// slambox.CreateSprite(assetloader.GetAsset("slamboxTilemap").(*assettypes.ImageAsset).Image)
 	}
 
 	// Optimization yeah
@@ -206,10 +219,14 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 		grassEntity.Update(playerX, playerY, playerVelX, playerVelY)
 	}
 
+	if _, tick := threads.Poll(l.playerLightBreatheTicker.C); tick {
+		playerLightRadius = 205.0 - math.Copysign(5, playerLightRadius-210.0)
+	}
+
 	l.ambientParticles.Update()
 }
 
-func (l *Level) Draw(drawCtx rendering.Ctx) {
+func (l *Level) Draw(ctx rendering.Ctx) {
 	l.frameLayers.Playerspace.Clear()
 	rendering.ScreenLayers.Background2.Fill(l.bgColor)
 
@@ -232,21 +249,21 @@ func (l *Level) Draw(drawCtx rendering.Ctx) {
 	rendering.ScreenLayers.Foreground.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.vignetteShader, &shaderOp)
 
 	for _, box := range l.slamboxes {
-		box.Draw(rendering.WithLayer(drawCtx, l.frameLayers.Playerspace))
+		box.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+	}
+
+	for _, hazard := range l.hazards {
+		hazard.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
 	for _, grassEntity := range l.grassEntities {
-		grassEntity.Draw(rendering.WithLayer(drawCtx, l.frameLayers.Playerspace))
+		grassEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
 	ebitenrenderutil.DrawAt(l.tileLayers.Playerspace, l.frameLayers.Playerspace, 0, 0)
 
 	// Draw lighting on both midground and playerspace
 	trueCamX, trueCamY := camera.GetStablePos()
-
-	// TODO: Add yet another image which has dynamic objects drawn onto it
-	// and is cleared every frame so that dynamic objects also can interact with
-	// lights.
 
 	shaderOp.Images = [4]*ebiten.Image{
 		// NEVER touch the first texture argument. EVER.
@@ -262,10 +279,10 @@ func (l *Level) Draw(drawCtx rendering.Ctx) {
 	shaderOp.Uniforms = map[string]any{
 		"CamShake":     [2]float64{shakeX, shakeY},
 		"Time":         resources.Time / 5,
-		"PositionsX":   [10]float64{drawCtx.PlayerX - drawCtx.CamX},
-		"PositionsY":   [10]float64{drawCtx.PlayerY - drawCtx.CamY},
+		"PositionsX":   [10]float64{ctx.PlayerX - ctx.CamX},
+		"PositionsY":   [10]float64{ctx.PlayerY - ctx.CamY},
 		"InnerRadii":   [10]float64{0.0},
-		"OuterRadii":   [10]float64{200.0},
+		"OuterRadii":   [10]float64{playerLightRadius},
 		"ZOffsets":     [10]float64{0.2},
 		"Intensities":  [10]float64{0.6},
 		"ColorsR":      [10]float64{1.0},
@@ -276,7 +293,7 @@ func (l *Level) Draw(drawCtx rendering.Ctx) {
 
 	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.lightsPixelShader, &shaderOp)
 
-	l.ambientParticles.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Foreground))
+	l.ambientParticles.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Foreground))
 }
 
 // ------ GETTERS ------
@@ -301,30 +318,30 @@ func (l *Level) GetHazardHit(playerHitbox *maths.Rect) bool {
 }
 
 // Get all the rect colliders that are not connected to slambox
-func (l *Level) GetDisconnectedColliders(_slambox *slambox.Slambox) []*physics.RectCollider {
+func (l *Level) GetDisconnectedColliders(_slambox *Slambox) []*physics.RectCollider {
 	// I love writing unreadable code
 	return arrays.MapSlice(
 		arrays.Filter(
-			l.slamboxes, func(s *slambox.Slambox) bool { return !slices.Contains(_slambox.ConnectedBoxes, s) && s != _slambox },
+			l.slamboxes, func(s *Slambox) bool { return !slices.Contains(_slambox.ConnectedBoxes, s) && s != _slambox },
 		),
-		func(s *slambox.Slambox) *physics.RectCollider { return &s.Collider },
+		func(s *Slambox) *physics.RectCollider { return &s.Collider },
 	)
 
 }
 
 func (l *Level) GetSlamboxColliders() []*physics.RectCollider {
-	return arrays.MapSlice(l.slamboxes, func(s *slambox.Slambox) *physics.RectCollider { return &s.Collider })
+	return arrays.MapSlice(l.slamboxes, func(s *Slambox) *physics.RectCollider { return &s.Collider })
 }
 
 func (l *Level) GetSlamboxPositions() []SlamboxPosition {
-	return arrays.MapSlice(l.slamboxes, func(s *slambox.Slambox) SlamboxPosition {
+	return arrays.MapSlice(l.slamboxes, func(s *Slambox) SlamboxPosition {
 		return SlamboxPosition{X: s.Collider.Left(), Y: s.Collider.Top()}
 	})
 }
 
 // For now we assume that we will only ever be slamming one box at a time, though
 // this may change later
-func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *slambox.Slambox {
+func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *Slambox {
 	extendedRect := playerCollider.Extended(dir, 1)
 	for _, slambox := range l.slamboxes {
 		if extendedRect.Overlapping(&slambox.Collider.Rect) {

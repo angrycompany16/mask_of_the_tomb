@@ -1,4 +1,4 @@
-package concurrency
+package threads
 
 func Poll[T any](out <-chan T) (T, bool) {
 	select {

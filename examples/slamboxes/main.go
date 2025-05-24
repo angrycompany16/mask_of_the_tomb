@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 	"mask_of_the_tomb/examples/slamboxes/game"
-	"mask_of_the_tomb/internal/libraries/camera"
+	"mask_of_the_tomb/internal/core/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -25,15 +25,15 @@ func (a *App) Update() error {
 
 func (a *App) Draw(screen *ebiten.Image) {
 	a.game.Draw()
-	camera.ScreenLayers.Draw(screen)
+	rendering.ScreenLayers.Draw(screen)
 }
 
 func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
-	return camera.GameWidth * camera.PixelScale, camera.GameHeight * camera.PixelScale
+	return rendering.GAME_WIDTH * rendering.PIXEL_SCALE, rendering.GAME_HEIGHT * rendering.PIXEL_SCALE
 }
 
 func main() {
-	ebiten.SetWindowSize(camera.GameWidth*camera.PixelScale, camera.GameHeight*camera.PixelScale)
+	ebiten.SetWindowSize(rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
 	ebiten.SetWindowTitle("Slambox test")
 
 	a := &App{game.NewGame()}

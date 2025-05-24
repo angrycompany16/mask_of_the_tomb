@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/audiocontext"
-	"mask_of_the_tomb/internal/core/concurrency"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/camera"
 	"mask_of_the_tomb/internal/libraries/gamestate"
@@ -93,7 +93,7 @@ func (g *Game) Update() error {
 	var err error
 	switch g.State.S {
 	case gamestate.Loading:
-		if _, done := concurrency.Poll(loadFinishedChan); done {
+		if _, done := threads.Poll(loadFinishedChan); done {
 			fmt.Println("Finished loading stage")
 			g.Init()
 			g.State.S = gamestate.MainMenu

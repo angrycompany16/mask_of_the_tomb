@@ -43,7 +43,7 @@ var (
 	loadingScreenPath = filepath.Join("assets", "menus", "game", "loadingscreen.yaml")
 	optionsMenuPath   = filepath.Join("assets", "menus", "game", "options.yaml")
 	introScreenPath   = filepath.Join("assets", "menus", "game", "intro.yaml")
-	LDTKMapPath       = filepath.Join("assets", "LDTK", "slambox.ldtk")
+	LDTKMapPath       = filepath.Join("assets", "LDTK", "hazard.ldtk")
 )
 
 type Game struct {

@@ -3,11 +3,13 @@ package main
 import (
 	"errors"
 	"log"
-	"mask_of_the_tomb/internal/libraries/camera"
-	"mask_of_the_tomb/internal/transformers/game"
+	"mask_of_the_tomb/examples/hazards/game"
+	"mask_of_the_tomb/internal/core/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
+
+// TODO: Add some kind of staging so that we can skip for instance the cutscene
 
 type App struct {
 	game *game.Game
@@ -23,19 +25,18 @@ func (a *App) Update() error {
 
 func (a *App) Draw(screen *ebiten.Image) {
 	a.game.Draw()
-	camera.ScreenLayers.Draw(screen)
+	rendering.ScreenLayers.Draw(screen)
 }
 
 func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
-	return camera.GameWidth * camera.PixelScale, camera.GameHeight * camera.PixelScale
+	return rendering.GAME_WIDTH * rendering.PIXEL_SCALE, rendering.GAME_HEIGHT * rendering.PIXEL_SCALE
 }
 
 func main() {
-	ebiten.SetWindowSize(camera.GameWidth*camera.PixelScale, camera.GameHeight*camera.PixelScale)
+	ebiten.SetWindowSize(rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
 	ebiten.SetWindowTitle("Hazard test")
 
 	a := &App{game.NewGame()}
-	// world.LDTKMapPath = filepath.Join("assets", "LDTK", "hazard.ldtk")
 	a.game.Load()
 
 	ebiten.SetFullscreen(true)

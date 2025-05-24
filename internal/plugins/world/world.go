@@ -49,10 +49,6 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 		}
 	}
 
-	// RMEOVE
-	// vector.StrokeLine(grassSprite, 2, 0, 2, 12, 2, color.RGBA{0, 255, 0, 255}, false)
-	// RMEOVE
-
 	// for id, levelmemory := range gameData.WorldStateMemory {
 	// w.worldStateMemory[id] = levelmemory
 	// }
