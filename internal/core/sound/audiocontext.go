@@ -1,4 +1,4 @@
-package audiocontext
+package sound
 
 import "github.com/hajimehoshi/ebiten/v2/audio"
 
@@ -10,10 +10,9 @@ type GlobalAudioContext struct {
 	*audio.Context
 }
 
-func Current() *GlobalAudioContext {
+func GetCurrentAudioContext() *GlobalAudioContext {
 	if _globalAudioContext == nil {
 		_globalAudioContext = &GlobalAudioContext{audio.NewContext(48000)}
-		// _globalAudioContext = &GlobalAudioContext{audio.NewContext(44100)}
 	}
 	return _globalAudioContext
 }

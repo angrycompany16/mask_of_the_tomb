@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/arrays"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/colors"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
@@ -15,7 +16,6 @@ import (
 	threads "mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/camera"
-	"mask_of_the_tomb/internal/libraries/colors"
 	"mask_of_the_tomb/internal/libraries/entities/door"
 	"mask_of_the_tomb/internal/libraries/entities/grass"
 	"mask_of_the_tomb/internal/libraries/entities/hazard"
@@ -91,7 +91,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.levelLDTK = levelLDTK
 	newLevel.defs = defs
 	newLevel.name = levelLDTK.Name
-	newLevel.bgColor = colors.HexToRGB(levelLDTK.BgColorHex)
+	newLevel.bgColor = errs.Must(colors.HexToRGB(levelLDTK.BgColorHex))
 	newLevel.fogShader = errs.Must(ebiten.NewShader(assets.Fog_kage))
 	newLevel.vignetteShader = errs.Must(ebiten.NewShader(assets.Vignette_kage))
 	newLevel.lightsPixelShader = errs.Must(ebiten.NewShader(assets.Pixel_lights_kage))

@@ -2,6 +2,8 @@ package animation
 
 import (
 	"image"
+	"mask_of_the_tomb/internal/core/threads"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -20,25 +22,6 @@ const (
 	Once
 )
 
-type Spritesheet struct {
-	src           *ebiten.Image
-	width, height float64
-	frames        int
-}
-
-// Note: Should only be used when the spritesheet is a strip of tiles
-func NewSpritesheetAuto(img *ebiten.Image) *Spritesheet {
-	tileSize := float64(img.Bounds().Size().Y)
-	numTiles := float64(img.Bounds().Size().X) / tileSize
-	return &Spritesheet{
-		src:    img,
-		width:  tileSize,
-		height: tileSize,
-		frames: int(numTiles),
-	}
-}
-
-// IsFinished, GetNext, Reset, Play
 type Animation struct {
 	spritesheet *Spritesheet
 	orientation SpritesheetOrientation
@@ -47,6 +30,7 @@ type Animation struct {
 	yindex      int
 	frameDelay  float64
 	t           float64
+	ticker      *time.Ticker
 	paused      bool
 	finished    bool
 	next        int // id of the next animation we want to play. -1 if irrelevant
@@ -57,10 +41,7 @@ func (a *Animation) Update() {
 		return
 	}
 
-	// TODO: replace with ticker
-	a.t += 0.008333333 // ? Why ? I don't knwo man. For some reason it is quite accurate
-	if a.t > a.frameDelay {
-		a.t = 0
+	if _, tick := threads.Poll(a.ticker.C); tick {
 		a.switchFrame()
 	}
 }
@@ -74,7 +55,7 @@ func (a *Animation) GetNext() int {
 }
 
 func (a *Animation) Reset() {
-	a.t = 0
+	a.ticker = time.NewTicker(time.Duration(a.frameDelay * 1e9))
 	a.xindex = 0
 	a.yindex = 0
 	a.finished = false
@@ -123,11 +104,29 @@ func NewAnimation(spritesheet *Spritesheet, frameDelay float64, orientation Spri
 		orientation: orientation,
 		xindex:      0,
 		yindex:      0,
+		ticker:      time.NewTicker(time.Duration(frameDelay * 1e9)),
 		frameDelay:  frameDelay,
-		t:           0,
 		loopMode:    loopMode,
 		paused:      false,
 		next:        next,
 		finished:    false,
+	}
+}
+
+type Spritesheet struct {
+	src           *ebiten.Image
+	width, height float64
+	frames        int
+}
+
+// Note: Should only be used when the spritesheet is a strip of tiles
+func NewSpritesheetAuto(img *ebiten.Image) *Spritesheet {
+	tileSize := float64(img.Bounds().Size().Y)
+	numTiles := float64(img.Bounds().Size().X) / tileSize
+	return &Spritesheet{
+		src:    img,
+		width:  tileSize,
+		height: tileSize,
+		frames: int(numTiles),
 	}
 }

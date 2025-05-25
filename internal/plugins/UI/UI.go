@@ -5,6 +5,12 @@ import (
 	"mask_of_the_tomb/internal/core/assetloader"
 )
 
+// NOw:
+// Fade out title card bug fix (Ideally create a new layer for "game" UI and "menu" UI)
+// Fix the bug where the button select sound plays upon opening a menu
+// I think we might have to separate this into smalles libraries because this is just horrendous
+// Allow options menu to actually set master, sfx, song volume
+
 // TODO: Reset selector position on active menu change
 // TODO: allow for optional borders on elements (shouldn't be too hard)
 

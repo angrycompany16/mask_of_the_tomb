@@ -2,8 +2,6 @@ package sound
 
 import (
 	"bytes"
-	"mask_of_the_tomb/internal/core/audiocontext"
-	"mask_of_the_tomb/internal/core/errs"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
@@ -44,25 +42,27 @@ func playAudio(player audio.Player) {
 	}
 }
 
-func NewEffectPlayer(src []byte, format AudioFormat) *EffectPlayer {
-	return &EffectPlayer{LoadAudio(src, format)}
+func NewEffectPlayer(src []byte, format AudioFormat) (*EffectPlayer, error) {
+	player, err := LoadAudio(src, format)
+	return &EffectPlayer{player}, err
 }
 
 // TODO: Add volume parameter 0-1
 // TODO: Add audio asset
 // TODO: Propagate errors
-func LoadAudio(src []byte, format AudioFormat) *audio.Player {
+func LoadAudio(src []byte, format AudioFormat) (*audio.Player, error) {
 	var player *audio.Player
+	var err error
 	switch format {
 	case Mp3:
-		stream := errs.Must(mp3.DecodeF32(bytes.NewReader(src)))
-		player = errs.Must(audiocontext.Current().NewPlayerF32(stream))
+		stream, _ := mp3.DecodeF32(bytes.NewReader(src))
+		player, err = GetCurrentAudioContext().NewPlayerF32(stream)
 	case Ogg:
-		stream := errs.Must(vorbis.DecodeF32(bytes.NewReader(src)))
-		player = errs.Must(audiocontext.Current().NewPlayerF32(stream))
+		stream, _ := vorbis.DecodeF32(bytes.NewReader(src))
+		player, err = GetCurrentAudioContext().NewPlayerF32(stream)
 	case Wav:
-		stream := errs.Must(wav.DecodeF32(bytes.NewReader(src)))
-		player = errs.Must(audiocontext.Current().NewPlayerF32(stream))
+		stream, _ := wav.DecodeF32(bytes.NewReader(src))
+		player, err = GetCurrentAudioContext().NewPlayerF32(stream)
 	}
-	return player
+	return player, err
 }

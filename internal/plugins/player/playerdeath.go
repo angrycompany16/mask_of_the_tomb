@@ -4,10 +4,10 @@ package player
 // Disconnect the effect from the player
 import (
 	"image/color"
+	"mask_of_the_tomb/internal/core/colors"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
-	"mask_of_the_tomb/internal/libraries/colors"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"

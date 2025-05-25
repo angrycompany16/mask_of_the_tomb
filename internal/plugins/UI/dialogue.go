@@ -2,7 +2,8 @@ package ui
 
 import (
 	"mask_of_the_tomb/assets"
-	"mask_of_the_tomb/internal/libraries/sound"
+	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/sound"
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -10,7 +11,7 @@ import (
 )
 
 var (
-	dialogueSound = sound.NewEffectPlayer(assets.Text_scroll_ogg, sound.Ogg)
+	dialogueSound = errs.Must(sound.NewEffectPlayer(assets.Text_scroll_ogg, sound.Ogg))
 )
 
 type Dialogue struct {
@@ -49,6 +50,7 @@ func (d *Dialogue) Update(confirmations map[string]bool) {
 		}
 	}
 
+	// TODO: Replace with ticker
 	d.t += 1.0 / 60.0
 	if d.t > d.RevealTime {
 		if d.revealIndicator == len(d.Lines[d.activeLine]) {

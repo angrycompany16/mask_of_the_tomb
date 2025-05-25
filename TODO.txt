@@ -8,7 +8,8 @@ slamboxes and (2) the ability to connect slamboxes in "any" configuration)
 // 6. Buttons which can be activated by the player?
 // 7. Shrink and grow in size
 // 8. Stoppers / catchers
-// 9. 
+// 9. Hold up hear me out. What about turrets / traps that insta-kill you if they get line of sight?
+      They can be blocked with boxes and also killed
 // what else?
 
 
@@ -19,9 +20,6 @@ Take inspiration from DSFWAN albums? For example, we can have
 - One inspired by Perli tal-Passat (Which basement kind of already is)
 - One inspired by the purple album (name unknown)
 
-
-(Priority: LOW) Fix the "bug" where single-screen-height rooms have two pixels of spare
-camera space
 
 Bug list:
 - Sometimes spamming pause/play while respawning causes the player to not appear
@@ -36,26 +34,15 @@ Levels:
  - Proper level transition sequence to avoid large slowdown due to asset loading
  - Level transitions (shader O_o)
  - Breathing lights
- - Make it impossible to slam when there is a roof right above
- - Animated sprites
-  - 
- - Allow for spikes on top of slam boxes
  - NPC stuff
 
 // Revamped roadmap because I want to create a demo
-// - Spikes on slamboxes
-// - Think through some of the singleton classes. One method which can be very useful
-//   in removing singleton instances is a context data type
-// - Try to maybe convert some of the core / library packages or structs into something
-// - Consider redoing the lighting maybe?
-        Convert to palette perfect lighting
-//   that it exposed by an interface, but has no specific implementation
+// - Art/idea for level transitions
 // - Add room title cards
 // - Implement some kind of switch or lever as persistent progress
 // - Finish slam animation
 // - Remake dash animation
 // - Resolve the many TODOs in the project (at least do a few of them)
-// - Art/idea for level transitions
 // - Right now the game crashes if doors have a missing entity ref. Probably nice
 //   to fix this or at least give a better warning in ebiten-LDTK.
 // - Add a way to skip intro cutscene
@@ -64,15 +51,13 @@ Levels:
 
 // Post-demo: The design/code quality revamp:
 // - Rewrite the overlay system from scratch because it's just so terrible and can't do what i want it to do
-// - Allow for run flag to start in a certain level
 // - Remove the singletons. These should not exist
-// - (Consider) writing integration tests for packages like animation, rendering, sound, etc.
-// - Make an overview of the design of the game
 // - Review licensing so I don't get sued
 // - Use the race condition checker...
 // - Implement generalized input handler
 // - Improve the asset loader, turn into actual editor
-// - Create animation/sprite asset files
+// - Create animation/sprite/audio asset files
+// - Create shader asset files
 
 FIX THE EDITOR
 Consider switching into one repo for assets and one for code? or maybe that's not such

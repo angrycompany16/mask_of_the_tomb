@@ -2,8 +2,9 @@ package musicplayer
 
 import (
 	"mask_of_the_tomb/assets"
+	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/libraries/gamestate"
-	"mask_of_the_tomb/internal/libraries/sound"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 )
@@ -89,9 +90,9 @@ func (m *MusicPlayer) playSong(name songName) {
 func NewMusicPlayer(ctx *audio.Context) *MusicPlayer {
 	return &MusicPlayer{
 		songs: map[songName]*audio.Player{
-			menuTheme:     sound.LoadAudio(assets.Menu_mp3, sound.Mp3),
-			basementTheme: sound.LoadAudio(assets.Basement_wav, sound.Wav),
-			libraryTheme:  sound.LoadAudio(assets.Library_mp3, sound.Mp3),
+			menuTheme:     errs.Must(sound.LoadAudio(assets.Menu_mp3, sound.Mp3)),
+			basementTheme: errs.Must(sound.LoadAudio(assets.Basement_wav, sound.Wav)),
+			libraryTheme:  errs.Must(sound.LoadAudio(assets.Library_mp3, sound.Mp3)),
 		},
 	}
 }

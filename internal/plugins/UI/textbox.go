@@ -2,8 +2,8 @@ package ui
 
 import (
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/colors"
 	"mask_of_the_tomb/internal/core/rendering"
-	"mask_of_the_tomb/internal/libraries/colors"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"

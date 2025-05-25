@@ -14,7 +14,6 @@ type Display struct {
 }
 
 func (d *Display) Update() {
-	// pass confirmations through everywhere
 	d.Root.Update(d.confirmations)
 }
 

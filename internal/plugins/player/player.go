@@ -3,15 +3,16 @@ package player
 import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/inputbuffer"
 	"mask_of_the_tomb/internal/libraries/movebox"
 	"mask_of_the_tomb/internal/libraries/particles"
-	"mask_of_the_tomb/internal/libraries/sound"
 	"path/filepath"
 
 	"math"
@@ -84,9 +85,9 @@ func NewPlayer() *Player {
 		OnDeath:     events.NewEvent(),
 		OnMove:      events.NewEvent(),
 		deathAnim:   NewDeathAnim(),
-		dashSound:   sound.NewEffectPlayer(assets.Dash_wav, sound.Wav),
-		slamSound:   sound.NewEffectPlayer(assets.Slam_wav, sound.Wav),
-		deathSound:  sound.NewEffectPlayer(assets.Death_mp3, sound.Mp3),
+		dashSound:   errs.Must(sound.NewEffectPlayer(assets.Dash_wav, sound.Wav)),
+		slamSound:   errs.Must(sound.NewEffectPlayer(assets.Slam_wav, sound.Wav)),
+		deathSound:  errs.Must(sound.NewEffectPlayer(assets.Death_mp3, sound.Mp3)),
 	}
 
 	player.moveFinishedListener = events.NewEventListener(player.movebox.OnMoveFinished)
