@@ -1,34 +1,3 @@
-// package main
-
-// import (
-// 	"log"
-
-// 	"github.com/hajimehoshi/ebiten/v2"
-// 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-// )
-
-// type Game struct{}
-
-// func (g *Game) Update() error {
-// 	return nil
-// }
-
-// func (g *Game) Draw(screen *ebiten.Image) {
-// 	ebitenutil.DebugPrint(screen, "Hello, World!")
-// }
-
-// func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-// 	return 320, 240
-// }
-
-// func main() {
-// 	ebiten.SetWindowSize(640, 480)
-// 	ebiten.SetWindowTitle("Hello, World!")
-// 	if err := ebiten.RunGame(&Game{}); err != nil {
-// 		log.Fatal(err)
-// 	}
-// }
-
 package main
 
 import (
@@ -36,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/transformers/game"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -50,7 +20,16 @@ type App struct {
 }
 
 func (a *App) Update() error {
-	err := a.game.Update()
+	// Switch on game state
+	// Run preload if game not done loading yet
+	var err error
+	switch resources.State {
+	case resources.Loading:
+		a.game.PreloadUpdate()
+	default:
+		err = a.game.Update()
+	}
+
 	if err == game.ErrTerminated {
 		return err
 	}
@@ -58,7 +37,12 @@ func (a *App) Update() error {
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
-	a.game.Draw()
+	switch resources.State {
+	case resources.Loading:
+		a.game.PreloadDraw()
+	default:
+		a.game.Draw()
+	}
 	rendering.ScreenLayers.Draw(screen)
 }
 
@@ -77,7 +61,7 @@ func main() {
 	ebiten.SetWindowTitle("Mask of the tomb")
 
 	a := &App{game.NewGame()}
-	a.game.Load()
+	a.game.InitLoad()
 
 	ebiten.SetFullscreen(true)
 

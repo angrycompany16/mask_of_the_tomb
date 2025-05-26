@@ -1,6 +1,5 @@
 package particles
 
-// Q: Should fileio be a core component? Not completely sure
 import (
 	"image/color"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"

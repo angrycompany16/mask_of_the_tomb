@@ -1,4 +1,4 @@
-package ui
+package node
 
 import (
 	"mask_of_the_tomb/assets"
@@ -10,6 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// TODO: Get this out of here
 var buttonSound = errs.Must(sound.NewEffectPlayer(assets.Select_ogg, sound.Ogg))
 
 type Button struct {

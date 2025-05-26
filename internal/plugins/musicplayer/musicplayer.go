@@ -3,8 +3,8 @@ package musicplayer
 import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/sound"
-	"mask_of_the_tomb/internal/libraries/gamestate"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 )
@@ -38,16 +38,16 @@ type MusicPlayer struct {
 }
 
 // TODO: This will become a plugin
-func (m *MusicPlayer) Update(state gamestate.State, levelBiome string) {
-	if state == gamestate.Loading {
+func (m *MusicPlayer) Update(levelBiome string) {
+	if resources.State == resources.Loading {
 		return
 	}
 
 	m.tryRestartSong()
-	switch state {
-	case gamestate.MainMenu:
+	switch resources.State {
+	case resources.MainMenu:
 		m.playSong(menuTheme)
-	case gamestate.Playing:
+	case resources.Playing:
 		if song, ok := m.songs[m.activeSong]; ok {
 			song.SetVolume(1.0)
 		}
@@ -59,7 +59,7 @@ func (m *MusicPlayer) Update(state gamestate.State, levelBiome string) {
 		default:
 			// fmt.Println("Level has no biome, so no song will be played")
 		}
-	case gamestate.Paused:
+	case resources.Paused:
 		if song, ok := m.songs[m.activeSong]; ok {
 			song.SetVolume(0.1)
 		}

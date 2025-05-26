@@ -1,4 +1,4 @@
-package ui
+package node
 
 import (
 	"mask_of_the_tomb/internal/core/maths"

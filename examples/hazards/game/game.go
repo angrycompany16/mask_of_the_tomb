@@ -4,15 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader"
-	"mask_of_the_tomb/internal/core/audiocontext"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/camera"
-	"mask_of_the_tomb/internal/libraries/gamestate"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/plugins/musicplayer"
@@ -47,7 +46,6 @@ var (
 )
 
 type Game struct {
-	State       gamestate.GameState
 	player      *player.Player
 	world       *world.World
 	gameUI      *ui.UI
@@ -69,7 +67,7 @@ func (g *Game) Load() {
 
 func (g *Game) Init() {
 	g.gameUI.SwitchActiveDisplay("mainmenu")
-	g.musicPlayer = musicplayer.NewMusicPlayer(audiocontext.Current().Context)
+	g.musicPlayer = musicplayer.NewMusicPlayer(sound.GetCurrentAudioContext().Context)
 }
 
 func (g *Game) Update() error {

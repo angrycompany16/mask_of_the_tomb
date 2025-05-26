@@ -37,6 +37,7 @@ Levels:
  - NPC stuff
 
 // Revamped roadmap because I want to create a demo
+// - Make the asset files for audio and shader files AT LEAST
 // - Art/idea for level transitions
 // - Add room title cards
 // - Implement some kind of switch or lever as persistent progress

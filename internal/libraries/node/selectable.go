@@ -1,4 +1,4 @@
-package ui
+package node
 
 type selectable interface {
 	SetSelected()

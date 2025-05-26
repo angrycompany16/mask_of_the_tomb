@@ -17,8 +17,9 @@ type LayerList struct {
 	Midground   *ebiten.Image
 	Playerspace *ebiten.Image
 	Foreground  *ebiten.Image
-	UI          *ebiten.Image
 	Overlay     *ebiten.Image
+	ScreenUI    *ebiten.Image
+	GameplayUI  *ebiten.Image
 	layers      []*ebiten.Image
 }
 
@@ -33,7 +34,8 @@ func NewLayerList(w, h int) LayerList {
 		Foreground:  ebiten.NewImage(w, h),
 		Overlay:     ebiten.NewImage(w, h),
 		// TODO: Maybe find a better way to do this
-		UI: ebiten.NewImage(w*PIXEL_SCALE, h*PIXEL_SCALE),
+		GameplayUI: ebiten.NewImage(w*PIXEL_SCALE, h*PIXEL_SCALE),
+		ScreenUI:   ebiten.NewImage(w*PIXEL_SCALE, h*PIXEL_SCALE),
 	}
 
 	layerList.layers = []*ebiten.Image{
@@ -43,7 +45,8 @@ func NewLayerList(w, h int) LayerList {
 		layerList.Playerspace,
 		layerList.Foreground,
 		layerList.Overlay,
-		layerList.UI,
+		layerList.GameplayUI,
+		layerList.ScreenUI,
 	}
 
 	return layerList
@@ -55,7 +58,6 @@ func (r *LayerList) Draw(screen *ebiten.Image) {
 		op := ebiten.DrawImageOptions{}
 		op.GeoM.Scale(scaleFactor, scaleFactor)
 		screen.DrawImage(layer, &op)
-		// ebitenrenderutil.DrawAtScaled(layer, screen, 0, 0, scaleFactor, scaleFactor)
 		layer.Clear()
 	}
 }
@@ -64,6 +66,5 @@ func (r *LayerList) DrawOnto(other *LayerList, x, y float64) {
 	for i, layer := range r.layers {
 		op := ebiten.DrawImageOptions{}
 		other.layers[i].DrawImage(layer, &op)
-		// ebitenrenderutil.DrawAt(layer, other.layers[i], x, y)
 	}
 }

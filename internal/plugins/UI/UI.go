@@ -17,11 +17,12 @@ import (
 // Everything can be rewritten with events...
 // TODO: Make menu select into an event (With event info!!!)
 type UI struct {
-	activeDisplay *Display
-	displays      []*Display
-	overlays      map[string]*Overlay
+	activeLayer *Layer
+	layers      []*Layer
+	overlays    map[string]*Overlay
 }
 
+// Create asset groups that can be loaded with a single function call?
 // Loads a single menu file and sets it as the active menu
 func (ui *UI) LoadPreamble(path string) {
 	assetloader.LoadPreamble()
@@ -30,25 +31,22 @@ func (ui *UI) LoadPreamble(path string) {
 		panic(err)
 	}
 
-	ui.activeDisplay = loadingscreen
+	ui.activeLayer = loadingscreen
 }
 
-func (ui *UI) Load(menuPaths ...string) {
-	for _, menuPath := range menuPaths {
-		ui.displays = append(ui.displays, NewMenuAsset(menuPath))
+func (ui *UI) Load(paths ...string) {
+	for _, path := range paths {
+		ui.layers = append(ui.layers, NewLayerAsset(path))
 	}
 }
 
-func (ui *UI) AddDisplayManual(display *Display) {
-	ui.displays = append(ui.displays, display)
-	ui.activeDisplay = display
-}
-
-func (ui *UI) Init() {
+func (ui *UI) AddDisplayManual(display *Layer) {
+	ui.layers = append(ui.layers, display)
+	ui.activeLayer = display
 }
 
 func (ui *UI) Update() {
-	ui.activeDisplay.Update()
+	ui.activeLayer.Update()
 	for _, overlay := range ui.overlays {
 		overlay.Update()
 	}
@@ -56,13 +54,15 @@ func (ui *UI) Update() {
 
 // TODO: Try to enable switching active menu with enum instead of string
 func (ui *UI) SwitchActiveDisplay(name string) {
-	ui.activeDisplay.Root.Reset()
+	if ui.activeLayer != nil {
+		ui.activeLayer.Root.Reset()
+	}
 
-	for _, menu := range ui.displays {
+	for _, menu := range ui.layers {
 		if menu.Name != name {
 			continue
 		}
-		ui.activeDisplay = menu
+		ui.activeLayer = menu
 		return
 	}
 
@@ -74,26 +74,23 @@ func (ui *UI) GetOverlay(name string) *Overlay {
 }
 
 func (ui *UI) Draw() {
-	ui.activeDisplay.Draw()
+	ui.activeLayer.Draw()
 	for _, overlay := range ui.overlays {
 		overlay.Draw()
 	}
 }
 
 func (ui *UI) GetConfirmations() map[string]bool {
-	return ui.activeDisplay.GetConfirmed()
+	return ui.activeLayer.GetConfirmed()
 }
 
 func (ui *UI) GetSubmits() map[string]string {
-	return ui.activeDisplay.GetSubmitted()
+	return ui.activeLayer.GetSubmitted()
 }
 
-func NewUI() *UI {
+func NewUI(overlays map[string]*Overlay) *UI {
 	return &UI{
-		displays: make([]*Display, 0),
-		overlays: map[string]*Overlay{
-			"screenfade": NewOverlay(NewScreenFade()),
-			"titlecard":  NewOverlay(NewTitleCard()),
-		},
+		layers:   make([]*Layer, 0),
+		overlays: overlays,
 	}
 }

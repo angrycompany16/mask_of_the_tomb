@@ -1,4 +1,4 @@
-package ui
+package node
 
 type Root struct {
 	NodeData `yaml:",inline"`

@@ -37,6 +37,7 @@ func (oi *Overlay) Update() {
 }
 
 func (oi *Overlay) Draw() {
+	// fmt.Println("Drawing overlay")
 	oi.OverlayContent.Draw(oi.t)
 }
 

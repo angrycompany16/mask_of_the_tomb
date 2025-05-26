@@ -5,8 +5,6 @@ import (
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/maths"
 
-	// Need to move these out
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 

@@ -13,7 +13,6 @@ import (
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/camera"
-	"mask_of_the_tomb/internal/libraries/gamestate"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/plugins/musicplayer"
@@ -27,6 +26,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// Some problems:
+// - When exiting to main menu, music volume remains low
+//   - This follows from the game not playing the proper song on pressing play
+// - When opening menus for the first time, the select sound plays
+// - Somehow it seems that the game itself gets darker if we don't draw the UI???
+
 const (
 	gameEntryDirection = maths.DirDown
 )
@@ -35,6 +40,7 @@ var (
 	ErrTerminated = errors.New("Terminatednow")
 	InitLevelName string
 	SaveProfile   int
+	initTime      time.Time
 )
 
 var (
@@ -45,15 +51,17 @@ var (
 	hudPath           = filepath.Join("assets", "menus", "game", "hud.yaml")
 	loadingScreenPath = filepath.Join("assets", "menus", "game", "loadingscreen.yaml")
 	optionsMenuPath   = filepath.Join("assets", "menus", "game", "options.yaml")
+	emptyMenuPath     = filepath.Join("assets", "menus", "game", "empty.yaml")
 	introScreenPath   = filepath.Join("assets", "menus", "game", "intro.yaml")
 	LDTKMapPath       = filepath.Join("assets", "LDTK", "world.ldtk")
 )
 
 type Game struct {
-	State       gamestate.GameState
-	player      *player.Player
-	world       *world.World
-	gameUI      *ui.UI
+	player     *player.Player
+	world      *world.World
+	menuUI     *ui.UI
+	gameplayUI *ui.UI
+
 	musicPlayer *musicplayer.MusicPlayer
 	// Events
 	// Listeners
@@ -61,25 +69,45 @@ type Game struct {
 	playerMoveListener       *events.EventListener
 }
 
-func (g *Game) Load() {
-	g.gameUI.LoadPreamble(loadingScreenPath)
-	assetloader.Load("a", &delayAsset)
+func (g *Game) InitLoad() {
+	g.menuUI.LoadPreamble(loadingScreenPath)
+	assetloader.Load("any", &delayAsset)
 	g.world.Load(LDTKMapPath)
 	g.player.CreateAssets()
-	g.gameUI.Load(mainMenuPath, pauseMenuPath, hudPath, optionsMenuPath, introScreenPath)
+	g.menuUI.Load(mainMenuPath, pauseMenuPath, optionsMenuPath, introScreenPath, emptyMenuPath)
+	g.gameplayUI.Load(hudPath)
 
 	go assetloader.LoadAll(loadFinishedChan)
 }
 
-func (g *Game) Init() {
-	g.gameUI.SwitchActiveDisplay("mainmenu")
+func (g *Game) InitMenu() {
+	initTime = time.Now()
+	g.menuUI.SwitchActiveDisplay("mainmenu")
+	g.gameplayUI.SwitchActiveDisplay("hud")
 	g.musicPlayer = musicplayer.NewMusicPlayer(sound.GetCurrentAudioContext().Context)
+}
+
+func (g *Game) PreloadUpdate() {
+	if _, done := threads.Poll(loadFinishedChan); done {
+		fmt.Println("Finished loading stage")
+		g.InitMenu()
+		resources.State = resources.MainMenu
+	}
 }
 
 func (g *Game) Update() error {
 	events.Update()
-	confirmations := g.gameUI.GetConfirmations()
-	g.gameUI.Update()
+	confirmations := g.menuUI.GetConfirmations()
+	g.menuUI.Update()
+	g.gameplayUI.Update()
+
+	titlecard := g.gameplayUI.GetOverlay("titlecard")
+	if titlecard.IdleTime > 2 {
+		// TODO: Rewrite with timer
+		fmt.Println(titlecard.IdleTime)
+		titlecard.StartFadeOut()
+	}
+
 	camera.Update()
 
 	biome := ""
@@ -87,27 +115,24 @@ func (g *Game) Update() error {
 		biome = g.world.ActiveLevel.GetBiome()
 	}
 
-	g.musicPlayer.Update(g.State.S, biome)
+	g.musicPlayer.Update(biome)
 	ebitenutil.DebugPrint(rendering.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
 
+	// Problem: The lifetime of the objects is not obvious with the current setup
+	// Instead of using switch to represent multiple stages, maybe we could make the functions
+	// layered sort of like in a flame graph?
 	var err error
-	switch g.State.S {
-	case gamestate.Loading:
-		if _, done := threads.Poll(loadFinishedChan); done {
-			fmt.Println("Finished loading stage")
-			g.Init()
-			g.State.S = gamestate.MainMenu
-		}
-	case gamestate.MainMenu:
+	switch resources.State {
+	case resources.MainMenu:
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.gameUI.SwitchActiveDisplay("mainmenu")
+			g.menuUI.SwitchActiveDisplay("mainmenu")
 		}
 
 		if val, ok := confirmations["Play"]; ok && val {
 			gameData := save.LoadGame(SaveProfile)
 			g.world.Init(InitLevelName, gameData)
 			if gameData.SpawnRoomName == "" {
-				g.State.S = gamestate.Intro
+				resources.State = resources.Intro
 				return nil
 			}
 			// TODO: Convert to single function
@@ -121,15 +146,15 @@ func (g *Game) Update() error {
 				(rendering.GAME_WIDTH-playerWidth)/2,
 				(rendering.GAME_HEIGHT-playerHeight)/2,
 			)
-			g.gameUI.SwitchActiveDisplay("hud")
-			g.State.S = gamestate.Playing
+			g.menuUI.SwitchActiveDisplay("empty")
+			resources.State = resources.Playing
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			return ErrTerminated
 		} else if val, ok := confirmations["Options"]; ok && val {
-			g.gameUI.SwitchActiveDisplay("options")
+			g.menuUI.SwitchActiveDisplay("options")
 		}
-	case gamestate.Intro:
-		g.gameUI.SwitchActiveDisplay("intro")
+	case resources.Intro:
+		g.menuUI.SwitchActiveDisplay("intro")
 		if val, ok := confirmations["Introtext"]; ok && val {
 			spawnX, spawnY := g.world.ActiveLevel.GetGameEntryPos()
 			g.player.Init(spawnX, spawnY, gameEntryDirection)
@@ -141,17 +166,16 @@ func (g *Game) Update() error {
 				(rendering.GAME_WIDTH-playerWidth)/2,
 				(rendering.GAME_HEIGHT-playerHeight)/2,
 			)
-			g.gameUI.SwitchActiveDisplay("hud")
-			g.State.S = gamestate.Playing
+			g.menuUI.SwitchActiveDisplay("empty")
+			resources.State = resources.Playing
 
 			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), gameEntryDirection, g.world.ActiveLevel.GetSlamboxColliders())
 			if newRect != *g.player.GetHitbox() {
 				g.player.Dash(gameEntryDirection, newRect.Left(), newRect.Top())
 			}
 		}
-	case gamestate.Playing:
-		resources.Time += 0.016666
-		g.State.GameTime += 0.016666
+	case resources.Playing:
+		resources.Time = time.Since(initTime).Seconds()
 		velX, velY := g.player.GetMovementSize()
 		posX, posY := g.player.GetPosCentered()
 		g.world.Update(posX, posY, velX, velY)
@@ -161,29 +185,29 @@ func (g *Game) Update() error {
 		}
 
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.State.S = gamestate.Paused
-			g.gameUI.SwitchActiveDisplay("pausemenu")
+			resources.State = resources.Paused
+			g.menuUI.SwitchActiveDisplay("pausemenu")
 		}
 
 		g.player.Update()
-	case gamestate.Paused:
+	case resources.Paused:
 		// TODO: Make esc go back to playing state, and implement back button
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.gameUI.SwitchActiveDisplay("pausemenu")
+			g.menuUI.SwitchActiveDisplay("pausemenu")
 		}
 
 		if val, ok := confirmations["Resume"]; ok && val {
-			g.State.S = gamestate.Playing
-			g.gameUI.SwitchActiveDisplay("hud")
+			resources.State = resources.Playing
+			g.menuUI.SwitchActiveDisplay("empty")
 		} else if val, ok := confirmations["Quit"]; ok && val {
 			g.world.SaveLevel(g.world.ActiveLevel)
 			save.SaveGame(save.GameData{
 				SpawnRoomName: g.world.ActiveLevel.GetName(),
 			}, SaveProfile)
-			g.State.S = gamestate.MainMenu
-			g.gameUI.SwitchActiveDisplay("mainmenu")
+			resources.State = resources.MainMenu
+			g.menuUI.SwitchActiveDisplay("mainmenu")
 		} else if val, ok := confirmations["Options"]; ok && val {
-			g.gameUI.SwitchActiveDisplay("options")
+			g.menuUI.SwitchActiveDisplay("options")
 		}
 	}
 
@@ -191,8 +215,6 @@ func (g *Game) Update() error {
 }
 
 // TODO: Revamp and shorten this function, move more logic into player
-
-// Q: How could this logic be expressed if entities were more separated?
 func (g *Game) updateGameplay() error {
 	if eventInfo, ok := g.playerMoveListener.Poll(); ok {
 		moveDir := eventInfo.Data.(maths.Direction)
@@ -212,7 +234,7 @@ func (g *Game) updateGameplay() error {
 	if g.player.GetLevelSwapInput() && doorOverlap && !g.player.Disabled {
 		newBiome := errs.Must(world.ChangeActiveLevel(g.world, levelIid, doorEntityIid))
 		if newBiome != "" {
-			titleCardOverlay := g.gameUI.GetOverlay("titlecard")
+			titleCardOverlay := g.gameplayUI.GetOverlay("titlecard")
 			titleCard, ok := titleCardOverlay.OverlayContent.(*ui.TitleCard)
 			if !ok {
 				panic("Shit and piss")
@@ -228,7 +250,7 @@ func (g *Game) updateGameplay() error {
 	wasHit := g.world.ActiveLevel.GetHazardHit(g.player.GetHitbox())
 	if wasHit && !g.player.Disabled || restartPrompted {
 		g.player.Die()
-		screenFade := g.gameUI.GetOverlay("screenfade")
+		screenFade := g.menuUI.GetOverlay("screenfade")
 		screenFade.StartFadeIn()
 	}
 
@@ -238,14 +260,8 @@ func (g *Game) updateGameplay() error {
 		g.player.SetPos(posX, posY)
 		g.player.Respawn()
 
-		screenFade := g.gameUI.GetOverlay("screenfade")
+		screenFade := g.menuUI.GetOverlay("screenfade")
 		screenFade.StartFadeOut()
-	}
-
-	titlecard := g.gameUI.GetOverlay("titlecard")
-	if titlecard.IdleTime > 2 {
-		fmt.Println(titlecard.IdleTime)
-		titlecard.StartFadeOut()
 	}
 
 	g.player.Update()
@@ -255,46 +271,48 @@ func (g *Game) updateGameplay() error {
 	return nil
 }
 
-func (g *Game) Draw() {
-	g.gameUI.Draw()
-	switch g.State.S {
-	case gamestate.Loading:
-	case gamestate.MainMenu:
-	case gamestate.Playing:
-		pX, pY := g.player.GetPosCentered()
-		cX, cY := camera.GetPos()
-		drawCtx := rendering.Ctx{
-			CamX:    cX,
-			CamY:    cY,
-			PlayerX: pX,
-			PlayerY: pY,
-		}
+func (g *Game) PreloadDraw() {
+	g.menuUI.Draw()
+}
 
-		g.player.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
-		g.world.ActiveLevel.Draw(drawCtx)
-	case gamestate.Paused:
-		pX, pY := g.player.GetPosCentered()
-		cX, cY := camera.GetPos()
-		drawCtx := rendering.Ctx{
-			CamX:    cX,
-			CamY:    cY,
-			PlayerX: pX,
-			PlayerY: pY,
-		}
-		// TODO: Add dim and blur filter on pausing the game
-		g.player.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
-		g.world.ActiveLevel.Draw(drawCtx)
+func (g *Game) Draw() {
+
+	g.menuUI.Draw()
+	if resources.State == resources.MainMenu {
+		return
 	}
+
+	pX, pY := g.player.GetPosCentered()
+	cX, cY := camera.GetPos()
+	drawCtx := rendering.Ctx{
+		CamX:    cX,
+		CamY:    cY,
+		PlayerX: pX,
+		PlayerY: pY,
+	}
+
+	// TODO: Add dim and blur filter on pausing the game
+	g.player.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
+	g.world.ActiveLevel.Draw(drawCtx)
+
+	g.gameplayUI.Draw()
+	// UI is HARD-CODED to render at the UI layer...
+	// I sck at programming
 }
 
 func NewGame() *Game {
 	game := &Game{
 		player: player.NewPlayer(),
 		world:  world.NewWorld(),
-		gameUI: ui.NewUI(),
+		menuUI: ui.NewUI(map[string]*ui.Overlay{
+			"screenfade": ui.NewOverlay(ui.NewScreenFade()),
+		}),
+		gameplayUI: ui.NewUI(map[string]*ui.Overlay{
+			"titlecard": ui.NewOverlay(ui.NewTitleCard()),
+		}),
 	}
 
-	screenFade := game.gameUI.GetOverlay("screenfade")
+	screenFade := game.menuUI.GetOverlay("screenfade")
 	game.deathEffectEnterListener = events.NewEventListener(screenFade.OnFinishEnter)
 	game.playerMoveListener = events.NewEventListener(game.player.OnMove)
 	return game
