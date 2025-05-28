@@ -25,7 +25,7 @@ func (i *InputField) Confirm() {
 	// Raise confirm event
 }
 
-func (i *InputField) Update(confirmations map[string]bool) {
+func (i *InputField) Update(confirmations map[string]ConfirmInfo) {
 	if !i.selected {
 		return
 	}
@@ -51,7 +51,7 @@ func (i *InputField) Draw(offsetX, offsetY float64, parentWidth, parentHeight fl
 	i.Button.Draw(offsetX, offsetY, w, h)
 }
 
-func (i *InputField) Reset() {
+func (i *InputField) Reset(overWriteInfo map[string]OverWriteInfo) {
 	i.Textbox.Text = ""
-	i.ResetChildren()
+	i.ResetChildren(overWriteInfo)
 }

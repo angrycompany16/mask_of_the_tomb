@@ -2,6 +2,7 @@ package sound
 
 import (
 	"bytes"
+	"mask_of_the_tomb/internal/core/resources"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
@@ -25,6 +26,7 @@ type EffectPlayer struct {
 }
 
 func (e *EffectPlayer) Play() {
+	e.Player.SetVolume(resources.Settings.MasterVolume * resources.Settings.SoundVolume / 10000.0)
 	if e.IsPlaying() {
 		go playAudio(*e.Player)
 		return

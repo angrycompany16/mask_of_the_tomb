@@ -12,11 +12,13 @@ type FileSearch struct {
 	Name     string `yaml:"Name"`
 }
 
-func (f *FileSearch) Update(confirmations map[string]bool) {
+func (f *FileSearch) Update(confirmations map[string]ConfirmInfo) {
 	// Update the search field
 	searchField := f.Children[0].Node.(*InputField)
 	searchField.Update(confirmations)
-	confirmations[f.Name] = inpututil.IsKeyJustPressed(ebiten.KeyEnter)
+	confirmations[f.Name] = ConfirmInfo{
+		IsConfirmed: inpututil.IsKeyJustPressed(ebiten.KeyEnter),
+	}
 	if !searchField.selected {
 		searchField.SetSelected()
 	}
@@ -57,6 +59,6 @@ func (f *FileSearch) UpdateSearchResults() {
 	}
 }
 
-func (f *FileSearch) Reset() {
-	f.ResetChildren()
+func (f *FileSearch) Reset(overWriteInfo map[string]OverWriteInfo) {
+	f.ResetChildren(overWriteInfo)
 }

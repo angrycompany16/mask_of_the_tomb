@@ -33,9 +33,6 @@ Root:
       Text: "Play video game"
       Font: "JSE_AmigaAMOS"
       FontSize: 48
-      Color: # TODO: Remove the need to include Color since we have Normal and Selected 
-        Bright: [205, 247, 226, 255]
-        Dark: [199, 176, 139, 255]
       LineSpacing: 10
       PrimaryAlign: *AlignCenter
       SecondaryAlign: *AlignCenter
@@ -55,9 +52,6 @@ Root:
       PosY: 0
       Font: "JSE_AmigaAMOS"
       FontSize: 48
-      Color:
-        Bright: [205, 247, 226, 255]
-        Dark: [199, 176, 139, 255]
       LineSpacing: 10
       PrimaryAlign: *AlignCenter
       SecondaryAlign: *AlignCenter
@@ -77,9 +71,6 @@ Root:
       PosY: 100
       Font: "JSE_AmigaAMOS"
       FontSize: 48
-      Color:
-        Bright: [205, 247, 226, 255]
-        Dark: [199, 176, 139, 255]
       LineSpacing: 10
       PrimaryAlign: *AlignCenter
       SecondaryAlign: *AlignCenter

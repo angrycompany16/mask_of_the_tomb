@@ -4,7 +4,7 @@ type Root struct {
 	NodeData `yaml:",inline"`
 }
 
-func (r *Root) Update(confirmations map[string]bool) {
+func (r *Root) Update(confirmations map[string]ConfirmInfo) {
 	r.UpdateChildren(confirmations)
 }
 
@@ -13,6 +13,6 @@ func (r *Root) Draw(offsetX, offsetY float64, parentWidth, parentHeight float64)
 	r.DrawChildren(offsetX+r.PosX, offsetY+r.PosY, w, h)
 }
 
-func (r *Root) Reset() {
-	r.ResetChildren()
+func (r *Root) Reset(overWriteInfo map[string]OverWriteInfo) {
+	r.ResetChildren(overWriteInfo)
 }

@@ -3,19 +3,9 @@ package ui
 import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/libraries/node"
 )
 
-// NOw:
-// Fade out title card bug fix (Ideally create a new layer for "game" UI and "menu" UI)
-// Fix the bug where the button select sound plays upon opening a menu
-// I think we might have to separate this into smalles libraries because this is just horrendous
-// Allow options menu to actually set master, sfx, song volume
-
-// TODO: Reset selector position on active menu change
-// TODO: allow for optional borders on elements (shouldn't be too hard)
-
-// Everything can be rewritten with events...
-// TODO: Make menu select into an event (With event info!!!)
 type UI struct {
 	activeLayer *Layer
 	layers      []*Layer
@@ -52,17 +42,16 @@ func (ui *UI) Update() {
 	}
 }
 
-// TODO: Try to enable switching active menu with enum instead of string
-func (ui *UI) SwitchActiveDisplay(name string) {
-	if ui.activeLayer != nil {
-		ui.activeLayer.Root.Reset()
-	}
+func (ui *UI) SwitchActiveDisplay(name string, overWriteInfo map[string]node.OverWriteInfo) {
+	// if ui.activeLayer != nil {
+	// }
 
 	for _, menu := range ui.layers {
 		if menu.Name != name {
 			continue
 		}
 		ui.activeLayer = menu
+		ui.activeLayer.Root.Reset(overWriteInfo)
 		return
 	}
 
@@ -80,9 +69,13 @@ func (ui *UI) Draw() {
 	}
 }
 
-func (ui *UI) GetConfirmations() map[string]bool {
+func (ui *UI) GetConfirmations() map[string]node.ConfirmInfo {
 	return ui.activeLayer.GetConfirmed()
 }
+
+// func (ui *UI) SetValues(values map[string]node.OverWriteInfo) {
+// 	ui.activeLayer.SetValues(values)
+// }
 
 func (ui *UI) GetSubmits() map[string]string {
 	return ui.activeLayer.GetSubmitted()
