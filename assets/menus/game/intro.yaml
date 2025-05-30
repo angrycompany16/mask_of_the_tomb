@@ -16,8 +16,8 @@ Root:
     Font: "JSE_AmigaAMOS"
     FontSize: 36
     LineSpacing: 50
-    PrimaryAlign: *AlignEnd
-    SecondaryAlign: *AlignEnd
+    PrimaryAlign: *AlignCenter
+    SecondaryAlign: *AlignCenter
     ScreenAlign: *Centered
     Name: "Introtext"
     RevealTime: 0.04

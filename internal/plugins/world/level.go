@@ -241,6 +241,7 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 		"Color":      [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
 		"Center":     [2]float64{0.5, 0.5},
 		"Resolution": [2]float64{rendering.GAME_WIDTH, rendering.GAME_HEIGHT},
+		"PlayerPos":  [2]float64{ctx.PlayerX, ctx.PlayerY},
 	}
 	shaderOp.Blend = ebiten.BlendSourceOver
 	// TODO: Move fog with camera position

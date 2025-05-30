@@ -42,12 +42,6 @@ var (
 	//go:embed shaders/vignette.kage
 	Vignette_kage []byte
 
-	//go:embed shaders/lights_additive.kage
-	Lights_additive_kage []byte
-
-	//go:embed shaders/lights_subtractive.kage
-	Lights_subtractive_kage []byte
-
 	//go:embed shaders/pixel_lights.kage
 	Pixel_lights_kage []byte
 

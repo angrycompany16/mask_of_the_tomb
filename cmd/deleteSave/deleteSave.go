@@ -13,5 +13,5 @@ func main() {
 
 	fmt.Println("-- Deleting save", saveProfile)
 
-	save.SaveGame(save.GameData{}, saveProfile)
+	save.SaveGame(save.NewSave(), saveProfile)
 }

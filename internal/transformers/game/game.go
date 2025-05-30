@@ -27,6 +27,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// !!! cleanup time:
+// - Remove any code that doesn't need to be in game
+// - Separate more into functions representing disjoint blocks of logic
+// - Make object lifetimes a lot clearer, for example when the player object exists and such
+
 // Some problems:
 // - When exiting to main menu, music volume remains low
 //   - This follows from the game not playing the proper song on pressing play

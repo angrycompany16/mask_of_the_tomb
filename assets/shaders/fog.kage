@@ -10,6 +10,7 @@ var Threshold float
 var Color vec4
 var Center vec2
 var Resolution vec2
+var PlayerPos vec2
 
 // --- ALT COLORS ---
 // BRIGHT := vec4(58.0 / 255.0, 92.0 / 255.0, 133.0 / 255.0, 1.0)

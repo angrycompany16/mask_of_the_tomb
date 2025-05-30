@@ -45,3 +45,13 @@ func LoadGame(profile int) GameData {
 func getSavePath(profile int) string {
 	return filepath.Join("save", fmt.Sprintf("save%d.json", profile))
 }
+
+func NewSave() GameData {
+	return GameData{
+		Settings: resources.SettingsConfig{
+			MasterVolume: 75,
+			SoundVolume:  100,
+			MusicVolume:  100,
+		},
+	}
+}
