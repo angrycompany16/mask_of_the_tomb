@@ -7,6 +7,7 @@ definitions:
 - ScreenAlign: &TopLeft 1
 
 Name: "hud"
+
 Root:
   Children:
   - Type: "textbox"

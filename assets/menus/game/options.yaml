@@ -3,62 +3,124 @@ definitions:
 - PrimaryAlign: &AlignStart 0
 - PrimaryAlign: &AlignCenter 1
 - PrimaryAlign: &AlignEnd 2
-- ScreenAlign: &ScreenCentered 0
-- ScreenAlign: &ScreenTopLeft 1
-- RectAlign: &RectCentered 0
-- RectAlign: &RectTopLeft 1
+- ScreenAlign: &Centered 0
+- ScreenAlign: &TopLeft 1
+- RelativePos: &RelativeCentered 0
+- RelativePos: &RelativeTopLeft 1
 
 Name: "options"
 Root:
   Children:
+  - Type: "container"
+    PosX: -200
+    Children:
+    - Type: "textbox"
+      Text: "Master volume:"
+      PosY: -100
+      Color:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      ShadowX: 4
+      ShadowY: -4
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
+    - Type: "textbox"
+      PosY: 0
+      Text: "Sound volume:"
+      Color:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      ShadowX: 4
+      ShadowY: -4
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
+    - Type: "textbox"
+      PosY: 100
+      Text: "Music volume:"
+      Color:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      ShadowX: 4
+      ShadowY: -4
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
   - Type: "selectlist"
+    PosX: 200
     Children:
     - Type: "slider"
-      PosX: 0
+      Name: "Master_vol"
       PosY: -100
-      Width: 200
-      Height: 100
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
+      ShadowX: 4
+      ShadowY: -4
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [0, 0, 0, 0]
+        Dark: [255, 255, 255, 255]
       min: 0
       max: 100
-      knobRadius: 10
-      lineThickness: 2
-      backgroundColorNormal: [10, 10, 10, 255]
-      backgroundColorSelected: [50, 50, 50, 255]
-      knobColor: [100, 100, 100, 255]
-      lineColor: [255, 0, 0, 255]
-      screenAlign: *ScreenCentered
-      rectAlign: *RectCentered
-      Name: Master volume
+      increment: 5
+      default: 100
+      Children:
     - Type: "slider"
-      PosX: 0
+      Name: "Sound_vol"
       PosY: 0
-      Width: 200
-      Height: 100
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
+      ShadowX: 4
+      ShadowY: -4
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [0, 0, 0, 0]
+        Dark: [255, 255, 255, 255]
       min: 0
       max: 100
-      knobRadius: 10
-      lineThickness: 2
-      backgroundColorNormal: [10, 10, 10, 255]
-      backgroundColorSelected: [50, 50, 50, 255]
-      knobColor: [100, 100, 100, 255]
-      lineColor: [255, 0, 0, 255]
-      screenAlign: *ScreenCentered
-      rectAlign: *RectCentered
-      Name: Music volume
+      increment: 5
+      default: 100
     - Type: "slider"
-      PosX: 0
+      Name: "Music_vol"
       PosY: 100
-      Width: 200
-      Height: 100
+      Font: "JSE_AmigaAMOS"
+      FontSize: 32
+      LineSpacing: 10
+      PrimaryAlign: *AlignCenter
+      SecondaryAlign: *AlignCenter
+      ScreenAlign: *Centered
+      ShadowX: 4
+      ShadowY: -4
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [0, 0, 0, 0]
+        Dark: [255, 255, 255, 255]
       min: 0
       max: 100
-      knobRadius: 10
-      lineThickness: 2
-      backgroundColorNormal: [10, 10, 10, 255]
-      backgroundColorSelected: [50, 50, 50, 255]
-      knobColor: [100, 100, 100, 255]
-      lineColor: [255, 0, 0, 255]
-      screenAlign: *ScreenCentered
-      rectAlign: *RectCentered
-      Name: SFX volume
+      increment: 5
+      default: 100
 ...

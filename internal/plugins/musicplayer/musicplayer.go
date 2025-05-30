@@ -43,13 +43,17 @@ func (m *MusicPlayer) Update(levelBiome string) {
 		return
 	}
 
+	for _, song := range m.songs {
+		song.SetVolume(resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
+	}
+
 	m.tryRestartSong()
 	switch resources.State {
 	case resources.MainMenu:
 		m.playSong(menuTheme)
 	case resources.Playing:
 		if song, ok := m.songs[m.activeSong]; ok {
-			song.SetVolume(1.0)
+			song.SetVolume(resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
 		}
 		switch levelBiome {
 		case "Basement":
@@ -61,7 +65,7 @@ func (m *MusicPlayer) Update(levelBiome string) {
 		}
 	case resources.Paused:
 		if song, ok := m.songs[m.activeSong]; ok {
-			song.SetVolume(0.1)
+			song.SetVolume(0.1 * resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
 		}
 	}
 }

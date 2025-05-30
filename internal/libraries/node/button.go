@@ -21,8 +21,8 @@ type Button struct {
 	selected      bool
 }
 
-func (b *Button) Update(confirmations map[string]bool) {
-	confirmations[b.Name] = inpututil.IsKeyJustPressed(ebiten.KeyEnter) && b.selected
+func (b *Button) Update(confirmations map[string]ConfirmInfo) {
+	confirmations[b.Name] = ConfirmInfo{IsConfirmed: inpututil.IsKeyJustPressed(ebiten.KeyEnter) && b.selected}
 	b.UpdateChildren(confirmations)
 }
 
@@ -53,6 +53,8 @@ func (b *Button) Draw(offsetX, offsetY float64, parentWidth, parentHeight float6
 	b.Textbox.Draw(offsetX, offsetY, w, h)
 }
 
-func (b *Button) Reset() {
-	b.ResetChildren()
+func (b *Button) Reset(overWriteInfo map[string]OverWriteInfo) {
+	b.selected = false
+	b.Color = b.NormalColor
+	b.ResetChildren(overWriteInfo)
 }

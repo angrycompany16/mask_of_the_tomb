@@ -16,9 +16,6 @@ Root:
       Text: "Resume"
       PosX: 0
       PosY: -100
-      Color: # TODO: Remove the need to include Color since we have Normal and Selected 
-        Bright: [205, 247, 226, 255]
-        Dark: [199, 176, 139, 255]
       Font: "JSE_AmigaAMOS"
       FontSize: 48
       LineSpacing: 10
@@ -38,9 +35,6 @@ Root:
       Text: "Options"
       PosX: 0
       PosY: 0
-      Color: # TODO: Remove the need to include Color since we have Normal and Selected 
-        Bright: [205, 247, 226, 255]
-        Dark: [199, 176, 139, 255]
       Font: "JSE_AmigaAMOS"
       FontSize: 48
       LineSpacing: 10
@@ -60,9 +54,6 @@ Root:
       Text: "Quit"
       PosX: 0
       PosY: 100
-      Color: # TODO: Remove the need to include Color since we have Normal and Selected 
-        Bright: [205, 247, 226, 255]
-        Dark: [199, 176, 139, 255]
       Font: "JSE_AmigaAMOS"
       FontSize: 48
       LineSpacing: 10

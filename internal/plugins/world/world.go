@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"path/filepath"
@@ -49,9 +50,6 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 		}
 	}
 
-	// for id, levelmemory := range gameData.WorldStateMemory {
-	// w.worldStateMemory[id] = levelmemory
-	// }
 	ChangeActiveLevel(w, initLevelName, "")
 }
 
@@ -117,6 +115,7 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 	}
 	world.ActiveLevel = newLevel
 	world.currentBiome = newLevel.GetBiome()
+	resources.PreviousLevelName = newLevel.name
 	return "", nil
 }
 

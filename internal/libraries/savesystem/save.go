@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/fileio"
+	"mask_of_the_tomb/internal/core/resources"
 	"os"
 	"path/filepath"
 )
 
 type GameData struct {
 	SpawnRoomName string
+	Settings      resources.SettingsConfig
 }
 
 func SaveGame(data GameData, profile int) {

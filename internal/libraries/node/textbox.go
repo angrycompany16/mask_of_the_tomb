@@ -30,7 +30,7 @@ type Textbox struct {
 	ShadowY        float64              `yaml:"ShadowY"`
 }
 
-func (t *Textbox) Update(confirmations map[string]bool) {
+func (t *Textbox) Update(confirmations map[string]ConfirmInfo) {
 	t.UpdateChildren(confirmations)
 }
 
@@ -66,6 +66,6 @@ func (t *Textbox) Draw(offsetX, offsetY float64, parentWidth, parentHeight float
 	}, opText)
 }
 
-func (t *Textbox) Reset() {
-	t.ResetChildren()
+func (t *Textbox) Reset(overWriteInfo map[string]OverWriteInfo) {
+	t.ResetChildren(overWriteInfo)
 }

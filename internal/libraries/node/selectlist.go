@@ -12,7 +12,7 @@ type SelectList struct {
 	SelectorPos int
 }
 
-func (s *SelectList) Update(confirmations map[string]bool) {
+func (s *SelectList) Update(confirmations map[string]ConfirmInfo) {
 	s.UpdateChildren(confirmations)
 
 	if len(s.Children) == 0 {
@@ -45,7 +45,7 @@ func (s *SelectList) Draw(offsetX, offsetY float64, parentWidth, parentHeight fl
 	s.DrawChildren(offsetX+s.PosX, offsetY+s.PosY, w, h)
 }
 
-func (s *SelectList) Reset() {
+func (s *SelectList) Reset(overWriteInfo map[string]OverWriteInfo) {
 	s.SelectorPos = 0
-	s.ResetChildren()
+	s.ResetChildren(overWriteInfo)
 }

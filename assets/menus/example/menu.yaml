@@ -30,9 +30,6 @@ Root:
       PosX: 0
       PosY: -100
       Text: "Button 1"
-      # Color:
-      #   Bright: [205, 247, 226, 255]
-      #   Dark: [199, 176, 139, 255]
       Font: "JSE_AmigaAMOS"
       FontSize: 32
       LineSpacing: 10
@@ -52,9 +49,6 @@ Root:
       PosX: 0
       PosY: 100
       Text: "Button 2"
-      # Color:
-      #   Bright: [205, 247, 226, 255]
-      #   Dark: [199, 176, 139, 255]
       Font: "JSE_AmigaAMOS"
       FontSize: 32
       LineSpacing: 10

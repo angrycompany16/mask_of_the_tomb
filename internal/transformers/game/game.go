@@ -13,6 +13,7 @@ import (
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/camera"
+	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/plugins/musicplayer"
@@ -82,8 +83,10 @@ func (g *Game) InitLoad() {
 
 func (g *Game) InitMenu() {
 	initTime = time.Now()
-	g.menuUI.SwitchActiveDisplay("mainmenu")
-	g.gameplayUI.SwitchActiveDisplay("hud")
+	gameData := save.LoadGame(SaveProfile)
+	resources.Settings = gameData.Settings
+	g.menuUI.SwitchActiveDisplay("mainmenu", nil)
+	g.gameplayUI.SwitchActiveDisplay("hud", nil)
 	g.musicPlayer = musicplayer.NewMusicPlayer(sound.GetCurrentAudioContext().Context)
 }
 
@@ -92,6 +95,7 @@ func (g *Game) PreloadUpdate() {
 		fmt.Println("Finished loading stage")
 		g.InitMenu()
 		resources.State = resources.MainMenu
+
 	}
 }
 
@@ -125,11 +129,12 @@ func (g *Game) Update() error {
 	switch resources.State {
 	case resources.MainMenu:
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.menuUI.SwitchActiveDisplay("mainmenu")
+			g.menuUI.SwitchActiveDisplay("mainmenu", nil)
 		}
 
-		if val, ok := confirmations["Play"]; ok && val {
+		if confirm, ok := confirmations["Play"]; ok && confirm.IsConfirmed {
 			gameData := save.LoadGame(SaveProfile)
+			// resources.Settings = gameData.Settings
 			g.world.Init(InitLevelName, gameData)
 			if gameData.SpawnRoomName == "" {
 				resources.State = resources.Intro
@@ -146,16 +151,26 @@ func (g *Game) Update() error {
 				(rendering.GAME_WIDTH-playerWidth)/2,
 				(rendering.GAME_HEIGHT-playerHeight)/2,
 			)
-			g.menuUI.SwitchActiveDisplay("empty")
+			g.menuUI.SwitchActiveDisplay("empty", nil)
 			resources.State = resources.Playing
-		} else if val, ok := confirmations["Quit"]; ok && val {
+		} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
+			save.SaveGame(save.GameData{
+				SpawnRoomName: resources.PreviousLevelName,
+				Settings:      resources.Settings,
+			}, SaveProfile)
 			return ErrTerminated
-		} else if val, ok := confirmations["Options"]; ok && val {
-			g.menuUI.SwitchActiveDisplay("options")
+		} else if confirm, ok := confirmations["Options"]; ok && confirm.IsConfirmed {
+			g.menuUI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
+				"Master_vol": {SliderVal: resources.Settings.MasterVolume},
+				"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
+				"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
+			})
 		}
+
+		g.UpdateOptions(confirmations)
 	case resources.Intro:
-		g.menuUI.SwitchActiveDisplay("intro")
-		if val, ok := confirmations["Introtext"]; ok && val {
+		g.menuUI.SwitchActiveDisplay("intro", nil)
+		if confirm, ok := confirmations["Introtext"]; ok && confirm.IsConfirmed {
 			spawnX, spawnY := g.world.ActiveLevel.GetGameEntryPos()
 			g.player.Init(spawnX, spawnY, gameEntryDirection)
 			playerWidth, playerHeight := g.player.GetSize()
@@ -166,7 +181,7 @@ func (g *Game) Update() error {
 				(rendering.GAME_WIDTH-playerWidth)/2,
 				(rendering.GAME_HEIGHT-playerHeight)/2,
 			)
-			g.menuUI.SwitchActiveDisplay("empty")
+			g.menuUI.SwitchActiveDisplay("empty", nil)
 			resources.State = resources.Playing
 
 			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), gameEntryDirection, g.world.ActiveLevel.GetSlamboxColliders())
@@ -186,32 +201,49 @@ func (g *Game) Update() error {
 
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 			resources.State = resources.Paused
-			g.menuUI.SwitchActiveDisplay("pausemenu")
+			g.menuUI.SwitchActiveDisplay("pausemenu", nil)
 		}
 
 		g.player.Update()
 	case resources.Paused:
 		// TODO: Make esc go back to playing state, and implement back button
 		if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-			g.menuUI.SwitchActiveDisplay("pausemenu")
+			g.menuUI.SwitchActiveDisplay("pausemenu", nil)
 		}
 
-		if val, ok := confirmations["Resume"]; ok && val {
+		if confirm, ok := confirmations["Resume"]; ok && confirm.IsConfirmed {
 			resources.State = resources.Playing
-			g.menuUI.SwitchActiveDisplay("empty")
-		} else if val, ok := confirmations["Quit"]; ok && val {
+			g.menuUI.SwitchActiveDisplay("empty", nil)
+		} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
 			g.world.SaveLevel(g.world.ActiveLevel)
 			save.SaveGame(save.GameData{
-				SpawnRoomName: g.world.ActiveLevel.GetName(),
+				SpawnRoomName: resources.PreviousLevelName,
+				Settings:      resources.Settings,
 			}, SaveProfile)
 			resources.State = resources.MainMenu
-			g.menuUI.SwitchActiveDisplay("mainmenu")
-		} else if val, ok := confirmations["Options"]; ok && val {
-			g.menuUI.SwitchActiveDisplay("options")
+			g.menuUI.SwitchActiveDisplay("mainmenu", nil)
+		} else if confirm, ok := confirmations["Options"]; ok && confirm.IsConfirmed {
+			g.menuUI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
+				"Master_vol": {SliderVal: resources.Settings.MasterVolume},
+				"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
+				"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
+			})
 		}
+
+		g.UpdateOptions(confirmations)
 	}
 
 	return nil
+}
+
+func (g *Game) UpdateOptions(confirmations map[string]node.ConfirmInfo) {
+	if confirm, ok := confirmations["Master_vol"]; ok && confirm.IsConfirmed {
+		resources.Settings.MasterVolume = confirm.SliderVal
+	} else if confirm, ok := confirmations["Music_vol"]; ok && confirm.IsConfirmed {
+		resources.Settings.MusicVolume = confirm.SliderVal
+	} else if confirm, ok := confirmations["Sound_vol"]; ok && confirm.IsConfirmed {
+		resources.Settings.SoundVolume = confirm.SliderVal
+	}
 }
 
 // TODO: Revamp and shorten this function, move more logic into player

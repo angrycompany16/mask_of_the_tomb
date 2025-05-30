@@ -9,8 +9,8 @@ import (
 
 type Node interface {
 	Draw(offsetX, offsetY float64, parentWidth, parentHeight float64)
-	Update(confirmations map[string]bool)
-	Reset()
+	Update(confirmations map[string]ConfirmInfo)
+	Reset(overWriteInfo map[string]OverWriteInfo)
 
 	AddChild(node NodeContainer)
 }
@@ -28,6 +28,8 @@ func (n *NodeContainer) UnmarshalYAML(value *yaml.Node) error {
 	var resultNode Node
 	nodeType := value.Content[i+1].Value
 	switch nodeType {
+	case "container":
+		resultNode = &Container{}
 	case "textbox":
 		resultNode = &Textbox{}
 	case "button":
@@ -62,7 +64,7 @@ type NodeData struct {
 	Children []NodeContainer `yaml:"Children"`
 }
 
-func (n *NodeData) UpdateChildren(confirmations map[string]bool) {
+func (n *NodeData) UpdateChildren(confirmations map[string]ConfirmInfo) {
 	for _, child := range n.Children {
 		child.Update(confirmations)
 	}
@@ -74,9 +76,9 @@ func (n *NodeData) DrawChildren(offsetX, offsetY float64, parentWidth, parentHei
 	}
 }
 
-func (n *NodeData) ResetChildren() {
+func (n *NodeData) ResetChildren(overWriteInfo map[string]OverWriteInfo) {
 	for _, child := range n.Children {
-		child.Reset()
+		child.Reset(overWriteInfo)
 	}
 }
 

@@ -25,7 +25,7 @@ type Dialogue struct {
 }
 
 // This is cursed but we will receive the input inside the UI node
-func (d *Dialogue) Update(confirmations map[string]bool) {
+func (d *Dialogue) Update(confirmations map[string]ConfirmInfo) {
 	d.UpdateChildren(confirmations)
 	if d.activeLine == len(d.Lines) {
 		return
@@ -39,7 +39,7 @@ func (d *Dialogue) Update(confirmations map[string]bool) {
 			d.activeLine += 1
 			d.revealIndicator = 0
 			if d.activeLine == len(d.Lines) {
-				confirmations[d.Name] = true
+				confirmations[d.Name] = ConfirmInfo{IsConfirmed: true}
 				return
 			}
 		} else {
@@ -72,6 +72,6 @@ func (d *Dialogue) Draw(offsetX, offsetY float64, parentWidth, parentHeight floa
 	d.Textbox.Draw(offsetX, offsetY, parentWidth, parentHeight)
 }
 
-func (d *Dialogue) Reset() {
-	d.ResetChildren()
+func (d *Dialogue) Reset(overWriteInfo map[string]OverWriteInfo) {
+	d.ResetChildren(overWriteInfo)
 }
