@@ -187,3 +187,54 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 	// Resize the rect again based on move dir
 	return *collisionRect, 0
 }
+
+func (tc *TilemapCollider) Raycast(posX, posY float64, direction maths.Direction, otherRects []*RectCollider) (bool, float64, float64) {
+	gridX, gridY := tc.worldPosToGrid(posX, posY)
+
+	x := gridX
+	y := gridY
+
+	hit := false
+	switch direction {
+	case maths.DirUp:
+		for i := gridY; i > 0; i-- {
+			if tc.Tiles[i][gridX] > 0 {
+				y = i + 1
+				x -= 1
+				hit = true
+				break
+			}
+		}
+	case maths.DirDown:
+		for i := gridY; i < len(tc.Tiles[0]); i++ {
+			if tc.Tiles[i][gridX] > 0 {
+				y = i - 1
+				x -= 1
+				hit = true
+				break
+			}
+		}
+	case maths.DirLeft:
+		for i := gridX; i > 0; i-- {
+			// fmt.Println(tc.Tiles[gridY][i])
+			if tc.Tiles[gridY][i] > 0 {
+				x = i + 1
+				y += 1
+				hit = true
+				break
+			}
+		}
+	case maths.DirRight:
+		for i := gridY; i < len(tc.Tiles); i++ {
+			if tc.Tiles[gridY][i] > 0 {
+				x = i - 1
+				y += 1
+				hit = true
+				break
+			}
+		}
+	}
+
+	worldX, worldY := tc.gridPosToWorld(x, y)
+	return hit, worldX, worldY
+}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/core/threads"
+	"time"
 )
 
 type overlayState int
@@ -19,9 +21,11 @@ type Overlay struct {
 	OverlayContent
 	t             float64
 	state         overlayState
+	timeout       time.Duration
 	OnFinishEnter *events.Event
 	OnFinishExit  *events.Event
-	IdleTime      float64
+	OnIdleTimeout *events.Event
+	IdleTimer     *time.Timer
 }
 
 func (oi *Overlay) Update() {
@@ -32,37 +36,35 @@ func (oi *Overlay) Update() {
 		oi.fadeOut()
 	case off:
 	case on:
-		oi.IdleTime += 1.0 / 60.0
+		if _, timedout := threads.Poll(oi.IdleTimer.C); timedout {
+			oi.OnIdleTimeout.Raise(events.EventInfo{})
+		}
 	}
 }
 
 func (oi *Overlay) Draw() {
-	// fmt.Println("Drawing overlay")
 	oi.OverlayContent.Draw(oi.t)
 }
 
 func (oi *Overlay) StartFadeIn() {
-	oi.IdleTime = 0
 	oi.state = enter
 }
 
 func (oi *Overlay) StartFadeOut() {
-	oi.IdleTime = 0
 	oi.state = exit
 }
 
 func (oi *Overlay) fadeIn() {
-	// oi.state = enter
 	oi.t = maths.Lerp(oi.t, 3, 0.01)
 	if 1-oi.t <= 0.01 {
 		oi.t = 1
 		oi.OnFinishEnter.Raise(events.EventInfo{})
+		oi.IdleTimer = time.NewTimer(oi.timeout)
 		oi.state = on
 	}
 }
 
 func (oi *Overlay) fadeOut() {
-	// oi.state = exit
 	oi.t = maths.Lerp(oi.t, -2, 0.01)
 	if oi.t <= 0.01 {
 		fmt.Println("Faded out")
@@ -72,10 +74,12 @@ func (oi *Overlay) fadeOut() {
 	}
 }
 
-func NewOverlay(content OverlayContent) *Overlay {
+func NewOverlay(content OverlayContent, timeout time.Duration) *Overlay {
 	return &Overlay{
 		OverlayContent: content,
 		state:          off,
+		timeout:        timeout,
+		OnIdleTimeout:  events.NewEvent(),
 		OnFinishEnter:  events.NewEvent(),
 		OnFinishExit:   events.NewEvent(),
 	}

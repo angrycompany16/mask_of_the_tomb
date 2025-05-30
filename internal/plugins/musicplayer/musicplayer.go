@@ -1,17 +1,18 @@
 package musicplayer
 
 import (
+	"fmt"
 	"mask_of_the_tomb/assets"
+	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/libraries/assettypes"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 )
 
 // TODO: Fade music when launching game, switching tracks or (switching levels)
 // The last one will have to be done later as it requires proper level transitions
-// Ah and also dim when pausing the game
 
 // TODO: Integrate music more tightly with LDTK
 
@@ -37,36 +38,46 @@ type MusicPlayer struct {
 	ambience   map[ambienceName]*audio.Player
 }
 
-// TODO: This will become a plugin
-func (m *MusicPlayer) Update(levelBiome string) {
-	if resources.State == resources.Loading {
-		return
-	}
+func (m *MusicPlayer) Load() {
+	assetloader.Load("menuTheme", assettypes.MakeSoundAsset(assets.Menu_mp3, assettypes.Mp3))
+	assetloader.Load("basementTheme", assettypes.MakeSoundAsset(assets.Basement_wav, assettypes.Wav))
+	assetloader.Load("libraryTheme", assettypes.MakeSoundAsset(assets.Library_mp3, assettypes.Mp3))
+}
 
-	for _, song := range m.songs {
+func (m *MusicPlayer) Init() {
+	m.songs[menuTheme] = errs.Must(assettypes.GetSoundAsset("menuTheme"))
+	m.songs[basementTheme] = errs.Must(assettypes.GetSoundAsset("basementTheme"))
+	m.songs[libraryTheme] = errs.Must(assettypes.GetSoundAsset("libraryTheme"))
+}
+
+func (m *MusicPlayer) PlayMenuMusic() {
+	m.tryRestartSong()
+	m.playSong(menuTheme)
+}
+
+func (m *MusicPlayer) PlayGameMusic(levelBiome string) {
+	if song, ok := m.songs[m.activeSong]; ok {
 		song.SetVolume(resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
 	}
+	switch levelBiome {
+	case "Basement":
+		m.playSong(basementTheme)
+	case "Library":
+		m.playSong(libraryTheme)
+	default:
+		fmt.Println("Level has no biome, so no song will be played")
+	}
+}
 
-	m.tryRestartSong()
-	switch resources.State {
-	case resources.MainMenu:
-		m.playSong(menuTheme)
-	case resources.Playing:
-		if song, ok := m.songs[m.activeSong]; ok {
-			song.SetVolume(resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
-		}
-		switch levelBiome {
-		case "Basement":
-			m.playSong(basementTheme)
-		case "Library":
-			m.playSong(libraryTheme)
-		default:
-			// fmt.Println("Level has no biome, so no song will be played")
-		}
-	case resources.Paused:
-		if song, ok := m.songs[m.activeSong]; ok {
-			song.SetVolume(0.1 * resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
-		}
+func (m *MusicPlayer) LowerMusic() {
+	if song, ok := m.songs[m.activeSong]; ok {
+		song.SetVolume(0.1 * resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
+	}
+}
+
+func (m *MusicPlayer) ResetMusic() {
+	for _, song := range m.songs {
+		song.SetVolume(resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
 	}
 }
 
@@ -91,12 +102,8 @@ func (m *MusicPlayer) playSong(name songName) {
 	}
 }
 
-func NewMusicPlayer(ctx *audio.Context) *MusicPlayer {
+func NewMusicPlayer() *MusicPlayer {
 	return &MusicPlayer{
-		songs: map[songName]*audio.Player{
-			menuTheme:     errs.Must(sound.LoadAudio(assets.Menu_mp3, sound.Mp3)),
-			basementTheme: errs.Must(sound.LoadAudio(assets.Basement_wav, sound.Wav)),
-			libraryTheme:  errs.Must(sound.LoadAudio(assets.Library_mp3, sound.Mp3)),
-		},
+		songs: make(map[songName]*audio.Player),
 	}
 }

@@ -5,8 +5,10 @@ import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/libraries/assettypes"
+	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"path/filepath"
 
@@ -15,11 +17,11 @@ import (
 
 var (
 	slamboxTilemapPath = filepath.Join(assets.EnvironmentTilemapFolder, "slambox_tilemap.png")
-	// slamboxTilemap     *ebiten.Image
+	particleSystemPath = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
 )
 
 const (
-	firstLevelName = "Level_1"
+	firstLevelName = "Level_14"
 )
 
 type World struct {
@@ -39,9 +41,14 @@ func (w *World) Load(LDTKMapPath string) {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
 	assetloader.Load("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
 	assetloader.Load("grassTilemap", assettypes.MakeImageAsset(assets.Grass_tiles))
+	assetloader.Load("turretSprite", assettypes.MakeImageAsset(assets.Turret_sprite))
+	assetloader.Load("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))
+	assetloader.Load("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))
+	assetloader.Load("pixelLightsShader", assettypes.MakeShaderAsset(assets.Pixel_lights_kage))
+	assetloader.Load("ambientParticles", particles.NewParticleSystemAsset(particleSysPath, rendering.ScreenLayers.Foreground))
 }
 
-func (w *World) Init(initLevelName string, gameData save.GameData) {
+func (w *World) Init(initLevelName string, gameData save.SaveData) {
 	if initLevelName == "" {
 		if gameData.SpawnRoomName == "" {
 			initLevelName = firstLevelName
@@ -53,9 +60,6 @@ func (w *World) Init(initLevelName string, gameData save.GameData) {
 	ChangeActiveLevel(w, initLevelName, "")
 }
 
-func (w *World) LoadMemory(memory map[string]LevelMemory) {
-}
-
 func (w *World) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	w.ActiveLevel.Update(playerX, playerY, playerVelX, playerVelY)
 }
@@ -64,6 +68,7 @@ func (w *World) GetWorldStateMemory() map[string]LevelMemory {
 	return w.worldStateMemory
 }
 
+// Set up a small loading stage when switching levels
 func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (string, error) {
 	var newLevelLDTK ebitenLDTK.Level
 	var err error

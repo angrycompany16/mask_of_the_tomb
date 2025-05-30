@@ -1,5 +1,6 @@
 package events
 
+// Maybe consider removing the singleton pattern
 var (
 	_eventManager = eventManager{}
 )

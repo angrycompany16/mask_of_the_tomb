@@ -25,4 +25,5 @@ Root:
     - "Hello"
     - "Once upon a time there was a great"
     - "Goodbye"
+    DialogueSound: dialogueSound
 ...

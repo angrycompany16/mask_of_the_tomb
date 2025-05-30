@@ -89,6 +89,15 @@ func (r *Rect) RandomPointInside() (float64, float64) {
 	return Lerp(r.Left(), r.Right(), rand.Float64()), Lerp(r.Bottom(), r.Top(), rand.Float64())
 }
 
+func (r *Rect) Lerp(other *Rect, t float64) Rect {
+	return Rect{
+		x:      Lerp(r.x, other.x, t),
+		y:      Lerp(r.y, other.y, t),
+		width:  Lerp(r.width, other.width, t),
+		height: Lerp(r.height, other.height, t),
+	}
+}
+
 func NewRect(x, y, width, height float64) *Rect {
 	return &Rect{x, y, width, height}
 }

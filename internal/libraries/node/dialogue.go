@@ -1,18 +1,16 @@
 package node
 
 import (
-	"mask_of_the_tomb/assets"
-	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/core/threads"
 	"strings"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-var (
-	dialogueSound = errs.Must(sound.NewEffectPlayer(assets.Text_scroll_ogg, sound.Ogg))
-)
+var DialogueSound *sound.EffectPlayer
 
 type Dialogue struct {
 	Textbox         `yaml:",inline"`
@@ -20,12 +18,16 @@ type Dialogue struct {
 	RevealTime      float64  `yaml:"RevealTime"`
 	Lines           []string `yaml:"Lines"`
 	activeLine      int
-	t               float64
+	revealTicker    *time.Ticker
 	revealIndicator int
 }
 
 // This is cursed but we will receive the input inside the UI node
 func (d *Dialogue) Update(confirmations map[string]ConfirmInfo) {
+	if d.revealTicker == nil {
+		d.revealTicker = time.NewTicker(time.Duration(d.RevealTime * 1e9))
+	}
+
 	d.UpdateChildren(confirmations)
 	if d.activeLine == len(d.Lines) {
 		return
@@ -50,18 +52,15 @@ func (d *Dialogue) Update(confirmations map[string]ConfirmInfo) {
 		}
 	}
 
-	// TODO: Replace with ticker
-	d.t += 1.0 / 60.0
-	if d.t > d.RevealTime {
+	if _, ticked := threads.Poll(d.revealTicker.C); ticked {
 		if d.revealIndicator == len(d.Lines[d.activeLine]) {
 			return
 		}
 
-		dialogueSound.Play()
+		DialogueSound.Play()
 		d.Text = strings.Join([]string{
 			d.Text, string(d.Lines[d.activeLine][d.revealIndicator]),
 		}, "")
-		d.t = 0
 		d.revealIndicator += 1
 	}
 }

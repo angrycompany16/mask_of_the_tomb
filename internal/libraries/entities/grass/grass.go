@@ -2,8 +2,8 @@ package grass
 
 import (
 	"image"
-	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
+	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
@@ -112,7 +112,7 @@ func (g *grassBlade) Update(playerX, playerY, playerVelX, playerVelY float64, pe
 }
 
 func newGrassBlade(posX, posY float64) *grassBlade {
-	grassTilemap := assetloader.GetAsset("grassTilemap").(*assettypes.ImageAsset).Image
+	grassTilemap := errs.Must(assettypes.GetImageAsset("grassTilemap"))
 	tileIndex := rand.IntN(8)
 
 	grassSprite := grassTilemap.SubImage(image.Rect(tileIndex*SPRITE_WIDTH, 0, (tileIndex+1)*SPRITE_WIDTH, SPRITE_HEIGHT)).(*ebiten.Image)

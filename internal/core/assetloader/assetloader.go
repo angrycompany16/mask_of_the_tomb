@@ -1,15 +1,18 @@
 package assetloader
 
+import (
+	"errors"
+	"fmt"
+)
+
 var (
 	_assetLoader = assetLoader{
 		assetPool: make(map[string]Asset),
 	}
 )
 
-// Time to make it even simpler: It's literally just going to be a map
-// Very simple asset loader interface
 type Asset interface {
-	Load()
+	Load() error
 }
 
 type assetLoader struct {
@@ -25,8 +28,22 @@ func Load(hash string, asset Asset) {
 	_assetLoader.assetPool[hash] = asset
 }
 
-func GetAsset(name string) Asset {
-	return _assetLoader.assetPool[name]
+func GetAsset(name string) (Asset, error) {
+	asset, ok := _assetLoader.assetPool[name]
+	if !ok {
+		fmt.Printf("Could not find asset with name '%s'", name)
+		PrintAssetRegistry()
+		return nil, errors.New("AssetNotFound")
+	}
+	return asset, nil
+}
+
+func PrintAssetRegistry() {
+	fmt.Printf("\n ---- ASSET REGISTRY ---- \n")
+	for name := range _assetLoader.assetPool {
+		fmt.Println(name)
+	}
+	fmt.Printf(" ------------------------ \n\n")
 }
 
 func LoadAll(doneChan chan<- int) {

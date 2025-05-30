@@ -2,10 +2,10 @@ package assettypes
 
 import (
 	"mask_of_the_tomb/internal/core/assetloader"
-	"mask_of_the_tomb/internal/core/errs"
 	"path/filepath"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type LDTKAsset struct {
@@ -13,15 +13,24 @@ type LDTKAsset struct {
 	World ebitenLDTK.World
 }
 
-func (a *LDTKAsset) Load() {
-	a.World = errs.Must(ebitenLDTK.LoadWorld(a.path))
+func (a *LDTKAsset) Load() error {
+	world, err := ebitenLDTK.LoadWorld(a.path)
+	if err != nil {
+		return err
+	}
 
+	a.World = world
 	LDTKpath := filepath.Clean(filepath.Join(a.path, ".."))
 	for i := 0; i < len(a.World.Defs.Tilesets); i++ {
 		tileset := &a.World.Defs.Tilesets[i]
 		tilesetPath := filepath.Join(LDTKpath, tileset.RelPath)
-		tileset.Image = errs.MustNewImageFromFile(tilesetPath)
+		tilesetImage, _, err := ebitenutil.NewImageFromFile(tilesetPath)
+		if err != nil {
+			return err
+		}
+		tileset.Image = tilesetImage
 	}
+	return nil
 }
 
 func NewLDTKAsset(path string) *ebitenLDTK.World {

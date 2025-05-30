@@ -1,17 +1,15 @@
 package node
 
 import (
-	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/colors"
-	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/sound"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// TODO: Get this out of here
-var buttonSound = errs.Must(sound.NewEffectPlayer(assets.Select_ogg, sound.Ogg))
+// Not great
+var SelectSound *sound.EffectPlayer
 
 type Button struct {
 	Textbox       `yaml:",inline"`
@@ -31,7 +29,7 @@ func (b *Button) SetSelected() {
 	// switchActiveDisplay(), because that calls reset which sets the
 	// selector pos to 0. Pls fix
 	if !b.selected {
-		buttonSound.Play()
+		SelectSound.Play()
 	}
 
 	b.selected = true

@@ -2,7 +2,6 @@ package particles
 
 import (
 	"mask_of_the_tomb/internal/core/assetloader"
-	"mask_of_the_tomb/internal/core/errs"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -10,21 +9,23 @@ import (
 type particleSystemAsset struct {
 	layer          *ebiten.Image
 	path           string
-	ParticleSystem ParticleSystem
+	ParticleSystem *ParticleSystem
 }
 
-func (a *particleSystemAsset) Load() {
-	a.ParticleSystem = *errs.Must(FromFile(a.path, a.layer))
+func (a *particleSystemAsset) Load() error {
+	particleSys, err := FromFile(a.path, a.layer)
+	a.ParticleSystem = particleSys
+	return err
 }
 
-func NewParticleSystemAsset(path string, layer *ebiten.Image) *ParticleSystem {
-	asset, exists := assetloader.Exists(path)
-	if exists {
-		return &asset.(*particleSystemAsset).ParticleSystem
+func GetParticleSystemAsset(name string) (*ParticleSystem, error) {
+	_particleSystemAsset, err := assetloader.GetAsset(name)
+	return _particleSystemAsset.(*particleSystemAsset).ParticleSystem, err
+}
+
+func NewParticleSystemAsset(path string, layer *ebiten.Image) *particleSystemAsset {
+	return &particleSystemAsset{
+		layer: layer,
+		path:  path,
 	}
-
-	particleSystemAsset := particleSystemAsset{layer: layer, path: path}
-
-	assetloader.Load(path, &particleSystemAsset)
-	return &particleSystemAsset.ParticleSystem
 }

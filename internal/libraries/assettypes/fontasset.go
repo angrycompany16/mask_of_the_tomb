@@ -3,7 +3,6 @@ package assettypes
 import (
 	"bytes"
 	"mask_of_the_tomb/internal/core/assetloader"
-	"mask_of_the_tomb/internal/core/errs"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
@@ -13,8 +12,10 @@ type fontAsset struct {
 	Font text.GoTextFaceSource
 }
 
-func (a *fontAsset) Load() {
-	a.Font = *errs.Must(text.NewGoTextFaceSource(bytes.NewReader(a.src)))
+func (a *fontAsset) Load() error {
+	font, err := text.NewGoTextFaceSource(bytes.NewReader(a.src))
+	a.Font = *font
+	return err
 }
 
 func NewFontAsset(src []byte) *text.GoTextFaceSource {

@@ -56,7 +56,11 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
     srcColor := imageSrc1At(srcPos - CamShake)
     
     color := srcColor.xyz * lighting
-    return vec4(getNearest(color, srcColor.xyz), srcColor.a)
+    if srcColor.a == 0 {
+        return vec4(srcColor)
+    } else {
+        return vec4(getNearest(color, srcColor.xyz), srcColor.a)
+    }
 }
 
 func getNearest(color vec3, srcColor vec3) vec3 {

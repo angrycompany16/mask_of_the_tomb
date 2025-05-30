@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/arrays"
-	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/colors"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
@@ -19,6 +17,7 @@ import (
 	"mask_of_the_tomb/internal/libraries/entities/door"
 	"mask_of_the_tomb/internal/libraries/entities/grass"
 	"mask_of_the_tomb/internal/libraries/entities/hazard"
+	"mask_of_the_tomb/internal/libraries/entities/turret"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
 	"math"
@@ -40,7 +39,8 @@ const (
 	SpikeIntGridName       = "Spikes"
 	gameEntryPosEntityName = "GameEntryPos"
 	grassEntityName        = "Grass"
-	HazardEntityName       = "Hazard"
+	hazardEntityName       = "Hazard"
+	turretEntityName       = "TurretEnemy"
 )
 
 var (
@@ -56,7 +56,7 @@ var (
 	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "tilemaps", "export", "playerspace_tilemap_normal.png")
 	// TODO: *very* temporary solution
 	playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
-	playerLightRadius        = 200.0
+	PlayerLightRadius        = 200.0
 )
 
 type Level struct {
@@ -73,7 +73,6 @@ type Level struct {
 	frameLayers              rendering.LayerList
 	fogShader                *ebiten.Shader
 	vignetteShader           *ebiten.Shader
-	lightsPixelShader        *ebiten.Shader
 	pixelLightShader         *ebiten.Shader
 	playerLightBreatheTicker time.Ticker
 	resetX, resetY           float64
@@ -82,6 +81,7 @@ type Level struct {
 	hazards                  []*hazard.Hazard
 	doors                    []door.Door
 	grassEntities            []grass.Grass
+	turrets                  []*turret.Turret
 }
 
 // ------ CONSTRUCTOR ------
@@ -92,15 +92,17 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.defs = defs
 	newLevel.name = levelLDTK.Name
 	newLevel.bgColor = errs.Must(colors.HexToRGB(levelLDTK.BgColorHex))
-	newLevel.fogShader = errs.Must(ebiten.NewShader(assets.Fog_kage))
-	newLevel.vignetteShader = errs.Must(ebiten.NewShader(assets.Vignette_kage))
-	newLevel.lightsPixelShader = errs.Must(ebiten.NewShader(assets.Pixel_lights_kage))
+
 	// TODO: set particle system bounds based on level size
-	newLevel.ambientParticles = errs.Must(particles.FromFile(particleSysPath, rendering.ScreenLayers.Foreground))
+	newLevel.fogShader = errs.Must(assettypes.GetShaderAsset("fogShader"))
+	newLevel.vignetteShader = errs.Must(assettypes.GetShaderAsset("vignetteShader"))
+	newLevel.pixelLightShader = errs.Must(assettypes.GetShaderAsset("pixelLightsShader"))
+	newLevel.ambientParticles = errs.Must(particles.GetParticleSystemAsset("ambientParticles"))
+
 	newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)
 
 	// Most of these layers are completely unnecessary, so maybe it would be a good idea to
-	// delete a few of them to save eerformance
+	// delete a few of them to save performance
 	// After all we do have some pretty dramatic frame drops when switching levels
 	newLevel.tileLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
 	newLevel.normalLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
@@ -137,18 +139,19 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.tileSize = float64(playerspace.GridSize)
 	newLevel.TilemapCollider.TileSize = float64(playerspace.GridSize)
 
-	for _, layer := range levelLDTK.Layers {
-		for _, entity := range layer.Entities {
-			switch entity.Name {
-			case HazardEntityName:
-				newLevel.hazards = append(newLevel.hazards, hazard.NewHazard(&entity))
-			case doorEntityName:
-				newLevel.doors = append(newLevel.doors, door.NewDoor(&entity))
-			case slamboxEntityName:
-				newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity))
-			case grassEntityName:
-				newLevel.grassEntities = append(newLevel.grassEntities, grass.NewGrass(&entity, 16, rendering.ScreenLayers.Playerspace))
-			}
+	entityLayer := errs.Must(levelLDTK.GetLayerByName(entityLayerName))
+	for _, entity := range entityLayer.Entities {
+		switch entity.Name {
+		case hazardEntityName:
+			newLevel.hazards = append(newLevel.hazards, hazard.NewHazard(&entity))
+		case doorEntityName:
+			newLevel.doors = append(newLevel.doors, door.NewDoor(&entity))
+		case slamboxEntityName:
+			newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity))
+		case grassEntityName:
+			newLevel.grassEntities = append(newLevel.grassEntities, grass.NewGrass(&entity, 16, rendering.ScreenLayers.Playerspace))
+		case turretEntityName:
+			newLevel.turrets = append(newLevel.turrets, turret.NewTurret(&entity, entityLayer.GridSize))
 		}
 	}
 
@@ -168,7 +171,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 				slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
 			}
 		}
-		slambox.CreateSprite(assetloader.GetAsset("slamboxTilemap").(*assettypes.ImageAsset).Image)
+		slambox.CreateSprite(errs.Must(assettypes.GetImageAsset("slamboxTilemap")))
 		// slambox.CreateSprite(assetloader.GetAsset("slamboxTilemap").(*assettypes.ImageAsset).Image)
 	}
 
@@ -218,9 +221,21 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	for _, grassEntity := range l.grassEntities {
 		grassEntity.Update(playerX, playerY, playerVelX, playerVelY)
 	}
+	for _, turret := range l.turrets {
+		hit, x, y := l.TilemapCollider.Raycast(turret.Hitbox.Left(), turret.Hitbox.Top(), turret.GetAimDir(), l.GetSlamboxColliders())
+		if hit {
+			turret.RayEndX = x
+			turret.RayEndY = y
+		}
+		for _, rect := range l.GetSlamboxColliders() {
+			if rect.Rect.Overlapping(&turret.Hitbox) {
+				turret.Die()
+			}
+		}
+	}
 
 	if _, tick := threads.Poll(l.playerLightBreatheTicker.C); tick {
-		playerLightRadius = 205.0 - math.Copysign(5, playerLightRadius-210.0)
+		PlayerLightRadius = 205.0 - math.Copysign(5, PlayerLightRadius-210.0)
 	}
 
 	l.ambientParticles.Update()
@@ -249,6 +264,10 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 
 	rendering.ScreenLayers.Foreground.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.vignetteShader, &shaderOp)
 
+	for _, turretEntity := range l.turrets {
+		turretEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+	}
+
 	for _, box := range l.slamboxes {
 		box.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
@@ -263,36 +282,16 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 
 	ebitenrenderutil.DrawAt(l.tileLayers.Playerspace, l.frameLayers.Playerspace, 0, 0)
 
-	// Draw lighting on both midground and playerspace
-	trueCamX, trueCamY := camera.GetStablePos()
+	// TODO: Give a light to each turret guy
+	shaderOp = l.GetShaderOp(ctx, l.frameLayers.Playerspace)
+	shaderOp.Uniforms["AmbientLight"] = [3]float64{0.3, 0.3, 0.3}
+	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
-	shaderOp.Images = [4]*ebiten.Image{
-		// NEVER touch the first texture argument. EVER.
-		nil,
-		l.frameLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GAME_WIDTH), int(trueCamY+rendering.GAME_HEIGHT))).(*ebiten.Image),
-		l.normalLayers.Playerspace.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GAME_WIDTH), int(trueCamY+rendering.GAME_HEIGHT))).(*ebiten.Image),
-		nil,
-	}
+	shaderOp = l.GetShaderOp(ctx, l.tileLayers.Midground)
+	rendering.ScreenLayers.Midground.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
-	shakeX, shakeY := camera.GetShake()
-
-	// TODO: Helper fcn
-	shaderOp.Uniforms = map[string]any{
-		"CamShake":     [2]float64{shakeX, shakeY},
-		"Time":         resources.Time / 5,
-		"PositionsX":   [10]float64{ctx.PlayerX - ctx.CamX},
-		"PositionsY":   [10]float64{ctx.PlayerY - ctx.CamY},
-		"InnerRadii":   [10]float64{0.0},
-		"OuterRadii":   [10]float64{playerLightRadius},
-		"ZOffsets":     [10]float64{0.2},
-		"Intensities":  [10]float64{0.6},
-		"ColorsR":      [10]float64{1.0},
-		"ColorsG":      [10]float64{1.0},
-		"ColorsB":      [10]float64{1.0},
-		"AmbientLight": [3]float64{0.2, 0.2, 0.2},
-	}
-
-	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.lightsPixelShader, &shaderOp)
+	shaderOp = l.GetShaderOp(ctx, l.tileLayers.Background)
+	rendering.ScreenLayers.Background.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
 	l.ambientParticles.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Foreground))
 }
@@ -312,6 +311,15 @@ func (l *Level) CheckDoorOverlap(playerHitbox *maths.Rect) (hit bool, levelIid, 
 func (l *Level) GetHazardHit(playerHitbox *maths.Rect) bool {
 	for _, hazard := range l.hazards {
 		if hazard.Hitbox.Overlapping(playerHitbox) {
+			return true
+		}
+	}
+	return false
+}
+
+func (l *Level) CheckTurretHit(playerHitBox *maths.Rect) bool {
+	for _, turret := range l.turrets {
+		if turret.ShouldFire(playerHitBox) {
 			return true
 		}
 	}
@@ -428,17 +436,6 @@ func drawTiles(
 		).(*ebiten.Image),
 			targetLayer,
 			tile.Px[0], tile.Px[1], scaleX, scaleY, 0.5, 0.5)
-
-		// ebitenrenderutil.DrawAtScaled(tileset.Image.SubImage(
-		// 	image.Rect(
-		// 		int(tile.Src[0]),
-		// 		int(tile.Src[1]),
-		// 		int(tile.Src[0]+tileSize),
-		// 		int(tile.Src[1]+tileSize),
-		// 	),
-		// ).(*ebiten.Image),
-		// 	targetLayer,
-		// 	tile.Px[0]-camX, tile.Px[1]-camY, scaleX, scaleY, 0.5, 0.5)
 	}
 }
 
@@ -456,4 +453,36 @@ func (l *Level) restoreFromMemory(levelMemory *LevelMemory) {
 			slambox.SetPos(entity.Px[0], entity.Px[1])
 		}
 	}
+}
+
+func (l *Level) GetShaderOp(ctx rendering.Ctx, src *ebiten.Image) ebiten.DrawRectShaderOptions {
+	trueCamX, trueCamY := camera.GetStablePos()
+
+	shaderOp := ebiten.DrawRectShaderOptions{}
+	shaderOp.Images = [4]*ebiten.Image{
+		// NEVER touch the first texture argument. EVER.
+		nil,
+		src.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GAME_WIDTH), int(trueCamY+rendering.GAME_HEIGHT))).(*ebiten.Image),
+		nil,
+		nil,
+	}
+
+	shakeX, shakeY := camera.GetShake()
+
+	shaderOp.Uniforms = map[string]any{
+		"CamShake":     [2]float64{shakeX, shakeY},
+		"Time":         resources.Time / 5,
+		"PositionsX":   [10]float64{ctx.PlayerX - ctx.CamX},
+		"PositionsY":   [10]float64{ctx.PlayerY - ctx.CamY},
+		"InnerRadii":   [10]float64{0.0},
+		"OuterRadii":   [10]float64{PlayerLightRadius},
+		"ZOffsets":     [10]float64{0.2},
+		"Intensities":  [10]float64{0.6},
+		"ColorsR":      [10]float64{1.0},
+		"ColorsG":      [10]float64{1.0},
+		"ColorsB":      [10]float64{1.0},
+		"AmbientLight": [3]float64{0.6, 0.6, 0.6},
+	}
+
+	return shaderOp
 }

@@ -2,7 +2,6 @@ package ui
 
 import (
 	"mask_of_the_tomb/internal/core/assetloader"
-	"mask_of_the_tomb/internal/core/errs"
 )
 
 type layerAsset struct {
@@ -10,8 +9,10 @@ type layerAsset struct {
 	layer Layer
 }
 
-func (a *layerAsset) Load() {
-	a.layer = *errs.Must(FromFile(a.path))
+func (a *layerAsset) Load() error {
+	layer, err := FromFile(a.path)
+	a.layer = *layer
+	return err
 }
 
 func NewLayerAsset(path string) *Layer {

@@ -11,16 +11,16 @@ var (
 )
 
 type Camera struct {
-	posX, posY                 float64
-	width, height              float64
-	offsetX, offsetY           float64
-	screenPadding              float64
-	shakeOffsetX, shakeOffsetY float64
-	shaking                    bool
-	shakeDuration              float64
-	shakeStrength              float64
-	shakeTime                  float64
-	damping                    float64
+	posX, posY                     float64
+	width, height                  float64
+	offsetX, offsetY               float64
+	screenPaddingY, screenPaddingX float64
+	shakeOffsetX, shakeOffsetY     float64
+	shaking                        bool
+	shakeDuration                  float64
+	shakeStrength                  float64
+	shakeTime                      float64
+	damping                        float64
 }
 
 func Init(width, height, offsetX, offsetY float64) {
@@ -67,14 +67,17 @@ func GetShake() (float64, float64) {
 
 func SetPos(x, y float64) {
 	if _camera.height == 272 {
-		_camera.screenPadding = 2
+		_camera.screenPaddingY = 2
 	} else {
-		_camera.screenPadding = 0
+		_camera.screenPaddingY = 0
 	}
-	_camera.posX = maths.Clamp(x-_camera.offsetX, 0, _camera.width-rendering.GAME_WIDTH)
-	_camera.posY = maths.Clamp(y-_camera.offsetY, _camera.screenPadding/2, _camera.height-rendering.GAME_HEIGHT-_camera.screenPadding/2)
-	// _camera.posX += _camera.shakeOffsetX
-	// _camera.posY += _camera.shakeOffsetY
+	_camera.posX = maths.Clamp(x-_camera.offsetX, _camera.screenPaddingX/2, _camera.width-rendering.GAME_WIDTH-_camera.screenPaddingX/2)
+	_camera.posY = maths.Clamp(y-_camera.offsetY, _camera.screenPaddingY/2, _camera.height-rendering.GAME_HEIGHT-_camera.screenPaddingY/2)
+}
+
+func SetPadding(paddingX, paddingY float64) {
+	_camera.screenPaddingX = paddingX
+	_camera.screenPaddingY = paddingY
 }
 
 func SetBorders(width, height float64) {

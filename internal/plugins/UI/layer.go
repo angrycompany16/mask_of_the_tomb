@@ -9,12 +9,15 @@ import (
 )
 
 type Layer struct {
-	Name          string                      `yaml:"Name"`
-	Root          node.Root                   `yaml:"Root"`
-	confirmations map[string]node.ConfirmInfo // TODO: Maybe include some extra info with the confirmations map
+	Name          string    `yaml:"Name"`
+	Root          node.Root `yaml:"Root"`
+	confirmations map[string]node.ConfirmInfo
 }
 
 func (d *Layer) Update() {
+	// fmt.Println(d)
+	// fmt.Println(d.Name)
+	// fmt.Println(d.confirmations)
 	d.confirmations = make(map[string]node.ConfirmInfo)
 	d.Root.Update(d.confirmations)
 }
@@ -26,10 +29,6 @@ func (d *Layer) Draw() {
 func (d *Layer) GetConfirmed() map[string]node.ConfirmInfo {
 	return d.confirmations
 }
-
-// func (d *Layer) SetValues(values map[string]node.OverWriteInfo) {
-// 	d.Root.
-// }
 
 func (d *Layer) GetSubmitted() map[string]string {
 	return nil

@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"mask_of_the_tomb/internal/core/rendering"
-	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/transformers/game"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -20,16 +19,7 @@ type App struct {
 }
 
 func (a *App) Update() error {
-	// Switch on game state
-	// Run preload if game not done loading yet
-	var err error
-	switch resources.State {
-	case resources.Loading:
-		a.game.PreloadUpdate()
-	default:
-		err = a.game.Update()
-	}
-
+	err := a.game.Update()
 	if err == game.ErrTerminated {
 		return err
 	}
@@ -37,12 +27,7 @@ func (a *App) Update() error {
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
-	switch resources.State {
-	case resources.Loading:
-		a.game.PreloadDraw()
-	default:
-		a.game.Draw()
-	}
+	a.game.Draw()
 	rendering.ScreenLayers.Draw(screen)
 }
 
@@ -61,7 +46,7 @@ func main() {
 	ebiten.SetWindowTitle("Mask of the tomb")
 
 	a := &App{game.NewGame()}
-	a.game.InitLoad()
+	a.game.InitLoadingStage()
 
 	ebiten.SetFullscreen(true)
 

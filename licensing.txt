@@ -1,2 +1,19 @@
 List of things that may need licensing.
-https://github.com/ashima/webgl-noise 
+
+Shader stuff:
+Classic Perlin 3D Noise by Stefan Gustavson (https://github.com/stegu/webgl-noise)
+RGB to OKLAB converter: https://gist.github.com/earthbound19/e7fe15fdf8ca3ef814750a61bc75b5ce
+
+Sound FX:
+UI sounds: https://kenney.nl/assets/interface-sounds 
+In-game sounds: Infeasible. https://freesound.org/
+
+Songs:
+menu song: Music by IHateTuesdays from Pixabay. https://pixabay.com/music/video-games-jungle-ish-beat-for-video-games-314073/
+library song: Music by Denis Pavlov from Pixabay. https://pixabay.com/music/video-games-game-music-puzzle-strategy-arcade-technology-301226/
+
+Fonts:
+JSE_Amiga font. Creative commons
+
+Color pallette:
+Vines Flexible Linear Ramps Palette. Source: https://lospec.com/palette-list/vines-flexible-linear-ramps

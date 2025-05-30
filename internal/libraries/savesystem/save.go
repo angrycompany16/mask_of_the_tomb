@@ -10,12 +10,13 @@ import (
 	"path/filepath"
 )
 
-type GameData struct {
+type SaveData struct {
 	SpawnRoomName string
 	Settings      resources.SettingsConfig
 }
 
-func SaveGame(data GameData, profile int) {
+// TODO: Consider: should saving to the disk also be done in a separate thread?
+func SaveGame(data SaveData, profile int) {
 	savePath := getSavePath(profile)
 	exists := errs.Must(fileio.Exists(savePath))
 	if !exists {
@@ -26,28 +27,12 @@ func SaveGame(data GameData, profile int) {
 	errs.MustSingle(json.NewEncoder(file).Encode(&data))
 }
 
-func LoadGame(profile int) GameData {
-	savePath := getSavePath(profile)
-	exists := errs.Must(fileio.Exists(savePath))
-	if !exists {
-		SaveGame(GameData{}, profile)
-		return GameData{}
-	}
-
-	gameData := GameData{}
-	file := errs.Must(os.Open(savePath))
-	defer file.Close()
-
-	errs.MustSingle(json.NewDecoder(file).Decode(&gameData))
-	return gameData
-}
-
 func getSavePath(profile int) string {
 	return filepath.Join("save", fmt.Sprintf("save%d.json", profile))
 }
 
-func NewSave() GameData {
-	return GameData{
+func NewSave() SaveData {
+	return SaveData{
 		Settings: resources.SettingsConfig{
 			MasterVolume: 75,
 			SoundVolume:  100,

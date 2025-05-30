@@ -85,9 +85,6 @@ func NewPlayer() *Player {
 		OnDeath:     events.NewEvent(),
 		OnMove:      events.NewEvent(),
 		deathAnim:   NewDeathAnim(),
-		dashSound:   errs.Must(sound.NewEffectPlayer(assets.Dash_wav, sound.Wav)),
-		slamSound:   errs.Must(sound.NewEffectPlayer(assets.Slam_wav, sound.Wav)),
-		deathSound:  errs.Must(sound.NewEffectPlayer(assets.Death_mp3, sound.Mp3)),
 	}
 
 	player.moveFinishedListener = events.NewEventListener(player.movebox.OnMoveFinished)
@@ -99,12 +96,21 @@ func NewPlayer() *Player {
 func (p *Player) CreateAssets() {
 	// TODO: Rewrite with new asset loader
 	assetloader.Load("playerSprite", assettypes.MakeImageAsset(assets.Player_sprite))
-	p.jumpParticlesBroad = particles.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.ScreenLayers.Playerspace)
-	p.jumpParticlesTight = particles.NewParticleSystemAsset(jumpParticlesTightPath, rendering.ScreenLayers.Playerspace)
+	assetloader.Load("dashSound", assettypes.MakeSoundAsset(assets.Dash_wav, assettypes.Wav))
+	assetloader.Load("slamSound", assettypes.MakeSoundAsset(assets.Slam_wav, assettypes.Wav))
+	assetloader.Load("deathSound", assettypes.MakeSoundAsset(assets.Death_mp3, assettypes.Mp3))
+	assetloader.Load("jumpParticlesBroad", particles.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.ScreenLayers.Playerspace))
+	assetloader.Load("jumpParticlesTight", particles.NewParticleSystemAsset(jumpParticlesTightPath, rendering.ScreenLayers.Playerspace))
 }
 
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
-	p.sprite = assetloader.GetAsset("playerSprite").(*assettypes.ImageAsset).Image
+	p.sprite = errs.Must(assettypes.GetImageAsset("playerSprite"))
+	p.dashSound = errs.Must(assettypes.GetEffectPlayerAsset("dashSound"))
+	p.slamSound = errs.Must(assettypes.GetEffectPlayerAsset("slamSound"))
+	p.deathSound = errs.Must(assettypes.GetEffectPlayerAsset("deathSound"))
+	p.jumpParticlesBroad = errs.Must(particles.GetParticleSystemAsset("jumpParticlesBroad"))
+	p.jumpParticlesTight = errs.Must(particles.GetParticleSystemAsset("jumpParticlesTight"))
+
 	p.SetPos(posX, posY)
 	p.direction = direction
 	p.hitbox = maths.RectFromImage(posX, posY, p.sprite)
@@ -114,6 +120,7 @@ func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 // ------ GETTERS ------
 func (p *Player) GetHitbox() *maths.Rect {
 	return p.hitbox
+	// return p.movebox
 }
 
 func (p *Player) GetLevelSwapInput() bool {

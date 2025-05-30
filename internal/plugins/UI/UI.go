@@ -26,6 +26,7 @@ func (ui *UI) LoadPreamble(path string) {
 
 func (ui *UI) Load(paths ...string) {
 	for _, path := range paths {
+		// fmt.Println("Loaded layer", path)
 		ui.layers = append(ui.layers, NewLayerAsset(path))
 	}
 }
@@ -36,6 +37,7 @@ func (ui *UI) AddDisplayManual(display *Layer) {
 }
 
 func (ui *UI) Update() {
+	// fmt.Println(ui)
 	ui.activeLayer.Update()
 	for _, overlay := range ui.overlays {
 		overlay.Update()
@@ -72,10 +74,6 @@ func (ui *UI) Draw() {
 func (ui *UI) GetConfirmations() map[string]node.ConfirmInfo {
 	return ui.activeLayer.GetConfirmed()
 }
-
-// func (ui *UI) SetValues(values map[string]node.OverWriteInfo) {
-// 	ui.activeLayer.SetValues(values)
-// }
 
 func (ui *UI) GetSubmits() map[string]string {
 	return ui.activeLayer.GetSubmitted()
