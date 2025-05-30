@@ -276,9 +276,8 @@ func (g *Game) PreloadDraw() {
 }
 
 func (g *Game) Draw() {
-
 	g.menuUI.Draw()
-	if resources.State == resources.MainMenu {
+	if resources.State == resources.MainMenu || resources.State == resources.Intro {
 		return
 	}
 
