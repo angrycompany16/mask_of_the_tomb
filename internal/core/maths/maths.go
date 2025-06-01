@@ -58,6 +58,22 @@ func Lerp(a, b, t float64) float64 {
 	return a*(1.0-t) + b*t
 }
 
+func CubicInOut(t float64) float64 {
+	if t < 0.5 {
+		return 4 * math.Pow(t, 3)
+	} else {
+		return 1 - math.Pow(-2*t+2, 3)/2
+	}
+}
+
+func CubicOut(t float64) float64 {
+	return 1 - math.Pow(1-t, 3)
+}
+
+func InCubic(t float64) float64 {
+	return math.Pow(t, 3)
+}
+
 func SmoothStep(edge0, edge1, t float64) float64 {
 	t = Clamp((t-edge0)/(edge1-edge0), 0, 1)
 	return t * t * (3 - 2*t)

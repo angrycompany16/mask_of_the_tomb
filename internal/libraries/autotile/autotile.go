@@ -50,7 +50,7 @@ type tileRule struct {
 	def   [8]tileKind
 }
 type RectList struct {
-	List []maths.Rect
+	List []*maths.Rect
 	Kind tileKind
 }
 
@@ -62,7 +62,7 @@ func CreateSprite(
 	ruleset []tileRule,
 
 	tileSize float64,
-	rect maths.Rect,
+	rect *maths.Rect,
 	kind tileKind,
 	// Not good
 	// but we will just roll with it

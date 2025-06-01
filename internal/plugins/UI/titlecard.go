@@ -1,9 +1,7 @@
 package ui
 
 import (
-	"bytes"
-	"mask_of_the_tomb/assets"
-	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/rendering"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -13,9 +11,8 @@ import (
 var textColor = []float32{1, 1, 1}
 
 type TitleCard struct {
-	text  string
-	font  *text.GoTextFaceSource
-	image *ebiten.Image
+	text string
+	font *text.GoTextFaceSource
 }
 
 func (tc *TitleCard) Draw(t float64) {
@@ -45,7 +42,6 @@ func (tc *TitleCard) ChangeText(text string) {
 
 func NewTitleCard() OverlayContent {
 	return &TitleCard{
-		font:  errs.Must(text.NewGoTextFaceSource(bytes.NewReader(assets.JSE_AmigaAMOS_ttf))),
-		image: ebiten.NewImage(rendering.GAME_WIDTH, rendering.GAME_HEIGHT),
+		font: assetloader.GetFont("JSE_AmigaAMOS"),
 	}
 }

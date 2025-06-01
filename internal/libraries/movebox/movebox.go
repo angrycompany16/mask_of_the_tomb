@@ -58,6 +58,10 @@ func (m *Movebox) GetPos() (float64, float64) {
 	return m.posX, m.posY
 }
 
+func (m *Movebox) GetTarget() (float64, float64) {
+	return m.targetPosX, m.targetPosY
+}
+
 func (m *Movebox) GetMovedir() (float64, float64) {
 	return m.moveDirX, m.moveDirY
 }

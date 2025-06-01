@@ -59,6 +59,7 @@ type Game struct {
 	deathEffectEnterListener *events.EventListener
 	playerMoveListener       *events.EventListener
 	titleCardTimeoutListener *events.EventListener
+	levelCardTimeoutListener *events.EventListener
 }
 
 func (g *Game) Update() error {
@@ -97,22 +98,12 @@ func (g *Game) Draw() error {
 
 func NewGame() *Game {
 	game := &Game{
-		player: player.NewPlayer(),
-		world:  world.NewWorld(),
-		mainUI: ui.NewUI(map[string]*ui.Overlay{
-			"screenfade": ui.NewOverlay(ui.NewScreenFade(), time.Second*2),
-		}),
-		gameplayUI: ui.NewUI(map[string]*ui.Overlay{
-			"titlecard": ui.NewOverlay(ui.NewTitleCard(), time.Second*2),
-		}),
+		player:      player.NewPlayer(),
+		world:       world.NewWorld(),
+		mainUI:      ui.NewUI(make(map[string]*ui.Overlay)),
+		gameplayUI:  ui.NewUI(make(map[string]*ui.Overlay)),
 		musicPlayer: musicplayer.NewMusicPlayer(),
 	}
-
-	screenFade := game.mainUI.GetOverlay("screenfade")
-	game.deathEffectEnterListener = events.NewEventListener(screenFade.OnFinishEnter)
-
-	titleCard := game.gameplayUI.GetOverlay("titlecard")
-	game.titleCardTimeoutListener = events.NewEventListener(titleCard.OnIdleTimeout)
 
 	game.playerMoveListener = events.NewEventListener(game.player.OnMove)
 

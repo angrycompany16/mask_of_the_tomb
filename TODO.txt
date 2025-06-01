@@ -2,14 +2,10 @@
 // 0. Spikes
 // 1. SLAM BOX (These should be improved. Add (1) the ability to add spikes to 
 slamboxes and (2) the ability to connect slamboxes in "any" configuration)
-// 3. One-way platforms
-// 4. Teleporters
-// 5. Lazers and light sensors?
-// 6. Buttons which can be activated by the player?
-// 7. Shrink and grow in size
-// 8. Stoppers / catchers
 // 9. Hold up hear me out. What about turrets / traps that insta-kill you if they get line of sight?
       They can be blocked with boxes and also killed
+
+// 3. One-way platforms
 // what else?
 
 
@@ -24,41 +20,25 @@ Take inspiration from DSFWAN albums? For example, we can have
 Bug list:
 - Sometimes spamming pause/play while respawning causes the player to not appear
   at all (SEVERITY: LOW)
-- Dashing in the same direction as a moving slambox causes the player to hit the slambox and stop in mid 
-  air (SEVERITY: LOW)
 - 44100 Hz audio does not seem to work on arch, which is quite a huge problem
-- Pausing while an area title card is playing makes it not fade away
 
 Levels:
- - One-way platforms
- - Proper level transition sequence to avoid large slowdown due to asset loading
  - Level transitions (shader O_o)
- - Breathing lights
  - NPC stuff
 
 // Revamped roadmap because I want to create a demo
 // - Art/idea for level transitions
-// - Add room title cards
 // - Finish slam animation
 // - Remake dash animation
 // - Resolve the many TODOs in the project (at least do a few of them)
 // - Right now the game crashes if doors have a missing entity ref. Probably nice
 //   to fix this or at least give a better warning in ebiten-LDTK.
-// - Add a way to skip intro cutscene
-
 // - Cheap hack for camera shake: Set the background color to the same as the darkest color in the tileset
 
 // Post-demo: The design/code quality revamp:
 // - Rewrite the overlay system from scratch because it's just so terrible and can't do what i want it to do
 // - Remove the singletons. These should not exist
-// - Review licensing so I don't get sued
 // - Use the race condition checker...
 // - Implement generalized input handler
 // - Improve the asset loader, turn into actual editor
-// - Create animation/sprite/audio asset files
-// - Create shader asset files
-
-FIX THE EDITOR
-Consider switching into one repo for assets and one for code? or maybe that's not such
-a good idea idk
-Could also just reduce the size of the assets folder you know
+// - Create animation/sprite asset files

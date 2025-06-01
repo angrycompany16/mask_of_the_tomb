@@ -28,7 +28,7 @@ type Animation struct {
 	loopMode    AnimationLoopMode
 	xindex      int
 	yindex      int
-	frameDelay  float64
+	frameDelay  time.Duration
 	t           float64
 	ticker      *time.Ticker
 	paused      bool
@@ -55,7 +55,7 @@ func (a *Animation) GetNext() int {
 }
 
 func (a *Animation) Reset() {
-	a.ticker = time.NewTicker(time.Duration(a.frameDelay * 1e9))
+	a.ticker = time.NewTicker(a.frameDelay)
 	a.xindex = 0
 	a.yindex = 0
 	a.finished = false
@@ -98,7 +98,7 @@ func (a *Animation) GetSprite() *ebiten.Image {
 	return a.spritesheet.src
 }
 
-func NewAnimation(spritesheet *Spritesheet, frameDelay float64, orientation SpritesheetOrientation, loopMode AnimationLoopMode, next int) *Animation {
+func NewAnimation(spritesheet *Spritesheet, frameDelay time.Duration, orientation SpritesheetOrientation, loopMode AnimationLoopMode, next int) *Animation {
 	return &Animation{
 		spritesheet: spritesheet,
 		orientation: orientation,

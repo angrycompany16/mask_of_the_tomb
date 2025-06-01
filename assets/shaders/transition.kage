@@ -1,0 +1,35 @@
+//kage:unit pixels
+
+package main
+
+var (
+    T float
+)
+
+const (
+    PI = 3.14159265359
+    SPACING = 30.0
+    // WIDTH = 20.0
+)
+
+func Fragment(dstPos vec4, srcPos vec2) vec4 {
+	pos := mod(srcPos, SPACING) - vec2(SPACING)/2
+
+    dist := square(rotate(pos, T*PI*0.5), vec2(SPACING*T))
+	if dist < 0 {
+        return vec4(0.0, 0.0, 0.0, 1.0)
+    } else {
+        return vec4(0.0, 0.0, 0.0, 0.0)
+    }
+}
+
+func rotate(p vec2, angle float) vec2 {
+    cosA := cos(angle)
+    sinA := sin(angle)
+    return mat2(cosA, -sinA, sinA, cosA) * p
+}
+
+func square(pos vec2, bounds vec2) float {
+	d := abs(pos)-bounds;
+    return length(max(d,0.0)) + min(max(d.x,d.y),0.0);
+}
