@@ -5,14 +5,6 @@ import (
 	"math"
 )
 
-type RectCollider struct {
-	maths.Rect
-}
-
-func NewRectCollider(r maths.Rect) RectCollider {
-	return RectCollider{r}
-}
-
 type TilemapCollider struct {
 	tilemap[int]
 }
@@ -20,7 +12,7 @@ type TilemapCollider struct {
 // Round the size up to the nearest size fitting the grid
 // Project that sized-up rect
 // Finally find how far it actually is from hitting the grid(dy) and move it that far
-func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction maths.Direction, otherRects []*RectCollider) (maths.Rect, float64) {
+func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction maths.Direction, otherRects []*maths.Rect) (maths.Rect, float64) {
 	enlargedRect := maths.NewRect(
 		math.Floor(collisionRect.Left()/tc.TileSize)*tc.TileSize,
 		math.Floor(collisionRect.Top()/tc.TileSize)*tc.TileSize,
@@ -92,9 +84,9 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 		// Find the closes rect we are colliding with
 		dist := collisionRect.Top() - newY
 		for _, rect := range otherRects {
-			if rect.Rect.Overlapping(moveRect) {
-				if collisionRect.Top()-rect.Rect.Bottom() < dist {
-					dist = collisionRect.Top() - rect.Rect.Bottom()
+			if rect.Overlapping(moveRect) {
+				if collisionRect.Top()-rect.Bottom() < dist {
+					dist = collisionRect.Top() - rect.Bottom()
 				}
 			}
 		}
@@ -119,9 +111,9 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 		dist := newY - collisionRect.Top()
 		for _, rect := range otherRects {
 
-			if rect.Rect.Overlapping(moveRect) {
-				if rect.Rect.Top()-collisionRect.Bottom() < dist {
-					dist = rect.Rect.Top() - collisionRect.Bottom()
+			if rect.Overlapping(moveRect) {
+				if rect.Top()-collisionRect.Bottom() < dist {
+					dist = rect.Top() - collisionRect.Bottom()
 				}
 			}
 		}
@@ -143,9 +135,9 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 
 		dist := newX - collisionRect.Left()
 		for _, rect := range otherRects {
-			if rect.Rect.Overlapping(moveRect) {
-				if rect.Rect.Left()-collisionRect.Right() < dist {
-					dist = rect.Rect.Left() - collisionRect.Right()
+			if rect.Overlapping(moveRect) {
+				if rect.Left()-collisionRect.Right() < dist {
+					dist = rect.Left() - collisionRect.Right()
 				}
 			}
 		}
@@ -168,9 +160,9 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 
 		dist := collisionRect.Left() - newX
 		for _, rect := range otherRects {
-			if rect.Rect.Overlapping(moveRect) {
-				if collisionRect.Left()-rect.Rect.Right() < dist {
-					dist = collisionRect.Left() - rect.Rect.Right()
+			if rect.Overlapping(moveRect) {
+				if collisionRect.Left()-rect.Right() < dist {
+					dist = collisionRect.Left() - rect.Right()
 				}
 			}
 		}
@@ -188,7 +180,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 	return *collisionRect, 0
 }
 
-func (tc *TilemapCollider) Raycast(posX, posY float64, direction maths.Direction, otherRects []*RectCollider) (bool, float64, float64) {
+func (tc *TilemapCollider) Raycast(posX, posY float64, direction maths.Direction, otherRects []*maths.Rect) (bool, float64, float64) {
 	gridX, gridY := tc.worldPosToGrid(posX, posY)
 
 	x := gridX

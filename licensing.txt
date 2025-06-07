@@ -14,6 +14,7 @@ library song: Music by Denis Pavlov from Pixabay. https://pixabay.com/music/vide
 
 Fonts:
 JSE_Amiga font. Creative commons
+the other guy: https://www.dafont.com/c-c-red-alert-inet.font
 
 Color pallette:
 Vines Flexible Linear Ramps Palette. Source: https://lospec.com/palette-list/vines-flexible-linear-ramps

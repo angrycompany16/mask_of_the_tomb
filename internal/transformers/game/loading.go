@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/threads"
@@ -22,9 +23,11 @@ func (g *Game) InitLoadingStage() {
 	g.mainUI.Load(mainMenuPath, pauseMenuPath, optionsMenuPath, introScreenPath, emptyMenuPath)
 	g.gameplayUI.Load(hudPath, emptyMenuPath)
 	g.musicPlayer.Load()
+	assetloader.Load("transitionShader", assettypes.MakeShaderAsset(assets.Transition_kage))
 	assetloader.Load("selectSound", assettypes.MakeSoundAsset(assets.Select_ogg, assettypes.Ogg))
 	assetloader.Load("dialogueSound", assettypes.MakeSoundAsset(assets.Text_scroll_ogg, assettypes.Ogg))
 	assetloader.Load("saveData", save.MakeSaveAsset(SaveProfile))
+	assetloader.Load("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
 
 	go assetloader.LoadAll(loadFinishedChan)
 }
@@ -37,6 +40,8 @@ func (g *Game) LoadingStageUpdate() {
 		fmt.Println("Finished loading stage")
 		fmt.Println("Loaded assets:")
 		assetloader.PrintAssetRegistry()
+
+		fmt.Println(errs.Must(assetloader.GetAsset("transitionShader")))
 
 		resources.State = resources.MainMenu
 		g.InitMenuStage()

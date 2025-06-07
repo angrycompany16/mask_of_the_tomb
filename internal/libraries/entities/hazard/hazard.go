@@ -15,7 +15,7 @@ const (
 
 type Hazard struct {
 	Sprite     *ebiten.Image // NOTE: not always used, only for slamboxes
-	Hitbox     maths.Rect
+	Hitbox     *maths.Rect
 	PosOffsetX float64
 	PosOffsetY float64
 	LinkID     string // For linking with slamboxes
@@ -29,7 +29,7 @@ func NewHazard(
 	entity *ebitenLDTK.Entity,
 ) *Hazard {
 	newHazard := &Hazard{}
-	newHazard.Hitbox = *maths.NewRect(
+	newHazard.Hitbox = maths.NewRect(
 		entity.Px[0],
 		entity.Px[1],
 		entity.Width,

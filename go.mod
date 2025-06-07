@@ -3,7 +3,7 @@ module mask_of_the_tomb
 go 1.24.3
 
 require (
-	github.com/angrycompany16/ebiten-LDTK v0.0.0-20250530210216-a69896f1beed
+	github.com/angrycompany16/ebiten-LDTK v0.0.0-20250601000127-9b017719a4f4
 	github.com/hajimehoshi/ebiten/v2 v2.8.8
 	gopkg.in/yaml.v3 v3.0.1
 )

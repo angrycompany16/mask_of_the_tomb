@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"path/filepath"
+	"time"
 )
 
 // Connects the player and animation libraries
@@ -27,28 +28,28 @@ var (
 	playerAnimationMap = map[int]*animation.Animation{
 		idleAnim: animation.NewAnimation(
 			animation.NewSpritesheetAuto(errs.MustNewImageFromFile(idleSpritesheetPath)),
-			0.14,
+			time.Millisecond*140,
 			animation.Strip,
 			animation.Loop,
 			-1,
 		),
 		dashInitAnim: animation.NewAnimation(
 			animation.NewSpritesheetAuto(errs.MustNewImageFromFile(dashInitSpritesheetPath)),
-			0.08,
+			time.Millisecond*80,
 			animation.Strip,
 			animation.Once,
 			dashLoopAnim,
 		),
 		dashLoopAnim: animation.NewAnimation(
 			animation.NewSpritesheetAuto(errs.MustNewImageFromFile(dashLoopSpritesheetPath)),
-			0.08,
+			time.Millisecond*80,
 			animation.Strip,
 			animation.Loop,
 			-1,
 		),
 		slamAnim: animation.NewAnimation(
 			animation.NewSpritesheetAuto(errs.MustNewImageFromFile(slamSpritesheetPath)),
-			0.08,
+			time.Millisecond*80,
 			animation.Strip,
 			animation.Once,
 			idleAnim,

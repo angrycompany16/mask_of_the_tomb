@@ -36,6 +36,10 @@ func (ui *UI) AddDisplayManual(display *Layer) {
 	ui.activeLayer = display
 }
 
+func (ui *UI) AddOverlay(name string, overlay *Overlay) {
+	ui.overlays[name] = overlay
+}
+
 func (ui *UI) Update() {
 	// fmt.Println(ui)
 	ui.activeLayer.Update()

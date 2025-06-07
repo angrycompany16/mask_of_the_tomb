@@ -5,13 +5,10 @@ import (
 	"flag"
 	"log"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/transformers/game"
 
 	"github.com/hajimehoshi/ebiten/v2"
-)
-
-var (
-	debugMode bool
 )
 
 type App struct {
@@ -36,7 +33,7 @@ func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
 }
 
 func main() {
-	flag.BoolVar(&debugMode, "debug", false, "enable debug mode")
+	flag.BoolVar(&resources.DebugMode, "debug", false, "enable debug mode")
 	flag.StringVar(&game.InitLevelName, "initlevel", "", "Level in which to spawn the player")
 	flag.IntVar(&game.SaveProfile, "saveprofile", 1, "Profile to use for saving/loading (99 for dev save)")
 

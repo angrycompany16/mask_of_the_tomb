@@ -7,7 +7,10 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/assettypes"
+	"math"
+	"time"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -16,14 +19,17 @@ import (
 
 const (
 	directionFieldName = "Direction"
+	rayPulsePeriod     = time.Millisecond * 250
 )
 
 type Turret struct {
-	Sprite           *ebiten.Image
-	Hitbox           maths.Rect
+	sprite           *ebiten.Image
+	Hitbox           *maths.Rect
 	aimDirX, aimDirY float64
 	RayEndX, RayEndY float64
 	dead             bool
+	rayPulseTicker   *time.Ticker
+	rayThickness     float64
 }
 
 func (t *Turret) ShouldFire(target *maths.Rect) bool {
@@ -43,6 +49,18 @@ func (t *Turret) ShouldFire(target *maths.Rect) bool {
 	return LOShrz || LOSvrt
 }
 
+func (t *Turret) Update(hurtBoxes []*maths.Rect) {
+	for _, rect := range hurtBoxes {
+		if rect.Overlapping(t.Hitbox) {
+			t.dead = true
+		}
+	}
+
+	if _, tick := threads.Poll(t.rayPulseTicker.C); tick {
+		t.rayThickness = 3.0 - math.Copysign(1, t.rayThickness-4.0)
+	}
+}
+
 func (t *Turret) Draw(ctx rendering.Ctx) {
 	if t.dead || (t.RayEndX == 0 && t.RayEndY == 0) {
 		return
@@ -50,12 +68,11 @@ func (t *Turret) Draw(ctx rendering.Ctx) {
 	vector.DrawFilledCircle(ctx.Dst, float32(t.RayEndX), float32(t.RayEndY), 5.0, color.White, false)
 	cx, cy := t.Hitbox.Center()
 	// Note: Will depend on direction
-	vector.StrokeLine(ctx.Dst, float32(cx+float64(t.Sprite.Bounds().Dx()/2)), float32(cy), float32(t.RayEndX), float32(t.RayEndY), 4.0, color.White, false)
-	ebitenrenderutil.DrawAt(t.Sprite, ctx.Dst, t.Hitbox.Left(), t.Hitbox.Top())
+	vector.StrokeLine(ctx.Dst, float32(cx+float64(t.sprite.Bounds().Dx()/2)), float32(cy), float32(t.RayEndX), float32(t.RayEndY), float32(t.rayThickness), color.White, false)
+	ebitenrenderutil.DrawAt(t.sprite, ctx.Dst, t.Hitbox.Left(), t.Hitbox.Top())
 }
 
 func (t *Turret) Die() {
-	t.dead = true
 }
 
 func (t *Turret) GetAimDir() maths.Direction {
@@ -76,14 +93,16 @@ func NewTurret(
 	tileSize float64,
 ) *Turret {
 	newTurret := &Turret{}
-	newTurret.Hitbox = *maths.NewRect(
+	newTurret.Hitbox = maths.NewRect(
 		entity.Px[0],
 		entity.Px[1],
 		entity.Width,
 		entity.Height,
 	)
-	newTurret.Sprite = errs.Must(assettypes.GetImageAsset("turretSprite"))
-	// newTurret.Sprite.Fill(color.RGBA{255, 0, 0, 255})
+	newTurret.sprite = errs.Must(assettypes.GetImageAsset("turretSprite"))
+	newTurret.rayPulseTicker = time.NewTicker(rayPulsePeriod)
+	newTurret.rayThickness = 4.0
+
 	directionField := errs.Must(entity.GetFieldByName(directionFieldName))
 
 	newTurret.aimDirX = directionField.Point.X*tileSize - entity.Px[0]

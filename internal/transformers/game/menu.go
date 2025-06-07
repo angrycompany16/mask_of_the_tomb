@@ -3,11 +3,13 @@ package game
 import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
+	ui "mask_of_the_tomb/internal/plugins/UI"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -20,8 +22,21 @@ func (g *Game) InitMenuStage() {
 	initTime = time.Now()
 	gameData := errs.Must(save.GetSaveAsset("saveData"))
 	resources.Settings = gameData.Settings
+	g.mainUI.AddOverlay("screenfade", ui.NewOverlay(ui.NewScreenFade(), time.Second*2))
 	g.mainUI.SwitchActiveDisplay("mainmenu", nil)
+	g.gameplayUI.AddOverlay("titlecard", ui.NewOverlay(ui.NewTitleCard(), time.Second*2))
+	g.gameplayUI.AddOverlay("levelcard", ui.NewOverlay(ui.NewLevelCard(), time.Second))
 	g.gameplayUI.SwitchActiveDisplay("empty", nil)
+
+	screenFade := g.mainUI.GetOverlay("screenfade")
+	g.deathEffectEnterListener = events.NewEventListener(screenFade.OnFinishEnter)
+
+	titleCard := g.gameplayUI.GetOverlay("titlecard")
+	g.titleCardTimeoutListener = events.NewEventListener(titleCard.OnIdleTimeout)
+
+	levelCard := g.gameplayUI.GetOverlay("levelcard")
+	g.levelCardTimeoutListener = events.NewEventListener(levelCard.OnIdleTimeout)
+
 	g.musicPlayer.Init()
 	node.SelectSound = errs.Must(assettypes.GetEffectPlayerAsset("selectSound"))
 	node.DialogueSound = errs.Must(assettypes.GetEffectPlayerAsset("dialogueSound"))
@@ -39,7 +54,14 @@ func (g *Game) MenuStageUpdate() error {
 		titlecard.StartFadeOut()
 	}
 
-	ebitenutil.DebugPrint(rendering.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
+	levelcard := g.gameplayUI.GetOverlay("levelcard")
+	if _, raised := g.levelCardTimeoutListener.Poll(); raised {
+		levelcard.StartFadeOut()
+	}
+
+	if resources.DebugMode {
+		ebitenutil.DebugPrint(rendering.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
+	}
 
 	if resources.State != resources.MainMenu {
 		return nil

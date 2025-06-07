@@ -1,29 +1,37 @@
 package ui
 
 import (
-	"image/color"
-	"mask_of_the_tomb/internal/core/ebitenrenderutil"
+	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/libraries/assettypes"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 var (
-	OverlayColor = []uint8{20, 16, 19}
+	OverlayColor = []float64{0, 0, 0}
 )
 
 type ScreenFade struct {
-	image *ebiten.Image
+	image            *ebiten.Image
+	transitionShader *ebiten.Shader
 }
 
 func (d *ScreenFade) Draw(t float64) {
-	alpha := uint8(t * 255)
-	d.image.Fill(color.RGBA{OverlayColor[0], OverlayColor[1], OverlayColor[2], alpha})
-	ebitenrenderutil.DrawAt(d.image, rendering.ScreenLayers.Overlay, 0, 0)
+	// alpha := uint8(t * 255)
+	// d.image.Fill(color.RGBA{0, 0, 0, alpha})
+	// ebitenrenderutil.DrawAt(d.image, rendering.ScreenLayers.Overlay, 0, 0)
+
+	// fmt.Println(d)
+	// fmt.Println(d.transitionShader)
+	op := ebiten.DrawRectShaderOptions{}
+	op.Uniforms = map[string]any{"T": t}
+	rendering.ScreenLayers.Overlay.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, d.transitionShader, &op)
 }
 
 func NewScreenFade() OverlayContent {
 	return &ScreenFade{
-		image: ebiten.NewImage(rendering.GAME_WIDTH, rendering.GAME_HEIGHT),
+		transitionShader: errs.Must(assettypes.GetShaderAsset("transitionShader")),
+		image:            ebiten.NewImage(rendering.GAME_WIDTH, rendering.GAME_HEIGHT),
 	}
 }

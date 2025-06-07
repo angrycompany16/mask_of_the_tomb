@@ -56,7 +56,7 @@ func (g *Game) GameplayStageUpdate() {
 	}
 
 	if _, timedout := threads.Poll(g.introDashTimer.C); timedout {
-		newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), gameEntryDirection, g.world.ActiveLevel.GetSlamboxColliders())
+		newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), gameEntryDirection, g.world.ActiveLevel.GetSlamboxRects())
 		if newRect != *g.player.GetHitbox() {
 			g.player.Dash(gameEntryDirection, newRect.Left(), newRect.Top())
 		}
@@ -86,7 +86,7 @@ func (g *Game) updateGameplay() {
 			g.player.StartSlamming(moveDir)
 			slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox))
 		} else {
-			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), moveDir, g.world.ActiveLevel.GetSlamboxColliders())
+			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), moveDir, g.world.ActiveLevel.GetSlamboxTargetRects())
 			if newRect != *g.player.GetHitbox() {
 				g.player.Dash(moveDir, newRect.Left(), newRect.Top())
 			}
@@ -98,15 +98,16 @@ func (g *Game) updateGameplay() {
 		newBiome := errs.Must(world.ChangeActiveLevel(g.world, levelIid, doorEntityIid))
 		if newBiome != "" {
 			titleCardOverlay := g.gameplayUI.GetOverlay("titlecard")
-			titleCard, ok := titleCardOverlay.OverlayContent.(*ui.TitleCard)
-			if !ok {
-				panic("Shit and piss")
-			}
+			titleCard, _ := titleCardOverlay.OverlayContent.(*ui.TitleCard)
 			titleCard.ChangeText(newBiome)
 			titleCardOverlay.StartFadeIn()
 		}
 		camera.SetBorders(g.world.ActiveLevel.GetBounds())
 		g.player.SetHitboxPos(g.world.ActiveLevel.GetResetPoint())
+		levelCardOverlay := g.gameplayUI.GetOverlay("levelcard")
+		levelCard, _ := levelCardOverlay.OverlayContent.(*ui.LevelCard)
+		levelCard.ChangeText(g.world.ActiveLevel.GetTitle())
+		levelCardOverlay.StartFadeIn()
 	}
 
 	restartPrompted := inpututil.IsKeyJustReleased(ebiten.KeyR)

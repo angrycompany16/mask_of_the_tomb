@@ -40,11 +40,11 @@ const (
 type SlamContext struct {
 	direction             maths.Direction
 	tilemapCollider       *physics.TilemapCollider
-	disconnectedColliders []*physics.RectCollider
+	disconnectedColliders []*maths.Rect
 }
 
 type Slambox struct {
-	Collider                  physics.RectCollider
+	Collider                  *maths.Rect
 	ConnectedBoxes            []*Slambox
 	LinkID                    string   // ID to check for linked boxes
 	OtherLinkIDs              []string // ID to check for linked boxes
@@ -90,7 +90,7 @@ func (s *Slambox) Draw(drawCtx rendering.Ctx) {
 // Projects a slambox through the environment given by slamctx
 func (s *Slambox) Slam(slamCtx SlamContext) {
 	projectedSlamboxRect, dist := slamCtx.tilemapCollider.ProjectRect(
-		&s.Collider.Rect,
+		s.Collider,
 		slamCtx.direction,
 		slamCtx.disconnectedColliders,
 	)
@@ -98,7 +98,7 @@ func (s *Slambox) Slam(slamCtx SlamContext) {
 
 	for _, otherSlambox := range s.ConnectedBoxes {
 		_, otherDist := slamCtx.tilemapCollider.ProjectRect(
-			&otherSlambox.GetCollider().Rect,
+			otherSlambox.GetCollider(),
 			slamCtx.direction,
 			slamCtx.disconnectedColliders,
 		)
@@ -110,7 +110,7 @@ func (s *Slambox) Slam(slamCtx SlamContext) {
 
 	for _, otherSlambox := range s.ConnectedBoxes {
 		otherProjRect, _dist := slamCtx.tilemapCollider.ProjectRect(
-			&otherSlambox.GetCollider().Rect,
+			otherSlambox.GetCollider(),
 			slamCtx.direction,
 			slamCtx.disconnectedColliders,
 		)
@@ -146,7 +146,7 @@ func (s *Slambox) Slam(slamCtx SlamContext) {
 	s.SetTarget(projectedSlamboxRect.Left(), projectedSlamboxRect.Top())
 }
 
-func (s *Slambox) StartSlam(direction maths.Direction, tilemapCollider *physics.TilemapCollider, disconnectedColliders []*physics.RectCollider) {
+func (s *Slambox) StartSlam(direction maths.Direction, tilemapCollider *physics.TilemapCollider, disconnectedColliders []*maths.Rect) {
 	s.slamTimer = time.NewTimer(slamDelay)
 	s.state = waiting
 	s.currentSlamCtx = SlamContext{
@@ -160,8 +160,8 @@ func (s *Slambox) SetTarget(x, y float64) {
 	s.movebox.SetTarget(x, y)
 }
 
-func (s *Slambox) GetCollider() *physics.RectCollider {
-	return &s.Collider
+func (s *Slambox) GetCollider() *maths.Rect {
+	return s.Collider
 }
 
 func (s *Slambox) SetPos(x, y float64) {
@@ -169,9 +169,9 @@ func (s *Slambox) SetPos(x, y float64) {
 }
 
 func (s *Slambox) CreateSprite(slamboxTilemap *ebiten.Image) {
-	connectedRects := make([]maths.Rect, 0)
+	connectedRects := make([]*maths.Rect, 0)
 	for _, connectedBox := range s.ConnectedBoxes {
-		connectedRects = append(connectedRects, connectedBox.Collider.Rect)
+		connectedRects = append(connectedRects, connectedBox.Collider)
 	}
 	autotile.CreateSprite(
 		slamboxTilemap,
@@ -179,7 +179,7 @@ func (s *Slambox) CreateSprite(slamboxTilemap *ebiten.Image) {
 		autotile.GetDefaultTileRectData(0, 0, tileSize),
 		autotile.GetDefaultTileRuleset(),
 		tileSize,
-		s.Collider.Rect,
+		s.Collider,
 		autotile.WALL,
 		autotile.RectList{
 			List: connectedRects,
@@ -197,7 +197,7 @@ func (s *Slambox) CreateSprite(slamboxTilemap *ebiten.Image) {
 			hazard.Hitbox,
 			autotile.SPIKE,
 			autotile.RectList{
-				List: append(connectedRects, s.Collider.Rect),
+				List: append(connectedRects, s.Collider),
 				Kind: autotile.WALL,
 			},
 		)
@@ -208,12 +208,12 @@ func NewSlambox(
 	entity *ebitenLDTK.Entity,
 ) *Slambox {
 	newSlambox := Slambox{}
-	newSlambox.Collider = physics.NewRectCollider(*maths.NewRect(
+	newSlambox.Collider = maths.NewRect(
 		entity.Px[0],
 		entity.Px[1],
 		entity.Width,
 		entity.Height,
-	))
+	)
 	newSlambox.ConnectedBoxes = make([]*Slambox, 0)
 	newSlambox.LinkID = entity.Iid
 	newSlambox.movebox = movebox.NewMovebox(moveSpeed)

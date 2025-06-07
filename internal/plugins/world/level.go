@@ -41,6 +41,7 @@ const (
 	grassEntityName        = "Grass"
 	hazardEntityName       = "Hazard"
 	turretEntityName       = "TurretEnemy"
+	levelTitleFieldName    = "Title"
 )
 
 var (
@@ -221,17 +222,16 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	for _, grassEntity := range l.grassEntities {
 		grassEntity.Update(playerX, playerY, playerVelX, playerVelY)
 	}
+	for _, door := range l.doors {
+		door.Update()
+	}
 	for _, turret := range l.turrets {
-		hit, x, y := l.TilemapCollider.Raycast(turret.Hitbox.Left(), turret.Hitbox.Top(), turret.GetAimDir(), l.GetSlamboxColliders())
+		hit, x, y := l.TilemapCollider.Raycast(turret.Hitbox.Left(), turret.Hitbox.Top(), turret.GetAimDir(), l.GetSlamboxRects())
 		if hit {
 			turret.RayEndX = x
 			turret.RayEndY = y
 		}
-		for _, rect := range l.GetSlamboxColliders() {
-			if rect.Rect.Overlapping(&turret.Hitbox) {
-				turret.Die()
-			}
-		}
+		turret.Update((l.GetSlamboxRects()))
 	}
 
 	if _, tick := threads.Poll(l.playerLightBreatheTicker.C); tick {
@@ -243,6 +243,7 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 
 func (l *Level) Draw(ctx rendering.Ctx) {
 	l.frameLayers.Playerspace.Clear()
+	l.frameLayers.Midground.Clear()
 	rendering.ScreenLayers.Background2.Fill(l.bgColor)
 
 	// Render fog layer
@@ -264,6 +265,7 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 
 	rendering.ScreenLayers.Foreground.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.vignetteShader, &shaderOp)
 
+	// Consider creating an entity interface
 	for _, turretEntity := range l.turrets {
 		turretEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
@@ -280,14 +282,19 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 		grassEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
+	for _, door := range l.doors {
+		door.Draw(rendering.WithLayer(ctx, l.frameLayers.Midground))
+	}
+
 	ebitenrenderutil.DrawAt(l.tileLayers.Playerspace, l.frameLayers.Playerspace, 0, 0)
+	ebitenrenderutil.DrawAt(l.tileLayers.Midground, l.frameLayers.Midground, 0, 0)
 
 	// TODO: Give a light to each turret guy
 	shaderOp = l.GetShaderOp(ctx, l.frameLayers.Playerspace)
 	shaderOp.Uniforms["AmbientLight"] = [3]float64{0.3, 0.3, 0.3}
 	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
-	shaderOp = l.GetShaderOp(ctx, l.tileLayers.Midground)
+	shaderOp = l.GetShaderOp(ctx, l.frameLayers.Midground)
 	rendering.ScreenLayers.Midground.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
 	shaderOp = l.GetShaderOp(ctx, l.tileLayers.Background)
@@ -327,19 +334,26 @@ func (l *Level) CheckTurretHit(playerHitBox *maths.Rect) bool {
 }
 
 // Get all the rect colliders that are not connected to slambox
-func (l *Level) GetDisconnectedColliders(_slambox *Slambox) []*physics.RectCollider {
+func (l *Level) GetDisconnectedColliders(_slambox *Slambox) []*maths.Rect {
 	// I love writing unreadable code
 	return arrays.MapSlice(
 		arrays.Filter(
 			l.slamboxes, func(s *Slambox) bool { return !slices.Contains(_slambox.ConnectedBoxes, s) && s != _slambox },
 		),
-		func(s *Slambox) *physics.RectCollider { return &s.Collider },
+		func(s *Slambox) *maths.Rect { return s.Collider },
 	)
 
 }
 
-func (l *Level) GetSlamboxColliders() []*physics.RectCollider {
-	return arrays.MapSlice(l.slamboxes, func(s *Slambox) *physics.RectCollider { return &s.Collider })
+func (l *Level) GetSlamboxRects() []*maths.Rect {
+	return arrays.MapSlice(l.slamboxes, func(s *Slambox) *maths.Rect { return s.Collider })
+}
+
+func (l *Level) GetSlamboxTargetRects() []*maths.Rect {
+	return arrays.MapSlice(l.slamboxes, func(s *Slambox) *maths.Rect {
+		tX, tY := s.movebox.GetTarget()
+		return maths.NewRect(tX, tY, s.Collider.Width(), s.Collider.Height())
+	})
 }
 
 func (l *Level) GetSlamboxPositions() []SlamboxPosition {
@@ -353,7 +367,7 @@ func (l *Level) GetSlamboxPositions() []SlamboxPosition {
 func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *Slambox {
 	extendedRect := playerCollider.Extended(dir, 1)
 	for _, slambox := range l.slamboxes {
-		if extendedRect.Overlapping(&slambox.Collider.Rect) {
+		if extendedRect.Overlapping(slambox.Collider) {
 			return slambox
 		}
 	}
@@ -395,6 +409,10 @@ func (l *Level) GetResetPoint() (float64, float64) {
 
 func (l *Level) GetName() string {
 	return l.levelLDTK.Name
+}
+
+func (l *Level) GetTitle() string {
+	return errs.Must(l.levelLDTK.GetFieldByName(levelTitleFieldName)).String
 }
 
 func (l *Level) GetGameEntryPos() (float64, float64) {
