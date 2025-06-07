@@ -37,6 +37,9 @@ Levels:
  - NPC stuff
 
 // Revamped roadmap because I want to create a demo
+// - Interactive lanterns
+// - Save on exit to menu (last room is not saved!)
+// - Screen shake fix
 // - Art/idea for level transitions
 // - Add room title cards
 // - Finish slam animation
