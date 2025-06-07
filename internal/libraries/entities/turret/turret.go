@@ -1,7 +1,6 @@
 package turret
 
 import (
-	"fmt"
 	"image/color"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
@@ -108,7 +107,7 @@ func NewTurret(
 	newTurret.aimDirX = directionField.Point.X*tileSize - entity.Px[0]
 	newTurret.aimDirY = directionField.Point.Y*tileSize - entity.Px[1]
 
-	fmt.Println(newTurret.aimDirX, newTurret.aimDirY)
+	// fmt.Println(newTurret.aimDirX, newTurret.aimDirY)
 
 	return newTurret
 }

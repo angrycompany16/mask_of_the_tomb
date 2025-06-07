@@ -18,12 +18,6 @@ type ScreenFade struct {
 }
 
 func (d *ScreenFade) Draw(t float64) {
-	// alpha := uint8(t * 255)
-	// d.image.Fill(color.RGBA{0, 0, 0, alpha})
-	// ebitenrenderutil.DrawAt(d.image, rendering.ScreenLayers.Overlay, 0, 0)
-
-	// fmt.Println(d)
-	// fmt.Println(d.transitionShader)
 	op := ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{"T": t}
 	rendering.ScreenLayers.Overlay.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, d.transitionShader, &op)

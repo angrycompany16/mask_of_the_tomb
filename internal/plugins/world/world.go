@@ -103,10 +103,10 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 		newLevel.restoreFromMemory(&memory)
 	}
 
-	if world.ActiveLevel != nil {
-		world.SaveLevel(world.ActiveLevel)
-	}
-	world.SaveLevel(newLevel)
+	// if world.ActiveLevel != nil {
+	// 	world.SaveLevel(world.ActiveLevel)
+	// }
+	// world.SaveLevel(newLevel)
 
 	newLevel.resetX, newLevel.resetY = newLevel.GetDefaultSpawnPoint()
 	if doorIid != "" {
@@ -125,9 +125,9 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 	return "", nil
 }
 
-func (w *World) SaveLevel(level *Level) {
-	// w.worldStateMemory[level.levelLDTK.Iid] = levelmemory.LevelMemory{level.GetSlamboxPositions()}
-}
+// func (w *World) SaveLevel(level *Level) {
+// w.worldStateMemory[level.levelLDTK.Iid] = levelmemory.LevelMemory{level.GetSlamboxPositions()}
+// }
 
 func (w *World) ResetActiveLevel() (float64, float64) {
 	_resetX, _resetY := w.ActiveLevel.GetResetPoint()

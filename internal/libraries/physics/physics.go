@@ -208,7 +208,6 @@ func (tc *TilemapCollider) Raycast(posX, posY float64, direction maths.Direction
 		}
 	case maths.DirLeft:
 		for i := gridX; i > 0; i-- {
-			// fmt.Println(tc.Tiles[gridY][i])
 			if tc.Tiles[gridY][i] > 0 {
 				x = i + 1
 				y += 1

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
-	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/threads"
@@ -40,8 +39,6 @@ func (g *Game) LoadingStageUpdate() {
 		fmt.Println("Finished loading stage")
 		fmt.Println("Loaded assets:")
 		assetloader.PrintAssetRegistry()
-
-		fmt.Println(errs.Must(assetloader.GetAsset("transitionShader")))
 
 		resources.State = resources.MainMenu
 		g.InitMenuStage()

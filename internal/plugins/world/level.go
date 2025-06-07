@@ -14,6 +14,7 @@ import (
 	threads "mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/camera"
+	"mask_of_the_tomb/internal/libraries/entities/catcher"
 	"mask_of_the_tomb/internal/libraries/entities/door"
 	"mask_of_the_tomb/internal/libraries/entities/grass"
 	"mask_of_the_tomb/internal/libraries/entities/hazard"
@@ -41,6 +42,7 @@ const (
 	grassEntityName        = "Grass"
 	hazardEntityName       = "Hazard"
 	turretEntityName       = "TurretEnemy"
+	catcherEntityName      = "Catcher"
 	levelTitleFieldName    = "Title"
 )
 
@@ -83,6 +85,7 @@ type Level struct {
 	doors                    []door.Door
 	grassEntities            []grass.Grass
 	turrets                  []*turret.Turret
+	catchers                 []*catcher.Catcher
 }
 
 // ------ CONSTRUCTOR ------
@@ -153,6 +156,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			newLevel.grassEntities = append(newLevel.grassEntities, grass.NewGrass(&entity, 16, rendering.ScreenLayers.Playerspace))
 		case turretEntityName:
 			newLevel.turrets = append(newLevel.turrets, turret.NewTurret(&entity, entityLayer.GridSize))
+		case catcherEntityName:
+			newLevel.catchers = append(newLevel.catchers, catcher.NewCatcher(&entity))
 		}
 	}
 
@@ -364,14 +369,14 @@ func (l *Level) GetSlamboxPositions() []SlamboxPosition {
 
 // For now we assume that we will only ever be slamming one box at a time, though
 // this may change later
-func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) *Slambox {
+func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) (*Slambox, bool) {
 	extendedRect := playerCollider.Extended(dir, 1)
 	for _, slambox := range l.slamboxes {
 		if extendedRect.Overlapping(slambox.Collider) {
-			return slambox
+			return slambox, true
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func (l *Level) GetBiome() string {

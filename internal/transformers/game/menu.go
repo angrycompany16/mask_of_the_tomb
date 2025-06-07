@@ -92,6 +92,8 @@ func (g *Game) MenuStageUpdate() error {
 			"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
 			"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
 		})
+	} else if confirm, ok := confirmations["Back"]; ok && confirm.IsConfirmed {
+		g.mainUI.SwitchActiveDisplay("mainmenu", nil)
 	}
 	updateOptions(confirmations)
 	return nil

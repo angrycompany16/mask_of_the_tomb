@@ -123,4 +123,23 @@ Root:
       max: 100
       increment: 5
       default: 100
+    - Type: "button"
+      Name: "Back"
+      Text: "Back"
+      PosX: -900
+      PosY: 350
+      Font: "JSE_AmigaAMOS"
+      FontSize: 36
+      LineSpacing: 10
+      PrimaryAlign: *AlignStart
+      SecondaryAlign: *AlignStart
+      ScreenAlign: *Centered
+      ShadowX: 4
+      ShadowY: -4
+      NormalColor:
+        Bright: [205, 247, 226, 255]
+        Dark: [199, 176, 139, 255]
+      SelectedColor:
+        Bright: [0, 0, 0, 0]
+        Dark: [255, 255, 255, 255]
 ...

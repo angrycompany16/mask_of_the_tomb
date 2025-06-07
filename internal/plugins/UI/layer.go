@@ -15,9 +15,6 @@ type Layer struct {
 }
 
 func (d *Layer) Update() {
-	// fmt.Println(d)
-	// fmt.Println(d.Name)
-	// fmt.Println(d.confirmations)
 	d.confirmations = make(map[string]node.ConfirmInfo)
 	d.Root.Update(d.confirmations)
 }

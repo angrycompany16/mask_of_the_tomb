@@ -27,13 +27,13 @@ Levels:
  - NPC stuff
 
 // Revamped roadmap because I want to create a demo
+// - One-way platforms
+// - Catchers
 // - Interactive lanterns
-// - Save on exit to menu (last room is not saved!)
-// - Screen shake fix
+// - Level transition
 // - Art/idea for level transitions
 // - Finish slam animation
 // - Remake dash animation
-// - Resolve the many TODOs in the project (at least do a few of them)
 // - Right now the game crashes if doors have a missing entity ref. Probably nice
 //   to fix this or at least give a better warning in ebiten-LDTK.
 // - Cheap hack for camera shake: Set the background color to the same as the darkest color in the tileset

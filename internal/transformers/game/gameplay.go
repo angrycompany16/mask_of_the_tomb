@@ -67,22 +67,11 @@ func (g *Game) GameplayStageUpdate() {
 	}
 
 	g.world.Update(posX, posY, velX, velY)
-	g.updateGameplay()
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		resources.State = resources.Paused
-		g.mainUI.SwitchActiveDisplay("pausemenu", nil)
-	}
-
-	g.player.Update()
-}
-
-// TODO: Revamp and shorten this function, move more logic into player
-func (g *Game) updateGameplay() {
 	if eventInfo, ok := g.playerMoveListener.Poll(); ok {
 		moveDir := eventInfo.Data.(maths.Direction)
-		slambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
-		if slambox != nil {
+		slambox, hit := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
+		// also check if we can dash into a catcher
+		if hit {
 			g.player.StartSlamming(moveDir)
 			slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox))
 		} else {
@@ -130,8 +119,12 @@ func (g *Game) updateGameplay() {
 	}
 
 	g.player.Update()
-
 	camera.SetPos(g.player.GetPosCentered())
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		resources.State = resources.Paused
+		g.mainUI.SwitchActiveDisplay("pausemenu", nil)
+	}
 }
 
 func (g *Game) GameplayStageDraw() {
