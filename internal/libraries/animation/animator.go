@@ -7,15 +7,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Essentially a container for a map of animations
 type Animator struct {
-	clips          map[int]*Animation
-	ActiveClip     int // The animation that is currently active
+	Clips          map[int]*Animation `yaml:"Clips"`
+	ActiveClip     int
 	OnClipFinished *events.Event
 }
 
 func (a *Animator) Update() {
-	activeClip := a.clips[a.ActiveClip]
+	activeClip := a.Clips[a.ActiveClip]
 
 	activeClip.Update()
 	if activeClip.IsFinished() {
@@ -32,7 +31,7 @@ func (a *Animator) SwitchClip(newClip int) {
 	}
 
 	a.ActiveClip = newClip
-	activeClip, ok := a.clips[a.ActiveClip]
+	activeClip, ok := a.Clips[a.ActiveClip]
 	if !ok {
 		fmt.Println("Tried to set animator to invalid clip", newClip)
 		return
@@ -43,18 +42,17 @@ func (a *Animator) SwitchClip(newClip int) {
 }
 
 func (a *Animator) GetSprite() *ebiten.Image {
-	return a.clips[a.ActiveClip].GetSprite()
+	clip, _ := a.Clips[a.ActiveClip]
+	return clip.GetSprite()
 }
 
 func (a *Animator) AddAnimation(anim *Animation, id int) {
-	a.clips[id] = anim
+	a.Clips[id] = anim
 }
 
-func NewAnimator(clips map[int]*Animation) *Animator {
-	// NOTE: An empty animator cannet exist which probably isn't great
+func MakeAnimator(clips map[int]*Animation) *Animator {
 	return &Animator{
-		clips:          clips,
-		ActiveClip:     0,
+		Clips:          clips,
 		OnClipFinished: events.NewEvent(),
 	}
 }

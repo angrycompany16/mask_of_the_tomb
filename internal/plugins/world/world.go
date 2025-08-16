@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
@@ -45,6 +46,7 @@ func (w *World) Load(LDTKMapPath string) {
 	assetloader.Add("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))
 	assetloader.Add("pixelLightsShader", assettypes.MakeShaderAsset(assets.Pixel_lights_kage))
 	assetloader.Add("ambientParticles", assettypes.MakeYamlAsset(assets.Basement_yaml, &particles.ParticleSystem{}))
+	assetloader.Add("teleporterAnimation", assettypes.MakeYamlAsset(assets.Teleporter_yaml, &animation.AnimationInfo{}))
 }
 
 func (w *World) Init(initLevelName string, gameData save.SaveData) {

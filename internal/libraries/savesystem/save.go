@@ -24,7 +24,7 @@ func SaveGame(data SaveData, profile int) {
 	}
 	file := errs.Must(os.Create(savePath))
 	defer file.Close()
-	errs.MustSingle(json.NewEncoder(file).Encode(&data))
+	errs.MustVoid(json.NewEncoder(file).Encode(&data))
 }
 
 func getSavePath(profile int) string {

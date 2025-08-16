@@ -1,0 +1,13 @@
+---
+definitions:
+- SpriteSheetFormat: &Strip 0
+- SpriteSheetFormat: &MultiRow 1
+- AnimationLoopMode: &Loop 0
+- AnimationLoopMode: &Once 1
+
+SpriteSheetPath: assets/sprites/environment/teleporter-Sheet.png
+SpriteSheetFormat: *Strip
+LoopMode: *Loop
+FrameDelay: 100
+NextAnimationId: -1
+...

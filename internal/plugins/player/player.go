@@ -23,6 +23,13 @@ import (
 )
 
 const (
+	IDLE_ANIM = iota
+	DASH_INIT_ANIM
+	DASH_LOOP_ANIM
+	SLAM_ANIM
+)
+
+const (
 	moveSpeed             = 10.0
 	defaultPlayerHealth   = 5.0
 	invincibilityDuration = time.Second
@@ -79,7 +86,6 @@ type Player struct {
 func NewPlayer() *Player {
 	player := &Player{
 		movebox:     movebox.NewMovebox(moveSpeed),
-		animator:    animation.NewAnimator(playerAnimationMap),
 		InputBuffer: inputbuffer.NewInputBuffer(inputBufferDuration),
 		State:       Idle,
 		OnDeath:     events.NewEvent(),
@@ -88,7 +94,6 @@ func NewPlayer() *Player {
 	}
 
 	player.moveFinishedListener = events.NewEventListener(player.movebox.OnMoveFinished)
-	player.clipFinishedListener = events.NewEventListener(player.animator.OnClipFinished)
 	return player
 }
 
@@ -100,6 +105,10 @@ func (p *Player) CreateAssets() {
 	assetloader.Add("deathSound", assettypes.MakeSoundAsset(assets.Death_mp3, assettypes.Mp3))
 	assetloader.Add("jumpParticlesBroad", assettypes.MakeYamlAsset(assets.Jump_broad_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("jumpParticlesTight", assettypes.MakeYamlAsset(assets.Jump_tight_yaml, &particles.ParticleSystem{}))
+	assetloader.Add("dashInitAnim", assettypes.MakeYamlAsset(assets.Dash_init_yaml, &animation.AnimationInfo{}))
+	assetloader.Add("dashLoopAnim", assettypes.MakeYamlAsset(assets.Dash_loop_yaml, &animation.AnimationInfo{}))
+	assetloader.Add("playerIdleAnim", assettypes.MakeYamlAsset(assets.Player_idle_yaml, &animation.AnimationInfo{}))
+	assetloader.Add("playerSlamAnim", assettypes.MakeYamlAsset(assets.Player_slam_yaml, &animation.AnimationInfo{}))
 }
 
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
@@ -114,10 +123,22 @@ func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.jumpParticlesBroad.Init(rendering.ScreenLayers.Playerspace)
 	p.jumpParticlesTight.Init(rendering.ScreenLayers.Playerspace)
 
+	dashInitAnim := errs.Must(assettypes.GetYamlAsset("dashInitAnim")).(*animation.AnimationInfo)
+	dashLoopAnim := errs.Must(assettypes.GetYamlAsset("dashLoopAnim")).(*animation.AnimationInfo)
+	playerIdleAnim := errs.Must(assettypes.GetYamlAsset("playerIdleAnim")).(*animation.AnimationInfo)
+	playerSlamAnim := errs.Must(assettypes.GetYamlAsset("playerSlamAnim")).(*animation.AnimationInfo)
+	p.animator = animation.MakeAnimator(map[int]*animation.Animation{
+		IDLE_ANIM:      animation.NewAnimation(*playerIdleAnim),
+		DASH_LOOP_ANIM: animation.NewAnimation(*dashLoopAnim),
+		DASH_INIT_ANIM: animation.NewAnimation(*dashInitAnim),
+		SLAM_ANIM:      animation.NewAnimation(*playerSlamAnim),
+	})
+	p.clipFinishedListener = events.NewEventListener(p.animator.OnClipFinished)
+
 	p.SetPos(posX, posY)
 	p.direction = direction
 	p.hitbox = maths.RectFromImage(posX, posY, p.sprite)
-	p.animator.SwitchClip(idleAnim)
+	p.animator.SwitchClip(IDLE_ANIM)
 }
 
 // ------ GETTERS ------
@@ -186,13 +207,13 @@ func (p *Player) Dash(direction maths.Direction, x, y float64) {
 	p.State = Moving
 
 	p.dashSound.Play()
-	p.animator.SwitchClip(dashInitAnim)
+	p.animator.SwitchClip(DASH_INIT_ANIM)
 	p.movebox.SetTarget(x, y)
 	p.playJumpParticles(direction)
 }
 
 func (p *Player) EnterSlamAnim() {
-	p.animator.SwitchClip(slamAnim)
+	p.animator.SwitchClip(SLAM_ANIM)
 }
 
 // ------ INTERNAL ------

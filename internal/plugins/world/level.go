@@ -75,6 +75,7 @@ type Level struct {
 	playerLightBreatheTicker time.Ticker
 	resetX, resetY           float64
 	ambientParticles         *particles.ParticleSystem
+	grassTilemap             *ebiten.Image
 	slamboxes                []*Slambox
 	hazards                  []*entities.Hazard
 	doors                    []entities.Door
@@ -98,6 +99,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.pixelLightShader = errs.Must(assettypes.GetShaderAsset("pixelLightsShader"))
 	newLevel.ambientParticles = errs.Must(assettypes.GetYamlAsset("ambientParticles")).(*particles.ParticleSystem)
 	newLevel.ambientParticles.Init(rendering.ScreenLayers.Foreground)
+	newLevel.grassTilemap = errs.Must(assettypes.GetImageAsset("grassTilemap"))
 
 	newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)
 
@@ -149,7 +151,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		case slamboxEntityName:
 			newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity))
 		case grassEntityName:
-			newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, rendering.ScreenLayers.Playerspace))
+			newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
 		case turretEntityName:
 			newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
 		case catcherEntityName:

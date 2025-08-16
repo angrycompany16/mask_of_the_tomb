@@ -6,26 +6,13 @@ import (
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/libraries/animation"
-	"path/filepath"
-	"time"
+	"mask_of_the_tomb/internal/libraries/assettypes"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-var (
-	teleporterSheetPath = filepath.Join("assets", "sprites", "environment", "teleporter-Sheet.png")
-
-	teleporterAnimationMap = map[int]*animation.Animation{
-		1: animation.NewAnimation(
-			animation.NewSpritesheetAuto(errs.MustNewImageFromFile(teleporterSheetPath)),
-			time.Millisecond*100,
-			animation.Strip,
-			animation.Loop,
-			-1,
-		),
-	}
-)
+var ()
 
 const (
 	doorOtherSideFieldName = "OtherSide"
@@ -58,7 +45,10 @@ func NewDoor(
 		entity.Width,
 		entity.Height,
 	)
-	newDoor.animator = animation.NewAnimator(teleporterAnimationMap)
+	animatorMap := make(map[int]*animation.Animation)
+	animationInfo := errs.Must(assettypes.GetYamlAsset("teleporterAnimation")).(*animation.AnimationInfo)
+	animatorMap[1] = animation.NewAnimation(*animationInfo)
+	newDoor.animator = animation.MakeAnimator(animatorMap)
 	newDoor.animator.SwitchClip(1)
 
 	fieldInstance := errs.Must(entity.GetFieldByName(doorOtherSideFieldName))

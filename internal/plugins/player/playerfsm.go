@@ -21,7 +21,7 @@ const (
 func (p *Player) StartSlamming(direction maths.Direction) {
 	p.dashSound.Play()
 	p.direction = maths.Opposite(direction)
-	p.animator.SwitchClip(slamAnim)
+	p.animator.SwitchClip(SLAM_ANIM)
 	p.State = Slamming
 	p.jumpOffsetvel = 4
 	p.canPlaySlamSound = true
@@ -51,7 +51,7 @@ func (p *Player) Update() {
 			camera.Shake(0.4, 7, 1)
 		}
 	case Idle:
-		p.animator.SwitchClip(idleAnim)
+		p.animator.SwitchClip(IDLE_ANIM)
 	case Moving:
 		p.movebox.Update()
 		_, finished := p.moveFinishedListener.Poll()
@@ -60,7 +60,7 @@ func (p *Player) Update() {
 			p.State = Idle
 		}
 	case Dying:
-		p.animator.SwitchClip(idleAnim)
+		p.animator.SwitchClip(IDLE_ANIM)
 		p.deathAnim.Update()
 	}
 

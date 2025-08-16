@@ -3,13 +3,12 @@ package entities
 import (
 	"image"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
-	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 
 	// TODO: Fix
-	"mask_of_the_tomb/internal/libraries/assettypes"
+
 	"math"
 	"math/rand/v2"
 
@@ -47,6 +46,7 @@ func (g *Grass) Draw(ctx rendering.Ctx) {
 func NewGrass(
 	entity *ebitenLDTK.Entity,
 	gridSize float64,
+	grassTilemap *ebiten.Image,
 	dst *ebiten.Image,
 ) Grass {
 	newGrass := Grass{
@@ -63,7 +63,7 @@ func NewGrass(
 
 	for i := 0; i < int(bladesPertile*entity.Width/gridSize); i++ {
 		x := entity.Px[0] + float64(i)/bladesPertile*gridSize
-		newGrass.blades = append(newGrass.blades, newGrassBlade(x, entity.Px[1]-(SPRITE_HEIGHT-entity.Height)))
+		newGrass.blades = append(newGrass.blades, newGrassBlade(grassTilemap, x, entity.Px[1]-(SPRITE_HEIGHT-entity.Height)))
 	}
 
 	return newGrass
@@ -111,10 +111,8 @@ func (g *grassBlade) Update(playerX, playerY, playerVelX, playerVelY float64, pe
 	g.angle += g.angularVel * 0.2
 }
 
-func newGrassBlade(posX, posY float64) *grassBlade {
-	grassTilemap := errs.Must(assettypes.GetImageAsset("grassTilemap"))
+func newGrassBlade(grassTilemap *ebiten.Image, posX, posY float64) *grassBlade {
 	tileIndex := rand.IntN(8)
-
 	grassSprite := grassTilemap.SubImage(image.Rect(tileIndex*SPRITE_WIDTH, 0, (tileIndex+1)*SPRITE_WIDTH, SPRITE_HEIGHT)).(*ebiten.Image)
 
 	return &grassBlade{

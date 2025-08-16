@@ -54,4 +54,14 @@ var (
 	Jump_broad_yaml []byte
 	//go:embed particlesystems/basement.yaml
 	Basement_yaml []byte
+	//go:embed animations/teleporter.yaml
+	Teleporter_yaml []byte
+	//go:embed animations/dash-init.yaml
+	Dash_init_yaml []byte
+	//go:embed animations/dash-loop.yaml
+	Dash_loop_yaml []byte
+	//go:embed animations/player-idle.yaml
+	Player_idle_yaml []byte
+	//go:embed animations/player-slam.yaml
+	Player_slam_yaml []byte
 )
