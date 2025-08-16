@@ -1,0 +1,22 @@
+=== GODOT STYLE ENGINE REFACTOR ===
+
+The idea:
+Structure the engine as a tree of scenes, where each scene is in fact a tree of nodes. Thus nodes provide
+the actual data and logic of the game, and scenes define which behaviour is shown and such.
+Also steal the signal architecture to allow for communication between nodes.
+
+We will use a backend library to handle a lot of the actual logic in the game. Backend libraries should
+be completely disconnected, and should never import each other, unless they become so large that we 
+need to create child libraries. 
+
+This means that:
+ - For creating new functionality, the right thing to do is create a new node
+ - For creating new game behaviour / composition, the right thing to do is create a new scene
+
+== But what about things like input handling, the signal manager, the rendering backend etc?
+It will be handled on a case-by-case basis. For example, a node may well import any backend library it 
+wishes. We will also try, as much as possible, to remove all global singletons from the game.
+
+== Tests and Devops
+Add profiling and debug overlay, some kind of scene tree visualizer
+We can always do more but at least this
