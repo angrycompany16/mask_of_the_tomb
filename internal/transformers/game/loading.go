@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/threads"
-	"mask_of_the_tomb/internal/libraries/assettypes"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 )
 
@@ -23,8 +23,8 @@ func (g *Game) InitLoadingStage() {
 	g.gameplayUI.Load(hudPath, emptyMenuPath)
 	g.musicPlayer.Load()
 	assetloader.Add("transitionShader", assettypes.MakeShaderAsset(assets.Transition_kage))
-	assetloader.Add("selectSound", assettypes.MakeSoundAsset(assets.Select_ogg, assettypes.Ogg))
-	assetloader.Add("dialogueSound", assettypes.MakeSoundAsset(assets.Text_scroll_ogg, assettypes.Ogg))
+	assetloader.Add("selectSound", assettypes.MakeAudioStreamAsset(assets.Select_ogg, assettypes.Ogg))
+	assetloader.Add("dialogueSound", assettypes.MakeAudioStreamAsset(assets.Text_scroll_ogg, assettypes.Ogg))
 	assetloader.Add("saveData", save.MakeSaveAsset(SaveProfile))
 	assetloader.Add("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
 

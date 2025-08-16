@@ -1,6 +1,7 @@
 package sound
 
 import (
+	"io"
 	"mask_of_the_tomb/internal/core/resources"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -31,6 +32,10 @@ func playAudio(player audio.Player) {
 	}
 }
 
-func NewEffectPlayer(player *audio.Player) *EffectPlayer {
-	return &EffectPlayer{player}
+func FromStream[T io.Reader](stream T) (*audio.Player, error) {
+	player, err := GetCurrentAudioContext().Context.NewPlayer(stream)
+	if err != nil {
+		return nil, err
+	}
+	return player, nil
 }

@@ -1,7 +1,6 @@
 package animation
 
 import (
-	"fmt"
 	"image"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/threads"
@@ -49,11 +48,6 @@ func (a *Animation) Update() {
 
 	if _, tick := threads.Poll(a.ticker.C); tick {
 		a.switchFrame()
-		fmt.Println("switched frame")
-		fmt.Println(a.xindex)
-	} else {
-		fmt.Println("Just a normal frame")
-		fmt.Println(a.xindex)
 	}
 }
 

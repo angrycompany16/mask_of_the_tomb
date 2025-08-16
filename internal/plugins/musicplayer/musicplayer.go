@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/libraries/assettypes"
+	"mask_of_the_tomb/internal/core/sound"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
+	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 )
 
 // TODO: Fade music when launching game, switching tracks or (switching levels)
@@ -39,15 +42,19 @@ type MusicPlayer struct {
 }
 
 func (m *MusicPlayer) Load() {
-	assetloader.Add("menuTheme", assettypes.MakeSoundAsset(assets.Menu_mp3, assettypes.Mp3))
-	assetloader.Add("basementTheme", assettypes.MakeSoundAsset(assets.Basement_wav, assettypes.Wav))
-	assetloader.Add("libraryTheme", assettypes.MakeSoundAsset(assets.Library_mp3, assettypes.Mp3))
+	assetloader.Add("menuTheme", assettypes.MakeAudioStreamAsset(assets.Menu_mp3, assettypes.Mp3))
+	assetloader.Add("basementTheme", assettypes.MakeAudioStreamAsset(assets.Basement_wav, assettypes.Wav))
+	assetloader.Add("libraryTheme", assettypes.MakeAudioStreamAsset(assets.Library_mp3, assettypes.Mp3))
 }
 
 func (m *MusicPlayer) Init() {
-	m.songs[menuTheme] = errs.Must(assettypes.GetSoundAsset("menuTheme"))
-	m.songs[basementTheme] = errs.Must(assettypes.GetSoundAsset("basementTheme"))
-	m.songs[libraryTheme] = errs.Must(assettypes.GetSoundAsset("libraryTheme"))
+	menuThemeStream := errs.Must(assettypes.GetAudioStreamAsset("menuTheme")).(*mp3.Stream)
+	basementThemeStream := errs.Must(assettypes.GetAudioStreamAsset("basementTheme")).(*wav.Stream)
+	libraryThemeStream := errs.Must(assettypes.GetAudioStreamAsset("libraryTheme")).(*mp3.Stream)
+
+	m.songs[menuTheme] = errs.Must(sound.FromStream(menuThemeStream))
+	m.songs[basementTheme] = errs.Must(sound.FromStream(basementThemeStream))
+	m.songs[libraryTheme] = errs.Must(sound.FromStream(libraryThemeStream))
 }
 
 func (m *MusicPlayer) PlayMenuMusic() {

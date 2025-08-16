@@ -2,10 +2,10 @@ package game
 
 import (
 	"errors"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/libraries/assettypes"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/plugins/musicplayer"
 	"mask_of_the_tomb/internal/plugins/player"

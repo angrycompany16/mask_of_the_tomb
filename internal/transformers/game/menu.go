@@ -2,17 +2,19 @@ package game
 
 import (
 	"fmt"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/libraries/assettypes"
+	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -38,8 +40,11 @@ func (g *Game) InitMenuStage() {
 	g.levelCardTimeoutListener = events.NewEventListener(levelCard.OnIdleTimeout)
 
 	g.musicPlayer.Init()
-	node.SelectSound = errs.Must(assettypes.GetEffectPlayerAsset("selectSound"))
-	node.DialogueSound = errs.Must(assettypes.GetEffectPlayerAsset("dialogueSound"))
+	selectSoundStream := errs.Must(assettypes.GetAudioStreamAsset("selectSound")).(*vorbis.Stream)
+	dialogueSoundStream := errs.Must(assettypes.GetAudioStreamAsset("dialogueSound")).(*vorbis.Stream)
+
+	node.SelectSound = &sound.EffectPlayer{errs.Must(sound.FromStream(selectSoundStream))}
+	node.DialogueSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dialogueSoundStream))}
 }
 
 func (g *Game) MenuStageUpdate() error {

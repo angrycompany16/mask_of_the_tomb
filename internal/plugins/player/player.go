@@ -3,13 +3,13 @@ package player
 import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/libraries/animation"
-	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/inputbuffer"
 	"mask_of_the_tomb/internal/libraries/movebox"
 	"mask_of_the_tomb/internal/libraries/particles"
@@ -19,6 +19,8 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
+	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -100,9 +102,9 @@ func NewPlayer() *Player {
 // ------ INIT ------
 func (p *Player) CreateAssets() {
 	assetloader.Add("playerSprite", assettypes.MakeImageAsset(assets.Player_sprite))
-	assetloader.Add("dashSound", assettypes.MakeSoundAsset(assets.Dash_wav, assettypes.Wav))
-	assetloader.Add("slamSound", assettypes.MakeSoundAsset(assets.Slam_wav, assettypes.Wav))
-	assetloader.Add("deathSound", assettypes.MakeSoundAsset(assets.Death_mp3, assettypes.Mp3))
+	assetloader.Add("dashSound", assettypes.MakeAudioStreamAsset(assets.Dash_wav, assettypes.Wav))
+	assetloader.Add("slamSound", assettypes.MakeAudioStreamAsset(assets.Slam_wav, assettypes.Wav))
+	assetloader.Add("deathSound", assettypes.MakeAudioStreamAsset(assets.Death_mp3, assettypes.Mp3))
 	assetloader.Add("jumpParticlesBroad", assettypes.MakeYamlAsset(assets.Jump_broad_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("jumpParticlesTight", assettypes.MakeYamlAsset(assets.Jump_tight_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("dashInitAnim", assettypes.MakeYamlAsset(assets.Dash_init_yaml, &animation.AnimationInfo{}))
@@ -113,9 +115,14 @@ func (p *Player) CreateAssets() {
 
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.sprite = errs.Must(assettypes.GetImageAsset("playerSprite"))
-	p.dashSound = errs.Must(assettypes.GetEffectPlayerAsset("dashSound"))
-	p.slamSound = errs.Must(assettypes.GetEffectPlayerAsset("slamSound"))
-	p.deathSound = errs.Must(assettypes.GetEffectPlayerAsset("deathSound"))
+
+	dashSoundStream := errs.Must(assettypes.GetAudioStreamAsset("dashSound")).(*wav.Stream)
+	slamSoundStream := errs.Must(assettypes.GetAudioStreamAsset("slamSound")).(*wav.Stream)
+	deathSoundStream := errs.Must(assettypes.GetAudioStreamAsset("deathSound")).(*mp3.Stream)
+
+	p.dashSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dashSoundStream))}
+	p.slamSound = &sound.EffectPlayer{errs.Must(sound.FromStream(slamSoundStream))}
+	p.deathSound = &sound.EffectPlayer{errs.Must(sound.FromStream(deathSoundStream))}
 
 	p.jumpParticlesBroad = errs.Must(assettypes.GetYamlAsset("jumpParticlesBroad")).(*particles.ParticleSystem)
 	p.jumpParticlesTight = errs.Must(assettypes.GetYamlAsset("jumpParticlesTight")).(*particles.ParticleSystem)
