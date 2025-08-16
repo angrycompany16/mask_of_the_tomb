@@ -20,3 +20,5 @@ wishes. We will also try, as much as possible, to remove all global singletons f
 == Tests and Devops
 Add profiling and debug overlay, some kind of scene tree visualizer
 We can always do more but at least this
+
+Alos add release tags _please_
