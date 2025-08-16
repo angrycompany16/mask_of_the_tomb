@@ -1,4 +1,4 @@
-package grass
+package entities
 
 import (
 	"image"

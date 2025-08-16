@@ -8,7 +8,7 @@ import (
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/autotile"
-	"mask_of_the_tomb/internal/libraries/entities/hazard"
+	"mask_of_the_tomb/internal/libraries/entities"
 	"mask_of_the_tomb/internal/libraries/movebox"
 	"mask_of_the_tomb/internal/libraries/physics"
 	"math"
@@ -56,7 +56,9 @@ type Slambox struct {
 	slamTimerEventListener    *events.EventListener
 	currentSlamCtx            SlamContext
 	attachedHazardIDs         []string
-	attachedHazards           []*hazard.Hazard
+	// TODO: Hazard should not really be in entities, instead there should be a general Hazard struct
+	// that takes care of damage calculations and such, and then a specific hazard type
+	attachedHazards []*entities.Hazard
 }
 
 func (s *Slambox) Update() {

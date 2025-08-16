@@ -1,4 +1,4 @@
-package turret
+package entities
 
 import (
 	"image/color"

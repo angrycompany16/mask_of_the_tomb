@@ -1,4 +1,4 @@
-package door
+package entities
 
 import (
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
