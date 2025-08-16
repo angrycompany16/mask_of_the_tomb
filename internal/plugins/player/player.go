@@ -94,7 +94,6 @@ func NewPlayer() *Player {
 
 // ------ INIT ------
 func (p *Player) CreateAssets() {
-	// TODO: Rewrite with new asset loader
 	assetloader.Load("playerSprite", assettypes.MakeImageAsset(assets.Player_sprite))
 	assetloader.Load("dashSound", assettypes.MakeSoundAsset(assets.Dash_wav, assettypes.Wav))
 	assetloader.Load("slamSound", assettypes.MakeSoundAsset(assets.Slam_wav, assettypes.Wav))
@@ -120,7 +119,6 @@ func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 // ------ GETTERS ------
 func (p *Player) GetHitbox() *maths.Rect {
 	return p.hitbox
-	// return p.movebox
 }
 
 func (p *Player) GetLevelSwapInput() bool {

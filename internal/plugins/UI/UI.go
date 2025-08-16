@@ -40,7 +40,6 @@ func (ui *UI) AddOverlay(name string, overlay *Overlay) {
 }
 
 func (ui *UI) Update() {
-	// fmt.Println(ui)
 	ui.activeLayer.Update()
 	for _, overlay := range ui.overlays {
 		overlay.Update()
@@ -48,9 +47,6 @@ func (ui *UI) Update() {
 }
 
 func (ui *UI) SwitchActiveDisplay(name string, overWriteInfo map[string]node.OverWriteInfo) {
-	// if ui.activeLayer != nil {
-	// }
-
 	for _, menu := range ui.layers {
 		if menu.Name != name {
 			continue

@@ -22,8 +22,8 @@ Root:
     Name: "Introtext"
     RevealTime: 0.04
     Lines:
-    - "Hello"
-    - "Once upon a time there was a great"
-    - "Goodbye"
+    - "Fall, little one"
+    - "Be lost in the deep, be swallowed by gloom and darkness"
+    - "Quietly, you will ascend from the abyss."
     DialogueSound: dialogueSound
 ...

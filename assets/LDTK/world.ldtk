@@ -10,7 +10,7 @@
 	},
 	"iid": "94589810-c210-11ef-b2e6-99619d5a4f10",
 	"jsonVersion": "1.5.3",
-	"appBuildId": 484725,
+	"appBuildId": 473703,
 	"nextUid": 318,
 	"identifierStyle": "Capitalize",
 	"toc": [],
@@ -8021,7 +8021,7 @@
 			"uid": 271,
 			"type": "F_String",
 			"isArray": false,
-			"canBeNull": true,
+			"canBeNull": false,
 			"arrayMinLength": null,
 			"arrayMaxLength": null,
 			"editorDisplayMode": "Hidden",
@@ -8041,7 +8041,10 @@
 			"max": null,
 			"regex": null,
 			"acceptFileTypes": null,
-			"defaultOverride": null,
+			"defaultOverride": {
+				"id": "V_String",
+				"params": ["Untitled"]
+			},
 			"textLanguageMode": null,
 			"symmetricalRef": false,
 			"autoChainRef": true,
@@ -20428,7 +20431,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -24324,7 +24327,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -26470,7 +26473,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -28616,7 +28619,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -30276,8 +30279,14 @@
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [
-				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [{
+					"id": "V_String",
+					"params": ["Basement"]
+				}] },
+				{ "__identifier": "Title", "__type": "String", "__value": "heisann", "__tile": null, "defUid": 271, "realEditorValues": [{
+					"id": "V_String",
+					"params": ["heisann"]
+				}] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -31938,7 +31947,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -34238,7 +34247,7 @@
 					"id": "V_String",
 					"params": ["Grasslands"]
 				}] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -36089,7 +36098,7 @@
 					"id": "V_String",
 					"params": ["Strange_dark_blue_palm_trees"]
 				}] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -37393,7 +37402,7 @@
 					"id": "V_String",
 					"params": ["Royal_palace"]
 				}] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -38539,7 +38548,10 @@
 			"__bgPos": null,
 			"externalRelPath": null,
 			"fieldInstances": [
-				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
+				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [{
+					"id": "V_String",
+					"params": ["Basement"]
+				}] },
 				{ "__identifier": "Title", "__type": "String", "__value": "Demo level 1", "__tile": null, "defUid": 271, "realEditorValues": [{
 					"id": "V_String",
 					"params": ["Demo level 1"]
@@ -39700,7 +39712,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -40953,7 +40965,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -41962,7 +41974,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -43334,7 +43346,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -44287,7 +44299,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
@@ -45031,7 +45043,7 @@
 			"externalRelPath": null,
 			"fieldInstances": [
 				{ "__identifier": "Biome", "__type": "LocalEnum.Biome", "__value": "Basement", "__tile": null, "defUid": 182, "realEditorValues": [] },
-				{ "__identifier": "Title", "__type": "String", "__value": null, "__tile": null, "defUid": 271, "realEditorValues": [] },
+				{ "__identifier": "Title", "__type": "String", "__value": "Untitled", "__tile": null, "defUid": 271, "realEditorValues": [] },
 				{ "__identifier": "UseFog", "__type": "Bool", "__value": true, "__tile": null, "defUid": 294, "realEditorValues": [] }
 			],
 			"layerInstances": [
