@@ -25,16 +25,13 @@ const (
 )
 
 type World struct {
-	currentBiome     string
-	worldLDTK        *ebitenLDTK.World
-	ActiveLevel      *Level
-	worldStateMemory map[string]LevelMemory
+	currentBiome string
+	worldLDTK    *ebitenLDTK.World
+	ActiveLevel  *Level
 }
 
 func NewWorld() *World {
-	return &World{
-		worldStateMemory: make(map[string]LevelMemory),
-	}
+	return &World{}
 }
 
 func (w *World) Load(LDTKMapPath string) {
@@ -63,10 +60,6 @@ func (w *World) Init(initLevelName string, gameData save.SaveData) {
 
 func (w *World) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	w.ActiveLevel.Update(playerX, playerY, playerVelX, playerVelY)
-}
-
-func (w *World) GetWorldStateMemory() map[string]LevelMemory {
-	return w.worldStateMemory
 }
 
 // Set up a small loading stage when switching levels
@@ -99,15 +92,6 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 		return "", err
 	}
 
-	if memory, ok := world.worldStateMemory[newLevelLDTK.Iid]; ok {
-		newLevel.restoreFromMemory(&memory)
-	}
-
-	// if world.ActiveLevel != nil {
-	// 	world.SaveLevel(world.ActiveLevel)
-	// }
-	// world.SaveLevel(newLevel)
-
 	newLevel.resetX, newLevel.resetY = newLevel.GetDefaultSpawnPoint()
 	if doorIid != "" {
 		doorEntity := errs.Must(newLevel.levelLDTK.GetEntityByIid(doorIid))
@@ -125,16 +109,11 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 	return "", nil
 }
 
-// func (w *World) SaveLevel(level *Level) {
-// w.worldStateMemory[level.levelLDTK.Iid] = levelmemory.LevelMemory{level.GetSlamboxPositions()}
-// }
-
 func (w *World) ResetActiveLevel() (float64, float64) {
 	_resetX, _resetY := w.ActiveLevel.GetResetPoint()
 
 	// reset slambox positions
-	level := w.worldStateMemory[w.ActiveLevel.levelLDTK.Iid]
-	w.ActiveLevel.restoreFromMemory(&level)
+	w.ActiveLevel.reset()
 	// reset player position
 	w.ActiveLevel.resetX = _resetX
 	w.ActiveLevel.resetY = _resetY

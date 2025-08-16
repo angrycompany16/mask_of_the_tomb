@@ -57,6 +57,10 @@ var (
 	PlayerLightRadius        = 200.0
 )
 
+type SlamboxPosition struct {
+	X, Y float64
+}
+
 type Level struct {
 	name                     string
 	defs                     *ebitenLDTK.Defs
@@ -460,7 +464,8 @@ func drawTiles(
 	}
 }
 
-func (l *Level) restoreFromMemory(levelMemory *LevelMemory) {
+// TODO: Respawn enemies
+func (l *Level) reset() {
 	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(entityLayerName))
 	for _, entity := range entityLayer.Entities {
 		if entity.Name != slamboxEntityName {

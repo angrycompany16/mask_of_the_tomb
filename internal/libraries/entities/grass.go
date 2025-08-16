@@ -7,8 +7,6 @@ import (
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 
-	// TODO: Fix
-
 	"math"
 	"math/rand/v2"
 

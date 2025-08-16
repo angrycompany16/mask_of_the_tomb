@@ -6,6 +6,8 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+
+	// TODO: This needs to be fixed
 	"mask_of_the_tomb/internal/libraries/animation"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
