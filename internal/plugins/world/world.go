@@ -5,7 +5,6 @@ import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
-	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/particles"
@@ -16,8 +15,8 @@ import (
 )
 
 var (
-	slamboxTilemapPath = filepath.Join(assets.EnvironmentTilemapFolder, "slambox_tilemap.png")
-	particleSystemPath = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
+	slamboxTilemapPath = filepath.Join(assets.EnvironmentFolder, "slambox_tilemap.png")
+	particleSystemPath = filepath.Join("assets", "particlesystems", "basement.yaml")
 )
 
 const (
@@ -39,13 +38,13 @@ func NewWorld() *World {
 
 func (w *World) Load(LDTKMapPath string) {
 	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
-	assetloader.Load("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
-	assetloader.Load("grassTilemap", assettypes.MakeImageAsset(assets.Grass_tiles))
-	assetloader.Load("turretSprite", assettypes.MakeImageAsset(assets.Turret_sprite))
-	assetloader.Load("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))
-	assetloader.Load("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))
-	assetloader.Load("pixelLightsShader", assettypes.MakeShaderAsset(assets.Pixel_lights_kage))
-	assetloader.Load("ambientParticles", particles.NewParticleSystemAsset(particleSysPath, rendering.ScreenLayers.Foreground))
+	assetloader.Add("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
+	assetloader.Add("grassTilemap", assettypes.MakeImageAsset(assets.Grass_tiles))
+	assetloader.Add("turretSprite", assettypes.MakeImageAsset(assets.Turret_sprite))
+	assetloader.Add("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))
+	assetloader.Add("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))
+	assetloader.Add("pixelLightsShader", assettypes.MakeShaderAsset(assets.Pixel_lights_kage))
+	assetloader.Add("ambientParticles", assettypes.MakeYamlAsset(assets.Basement_yaml, &particles.ParticleSystem{}))
 }
 
 func (w *World) Init(initLevelName string, gameData save.SaveData) {

@@ -24,7 +24,7 @@ func Exists(hash string) (Asset, bool) {
 	return asset, ok
 }
 
-func Load(hash string, asset Asset) {
+func Add(hash string, asset Asset) {
 	_assetLoader.assetPool[hash] = asset
 }
 

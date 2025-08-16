@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
@@ -43,7 +42,6 @@ func (g *Game) InitGameplayStage(gameData save.SaveData, enter bool) {
 }
 
 func (g *Game) GameplayStageUpdate() {
-	fmt.Println("Update gameplay")
 	g.IntroStageUpdate()
 
 	camera.Update()

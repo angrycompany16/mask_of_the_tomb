@@ -4,7 +4,6 @@ import (
 	"image/color"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
-	"mask_of_the_tomb/internal/core/fileio"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"path/filepath"
@@ -147,15 +146,15 @@ func (ps *ParticleSystem) newParticle() *Particle {
 	}
 }
 
-func FromFile(path string, dest *ebiten.Image) (*ParticleSystem, error) {
-	particleSystem := &ParticleSystem{}
-	errs.MustSingle(fileio.UnmarshalStruct(path, particleSystem))
-	particleSystem.particles = make([]*Particle, 0)
-	particleSystem.surf = ebiten.NewImage(particleSystem.ImageWidth, particleSystem.ImageHeight)
-	spritePath := errs.Must(filepath.Localize(particleSystem.SpritePath))
-	particleSystem.sprite = errs.MustNewImageFromFile(spritePath)
-	particleSystem.layer = dest
-	return particleSystem, nil
+// TODO: This is a challenging case: We have an asset that needs to load a path to another asset
+// Can this be solved? It shouldn't be a gigantic performance loss if not so most likely nothing to
+// worry about.
+func (ps *ParticleSystem) Init(dest *ebiten.Image) {
+	ps.particles = make([]*Particle, 0)
+	ps.surf = ebiten.NewImage(ps.ImageWidth, ps.ImageHeight)
+	spritePath := errs.Must(filepath.Localize(ps.SpritePath))
+	ps.sprite = errs.MustNewImageFromFile(spritePath)
+	ps.layer = dest
 }
 
 type ParticleBurst struct {

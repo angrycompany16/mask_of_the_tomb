@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	teleporterSheetPath = filepath.Join("assets", "sprites", "environment", "entities", "export", "teleporter-Sheet.png")
+	teleporterSheetPath = filepath.Join("assets", "sprites", "environment", "teleporter-Sheet.png")
 
 	teleporterAnimationMap = map[int]*animation.Animation{
 		1: animation.NewAnimation(

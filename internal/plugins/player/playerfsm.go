@@ -23,7 +23,7 @@ func (p *Player) StartSlamming(direction maths.Direction) {
 	p.direction = maths.Opposite(direction)
 	p.animator.SwitchClip(slamAnim)
 	p.State = Slamming
-	p.jumpOffsetvel = 2.5
+	p.jumpOffsetvel = 4
 	p.canPlaySlamSound = true
 }
 
@@ -38,9 +38,9 @@ func (p *Player) Update() {
 		}
 
 		if p.jumpOffsetvel > 0 {
-			p.jumpOffsetvel -= 0.1
+			p.jumpOffsetvel -= 0.3
 		} else {
-			p.jumpOffsetvel -= 0.25
+			p.jumpOffsetvel -= 0.6
 		}
 
 		p.jumpOffset += p.jumpOffsetvel

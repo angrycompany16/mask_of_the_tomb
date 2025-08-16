@@ -48,5 +48,5 @@ EndColor: [255, 0, 0, 0]
 ImageWidth: 1
 ImageHeight: 1
 # TODO: Make smaller scale sprites for small particles
-SpritePath: "assets/sprites/icons/png/square-64x64.png"
+SpritePath: "assets/sprites/icons/square-64x64.png"
 ...

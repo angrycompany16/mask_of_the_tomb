@@ -25,6 +25,6 @@ func NewLayerAsset(path string) *Layer {
 		path: path,
 	}
 
-	assetloader.Load(path, &layerAsset)
+	assetloader.Add(path, &layerAsset)
 	return &layerAsset.layer
 }

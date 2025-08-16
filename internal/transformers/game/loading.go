@@ -16,17 +16,17 @@ func (g *Game) InitLoadingStage() {
 	g.mainUI.LoadPreamble(loadingScreenPath)
 
 	// --- Load all game assets ---
-	assetloader.Load("any", &delayAsset)
+	assetloader.Add("any", &delayAsset)
 	g.world.Load(LDTKMapPath)
 	g.player.CreateAssets()
 	g.mainUI.Load(mainMenuPath, pauseMenuPath, optionsMenuPath, introScreenPath, emptyMenuPath)
 	g.gameplayUI.Load(hudPath, emptyMenuPath)
 	g.musicPlayer.Load()
-	assetloader.Load("transitionShader", assettypes.MakeShaderAsset(assets.Transition_kage))
-	assetloader.Load("selectSound", assettypes.MakeSoundAsset(assets.Select_ogg, assettypes.Ogg))
-	assetloader.Load("dialogueSound", assettypes.MakeSoundAsset(assets.Text_scroll_ogg, assettypes.Ogg))
-	assetloader.Load("saveData", save.MakeSaveAsset(SaveProfile))
-	assetloader.Load("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
+	assetloader.Add("transitionShader", assettypes.MakeShaderAsset(assets.Transition_kage))
+	assetloader.Add("selectSound", assettypes.MakeSoundAsset(assets.Select_ogg, assettypes.Ogg))
+	assetloader.Add("dialogueSound", assettypes.MakeSoundAsset(assets.Text_scroll_ogg, assettypes.Ogg))
+	assetloader.Add("saveData", save.MakeSaveAsset(SaveProfile))
+	assetloader.Add("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
 
 	go assetloader.LoadAll(loadFinishedChan)
 }

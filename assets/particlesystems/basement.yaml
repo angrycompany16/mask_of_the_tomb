@@ -45,5 +45,5 @@ StartColor: [255, 255, 255, 255]
 EndColor: [255, 255, 255, 255]
 ImageWidth: 480
 ImageHeight: 270
-SpritePath: assets/sprites/environment/particles/export/star.png
+SpritePath: assets/sprites/environment/star.png
 ...

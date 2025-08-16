@@ -55,8 +55,7 @@ var (
 		BlendOperationRGB:           ebiten.BlendOperationAdd,
 		BlendOperationAlpha:         ebiten.BlendOperationAdd,
 	}
-	particleSysPath              = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
-	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "tilemaps", "export", "playerspace_tilemap_normal.png")
+	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "playerspace_tilemap_normal.png")
 	// TODO: *very* temporary solution
 	playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
 	PlayerLightRadius        = 200.0
@@ -101,7 +100,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.fogShader = errs.Must(assettypes.GetShaderAsset("fogShader"))
 	newLevel.vignetteShader = errs.Must(assettypes.GetShaderAsset("vignetteShader"))
 	newLevel.pixelLightShader = errs.Must(assettypes.GetShaderAsset("pixelLightsShader"))
-	newLevel.ambientParticles = errs.Must(particles.GetParticleSystemAsset("ambientParticles"))
+	newLevel.ambientParticles = errs.Must(assettypes.GetYamlAsset("ambientParticles")).(*particles.ParticleSystem)
+	newLevel.ambientParticles.Init(rendering.ScreenLayers.Foreground)
 
 	newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)
 

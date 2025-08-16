@@ -29,7 +29,7 @@ func NewFontAsset(src []byte) *text.GoTextFaceSource {
 		src: src,
 	}
 
-	assetloader.Load(string(src), &fontAsset)
+	assetloader.Add(string(src), &fontAsset)
 
 	return &fontAsset.Font
 }

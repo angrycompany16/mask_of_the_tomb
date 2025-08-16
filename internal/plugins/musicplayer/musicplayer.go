@@ -39,9 +39,9 @@ type MusicPlayer struct {
 }
 
 func (m *MusicPlayer) Load() {
-	assetloader.Load("menuTheme", assettypes.MakeSoundAsset(assets.Menu_mp3, assettypes.Mp3))
-	assetloader.Load("basementTheme", assettypes.MakeSoundAsset(assets.Basement_wav, assettypes.Wav))
-	assetloader.Load("libraryTheme", assettypes.MakeSoundAsset(assets.Library_mp3, assettypes.Mp3))
+	assetloader.Add("menuTheme", assettypes.MakeSoundAsset(assets.Menu_mp3, assettypes.Mp3))
+	assetloader.Add("basementTheme", assettypes.MakeSoundAsset(assets.Basement_wav, assettypes.Wav))
+	assetloader.Add("libraryTheme", assettypes.MakeSoundAsset(assets.Library_mp3, assettypes.Mp3))
 }
 
 func (m *MusicPlayer) Init() {

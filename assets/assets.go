@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	EnvironmentTilemapFolder = filepath.Join("assets", "sprites", "environment", "tilemaps", "export")
-	PlayerFolder             = filepath.Join("assets", "sprites", "player", "export")
+	EnvironmentFolder = filepath.Join("assets", "sprites", "environment")
+	PlayerFolder      = filepath.Join("assets", "sprites", "player")
 	//go:embed fonts/JSE_AmigaAMOS.ttf
 	JSE_AmigaAMOS_ttf []byte
 	//go:embed fonts/JSE_ZXSpectrum.ttf
@@ -38,14 +38,20 @@ var (
 	Pixel_lights_kage []byte
 	//go:embed shaders/transition.kage
 	Transition_kage []byte
-	//go:embed sprites/environment/tilemaps/export/slambox_tilemap.png
+	//go:embed sprites/environment/slambox_tilemap.png
 	Slambox_tilemap []byte
-	//go:embed sprites/player/export/player.png
+	//go:embed sprites/player/player.png
 	Player_sprite []byte
-	//go:embed sprites/environment/entities/export/grass.png
+	//go:embed sprites/environment/grass.png
 	Grass_tiles []byte
-	//go:embed sprites/environment/entities/export/turret.png
+	//go:embed sprites/environment/turret.png
 	Turret_sprite []byte
-	//go:embed sprites/UI/export/level-titlecard.png
+	//go:embed sprites/UI/level-titlecard.png
 	Level_titlecard_sprite []byte
+	//go:embed particlesystems/jump-tight.yaml
+	Jump_tight_yaml []byte
+	//go:embed particlesystems/jump-broad.yaml
+	Jump_broad_yaml []byte
+	//go:embed particlesystems/basement.yaml
+	Basement_yaml []byte
 )

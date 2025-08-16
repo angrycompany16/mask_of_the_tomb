@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	moveSpeed             = 5.0
+	moveSpeed             = 10.0
 	defaultPlayerHealth   = 5.0
 	invincibilityDuration = time.Second
 	inputBufferDuration   = 0.1
@@ -31,8 +31,8 @@ const (
 
 var (
 	playerSpritePath       = filepath.Join(assets.PlayerFolder, "player.png")
-	jumpParticlesBroadPath = filepath.Join("assets", "particlesystems", "player", "jump-broad.yaml")
-	jumpParticlesTightPath = filepath.Join("assets", "particlesystems", "player", "jump-tight.yaml")
+	jumpParticlesBroadPath = filepath.Join("assets", "particlesystems", "jump-broad.yaml")
+	jumpParticlesTightPath = filepath.Join("assets", "particlesystems", "jump-tight.yaml")
 )
 
 // TODO: We want the player plugin to instead become a bundle of separate
@@ -94,12 +94,12 @@ func NewPlayer() *Player {
 
 // ------ INIT ------
 func (p *Player) CreateAssets() {
-	assetloader.Load("playerSprite", assettypes.MakeImageAsset(assets.Player_sprite))
-	assetloader.Load("dashSound", assettypes.MakeSoundAsset(assets.Dash_wav, assettypes.Wav))
-	assetloader.Load("slamSound", assettypes.MakeSoundAsset(assets.Slam_wav, assettypes.Wav))
-	assetloader.Load("deathSound", assettypes.MakeSoundAsset(assets.Death_mp3, assettypes.Mp3))
-	assetloader.Load("jumpParticlesBroad", particles.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.ScreenLayers.Playerspace))
-	assetloader.Load("jumpParticlesTight", particles.NewParticleSystemAsset(jumpParticlesTightPath, rendering.ScreenLayers.Playerspace))
+	assetloader.Add("playerSprite", assettypes.MakeImageAsset(assets.Player_sprite))
+	assetloader.Add("dashSound", assettypes.MakeSoundAsset(assets.Dash_wav, assettypes.Wav))
+	assetloader.Add("slamSound", assettypes.MakeSoundAsset(assets.Slam_wav, assettypes.Wav))
+	assetloader.Add("deathSound", assettypes.MakeSoundAsset(assets.Death_mp3, assettypes.Mp3))
+	assetloader.Add("jumpParticlesBroad", assettypes.MakeYamlAsset(assets.Jump_broad_yaml, &particles.ParticleSystem{}))
+	assetloader.Add("jumpParticlesTight", assettypes.MakeYamlAsset(assets.Jump_tight_yaml, &particles.ParticleSystem{}))
 }
 
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
@@ -107,8 +107,12 @@ func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.dashSound = errs.Must(assettypes.GetEffectPlayerAsset("dashSound"))
 	p.slamSound = errs.Must(assettypes.GetEffectPlayerAsset("slamSound"))
 	p.deathSound = errs.Must(assettypes.GetEffectPlayerAsset("deathSound"))
-	p.jumpParticlesBroad = errs.Must(particles.GetParticleSystemAsset("jumpParticlesBroad"))
-	p.jumpParticlesTight = errs.Must(particles.GetParticleSystemAsset("jumpParticlesTight"))
+
+	p.jumpParticlesBroad = errs.Must(assettypes.GetYamlAsset("jumpParticlesBroad")).(*particles.ParticleSystem)
+	p.jumpParticlesTight = errs.Must(assettypes.GetYamlAsset("jumpParticlesTight")).(*particles.ParticleSystem)
+
+	p.jumpParticlesBroad.Init(rendering.ScreenLayers.Playerspace)
+	p.jumpParticlesTight.Init(rendering.ScreenLayers.Playerspace)
 
 	p.SetPos(posX, posY)
 	p.direction = direction

@@ -6,11 +6,11 @@ PosY: 0
 Angle: 0
 Emission: 0
 Bursts:
-- Count: 6
+- Count: 5
   Time: 0
 SpawnPosX:
-  Min: -3
-  Max: 3
+  Min: -8
+  Max: 8
 SpawnPosY:
   Min: 0
   Max: 0
@@ -18,8 +18,8 @@ SpawnVelX:
   Min: 0
   Max: 0
 SpawnVelY:
-  Min: -100
-  Max: -40
+  Min: -40
+  Max: -10
 SpawnAngle:
   Min: 0
   Max: 0
@@ -40,5 +40,5 @@ EndColor: [255, 255, 255, 255]
 ImageWidth: 64
 ImageHeight: 64
 # TODO: Make smaller scale sprites for small particles
-SpritePath: "assets/sprites/icons/png/square-64x64.png"
+SpritePath: "assets/sprites/icons/square-64x64.png"
 ...

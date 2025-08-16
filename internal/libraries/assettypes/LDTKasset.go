@@ -43,6 +43,6 @@ func NewLDTKAsset(path string) *ebitenLDTK.World {
 		path: path,
 	}
 
-	assetloader.Load(path, &LDTKasset)
+	assetloader.Add(path, &LDTKasset)
 	return &LDTKasset.World
 }
