@@ -1,14 +1,15 @@
 package scenes
 
 import (
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
-	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/camera"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
+	"mask_of_the_tomb/internal/plugins/player"
 	"mask_of_the_tomb/internal/plugins/world"
 	"time"
 
@@ -16,18 +17,26 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// Initializes player, world, etc
-func (g *Game) InitGameplayStage(gameData save.SaveData, enter bool) {
+type GameplayScene struct {
+	UI                       *ui.UI
+	world                    *world.World
+	player                   *player.Player
+	deathEffectEnterListener *events.EventListener
+	titleCardTimeoutListener *events.EventListener
+	levelCardTimeoutListener *events.EventListener
+	playerMoveListener       *events.EventListener
+}
+
+func (g *GameplayScene) Init() {
+	g.player = player.NewPlayer()
+	g.world = world.NewWorld()
+
+	gameData := errs.Must(save.GetSaveAsset("saveData"))
 	g.world.Init(InitLevelName, gameData)
 
 	resetX, resetY := g.world.ActiveLevel.GetResetPoint()
-	gameEntryX, gameEntryY := g.world.ActiveLevel.GetGameEntryPos()
 
-	if enter {
-		g.player.Init(gameEntryX, gameEntryY, maths.DirNone)
-	} else {
-		g.player.Init(resetX, resetY, maths.DirNone)
-	}
+	g.player.Init(resetX, resetY, maths.DirNone)
 	playerWidth, playerHeight := g.player.GetSize()
 
 	w, h := g.world.ActiveLevel.GetBounds()
@@ -37,34 +46,45 @@ func (g *Game) InitGameplayStage(gameData save.SaveData, enter bool) {
 		(rendering.GAME_WIDTH-playerWidth)/2,
 		(rendering.GAME_HEIGHT-playerHeight)/2,
 	)
-	g.gameplayUI.SwitchActiveDisplay("hud", nil)
-	g.mainUI.SwitchActiveDisplay("empty", nil)
+
+	hudLayer := errs.Must(assettypes.GetYamlAsset("hud")).(*ui.Layer)
+
+	g.UI = ui.NewUI([]*ui.Layer{hudLayer}, make(map[string]*ui.Overlay))
+	g.UI.SwitchActiveDisplay("hud", nil)
+
+	g.UI.AddOverlay("screenfade", ui.NewOverlay(ui.NewScreenFade(), time.Second*2))
+	g.UI.AddOverlay("titlecard", ui.NewOverlay(ui.NewTitleCard(), time.Second*2))
+	g.UI.AddOverlay("levelcard", ui.NewOverlay(ui.NewLevelCard(), time.Second))
+
+	screenFade := g.UI.GetOverlay("screenfade")
+	g.deathEffectEnterListener = events.NewEventListener(screenFade.OnFinishEnter)
+	titleCard := g.UI.GetOverlay("titlecard")
+	g.titleCardTimeoutListener = events.NewEventListener(titleCard.OnIdleTimeout)
+	levelCard := g.UI.GetOverlay("levelcard")
+	g.levelCardTimeoutListener = events.NewEventListener(levelCard.OnIdleTimeout)
+	g.playerMoveListener = events.NewEventListener(g.player.OnMove)
 }
 
-func (g *Game) GameplayStageUpdate() {
-	g.IntroStageUpdate()
+func (g *GameplayScene) Update() {
+	// How to fix?
+	// This can probably be solved with an event or message
+	g.musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
 
 	camera.Update()
-	g.musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
+
+	g.UI.Update()
+	titlecard := g.UI.GetOverlay("titlecard")
+	if _, raised := g.titleCardTimeoutListener.Poll(); raised {
+		titlecard.StartFadeOut()
+	}
+
+	levelcard := g.UI.GetOverlay("levelcard")
+	if _, raised := g.levelCardTimeoutListener.Poll(); raised {
+		levelcard.StartFadeOut()
+	}
 
 	velX, velY := g.player.GetMovementSize()
 	posX, posY := g.player.GetPosCentered()
-
-	if g.introDashTimer == nil {
-		g.introDashTimer = time.NewTimer(time.Second)
-		g.introDashTimer.Stop()
-	}
-
-	if _, timedout := threads.Poll(g.introDashTimer.C); timedout {
-		newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), gameEntryDirection, g.world.ActiveLevel.GetSlamboxRects())
-		if newRect != *g.player.GetHitbox() {
-			g.player.Dash(gameEntryDirection, newRect.Left(), newRect.Top())
-		}
-	}
-
-	if resources.State != resources.Playing {
-		return
-	}
 
 	g.world.Update(posX, posY, velX, velY)
 	if eventInfo, ok := g.playerMoveListener.Poll(); ok {
@@ -86,14 +106,14 @@ func (g *Game) GameplayStageUpdate() {
 	if g.player.GetLevelSwapInput() && doorOverlap && !g.player.Disabled {
 		newBiome := errs.Must(world.ChangeActiveLevel(g.world, levelIid, doorEntityIid))
 		if newBiome != "" {
-			titleCardOverlay := g.gameplayUI.GetOverlay("titlecard")
+			titleCardOverlay := g.UI.GetOverlay("titlecard")
 			titleCard, _ := titleCardOverlay.OverlayContent.(*ui.TitleCard)
 			titleCard.ChangeText(newBiome)
 			titleCardOverlay.StartFadeIn()
 		}
 		camera.SetBorders(g.world.ActiveLevel.GetBounds())
 		g.player.SetHitboxPos(g.world.ActiveLevel.GetResetPoint())
-		levelCardOverlay := g.gameplayUI.GetOverlay("levelcard")
+		levelCardOverlay := g.UI.GetOverlay("levelcard")
 		levelCard, _ := levelCardOverlay.OverlayContent.(*ui.LevelCard)
 		levelCard.ChangeText(g.world.ActiveLevel.GetTitle())
 		levelCardOverlay.StartFadeIn()
@@ -104,7 +124,7 @@ func (g *Game) GameplayStageUpdate() {
 	hitTurret := g.world.ActiveLevel.CheckTurretHit(g.player.GetHitbox())
 	if hitTurret && !g.player.Disabled || hitHazard && !g.player.Disabled || restartPrompted {
 		g.player.Die()
-		screenFade := g.mainUI.GetOverlay("screenfade")
+		screenFade := g.UI.GetOverlay("screenfade")
 		screenFade.StartFadeIn()
 	}
 
@@ -114,7 +134,7 @@ func (g *Game) GameplayStageUpdate() {
 		g.player.SetPos(posX, posY)
 		g.player.Respawn()
 
-		screenFade := g.mainUI.GetOverlay("screenfade")
+		screenFade := g.UI.GetOverlay("screenfade")
 		screenFade.StartFadeOut()
 	}
 
@@ -122,13 +142,12 @@ func (g *Game) GameplayStageUpdate() {
 	camera.SetPos(g.player.GetPosCentered())
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		resources.State = resources.Paused
-		g.mainUI.SwitchActiveDisplay("pausemenu", nil)
+		// Spawn pause menu instead
+		// g.UI.SwitchActiveDisplay("pausemenu", nil)
 	}
 }
 
-func (g *Game) GameplayStageDraw() {
-	g.IntroStageDraw()
+func (g *GameplayScene) Draw() {
 	pX, pY := g.player.GetPosCentered()
 	cX, cY := camera.GetPos()
 	drawCtx := rendering.Ctx{
@@ -141,7 +160,11 @@ func (g *Game) GameplayStageDraw() {
 	g.player.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
 	g.world.ActiveLevel.Draw(drawCtx)
 
-	g.gameplayUI.Draw()
+	g.UI.Draw()
 	// UI is HARD-CODED to render at the UI layer...
 	// I sck at programming
+}
+
+func (g *GameplayScene) Exit() bool {
+	return false // For now
 }

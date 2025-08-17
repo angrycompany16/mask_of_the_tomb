@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// TODO: Probably a good idea to remove the singleton
 	_camera                      = &Camera{}
 	shakePaddingX, shakePaddingY = 20.0, 20
 )

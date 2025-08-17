@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/events"
+	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/particles"
@@ -13,21 +14,10 @@ import (
 	ui "mask_of_the_tomb/internal/plugins/UI"
 )
 
-// Initial scene tree config: root -> LoadingScene (but we can add more! Very awesome)
-
-// How do we structure the data if we use this system? For instance, we need UI in all the scenes
-// How can we share it between scenes?
-// Actually it's easy
-// We need a bottom layer containing all the stuff that's needed
-
-// Maybe we actually don't need to share objects. We can swap scenes and separate (for example)
-// the UIs a great deal
-
-// Might be cooking
-
 type LoadingSceneBehaviour struct {
-	UI   *ui.UI
-	exit bool
+	UI              *ui.UI
+	SceneTransition scene.SceneTransition
+	exit            bool
 }
 
 func (l *LoadingSceneBehaviour) Init() {
@@ -83,11 +73,11 @@ func (l *LoadingSceneBehaviour) Update() {
 	if _, done := threads.Poll(loadFinishedChan); done {
 		fmt.Println("Finished loading stage")
 		assetloader.PrintAssetRegistry()
-
-		// Signal that we should switch scenes
 		l.exit = true
 	}
 }
 
-func (l *LoadingSceneBehaviour) Draw()      { l.UI.Draw() }
-func (l *LoadingSceneBehaviour) Exit() bool { return l.exit }
+func (l *LoadingSceneBehaviour) Draw() { l.UI.Draw() }
+func (l *LoadingSceneBehaviour) Transition() (scene.SceneTransition, bool) {
+	return l.SceneTransition, l.exit
+}

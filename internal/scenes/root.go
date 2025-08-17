@@ -2,20 +2,28 @@ package scenes
 
 import (
 	"fmt"
+	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/core/scene"
+	"time"
 )
 
 type RootSceneBehaviour struct {
+	initTime time.Time
 }
 
-// Loads basic UI, sets up all assets
+// Sets up some basic global data
 func (r *RootSceneBehaviour) Init() {
-	fmt.Println("Root scene intialized")
+	r.initTime = time.Now()
 }
 
 func (r *RootSceneBehaviour) Update() {
-	fmt.Println("Root scene updating")
+	resources.Time = time.Since(r.initTime).Seconds()
 }
 
 func (r *RootSceneBehaviour) Draw() {
 	fmt.Println("Drawing root scene (nothing)")
+}
+
+func (r *RootSceneBehaviour) Transition() (scene.SceneTransition, bool) {
+	return scene.SceneTransition{}, false
 }

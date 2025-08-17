@@ -80,9 +80,9 @@ func (ui *UI) GetSubmits() map[string]string {
 	return ui.activeLayer.GetSubmitted()
 }
 
-func NewUI(overlays map[string]*Overlay) *UI {
+func NewUI(layers []*Layer, overlays map[string]*Overlay) *UI {
 	return &UI{
-		layers:   make([]*Layer, 0),
+		layers:   layers,
 		overlays: overlays,
 	}
 }

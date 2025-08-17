@@ -30,10 +30,9 @@ func (st *SceneTree) Switch(scene *Scene, transition SceneTransition) {
 
 type Scene struct {
 	SceneBehaviour
-	parent     *Scene
-	children   []*Scene
-	name       string
-	transition SceneTransition
+	parent   *Scene
+	children []*Scene
+	name     string
 }
 
 func (s *Scene) Update(sceneTree *SceneTree) {
@@ -42,8 +41,8 @@ func (s *Scene) Update(sceneTree *SceneTree) {
 		child.Update(sceneTree)
 	}
 
-	if s.Exit() {
-		sceneTree.Switch(s, s.transition)
+	if transition, ok := s.Transition(); ok {
+		sceneTree.Switch(s, transition)
 	}
 }
 
@@ -58,7 +57,7 @@ type SceneBehaviour interface {
 	Init()
 	Update()
 	Draw()
-	Exit() bool
+	Transition() (SceneTransition, bool)
 }
 
 type Kind int
@@ -71,5 +70,5 @@ const (
 
 type SceneTransition struct {
 	Kind Kind
-	Next *Scene
+	Name string
 }

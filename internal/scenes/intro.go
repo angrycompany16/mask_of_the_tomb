@@ -1,32 +1,34 @@
 package scenes
 
 import (
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
-	"mask_of_the_tomb/internal/core/resources"
-	save "mask_of_the_tomb/internal/libraries/savesystem"
-	"time"
+	ui "mask_of_the_tomb/internal/plugins/UI"
 )
 
-func (g *Game) InitIntroStage() {
-	g.mainUI.SwitchActiveDisplay("intro", nil)
+type IntroScene struct {
+	UI   *ui.UI
+	exit bool
 }
 
-func (g *Game) IntroStageUpdate() {
-	g.MenuStageUpdate()
+func (i *IntroScene) Init() {
+	introScreenLayer := errs.Must(assettypes.GetYamlAsset("introScreen")).(*ui.Layer)
 
-	if resources.State != resources.Intro {
-		return
-	}
+	i.UI = ui.NewUI([]*ui.Layer{introScreenLayer}, make(map[string]*ui.Overlay))
+	i.UI.SwitchActiveDisplay("intro", nil)
+}
 
-	confirmations := g.mainUI.GetConfirmations()
+func (i *IntroScene) Update() {
+	confirmations := i.UI.GetConfirmations()
 	if confirm, ok := confirmations["Introtext"]; ok && confirm.IsConfirmed {
-		gameData := errs.Must(save.GetSaveAsset("saveData"))
-		resources.State = resources.Playing
-		g.introDashTimer = time.NewTimer(time.Second)
-		g.InitGameplayStage(gameData, true)
+		i.exit = true
 	}
 }
 
-func (g *Game) IntroStageDraw() {
-	g.MenuStageDraw()
+func (i *IntroScene) Draw() {
+	i.UI.Draw()
+}
+
+func (i *IntroScene) Exit() bool {
+	return i.exit
 }

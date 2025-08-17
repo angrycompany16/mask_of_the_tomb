@@ -1,113 +1,80 @@
 package scenes
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
-	"mask_of_the_tomb/internal/core/events"
-	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// Initializes menu, music settings and such by retrieveing loaded assets
-func (g *Game) InitMenuStage() {
-	initTime = time.Now()
-	gameData := errs.Must(save.GetSaveAsset("saveData"))
-	resources.Settings = gameData.Settings
-	g.mainUI.AddOverlay("screenfade", ui.NewOverlay(ui.NewScreenFade(), time.Second*2))
-	g.mainUI.SwitchActiveDisplay("mainmenu", nil)
-	g.gameplayUI.AddOverlay("titlecard", ui.NewOverlay(ui.NewTitleCard(), time.Second*2))
-	g.gameplayUI.AddOverlay("levelcard", ui.NewOverlay(ui.NewLevelCard(), time.Second))
-	g.gameplayUI.SwitchActiveDisplay("empty", nil)
-
-	screenFade := g.mainUI.GetOverlay("screenfade")
-	g.deathEffectEnterListener = events.NewEventListener(screenFade.OnFinishEnter)
-
-	titleCard := g.gameplayUI.GetOverlay("titlecard")
-	g.titleCardTimeoutListener = events.NewEventListener(titleCard.OnIdleTimeout)
-
-	levelCard := g.gameplayUI.GetOverlay("levelcard")
-	g.levelCardTimeoutListener = events.NewEventListener(levelCard.OnIdleTimeout)
-
-	g.musicPlayer.Init()
-	selectSoundStream := errs.Must(assettypes.GetOggStream("selectSound"))
-	dialogueSoundStream := errs.Must(assettypes.GetOggStream("dialogueSound"))
-
-	node.SelectSound = &sound.EffectPlayer{errs.Must(sound.FromStream(selectSoundStream)), 1.0}
-	node.DialogueSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dialogueSoundStream)), 1.0}
+type MenuScene struct {
+	UI              *ui.UI
+	sceneTransition scene.SceneTransition
+	exit            bool
 }
 
-func (g *Game) MenuStageUpdate() error {
-	g.LoadingStageUpdate()
-	confirmations := g.mainUI.GetConfirmations()
-	resources.Time = time.Since(initTime).Seconds()
+// We *need* a more sophisticated exit system
+// Need to ideally specify which scene we switch to
 
-	g.gameplayUI.Update()
+func (m *MenuScene) Init() {
+	gameData := errs.Must(save.GetSaveAsset("saveData"))
+	resources.Settings = gameData.Settings
 
-	titlecard := g.gameplayUI.GetOverlay("titlecard")
-	if _, raised := g.titleCardTimeoutListener.Poll(); raised {
-		titlecard.StartFadeOut()
-	}
+	mainMenuLayer := errs.Must(assettypes.GetYamlAsset("mainMenu")).(*ui.Layer)
+	optionsMenuLayer := errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.Layer)
 
-	levelcard := g.gameplayUI.GetOverlay("levelcard")
-	if _, raised := g.levelCardTimeoutListener.Poll(); raised {
-		levelcard.StartFadeOut()
-	}
+	m.UI = ui.NewUI([]*ui.Layer{mainMenuLayer, optionsMenuLayer}, make(map[string]*ui.Overlay))
+	m.UI.SwitchActiveDisplay("mainmenu", nil)
+}
 
-	if resources.DebugMode {
-		ebitenutil.DebugPrint(rendering.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
-	}
+func (m *MenuScene) Update() {
+	confirmations := m.UI.GetConfirmations()
 
-	if resources.State != resources.MainMenu {
-		return nil
-	}
-	g.musicPlayer.ResetMusic()
+	// How can we achieve this result using the scene system?
+	// Using some kind of event
+	// Find node by name
+	// We may then access that node's member functions and stuff
+	// profit
+	m.musicPlayer.PlayMenuMusic()
 
-	// --- MAIN MENU SPECIFIC ---
-	g.musicPlayer.PlayMenuMusic()
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		g.mainUI.SwitchActiveDisplay("mainmenu", nil)
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) { // TODO: Check if we are already in the main menu
+		m.UI.SwitchActiveDisplay("mainmenu", nil)
 	}
 	if confirm, ok := confirmations["Play"]; ok && confirm.IsConfirmed {
 		gameData := errs.Must(save.GetSaveAsset("saveData"))
 		if gameData.SpawnRoomName == "" {
-			resources.State = resources.Intro
-			g.InitIntroStage()
+			m.sceneTransition = scene.SceneTransition{
+				Kind: scene.Replace,
+				Name: "introScene",
+			}
+			m.exit = true
 		} else {
-			resources.State = resources.Playing
-			g.InitGameplayStage(gameData, false)
+			m.sceneTransition = scene.SceneTransition{
+				Kind: scene.Replace,
+				Name: "gameplayScene",
+			}
+			m.exit = true
 		}
 	} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
 		save.SaveGame(save.SaveData{resources.PreviousLevelName, resources.Settings}, SaveProfile)
-		return ErrTerminated
+		// Spawn some kind of termination scene?
+		return // ErrTerminated
 	} else if confirm, ok := confirmations["Options"]; ok && confirm.IsConfirmed {
-		g.mainUI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
+		m.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
 			"Master_vol": {SliderVal: resources.Settings.MasterVolume},
 			"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
 			"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
 		})
 	} else if confirm, ok := confirmations["Back"]; ok && confirm.IsConfirmed {
-		g.mainUI.SwitchActiveDisplay("mainmenu", nil)
+		m.UI.SwitchActiveDisplay("mainmenu", nil)
 	}
-	updateOptions(confirmations)
-	return nil
-}
 
-func (g *Game) MenuStageDraw() {
-	g.LoadingStageDraw()
-}
-
-func updateOptions(confirmations map[string]node.ConfirmInfo) {
 	if confirm, ok := confirmations["Master_vol"]; ok && confirm.IsConfirmed {
 		resources.Settings.MasterVolume = confirm.SliderVal
 	} else if confirm, ok := confirmations["Music_vol"]; ok && confirm.IsConfirmed {
@@ -115,4 +82,12 @@ func updateOptions(confirmations map[string]node.ConfirmInfo) {
 	} else if confirm, ok := confirmations["Sound_vol"]; ok && confirm.IsConfirmed {
 		resources.Settings.SoundVolume = confirm.SliderVal
 	}
+}
+
+func (m *MenuScene) Draw() {
+	m.UI.Draw()
+}
+
+func (m *MenuScene) Exit() bool {
+	return m.exit
 }

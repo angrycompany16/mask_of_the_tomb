@@ -2,6 +2,9 @@ package node
 
 import (
 	"errors"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
+	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/sound"
 	"slices"
 
 	"gopkg.in/yaml.v3"
@@ -33,7 +36,9 @@ func (n *NodeContainer) UnmarshalYAML(value *yaml.Node) error {
 	case "textbox":
 		resultNode = &Textbox{}
 	case "button":
-		resultNode = &Button{}
+		selectSoundStream := errs.Must(assettypes.GetOggStream("selectSound"))
+		selectEffectPlayer := &sound.EffectPlayer{errs.Must(sound.FromStream(selectSoundStream)), 1.0}
+		resultNode = &Button{selectSound: selectEffectPlayer}
 	case "selectlist":
 		resultNode = &SelectList{}
 	case "inputfield":
@@ -43,7 +48,9 @@ func (n *NodeContainer) UnmarshalYAML(value *yaml.Node) error {
 	case "slider":
 		resultNode = &Slider{}
 	case "dialogue":
-		resultNode = &Dialogue{}
+		dialogueSoundStream := errs.Must(assettypes.GetOggStream("dialogueSound"))
+		dialogueEffectPlayer := &sound.EffectPlayer{errs.Must(sound.FromStream(dialogueSoundStream)), 1.0}
+		resultNode = &Dialogue{dialogueSound: dialogueEffectPlayer}
 	}
 
 	err := value.Decode(resultNode)

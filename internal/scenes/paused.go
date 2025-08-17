@@ -1,44 +1,63 @@
 package scenes
 
 import (
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
+	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
+	ui "mask_of_the_tomb/internal/plugins/UI"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-func (g *Game) InitPausedStage() {
-	g.mainUI.SwitchActiveDisplay("pausemenu", nil)
+type PauseScene struct {
+	UI *ui.UI
 }
 
-func (g *Game) PausedStageUpdate() {
-	g.GameplayStageUpdate()
+func (p *PauseScene) Init() {
+	pauseMenuLayer := errs.Must(assettypes.GetYamlAsset("pauseMenu")).(*ui.Layer)
+	optionsMenuLayer := errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.Layer)
 
-	confirmations := g.mainUI.GetConfirmations()
+	p.UI = ui.NewUI([]*ui.Layer{pauseMenuLayer, optionsMenuLayer}, make(map[string]*ui.Overlay))
+	p.UI.SwitchActiveDisplay("pausemenu", nil)
+}
+
+func (p *PauseScene) Update() {
+	confirmations := p.UI.GetConfirmations()
 
 	if confirm, ok := confirmations["Resume"]; ok && confirm.IsConfirmed || inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		resources.State = resources.Playing
-		g.mainUI.SwitchActiveDisplay("empty", nil)
+		// Exit back to play stage
 	} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
-		// g.world.SaveLevel(g.world.ActiveLevel)
 		save.SaveGame(save.SaveData{resources.PreviousLevelName, resources.Settings}, SaveProfile)
-		resources.State = resources.MainMenu
-		g.mainUI.SwitchActiveDisplay("mainmenu", nil)
+		// Exit back to main menu
+
+		// Solve this somehow
 		InitLevelName = g.world.ActiveLevel.GetName()
 	} else if confirm, ok := confirmations["Options"]; ok && confirm.IsConfirmed {
-		g.mainUI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
+		p.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
 			"Master_vol": {SliderVal: resources.Settings.MasterVolume},
 			"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
 			"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
 		})
 	} else if confirm, ok := confirmations["Back"]; ok && confirm.IsConfirmed {
-		g.mainUI.SwitchActiveDisplay("pausemenu", nil)
+		p.UI.SwitchActiveDisplay("pausemenu", nil)
 	}
-	updateOptions(confirmations)
+
+	if confirm, ok := confirmations["Master_vol"]; ok && confirm.IsConfirmed {
+		resources.Settings.MasterVolume = confirm.SliderVal
+	} else if confirm, ok := confirmations["Music_vol"]; ok && confirm.IsConfirmed {
+		resources.Settings.MusicVolume = confirm.SliderVal
+	} else if confirm, ok := confirmations["Sound_vol"]; ok && confirm.IsConfirmed {
+		resources.Settings.SoundVolume = confirm.SliderVal
+	}
 }
 
-func (g *Game) PausedStageDraw() {
-	g.GameplayStageDraw()
+func (p *PauseScene) Draw() {
+	p.UI.Draw()
+}
+
+func (p *PauseScene) Exit() bool {
+	return false
 }

@@ -73,6 +73,7 @@ func (m *MusicPlayer) LowerMusic() {
 	}
 }
 
+// TODO: Rename to ResetMusicVolume
 func (m *MusicPlayer) ResetMusic() {
 	for _, song := range m.songs {
 		song.SetVolume(resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
