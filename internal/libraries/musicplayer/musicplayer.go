@@ -70,6 +70,7 @@ func (m *MusicPlayer) PlayGameMusic(levelBiome string) {
 	case "Library":
 		m.playSong(libraryTheme)
 	default:
+		m.stopMusic()
 		fmt.Println("Level has no biome, so no song will be played")
 	}
 }
@@ -103,6 +104,15 @@ func (m *MusicPlayer) playSong(name songName) {
 		if _name == name && !song.IsPlaying() {
 			m.activeSong = _name
 			song.Play()
+		}
+	}
+}
+
+func (m *MusicPlayer) stopMusic() {
+	for _, song := range m.songs {
+		if song.IsPlaying() {
+			song.Pause()
+			song.Rewind()
 		}
 	}
 }
