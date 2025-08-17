@@ -2,8 +2,6 @@ package musicplayer
 
 import (
 	"fmt"
-	"mask_of_the_tomb/assets"
-	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
@@ -37,12 +35,6 @@ type MusicPlayer struct {
 	songs      map[songName]*audio.Player
 	activeSong songName
 	ambience   map[ambienceName]*audio.Player
-}
-
-func (m *MusicPlayer) Load() {
-	assetloader.Add("menuTheme", assettypes.MakeAudioStreamAsset(assets.Menu_mp3, assettypes.Mp3))
-	assetloader.Add("basementTheme", assettypes.MakeAudioStreamAsset(assets.Basement_wav, assettypes.Wav))
-	assetloader.Add("libraryTheme", assettypes.MakeAudioStreamAsset(assets.Library_mp3, assettypes.Mp3))
 }
 
 func (m *MusicPlayer) Init() {

@@ -3,17 +3,17 @@ package world
 import (
 	"fmt"
 	"mask_of_the_tomb/assets"
-	"mask_of_the_tomb/internal/core/assetloader"
-	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/libraries/animation"
-	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"path/filepath"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
+
+// Just an idea: With this system, could we turn each level into a scene?
+// Hmm...
+// This opens up some new and interesting possibilities
 
 var (
 	slamboxTilemapPath = filepath.Join(assets.EnvironmentFolder, "slambox_tilemap.png")
@@ -32,18 +32,6 @@ type World struct {
 
 func NewWorld() *World {
 	return &World{}
-}
-
-func (w *World) Load(LDTKMapPath string) {
-	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
-	assetloader.Add("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
-	assetloader.Add("grassTilemap", assettypes.MakeImageAsset(assets.Grass_tiles))
-	assetloader.Add("turretSprite", assettypes.MakeImageAsset(assets.Turret_sprite))
-	assetloader.Add("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))
-	assetloader.Add("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))
-	assetloader.Add("pixelLightsShader", assettypes.MakeShaderAsset(assets.Pixel_lights_kage))
-	assetloader.Add("ambientParticles", assettypes.MakeYamlAsset(assets.Basement_yaml, &particles.ParticleSystem{}))
-	assetloader.Add("teleporterAnimation", assettypes.MakeYamlAsset(assets.Teleporter_yaml, &animation.AnimationInfo{}))
 }
 
 func (w *World) Init(initLevelName string, gameData save.SaveData) {

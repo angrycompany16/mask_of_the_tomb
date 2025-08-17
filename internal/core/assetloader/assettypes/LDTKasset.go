@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+// TODO: Add funcitonality for loading LDTK from bytes (go embed)
 type LDTKAsset struct {
 	path  string
 	World ebitenLDTK.World
@@ -33,16 +34,13 @@ func (a *LDTKAsset) Load() error {
 	return nil
 }
 
-func NewLDTKAsset(path string) *ebitenLDTK.World {
-	asset, exists := assetloader.Exists(path)
-	if exists {
-		return &asset.(*LDTKAsset).World
-	}
+func GetLDTKAsset(name string) (*ebitenLDTK.World, error) {
+	ldtkAsset, err := assetloader.GetAsset(name)
+	return &ldtkAsset.(*LDTKAsset).World, err
+}
 
-	LDTKasset := LDTKAsset{
+func NewLDTKAsset(path string) *LDTKAsset {
+	return &LDTKAsset{
 		path: path,
 	}
-
-	assetloader.Add(path, &LDTKasset)
-	return &LDTKasset.World
 }

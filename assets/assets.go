@@ -64,4 +64,16 @@ var (
 	Player_idle_yaml []byte
 	//go:embed animations/player-slam.yaml
 	Player_slam_yaml []byte
+	//go:embed menus/game/mainmenu.yaml
+	Main_menu_yaml []byte
+	//go:embed menus/game/pausemenu.yaml
+	Pause_menu_yaml []byte
+	//go:embed menus/game/options.yaml
+	Options_yaml []byte
+	//go:embed menus/game/intro.yaml
+	Intro_yaml []byte
+	//go:embed menus/game/empty.yaml
+	Empty_yaml []byte
+	//go:embed menus/game/hud.yaml
+	Hud_yaml []byte
 )

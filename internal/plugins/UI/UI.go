@@ -14,6 +14,8 @@ type UI struct {
 
 // Create asset groups that can be loaded with a single function call?
 // Loads a single menu file and sets it as the active menu
+// TODO: Some problems here. First, the font loading is a bit dumb (why is it the way it is?)
+// Second, we should probably just use the standard asset loading for this too
 func (ui *UI) LoadPreamble(path string) {
 	assetloader.LoadPreamble()
 	loadingscreen, err := FromFile(path)

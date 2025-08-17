@@ -1,4 +1,4 @@
-package game
+package scenes
 
 import (
 	"mask_of_the_tomb/internal/core/errs"

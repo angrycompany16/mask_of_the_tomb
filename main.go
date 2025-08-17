@@ -6,7 +6,6 @@ import (
 	"log"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/transformers/game"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

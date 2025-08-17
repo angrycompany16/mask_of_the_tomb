@@ -8,7 +8,8 @@ import (
 )
 
 type fontAsset struct {
-	src  []byte
+	src []byte
+	// Maybe turn this into a pointer would help?
 	Font text.GoTextFaceSource
 }
 
@@ -18,6 +19,7 @@ func (a *fontAsset) Load() error {
 	return err
 }
 
+// Literally never used
 func NewFontAsset(src []byte) *text.GoTextFaceSource {
 	// TODO: Do NOT do this
 	asset, exists := assetloader.Exists(string(src))

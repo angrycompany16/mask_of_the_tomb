@@ -1,11 +1,11 @@
-package game
+package scenes
 
 import (
 	"errors"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
-	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/libraries/musicplayer"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/plugins/player"
@@ -48,10 +48,14 @@ var (
 )
 
 type Game struct {
-	player      *player.Player
-	world       *world.World
-	mainUI      *ui.UI
-	gameplayUI  *ui.UI
+	sceneTree *scene.SceneTree
+
+	// Only in gameplay scene
+	player     *player.Player
+	world      *world.World
+	gameplayUI *ui.UI
+
+	// mainUI      *ui.UI
 	musicPlayer *musicplayer.MusicPlayer
 
 	introDashTimer *time.Timer
@@ -63,37 +67,44 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
-	var err error
-	switch resources.State {
-	case resources.Loading:
-		g.LoadingStageUpdate()
-	case resources.MainMenu:
-		err = g.MenuStageUpdate()
-	case resources.Intro:
-		g.IntroStageUpdate()
-	case resources.Playing:
-		g.GameplayStageUpdate()
-	case resources.Paused:
-		g.PausedStageUpdate()
-	}
-	return err
+	g.sceneTree.Update()
+
+	// var err error
+	// switch resources.State {
+	// case resources.Loading:
+	// 	g.LoadingStageUpdate()
+	// case resources.MainMenu:
+	// 	err = g.MenuStageUpdate()
+	// case resources.Intro:
+	// 	g.IntroStageUpdate()
+	// case resources.Playing:
+	// 	g.GameplayStageUpdate()
+	// case resources.Paused:
+	// 	g.PausedStageUpdate()
+	// }
+	// return err
+	return nil
 }
 
 func (g *Game) Draw() error {
-	var err error
-	switch resources.State {
-	case resources.Loading:
-		g.LoadingStageDraw()
-	case resources.MainMenu:
-		g.MenuStageDraw()
-	case resources.Intro:
-		g.IntroStageDraw()
-	case resources.Playing:
-		g.GameplayStageDraw()
-	case resources.Paused:
-		g.PausedStageDraw()
-	}
-	return err
+	g.sceneTree.Draw()
+
+	// var err error
+	// switch resources.State {
+	// case resources.Loading:
+	// 	g.LoadingStageDraw()
+	// case resources.MainMenu:
+	// 	g.MenuStageDraw()
+	// case resources.Intro:
+	// 	g.IntroStageDraw()
+	// case resources.Playing:
+	// 	g.GameplayStageDraw()
+	// case resources.Paused:
+	// 	g.PausedStageDraw()
+	// }
+	// return err
+
+	return nil
 }
 
 func NewGame() *Game {
