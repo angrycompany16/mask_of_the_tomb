@@ -19,8 +19,6 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
-	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -116,13 +114,13 @@ func (p *Player) CreateAssets() {
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.sprite = errs.Must(assettypes.GetImageAsset("playerSprite"))
 
-	dashSoundStream := errs.Must(assettypes.GetAudioStreamAsset("dashSound")).(*wav.Stream)
-	slamSoundStream := errs.Must(assettypes.GetAudioStreamAsset("slamSound")).(*wav.Stream)
-	deathSoundStream := errs.Must(assettypes.GetAudioStreamAsset("deathSound")).(*mp3.Stream)
+	dashSoundStream := errs.Must(assettypes.GetWavStream("dashSound"))
+	slamSoundStream := errs.Must(assettypes.GetWavStream("slamSound"))
+	deathSoundStream := errs.Must(assettypes.GetMp3Stream("deathSound"))
 
-	p.dashSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dashSoundStream))}
-	p.slamSound = &sound.EffectPlayer{errs.Must(sound.FromStream(slamSoundStream))}
-	p.deathSound = &sound.EffectPlayer{errs.Must(sound.FromStream(deathSoundStream))}
+	p.dashSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dashSoundStream)), 0.7}
+	p.slamSound = &sound.EffectPlayer{errs.Must(sound.FromStream(slamSoundStream)), 0.7}
+	p.deathSound = &sound.EffectPlayer{errs.Must(sound.FromStream(deathSoundStream)), 1.0}
 
 	p.jumpParticlesBroad = errs.Must(assettypes.GetYamlAsset("jumpParticlesBroad")).(*particles.ParticleSystem)
 	p.jumpParticlesTight = errs.Must(assettypes.GetYamlAsset("jumpParticlesTight")).(*particles.ParticleSystem)

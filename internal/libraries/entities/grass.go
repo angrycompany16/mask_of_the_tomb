@@ -15,7 +15,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// TODO: Entities seriously need to have their own libraries...
+// TODO: Extract a lot of the logic to a core library (math basically)
 const (
 	bladesPertile = 8.0
 )
@@ -86,7 +86,7 @@ func (g *grassBlade) Update(playerX, playerY, playerVelX, playerVelY float64, pe
 	// Interaction forces
 	// Add interactions from slamboxes and other entities
 	playerDist := maths.Length(playerX-g.posX, playerY-g.posY)
-	velocityEffect := 1 - maths.SmoothStep(0, 20, playerDist)
+	velocityEffect := 1 - maths.SmoothStep(10, 20, playerDist)
 
 	velocityStrengthX := 0.0
 	if playerVelX < 0 {
@@ -99,7 +99,7 @@ func (g *grassBlade) Update(playerX, playerY, playerVelX, playerVelY float64, pe
 	velocityStrengthY *= math.Copysign(1, g.posX-playerX)
 	velocityStrength := velocityStrengthX + velocityStrengthY
 
-	g.angularVel += velocityEffect * velocityStrength * 20
+	g.angularVel += velocityEffect * velocityStrength * 3
 
 	// Wind forces
 	noiseFactor := perlin.Noise3D(g.posX, g.posY, resources.Time*WIND_SPEED) + WIND_BIAS

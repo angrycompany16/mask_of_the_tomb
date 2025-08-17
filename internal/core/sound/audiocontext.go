@@ -10,7 +10,7 @@ type GlobalAudioContext struct {
 	*audio.Context
 }
 
-func GetCurrentAudioContext() *GlobalAudioContext {
+func GetAudioContext() *GlobalAudioContext {
 	if _globalAudioContext == nil {
 		_globalAudioContext = &GlobalAudioContext{audio.NewContext(48000)}
 	}

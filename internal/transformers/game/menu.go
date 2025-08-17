@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/audio/vorbis"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -40,11 +39,11 @@ func (g *Game) InitMenuStage() {
 	g.levelCardTimeoutListener = events.NewEventListener(levelCard.OnIdleTimeout)
 
 	g.musicPlayer.Init()
-	selectSoundStream := errs.Must(assettypes.GetAudioStreamAsset("selectSound")).(*vorbis.Stream)
-	dialogueSoundStream := errs.Must(assettypes.GetAudioStreamAsset("dialogueSound")).(*vorbis.Stream)
+	selectSoundStream := errs.Must(assettypes.GetOggStream("selectSound"))
+	dialogueSoundStream := errs.Must(assettypes.GetOggStream("dialogueSound"))
 
-	node.SelectSound = &sound.EffectPlayer{errs.Must(sound.FromStream(selectSoundStream))}
-	node.DialogueSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dialogueSoundStream))}
+	node.SelectSound = &sound.EffectPlayer{errs.Must(sound.FromStream(selectSoundStream)), 1.0}
+	node.DialogueSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dialogueSoundStream)), 1.0}
 }
 
 func (g *Game) MenuStageUpdate() error {

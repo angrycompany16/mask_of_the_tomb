@@ -10,8 +10,6 @@ import (
 	"mask_of_the_tomb/internal/core/sound"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
-	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
-	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 )
 
 // TODO: Fade music when launching game, switching tracks or (switching levels)
@@ -48,9 +46,9 @@ func (m *MusicPlayer) Load() {
 }
 
 func (m *MusicPlayer) Init() {
-	menuThemeStream := errs.Must(assettypes.GetAudioStreamAsset("menuTheme")).(*mp3.Stream)
-	basementThemeStream := errs.Must(assettypes.GetAudioStreamAsset("basementTheme")).(*wav.Stream)
-	libraryThemeStream := errs.Must(assettypes.GetAudioStreamAsset("libraryTheme")).(*mp3.Stream)
+	menuThemeStream := errs.Must(assettypes.GetMp3Stream("menuTheme"))
+	basementThemeStream := errs.Must(assettypes.GetWavStream("basementTheme"))
+	libraryThemeStream := errs.Must(assettypes.GetMp3Stream("libraryTheme"))
 
 	m.songs[menuTheme] = errs.Must(sound.FromStream(menuThemeStream))
 	m.songs[basementTheme] = errs.Must(sound.FromStream(basementThemeStream))

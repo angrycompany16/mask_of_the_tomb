@@ -21,7 +21,7 @@ var (
 )
 
 const (
-	firstLevelName = "Level_14"
+	firstLevelName = "Level_1"
 )
 
 type World struct {

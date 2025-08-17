@@ -18,30 +18,42 @@ const (
 )
 
 type AudioStreamAsset struct {
-	src    []byte
-	format AudioFormat
-	stream any
+	src       []byte
+	format    AudioFormat
+	volume    float64
+	mp3stream *mp3.Stream
+	oggstream *vorbis.Stream
+	wavstream *wav.Stream
 }
 
 func (a *AudioStreamAsset) Load() error {
 	var err error
 	switch a.format {
 	case Mp3:
-		a.stream, err = mp3.DecodeF32(bytes.NewReader(a.src))
+		a.mp3stream, err = mp3.DecodeF32(bytes.NewReader(a.src))
 	case Ogg:
-		a.stream, err = vorbis.DecodeF32(bytes.NewReader(a.src))
+		a.oggstream, err = vorbis.DecodeF32(bytes.NewReader(a.src))
 	case Wav:
-		a.stream, err = wav.DecodeF32(bytes.NewReader(a.src))
+		a.wavstream, err = wav.DecodeF32(bytes.NewReader(a.src))
 	}
 	return err
 }
 
-func GetAudioStreamAsset(name string) (any, error) {
+func GetMp3Stream(name string) (*mp3.Stream, error) {
 	soundAsset, err := assetloader.GetAsset(name)
-	return soundAsset.(*AudioStreamAsset).stream, err
+	return soundAsset.(*AudioStreamAsset).mp3stream, err
 }
 
-// TODO: Add volume parameter 0-1
+func GetOggStream(name string) (*vorbis.Stream, error) {
+	soundAsset, err := assetloader.GetAsset(name)
+	return soundAsset.(*AudioStreamAsset).oggstream, err
+}
+
+func GetWavStream(name string) (*wav.Stream, error) {
+	soundAsset, err := assetloader.GetAsset(name)
+	return soundAsset.(*AudioStreamAsset).wavstream, err
+}
+
 func MakeAudioStreamAsset(src []byte, format AudioFormat) *AudioStreamAsset {
 	return &AudioStreamAsset{
 		src:    src,
