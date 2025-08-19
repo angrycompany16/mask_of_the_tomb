@@ -41,6 +41,12 @@ func (m *MenuScene) Update() {
 	// Find node by name
 	// We may then access that node's member functions and stuff
 	// profit
+
+	// IREMEMBER THE IDEA
+	// - Instead of a scene with a scenebehaviour, just have a scene (with behaviour) which contains
+	//   sceneMetadata as a child object! That way it should be possible to include scene switching
+	//   behaviour easily into the scene's interface methods.
+	// YEah
 	m.musicPlayer.PlayMenuMusic()
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) { // TODO: Check if we are already in the main menu
