@@ -1,9 +1,11 @@
 package scenes
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
@@ -24,17 +26,25 @@ func (p *PauseScene) Init() {
 	p.UI.SwitchActiveDisplay("pausemenu", nil)
 }
 
-func (p *PauseScene) Update() {
+func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
 	confirmations := p.UI.GetConfirmations()
 
 	if confirm, ok := confirmations["Resume"]; ok && confirm.IsConfirmed || inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		// Exit back to play stage
+		return &scene.SceneTransition{
+			Kind: scene.Pop, // A bit sloppy
+		}, true
 	} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
 		save.SaveGame(save.SaveData{resources.PreviousLevelName, resources.Settings}, SaveProfile)
-		// Exit back to main menu
 
-		// Solve this somehow
-		InitLevelName = g.world.ActiveLevel.GetName()
+		if gameplayScene, ok := sceneStack.GetScene("musicScene"); ok {
+			InitLevelName = gameplayScene.(*GameplayScene).world.ActiveLevel.GetName()
+		} else {
+			fmt.Println("Could not find gameplay scene")
+		}
+		return &scene.SceneTransition{
+			Kind: scene.PopName,
+			Name: "menuScene",
+		}, true
 	} else if confirm, ok := confirmations["Options"]; ok && confirm.IsConfirmed {
 		p.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
 			"Master_vol": {SliderVal: resources.Settings.MasterVolume},
@@ -52,12 +62,8 @@ func (p *PauseScene) Update() {
 	} else if confirm, ok := confirmations["Sound_vol"]; ok && confirm.IsConfirmed {
 		resources.Settings.SoundVolume = confirm.SliderVal
 	}
+	return nil, false
 }
 
-func (p *PauseScene) Draw() {
-	p.UI.Draw()
-}
-
-func (p *PauseScene) Exit() bool {
-	return false
-}
+func (p *PauseScene) Draw()           { p.UI.Draw() }
+func (p *PauseScene) GetName() string { return "pauseScene" }

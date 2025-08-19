@@ -11,8 +11,8 @@ func (a *delayAsset) Load() error {
 	return nil
 }
 
-func NewDelayAsset(timeout time.Duration) delayAsset {
-	return delayAsset{
+func NewDelayAsset(timeout time.Duration) *delayAsset {
+	return &delayAsset{
 		timeout: timeout,
 	}
 }

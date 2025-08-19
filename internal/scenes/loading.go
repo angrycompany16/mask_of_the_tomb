@@ -12,18 +12,25 @@ import (
 	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
+	"path/filepath"
+	"time"
 )
 
-type LoadingSceneBehaviour struct {
-	UI              *ui.UI
-	SceneTransition scene.SceneTransition
-	exit            bool
+var (
+	loadingScreenPath = filepath.Join("assets", "menus", "game", "loadingscreen.yaml")
+	LDTKMapPath       = filepath.Join("assets", "LDTK", "world.ldtk")
+)
+
+type LoadingScene struct {
+	UI               *ui.UI
+	loadFinishedChan chan int
 }
 
-func (l *LoadingSceneBehaviour) Init() {
+func (l *LoadingScene) Init() {
+	l.loadFinishedChan = make(chan int)
 	l.UI.LoadPreamble(loadingScreenPath)
 
-	assetloader.Add("any", &delayAsset)
+	assetloader.Add("any", assettypes.NewDelayAsset(time.Second))
 
 	assetloader.Add("LDTKAsset", assettypes.NewLDTKAsset(LDTKMapPath))
 	assetloader.Add("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
@@ -63,21 +70,24 @@ func (l *LoadingSceneBehaviour) Init() {
 	assetloader.Add("saveData", save.MakeSaveAsset(SaveProfile))
 	assetloader.Add("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
 
-	go assetloader.LoadAll(loadFinishedChan)
+	go assetloader.LoadAll(l.loadFinishedChan)
 }
 
-func (l *LoadingSceneBehaviour) Update() {
+func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
 	events.Update()
 	l.UI.Update()
 
-	if _, done := threads.Poll(loadFinishedChan); done {
+	if _, done := threads.Poll(l.loadFinishedChan); done {
 		fmt.Println("Finished loading stage")
 		assetloader.PrintAssetRegistry()
-		l.exit = true
+
+		return &scene.SceneTransition{
+			Kind:       scene.Replace,
+			OtherScene: &MusicScene{},
+		}, true
 	}
+	return nil, false
 }
 
-func (l *LoadingSceneBehaviour) Draw() { l.UI.Draw() }
-func (l *LoadingSceneBehaviour) Transition() (scene.SceneTransition, bool) {
-	return l.SceneTransition, l.exit
-}
+func (l *LoadingScene) Draw()           { l.UI.Draw() }
+func (l *LoadingScene) GetName() string { return "loadingScene" }

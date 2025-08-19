@@ -1,11 +1,13 @@
 package scenes
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/libraries/camera"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
@@ -65,10 +67,14 @@ func (g *GameplayScene) Init() {
 	g.playerMoveListener = events.NewEventListener(g.player.OnMove)
 }
 
-func (g *GameplayScene) Update() {
+func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
 	// How to fix?
 	// This can probably be solved with an event or message
-	g.musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
+	if musicScene, ok := sceneStack.GetScene("musicScene"); ok {
+		musicScene.(*MusicScene).musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
+	} else {
+		fmt.Println("Music player was not found in game")
+	}
 
 	camera.Update()
 
@@ -142,9 +148,13 @@ func (g *GameplayScene) Update() {
 	camera.SetPos(g.player.GetPosCentered())
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		// Spawn pause menu instead
-		// g.UI.SwitchActiveDisplay("pausemenu", nil)
+		return &scene.SceneTransition{
+			Kind:       scene.Push,
+			OtherScene: &PauseScene{},
+		}, true
 	}
+
+	return nil, false
 }
 
 func (g *GameplayScene) Draw() {
@@ -165,6 +175,4 @@ func (g *GameplayScene) Draw() {
 	// I sck at programming
 }
 
-func (g *GameplayScene) Exit() bool {
-	return false // For now
-}
+func (g *GameplayScene) GetName() string { return "gameplayScene" }
