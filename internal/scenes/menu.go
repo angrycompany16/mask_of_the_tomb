@@ -19,21 +19,19 @@ type MenuScene struct {
 }
 
 func (m *MenuScene) Init() {
-	gameData := errs.Must(save.GetSaveAsset("saveData"))
-	resources.Settings = gameData.Settings
-
-	mainMenuLayer := errs.Must(assettypes.GetYamlAsset("mainMenu")).(*ui.Layer)
-	optionsMenuLayer := errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.Layer)
-
-	m.UI = ui.NewUI([]*ui.Layer{mainMenuLayer, optionsMenuLayer}, make(map[string]*ui.Overlay))
 	m.UI.SwitchActiveDisplay("mainmenu", nil)
+	fmt.Println("Init menu")
 }
 
 func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
+	fmt.Println("Update")
+	m.UI.Update()
+	fmt.Println("Updated")
+
 	confirmations := m.UI.GetConfirmations()
 
 	if musicScene, ok := sceneStack.GetScene("musicScene"); ok {
-		musicScene.(*MusicScene).musicPlayer.PlayMenuMusic()
+		musicScene.(*BaseScene).musicPlayer.PlayMenuMusic()
 	} else {
 		fmt.Println("Music player was not found in main menu")
 	}
@@ -80,3 +78,11 @@ func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 
 func (m *MenuScene) Draw()           { m.UI.Draw() }
 func (m *MenuScene) GetName() string { return "menuScene" }
+func MakeMenuScene() *MenuScene {
+	mainMenuLayer := errs.Must(assettypes.GetYamlAsset("mainMenu")).(*ui.Layer)
+	optionsMenuLayer := errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.Layer)
+
+	return &MenuScene{
+		UI: ui.NewUI([]*ui.Layer{mainMenuLayer, optionsMenuLayer}, make(map[string]*ui.Overlay)),
+	}
+}

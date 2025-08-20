@@ -9,8 +9,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// Not great
-// var SelectSound *sound.EffectPlayer
+// Not great, but cannot find a better solution
+var SelectSound *sound.EffectPlayer
 
 type Button struct {
 	Textbox       `yaml:",inline"`

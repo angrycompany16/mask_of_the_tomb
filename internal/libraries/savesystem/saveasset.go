@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// TODO: Move this (this is an asset type)
 type SaveAsset struct {
 	profile  int
 	SaveData SaveData

@@ -14,6 +14,7 @@ type SceneStack struct {
 
 func (s *SceneStack) Update() bool {
 	for _, scene := range s.stack {
+		// fmt.Println("Updating scene", scene.GetName())
 		// TODO: Validate transition: For instance, insure that if the operation is not Pop or PopN, a
 		// scene was supplied.
 		transition, ok := scene.Update(s)
@@ -68,6 +69,7 @@ func (s *SceneStack) GetScene(name string) (Scene, bool) {
 
 func (s *SceneStack) Push(scene Scene) {
 	s.stack = append(s.stack, scene)
+	scene.Init()
 }
 
 func NewSceneStack() *SceneStack {

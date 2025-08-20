@@ -7,7 +7,7 @@ import (
 
 var (
 	_assetLoader = assetLoader{
-		assetPool: make(map[string]AssetEntry),
+		assetPool: make(map[string]*AssetEntry),
 	}
 )
 
@@ -21,7 +21,7 @@ type AssetEntry struct {
 }
 
 type assetLoader struct {
-	assetPool map[string]AssetEntry
+	assetPool map[string]*AssetEntry
 }
 
 func Exists(hash string) (Asset, bool) {
@@ -30,12 +30,12 @@ func Exists(hash string) (Asset, bool) {
 }
 
 func Add(hash string, asset Asset) {
-	_assetLoader.assetPool[hash] = AssetEntry{asset, "NOT LOADED"}
+	_assetLoader.assetPool[hash] = &AssetEntry{asset, "NOT LOADED"}
 }
 
 func GetAsset(name string) (Asset, error) {
 	asset, ok := _assetLoader.assetPool[name]
-	if !ok {
+	if !ok || asset.status == "NOT LOADED" {
 		fmt.Printf("Could not find asset with name '%s'", name)
 		PrintAssetRegistry()
 		return nil, errors.New("AssetNotFound")

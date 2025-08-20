@@ -2,6 +2,7 @@ package node
 
 import (
 	"errors"
+	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/sound"
@@ -36,9 +37,13 @@ func (n *NodeContainer) UnmarshalYAML(value *yaml.Node) error {
 	case "textbox":
 		resultNode = &Textbox{}
 	case "button":
+		// Looks like loading a stream into multiple players may not be very supported
 		selectSoundStream := errs.Must(assettypes.GetOggStream("selectSound"))
 		selectEffectPlayer := &sound.EffectPlayer{errs.Must(sound.FromStream(selectSoundStream)), 1.0}
-		resultNode = &Button{selectSound: selectEffectPlayer}
+		fmt.Println("Finished creating selectEffectPlayer")
+		selectEffectPlayer.SetVolume(0.5)
+		fmt.Println("Success for effect player", selectEffectPlayer)
+		resultNode = &Button{}
 	case "selectlist":
 		resultNode = &SelectList{}
 	case "inputfield":
@@ -50,7 +55,7 @@ func (n *NodeContainer) UnmarshalYAML(value *yaml.Node) error {
 	case "dialogue":
 		dialogueSoundStream := errs.Must(assettypes.GetOggStream("dialogueSound"))
 		dialogueEffectPlayer := &sound.EffectPlayer{errs.Must(sound.FromStream(dialogueSoundStream)), 1.0}
-		resultNode = &Dialogue{dialogueSound: dialogueEffectPlayer}
+		resultNode = &Dialogue{}
 	}
 
 	err := value.Decode(resultNode)
@@ -72,9 +77,16 @@ type NodeData struct {
 }
 
 func (n *NodeData) UpdateChildren(confirmations map[string]ConfirmInfo) {
+	fmt.Println("node", n)
+	fmt.Println("children:", n.Children)
 	for _, child := range n.Children {
+		fmt.Println("updating child", child.Node)
 		child.Update(confirmations)
+		fmt.Println("what")
+		fmt.Println("Confirmations", confirmations)
+		fmt.Println("Updated child", child)
 	}
+	fmt.Println("Exited loop")
 }
 
 func (n *NodeData) DrawChildren(offsetX, offsetY float64, parentWidth, parentHeight float64) {

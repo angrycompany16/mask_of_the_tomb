@@ -71,7 +71,7 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 	// How to fix?
 	// This can probably be solved with an event or message
 	if musicScene, ok := sceneStack.GetScene("musicScene"); ok {
-		musicScene.(*MusicScene).musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
+		musicScene.(*BaseScene).musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
 	} else {
 		fmt.Println("Music player was not found in game")
 	}

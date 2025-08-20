@@ -45,6 +45,6 @@ func NewGame() *Game {
 		sceneStack: scene.NewSceneStack(),
 	}
 
-	game.sceneStack.Push(&LoadingScene{})
+	game.sceneStack.Push(MakeLoadingScene())
 	return game
 }

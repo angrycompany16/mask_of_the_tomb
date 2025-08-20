@@ -15,14 +15,6 @@ import (
 
 // TODO: Integrate music more tightly with LDTK
 
-type songName int
-
-const (
-	menuTheme songName = iota
-	basementTheme
-	libraryTheme
-)
-
 type ambienceName int
 
 const (
@@ -32,8 +24,8 @@ const (
 )
 
 type MusicPlayer struct {
-	songs      map[songName]*audio.Player
-	activeSong songName
+	songs      map[string]*audio.Player
+	activeSong string
 	ambience   map[ambienceName]*audio.Player
 }
 
@@ -42,14 +34,14 @@ func (m *MusicPlayer) Init() {
 	basementThemeStream := errs.Must(assettypes.GetWavStream("basementTheme"))
 	libraryThemeStream := errs.Must(assettypes.GetMp3Stream("libraryTheme"))
 
-	m.songs[menuTheme] = errs.Must(sound.FromStream(menuThemeStream))
-	m.songs[basementTheme] = errs.Must(sound.FromStream(basementThemeStream))
-	m.songs[libraryTheme] = errs.Must(sound.FromStream(libraryThemeStream))
+	m.songs["menuTheme"] = errs.Must(sound.FromStream(menuThemeStream))
+	m.songs["basementTheme"] = errs.Must(sound.FromStream(basementThemeStream))
+	m.songs["libraryTheme"] = errs.Must(sound.FromStream(libraryThemeStream))
 }
 
 func (m *MusicPlayer) PlayMenuMusic() {
 	m.tryRestartSong()
-	m.playSong(menuTheme)
+	m.playSong("menuTheme")
 }
 
 func (m *MusicPlayer) PlayGameMusic(levelBiome string) {
@@ -58,9 +50,9 @@ func (m *MusicPlayer) PlayGameMusic(levelBiome string) {
 	}
 	switch levelBiome {
 	case "Basement":
-		m.playSong(basementTheme)
+		m.playSong("basementTheme")
 	case "Library":
-		m.playSong(libraryTheme)
+		m.playSong("libraryTheme")
 	default:
 		m.stopMusic()
 		fmt.Println("Level has no biome, so no song will be played")
@@ -73,8 +65,7 @@ func (m *MusicPlayer) LowerMusic() {
 	}
 }
 
-// TODO: Rename to ResetMusicVolume
-func (m *MusicPlayer) ResetMusic() {
+func (m *MusicPlayer) ResetMusicVolume() {
 	for _, song := range m.songs {
 		song.SetVolume(resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000.0)
 	}
@@ -88,7 +79,7 @@ func (m *MusicPlayer) tryRestartSong() {
 	}
 }
 
-func (m *MusicPlayer) playSong(name songName) {
+func (m *MusicPlayer) playSong(name string) {
 	for _name, song := range m.songs {
 		if _name != name && song.IsPlaying() {
 			song.Pause()
@@ -111,7 +102,17 @@ func (m *MusicPlayer) stopMusic() {
 }
 
 func NewMusicPlayer() *MusicPlayer {
-	return &MusicPlayer{
-		songs: make(map[songName]*audio.Player),
+	musicPlayer := MusicPlayer{
+		songs: make(map[string]*audio.Player),
 	}
+
+	menuStream := errs.Must(assettypes.GetMp3Stream("menuTheme"))
+	basementStream := errs.Must(assettypes.GetOggStream("basementTheme"))
+	libraryStream := errs.Must(assettypes.GetMp3Stream("libraryTheme"))
+
+	musicPlayer.songs["menuTheme"] = errs.Must(sound.FromStream(menuStream))
+	musicPlayer.songs["basementTheme"] = errs.Must(sound.FromStream(basementStream))
+	musicPlayer.songs["libraryTheme"] = errs.Must(sound.FromStream(libraryStream))
+
+	return &musicPlayer
 }

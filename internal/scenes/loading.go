@@ -5,7 +5,6 @@ import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
-	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/animation"
@@ -27,7 +26,6 @@ type LoadingScene struct {
 }
 
 func (l *LoadingScene) Init() {
-	l.loadFinishedChan = make(chan int)
 	l.UI.LoadPreamble(loadingScreenPath)
 
 	assetloader.Add("any", assettypes.NewDelayAsset(time.Second))
@@ -74,7 +72,6 @@ func (l *LoadingScene) Init() {
 }
 
 func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
-	events.Update()
 	l.UI.Update()
 
 	if _, done := threads.Poll(l.loadFinishedChan); done {
@@ -83,7 +80,7 @@ func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransit
 
 		return &scene.SceneTransition{
 			Kind:       scene.Replace,
-			OtherScene: &MusicScene{},
+			OtherScene: MakeBaseScene(),
 		}, true
 	}
 	return nil, false
@@ -91,3 +88,9 @@ func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransit
 
 func (l *LoadingScene) Draw()           { l.UI.Draw() }
 func (l *LoadingScene) GetName() string { return "loadingScene" }
+func MakeLoadingScene() *LoadingScene {
+	return &LoadingScene{
+		UI:               ui.NewUI(make([]*ui.Layer, 0), make(map[string]*ui.Overlay)),
+		loadFinishedChan: make(chan int),
+	}
+}
