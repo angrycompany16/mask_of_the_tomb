@@ -5,6 +5,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+// TODO: A weird function. Should be removed.
 func MustNewImageFromFile(path string) *ebiten.Image {
 	img, _, err := ebitenutil.NewImageFromFile(path)
 	if err != nil {
@@ -20,7 +21,7 @@ func Must[T any](v T, err error) T {
 	return v
 }
 
-func MustSingle(err error) {
+func MustVoid(err error) {
 	if err != nil {
 		panic(err)
 	}

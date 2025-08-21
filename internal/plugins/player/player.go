@@ -2,14 +2,13 @@ package player
 
 import (
 	"mask_of_the_tomb/assets"
-	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/libraries/animation"
-	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/inputbuffer"
 	"mask_of_the_tomb/internal/libraries/movebox"
 	"mask_of_the_tomb/internal/libraries/particles"
@@ -23,7 +22,14 @@ import (
 )
 
 const (
-	moveSpeed             = 5.0
+	IDLE_ANIM = iota
+	DASH_INIT_ANIM
+	DASH_LOOP_ANIM
+	SLAM_ANIM
+)
+
+const (
+	moveSpeed             = 10.0
 	defaultPlayerHealth   = 5.0
 	invincibilityDuration = time.Second
 	inputBufferDuration   = 0.1
@@ -31,8 +37,8 @@ const (
 
 var (
 	playerSpritePath       = filepath.Join(assets.PlayerFolder, "player.png")
-	jumpParticlesBroadPath = filepath.Join("assets", "particlesystems", "player", "jump-broad.yaml")
-	jumpParticlesTightPath = filepath.Join("assets", "particlesystems", "player", "jump-tight.yaml")
+	jumpParticlesBroadPath = filepath.Join("assets", "particlesystems", "jump-broad.yaml")
+	jumpParticlesTightPath = filepath.Join("assets", "particlesystems", "jump-tight.yaml")
 )
 
 // TODO: We want the player plugin to instead become a bundle of separate
@@ -79,7 +85,6 @@ type Player struct {
 func NewPlayer() *Player {
 	player := &Player{
 		movebox:     movebox.NewMovebox(moveSpeed),
-		animator:    animation.NewAnimator(playerAnimationMap),
 		InputBuffer: inputbuffer.NewInputBuffer(inputBufferDuration),
 		State:       Idle,
 		OnDeath:     events.NewEvent(),
@@ -88,32 +93,44 @@ func NewPlayer() *Player {
 	}
 
 	player.moveFinishedListener = events.NewEventListener(player.movebox.OnMoveFinished)
-	player.clipFinishedListener = events.NewEventListener(player.animator.OnClipFinished)
 	return player
 }
 
 // ------ INIT ------
-func (p *Player) CreateAssets() {
-	assetloader.Load("playerSprite", assettypes.MakeImageAsset(assets.Player_sprite))
-	assetloader.Load("dashSound", assettypes.MakeSoundAsset(assets.Dash_wav, assettypes.Wav))
-	assetloader.Load("slamSound", assettypes.MakeSoundAsset(assets.Slam_wav, assettypes.Wav))
-	assetloader.Load("deathSound", assettypes.MakeSoundAsset(assets.Death_mp3, assettypes.Mp3))
-	assetloader.Load("jumpParticlesBroad", particles.NewParticleSystemAsset(jumpParticlesBroadPath, rendering.ScreenLayers.Playerspace))
-	assetloader.Load("jumpParticlesTight", particles.NewParticleSystemAsset(jumpParticlesTightPath, rendering.ScreenLayers.Playerspace))
-}
 
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.sprite = errs.Must(assettypes.GetImageAsset("playerSprite"))
-	p.dashSound = errs.Must(assettypes.GetEffectPlayerAsset("dashSound"))
-	p.slamSound = errs.Must(assettypes.GetEffectPlayerAsset("slamSound"))
-	p.deathSound = errs.Must(assettypes.GetEffectPlayerAsset("deathSound"))
-	p.jumpParticlesBroad = errs.Must(particles.GetParticleSystemAsset("jumpParticlesBroad"))
-	p.jumpParticlesTight = errs.Must(particles.GetParticleSystemAsset("jumpParticlesTight"))
+
+	dashSoundStream := errs.Must(assettypes.GetWavStream("dashSound"))
+	slamSoundStream := errs.Must(assettypes.GetWavStream("slamSound"))
+	deathSoundStream := errs.Must(assettypes.GetMp3Stream("deathSound"))
+
+	p.dashSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dashSoundStream)), 0.7}
+	p.slamSound = &sound.EffectPlayer{errs.Must(sound.FromStream(slamSoundStream)), 0.7}
+	p.deathSound = &sound.EffectPlayer{errs.Must(sound.FromStream(deathSoundStream)), 1.0}
+
+	p.jumpParticlesBroad = errs.Must(assettypes.GetYamlAsset("jumpParticlesBroad")).(*particles.ParticleSystem)
+	p.jumpParticlesTight = errs.Must(assettypes.GetYamlAsset("jumpParticlesTight")).(*particles.ParticleSystem)
+
+	p.jumpParticlesBroad.Init(rendering.ScreenLayers.Playerspace)
+	p.jumpParticlesTight.Init(rendering.ScreenLayers.Playerspace)
+
+	dashInitAnim := errs.Must(assettypes.GetYamlAsset("dashInitAnim")).(*animation.AnimationInfo)
+	dashLoopAnim := errs.Must(assettypes.GetYamlAsset("dashLoopAnim")).(*animation.AnimationInfo)
+	playerIdleAnim := errs.Must(assettypes.GetYamlAsset("playerIdleAnim")).(*animation.AnimationInfo)
+	playerSlamAnim := errs.Must(assettypes.GetYamlAsset("playerSlamAnim")).(*animation.AnimationInfo)
+	p.animator = animation.MakeAnimator(map[int]*animation.Animation{
+		IDLE_ANIM:      animation.NewAnimation(*playerIdleAnim),
+		DASH_LOOP_ANIM: animation.NewAnimation(*dashLoopAnim),
+		DASH_INIT_ANIM: animation.NewAnimation(*dashInitAnim),
+		SLAM_ANIM:      animation.NewAnimation(*playerSlamAnim),
+	})
+	p.clipFinishedListener = events.NewEventListener(p.animator.OnClipFinished)
 
 	p.SetPos(posX, posY)
 	p.direction = direction
 	p.hitbox = maths.RectFromImage(posX, posY, p.sprite)
-	p.animator.SwitchClip(idleAnim)
+	p.animator.SwitchClip(IDLE_ANIM)
 }
 
 // ------ GETTERS ------
@@ -182,13 +199,13 @@ func (p *Player) Dash(direction maths.Direction, x, y float64) {
 	p.State = Moving
 
 	p.dashSound.Play()
-	p.animator.SwitchClip(dashInitAnim)
+	p.animator.SwitchClip(DASH_INIT_ANIM)
 	p.movebox.SetTarget(x, y)
 	p.playJumpParticles(direction)
 }
 
 func (p *Player) EnterSlamAnim() {
-	p.animator.SwitchClip(slamAnim)
+	p.animator.SwitchClip(SLAM_ANIM)
 }
 
 // ------ INTERNAL ------

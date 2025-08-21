@@ -18,7 +18,7 @@ const (
 	smallRadius    = 6.0
 	largeRadius    = 30.0
 	ballCount      = 6
-	speed          = 0.012
+	speed          = 0.024
 	border         = 2.0
 	surfacePadding = 20.0
 )

@@ -1,0 +1,45 @@
+---
+Type: "ParticleSystem"
+GlobalSpace: false
+PosX: 100
+PosY: 100
+Angle: 0
+Emission: 10
+Bursts:
+- Count: 50
+  Time: 0
+- Count: 50
+  Time: 5
+SpawnPosX:
+  Min: -1
+  Max: 1
+SpawnPosY:
+  Min: -100
+  Max: 100
+SpawnVelX:
+  Min: -30
+  Max: 30
+SpawnVelY:
+  Min: -40
+  Max: -10
+SpawnAngle:
+  Min: 0
+  Max: 0
+SpawnAngularVel:
+  Min: 0
+  Max: 0
+StartScale:
+  Min: 0.1
+  Max: 0.25
+EndScale:
+  Min: 0.0
+  Max: 0.0
+Lifetime:
+  Min: 1.0
+  Max: 3.0
+StartColor: [255, 255, 255, 255]
+EndColor: [255, 255, 255, 0]
+ImageWidth: 128
+ImageHeight: 128
+SpritePath: "assets/sprites/icons/square-64x64.png"
+...

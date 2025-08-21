@@ -1,6 +1,7 @@
 package node
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/colors"
 	"mask_of_the_tomb/internal/core/sound"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// Not great
+// Not great, but cannot find a better solution
 var SelectSound *sound.EffectPlayer
 
 type Button struct {
@@ -16,6 +17,7 @@ type Button struct {
 	NormalColor   colors.ColorPair `yaml:"NormalColor"`
 	SelectedColor colors.ColorPair `yaml:"SelectedColor"`
 	Name          string           `yaml:"Name"`
+	selectSound   *sound.EffectPlayer
 	selected      bool
 }
 
@@ -29,7 +31,11 @@ func (b *Button) SetSelected() {
 	// switchActiveDisplay(), because that calls reset which sets the
 	// selector pos to 0. Pls fix
 	if !b.selected {
-		SelectSound.Play()
+		if b.selectSound != nil {
+			b.selectSound.Play()
+		} else {
+			fmt.Println("selectSound was nil, no sound will be played")
+		}
 	}
 
 	b.selected = true

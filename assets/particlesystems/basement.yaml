@@ -1,0 +1,49 @@
+---
+Type: "ParticleSystem"
+GlobalSpace: true
+PosX: 0
+PosY: 0
+Angle: 0
+Emission: 0.5
+Bursts:
+- Count: 0
+  Time: 0
+SpawnPosX:
+  Min: 0
+  Max: 480
+SpawnPosY:
+  Min: 40
+  Max: 310
+SpawnVelX:
+  Min: 0
+  Max: 0
+SpawnVelY:
+  Min: -10
+  Max: 0
+SpawnAngle:
+  Min: 0
+  Max: 4
+SpawnAngularVel:
+  Min: 0
+  Max: 0.5
+StartScale:
+  Min: 0.7
+  Max: 1.5
+EndScale:
+  Min: 0.0
+  Max: 0.0
+Lifetime:
+  Min: 3.0
+  Max: 5.0
+NoiseFactorX:
+  Min: 0.0
+  Max: 10.0
+NoiseFactorY:
+  Min: 0.0
+  Max: 5.0
+StartColor: [255, 255, 255, 255]
+EndColor: [255, 255, 255, 255]
+ImageWidth: 480
+ImageHeight: 270
+SpritePath: assets/sprites/environment/star.png
+...

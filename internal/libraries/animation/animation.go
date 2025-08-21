@@ -2,16 +2,17 @@ package animation
 
 import (
 	"image"
+	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/threads"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type SpritesheetOrientation int
+type SpritesheetFormat int
 
 const (
-	Strip SpritesheetOrientation = iota
+	Strip SpritesheetFormat = iota
 	MultiRow
 )
 
@@ -22,18 +23,22 @@ const (
 	Once
 )
 
+type AnimationInfo struct {
+	SpriteSheetPath   string            `yaml:"SpriteSheetPath"`
+	SpriteSheetFormat SpritesheetFormat `yaml:"SpriteSheetFormat"`
+	LoopMode          AnimationLoopMode `yaml:"LoopMode"`
+	FrameDelay        int               `yaml:"FrameDelay"`
+	NextAnimationId   int               `yaml:"NextAnimationId"`
+}
+
 type Animation struct {
-	spritesheet *Spritesheet
-	orientation SpritesheetOrientation
-	loopMode    AnimationLoopMode
+	info        AnimationInfo
+	finished    bool
+	paused      bool
+	ticker      *time.Ticker
 	xindex      int
 	yindex      int
-	frameDelay  time.Duration
-	t           float64
-	ticker      *time.Ticker
-	paused      bool
-	finished    bool
-	next        int // id of the next animation we want to play. -1 if irrelevant
+	spritesheet *Spritesheet
 }
 
 func (a *Animation) Update() {
@@ -51,25 +56,25 @@ func (a *Animation) IsFinished() bool {
 }
 
 func (a *Animation) GetNext() int {
-	return a.next
+	return a.info.NextAnimationId
 }
 
 func (a *Animation) Reset() {
-	a.ticker = time.NewTicker(a.frameDelay)
+	a.ticker = time.NewTicker(time.Duration(a.info.FrameDelay * int(time.Millisecond)))
 	a.xindex = 0
 	a.yindex = 0
 	a.finished = false
 }
 
 func (a *Animation) switchFrame() {
-	if a.orientation == Strip {
+	if a.info.SpriteSheetFormat == Strip {
 		a.xindex++
-		if a.loopMode == Loop {
+		if a.info.LoopMode == Loop {
 			a.xindex %= a.spritesheet.frames
-		} else if a.loopMode == Once && a.xindex == a.spritesheet.frames {
+		} else if a.info.LoopMode == Once && a.xindex == a.spritesheet.frames {
 			a.finished = true
 
-			if a.next == -1 {
+			if a.info.NextAnimationId == -1 {
 				a.Pause()
 			}
 		}
@@ -85,7 +90,7 @@ func (a *Animation) Play() {
 }
 
 func (a *Animation) GetSprite() *ebiten.Image {
-	if a.orientation == Strip {
+	if a.info.SpriteSheetFormat == Strip {
 		return a.spritesheet.src.SubImage(
 			image.Rect(
 				a.xindex*int(a.spritesheet.width),
@@ -98,18 +103,15 @@ func (a *Animation) GetSprite() *ebiten.Image {
 	return a.spritesheet.src
 }
 
-func NewAnimation(spritesheet *Spritesheet, frameDelay time.Duration, orientation SpritesheetOrientation, loopMode AnimationLoopMode, next int) *Animation {
+func NewAnimation(info AnimationInfo) *Animation {
 	return &Animation{
-		spritesheet: spritesheet,
-		orientation: orientation,
+		info:        info,
+		finished:    false,
+		paused:      false,
+		ticker:      time.NewTicker(time.Duration(info.FrameDelay * int(time.Millisecond))),
 		xindex:      0,
 		yindex:      0,
-		ticker:      time.NewTicker(time.Duration(frameDelay * 1e9)),
-		frameDelay:  frameDelay,
-		loopMode:    loopMode,
-		paused:      false,
-		next:        next,
-		finished:    false,
+		spritesheet: NewSpritesheetAuto(errs.MustNewImageFromFile(info.SpriteSheetPath)),
 	}
 }
 

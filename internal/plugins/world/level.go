@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"mask_of_the_tomb/internal/core/arrays"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/colors"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
@@ -12,13 +13,8 @@ import (
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 	threads "mask_of_the_tomb/internal/core/threads"
-	"mask_of_the_tomb/internal/libraries/assettypes"
 	"mask_of_the_tomb/internal/libraries/camera"
-	"mask_of_the_tomb/internal/libraries/entities/catcher"
-	"mask_of_the_tomb/internal/libraries/entities/door"
-	"mask_of_the_tomb/internal/libraries/entities/grass"
-	"mask_of_the_tomb/internal/libraries/entities/hazard"
-	"mask_of_the_tomb/internal/libraries/entities/turret"
+	"mask_of_the_tomb/internal/libraries/entities"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
 	"math"
@@ -55,12 +51,15 @@ var (
 		BlendOperationRGB:           ebiten.BlendOperationAdd,
 		BlendOperationAlpha:         ebiten.BlendOperationAdd,
 	}
-	particleSysPath              = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
-	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "tilemaps", "export", "playerspace_tilemap_normal.png")
+	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "playerspace_tilemap_normal.png")
 	// TODO: *very* temporary solution
 	playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
 	PlayerLightRadius        = 200.0
 )
+
+type SlamboxPosition struct {
+	X, Y float64
+}
 
 type Level struct {
 	name                     string
@@ -80,12 +79,13 @@ type Level struct {
 	playerLightBreatheTicker time.Ticker
 	resetX, resetY           float64
 	ambientParticles         *particles.ParticleSystem
+	grassTilemap             *ebiten.Image
 	slamboxes                []*Slambox
-	hazards                  []*hazard.Hazard
-	doors                    []door.Door
-	grassEntities            []grass.Grass
-	turrets                  []*turret.Turret
-	catchers                 []*catcher.Catcher
+	hazards                  []*entities.Hazard
+	doors                    []entities.Door
+	grassEntities            []entities.Grass
+	turrets                  []*entities.Turret
+	catchers                 []*entities.Catcher
 }
 
 // ------ CONSTRUCTOR ------
@@ -101,7 +101,9 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.fogShader = errs.Must(assettypes.GetShaderAsset("fogShader"))
 	newLevel.vignetteShader = errs.Must(assettypes.GetShaderAsset("vignetteShader"))
 	newLevel.pixelLightShader = errs.Must(assettypes.GetShaderAsset("pixelLightsShader"))
-	newLevel.ambientParticles = errs.Must(particles.GetParticleSystemAsset("ambientParticles"))
+	newLevel.ambientParticles = errs.Must(assettypes.GetYamlAsset("ambientParticles")).(*particles.ParticleSystem)
+	newLevel.ambientParticles.Init(rendering.ScreenLayers.Foreground)
+	newLevel.grassTilemap = errs.Must(assettypes.GetImageAsset("grassTilemap"))
 
 	newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)
 
@@ -147,17 +149,17 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	for _, entity := range entityLayer.Entities {
 		switch entity.Name {
 		case hazardEntityName:
-			newLevel.hazards = append(newLevel.hazards, hazard.NewHazard(&entity))
+			newLevel.hazards = append(newLevel.hazards, entities.NewHazard(&entity))
 		case doorEntityName:
-			newLevel.doors = append(newLevel.doors, door.NewDoor(&entity))
+			newLevel.doors = append(newLevel.doors, entities.NewDoor(&entity))
 		case slamboxEntityName:
 			newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity))
 		case grassEntityName:
-			newLevel.grassEntities = append(newLevel.grassEntities, grass.NewGrass(&entity, 16, rendering.ScreenLayers.Playerspace))
+			newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
 		case turretEntityName:
-			newLevel.turrets = append(newLevel.turrets, turret.NewTurret(&entity, entityLayer.GridSize))
+			newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
 		case catcherEntityName:
-			newLevel.catchers = append(newLevel.catchers, catcher.NewCatcher(&entity))
+			newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
 		}
 	}
 
@@ -462,7 +464,8 @@ func drawTiles(
 	}
 }
 
-func (l *Level) restoreFromMemory(levelMemory *LevelMemory) {
+// TODO: Respawn enemies
+func (l *Level) reset() {
 	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(entityLayerName))
 	for _, entity := range entityLayer.Entities {
 		if entity.Name != slamboxEntityName {

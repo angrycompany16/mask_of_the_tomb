@@ -1,0 +1,17 @@
+---
+definitions:
+- SpriteSheetFormat: &Strip 0
+- SpriteSheetFormat: &MultiRow 1
+- AnimationLoopMode: &Loop 0
+- AnimationLoopMode: &Once 1
+- Animation: &IdleAnim 0
+- Animation: &DashInitAnim 1
+- Animation: &DashLoopAnim 2
+- Animation: &SlamAnim 3
+
+SpriteSheetPath: assets/sprites/player/player-loop-jump-Sheet.png
+SpriteSheetFormat: *Strip
+LoopMode: *Loop
+FrameDelay: 80
+NextAnimationId: -1
+...

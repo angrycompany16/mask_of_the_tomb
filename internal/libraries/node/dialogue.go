@@ -1,6 +1,7 @@
 package node
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/core/threads"
 	"strings"
@@ -10,15 +11,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-var DialogueSound *sound.EffectPlayer
-
 type Dialogue struct {
 	Textbox         `yaml:",inline"`
 	Name            string   `yaml:"Name"`
 	RevealTime      float64  `yaml:"RevealTime"`
 	Lines           []string `yaml:"Lines"`
-	activeLine      int
+	dialogueSound   *sound.EffectPlayer
 	revealTicker    *time.Ticker
+	activeLine      int
 	revealIndicator int
 }
 
@@ -57,7 +57,11 @@ func (d *Dialogue) Update(confirmations map[string]ConfirmInfo) {
 			return
 		}
 
-		DialogueSound.Play()
+		if d.dialogueSound != nil {
+			d.dialogueSound.Play()
+		} else {
+			fmt.Println("Dialogue sound is nil, please fix")
+		}
 		d.Text = strings.Join([]string{
 			d.Text, string(d.Lines[d.activeLine][d.revealIndicator]),
 		}, "")

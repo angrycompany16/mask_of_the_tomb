@@ -3,49 +3,35 @@ package world
 import (
 	"fmt"
 	"mask_of_the_tomb/assets"
-	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/errs"
-	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
-	"mask_of_the_tomb/internal/libraries/assettypes"
-	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"path/filepath"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
 
+// Just an idea: With this system, could we turn each level into a scene?
+// Hmm...
+// This opens up some new and interesting possibilities
+
 var (
-	slamboxTilemapPath = filepath.Join(assets.EnvironmentTilemapFolder, "slambox_tilemap.png")
-	particleSystemPath = filepath.Join("assets", "particlesystems", "environment", "basement.yaml")
+	slamboxTilemapPath = filepath.Join(assets.EnvironmentFolder, "slambox_tilemap.png")
+	particleSystemPath = filepath.Join("assets", "particlesystems", "basement.yaml")
 )
 
 const (
-	firstLevelName = "Level_14"
+	firstLevelName = "Level_1"
 )
 
 type World struct {
-	currentBiome     string
-	worldLDTK        *ebitenLDTK.World
-	ActiveLevel      *Level
-	worldStateMemory map[string]LevelMemory
+	currentBiome string
+	worldLDTK    *ebitenLDTK.World
+	ActiveLevel  *Level
 }
 
 func NewWorld() *World {
-	return &World{
-		worldStateMemory: make(map[string]LevelMemory),
-	}
-}
-
-func (w *World) Load(LDTKMapPath string) {
-	w.worldLDTK = assettypes.NewLDTKAsset(LDTKMapPath)
-	assetloader.Load("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap))
-	assetloader.Load("grassTilemap", assettypes.MakeImageAsset(assets.Grass_tiles))
-	assetloader.Load("turretSprite", assettypes.MakeImageAsset(assets.Turret_sprite))
-	assetloader.Load("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))
-	assetloader.Load("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))
-	assetloader.Load("pixelLightsShader", assettypes.MakeShaderAsset(assets.Pixel_lights_kage))
-	assetloader.Load("ambientParticles", particles.NewParticleSystemAsset(particleSysPath, rendering.ScreenLayers.Foreground))
+	return &World{}
 }
 
 func (w *World) Init(initLevelName string, gameData save.SaveData) {
@@ -62,10 +48,6 @@ func (w *World) Init(initLevelName string, gameData save.SaveData) {
 
 func (w *World) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	w.ActiveLevel.Update(playerX, playerY, playerVelX, playerVelY)
-}
-
-func (w *World) GetWorldStateMemory() map[string]LevelMemory {
-	return w.worldStateMemory
 }
 
 // Set up a small loading stage when switching levels
@@ -98,15 +80,6 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 		return "", err
 	}
 
-	if memory, ok := world.worldStateMemory[newLevelLDTK.Iid]; ok {
-		newLevel.restoreFromMemory(&memory)
-	}
-
-	// if world.ActiveLevel != nil {
-	// 	world.SaveLevel(world.ActiveLevel)
-	// }
-	// world.SaveLevel(newLevel)
-
 	newLevel.resetX, newLevel.resetY = newLevel.GetDefaultSpawnPoint()
 	if doorIid != "" {
 		doorEntity := errs.Must(newLevel.levelLDTK.GetEntityByIid(doorIid))
@@ -124,16 +97,11 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 	return "", nil
 }
 
-// func (w *World) SaveLevel(level *Level) {
-// w.worldStateMemory[level.levelLDTK.Iid] = levelmemory.LevelMemory{level.GetSlamboxPositions()}
-// }
-
 func (w *World) ResetActiveLevel() (float64, float64) {
 	_resetX, _resetY := w.ActiveLevel.GetResetPoint()
 
 	// reset slambox positions
-	level := w.worldStateMemory[w.ActiveLevel.levelLDTK.Iid]
-	w.ActiveLevel.restoreFromMemory(&level)
+	w.ActiveLevel.reset()
 	// reset player position
 	w.ActiveLevel.resetX = _resetX
 	w.ActiveLevel.resetY = _resetY

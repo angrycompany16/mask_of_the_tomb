@@ -3,11 +3,11 @@ package ui
 import (
 	"image"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
-	"mask_of_the_tomb/internal/libraries/assettypes"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
