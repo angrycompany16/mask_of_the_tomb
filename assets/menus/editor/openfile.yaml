@@ -6,8 +6,6 @@ definitions:
 - ScreenAlign: &Centered 0
 - ScreenAlign: &TopLeft 1
 
-
-Name: "openfile"
 Root:
   Children:
   - Type: "textbox"

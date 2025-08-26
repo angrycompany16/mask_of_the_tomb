@@ -8,7 +8,6 @@ definitions:
 - RelativePos: &RelativeCentered 0
 - RelativePos: &RelativeTopLeft 1
 
-Name: "options"
 Root:
   Children:
   - Type: "container"

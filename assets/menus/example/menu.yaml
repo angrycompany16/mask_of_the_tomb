@@ -8,7 +8,6 @@ definitions:
 - RectAlign: &RectCentered 0
 - RectAlign: &RectTopLeft 1
 
-Name: "testmenu"
 Root:
   Children:
   - Type: "textbox"

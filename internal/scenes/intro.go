@@ -11,10 +11,6 @@ type IntroScene struct {
 	UI *ui.UI
 }
 
-func (i *IntroScene) Init() {
-	i.UI.SwitchActiveDisplay("intro", nil)
-}
-
 func (i *IntroScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
 	i.UI.Update()
 	confirmations := i.UI.GetConfirmations()
@@ -28,12 +24,11 @@ func (i *IntroScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 	return nil, false
 }
 
+func (i *IntroScene) Init()           {}
 func (i *IntroScene) Draw()           { i.UI.Draw() }
 func (i *IntroScene) GetName() string { return "introScene" }
 func MakeIntroScene() *IntroScene {
-	introScene := IntroScene{}
-	introScreenLayer := errs.Must(assettypes.GetYamlAsset("introScreen")).(*ui.Layer)
-
-	introScene.UI = ui.NewUI([]*ui.Layer{introScreenLayer}, make(map[string]*ui.Overlay))
-	return &introScene
+	return &IntroScene{
+		UI: errs.Must(assettypes.GetYamlAsset("introScreen")).(*ui.UI),
+	}
 }

@@ -6,8 +6,6 @@ definitions:
 - ScreenAlign: &Centered 0
 - ScreenAlign: &TopLeft 1
 
-Name: "hud"
-
 Root:
   Children:
   - Type: "textbox"

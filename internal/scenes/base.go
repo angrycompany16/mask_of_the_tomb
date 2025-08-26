@@ -29,11 +29,7 @@ func (m *BaseScene) Init() {
 }
 
 func (m *BaseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
-	// Not sure if this should really be here
-	// m.musicPlayer.ResetMusic()
-	// if resources.DebugMode {
-	// 	ebitenutil.DebugPrint(rendering.ScreenLayers.Overlay, fmt.Sprintf("TPS: %0.2f \nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
-	// }
+	m.musicPlayer.ResetMusicVolume()
 	events.Update()
 
 	if !m.lock {

@@ -26,7 +26,7 @@ type LoadingScene struct {
 }
 
 func (l *LoadingScene) Init() {
-	l.UI.LoadPreamble(loadingScreenPath)
+	// l.UI.LoadPreamble(loadingScreenPath)
 
 	assetloader.Add("any", assettypes.NewDelayAsset(time.Second))
 
@@ -51,12 +51,12 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("playerIdleAnim", assettypes.MakeYamlAsset(assets.Player_idle_yaml, &animation.AnimationInfo{}))
 	assetloader.Add("playerSlamAnim", assettypes.MakeYamlAsset(assets.Player_slam_yaml, &animation.AnimationInfo{}))
 
-	assetloader.Add("mainMenu", assettypes.MakeYamlAsset(assets.Main_menu_yaml, &ui.Layer{}))
-	assetloader.Add("pauseMenu", assettypes.MakeYamlAsset(assets.Pause_menu_yaml, &ui.Layer{}))
-	assetloader.Add("optionsMenu", assettypes.MakeYamlAsset(assets.Options_yaml, &ui.Layer{}))
-	assetloader.Add("introScreen", assettypes.MakeYamlAsset(assets.Intro_yaml, &ui.Layer{}))
-	assetloader.Add("emptyMenu", assettypes.MakeYamlAsset(assets.Empty_yaml, &ui.Layer{}))
-	assetloader.Add("hud", assettypes.MakeYamlAsset(assets.Hud_yaml, &ui.Layer{}))
+	assetloader.Add("mainMenu", assettypes.MakeYamlAsset(assets.Main_menu_yaml, &ui.UI{}))
+	assetloader.Add("pauseMenu", assettypes.MakeYamlAsset(assets.Pause_menu_yaml, &ui.UI{}))
+	assetloader.Add("optionsMenu", assettypes.MakeYamlAsset(assets.Options_yaml, &ui.UI{}))
+	assetloader.Add("introScreen", assettypes.MakeYamlAsset(assets.Intro_yaml, &ui.UI{}))
+	assetloader.Add("emptyMenu", assettypes.MakeYamlAsset(assets.Empty_yaml, &ui.UI{}))
+	assetloader.Add("hud", assettypes.MakeYamlAsset(assets.Hud_yaml, &ui.UI{}))
 
 	assetloader.Add("menuTheme", assettypes.MakeAudioStreamAsset(assets.Menu_mp3, assettypes.Mp3))
 	assetloader.Add("basementTheme", assettypes.MakeAudioStreamAsset(assets.Basement_wav, assettypes.Wav))
@@ -91,7 +91,7 @@ func (l *LoadingScene) Draw()           { l.UI.Draw() }
 func (l *LoadingScene) GetName() string { return "loadingScene" }
 func MakeLoadingScene() *LoadingScene {
 	return &LoadingScene{
-		UI:               ui.NewUI(make([]*ui.Layer, 0), make(map[string]*ui.Overlay)),
+		UI:               ui.LoadPreambleUI(loadingScreenPath),
 		loadFinishedChan: make(chan int),
 	}
 }

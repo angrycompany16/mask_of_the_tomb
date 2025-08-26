@@ -7,6 +7,9 @@ import (
 	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/libraries/node"
 	ui "mask_of_the_tomb/internal/plugins/UI"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type OptionsScene struct {
@@ -15,7 +18,7 @@ type OptionsScene struct {
 }
 
 func (o *OptionsScene) Init() {
-	o.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
+	o.UI.Reset(map[string]node.OverWriteInfo{
 		"Master_vol": {SliderVal: resources.Settings.MasterVolume},
 		"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
 		"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
@@ -26,7 +29,8 @@ func (o *OptionsScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransit
 	o.UI.Update()
 	confirmations := o.UI.GetConfirmations()
 
-	if confirm, ok := confirmations["Back"]; ok && confirm.IsConfirmed {
+	if confirm, ok := confirmations["Back"]; ok && confirm.IsConfirmed ||
+		inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return &scene.SceneTransition{
 			Kind:       scene.Replace,
 			Name:       o.GetName(),
@@ -46,11 +50,8 @@ func (o *OptionsScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransit
 func (o *OptionsScene) Draw()           { o.UI.Draw() }
 func (o *OptionsScene) GetName() string { return "optionsScene" }
 func MakeOptionsScene(lastScene scene.Scene) *OptionsScene {
-	optionsMenu := errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.Layer)
-	// pauseMenuLayer := errs.Must(assettypes.GetYamlAsset("pauseMenu")).(*ui.Layer)
-
 	return &OptionsScene{
-		UI:        ui.NewUI([]*ui.Layer{optionsMenu}, make(map[string]*ui.Overlay)),
+		UI:        errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.UI),
 		lastScene: lastScene,
 	}
 }

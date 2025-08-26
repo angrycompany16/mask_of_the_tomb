@@ -49,18 +49,18 @@ func (g *GameplayScene) Init() {
 		(rendering.GAME_HEIGHT-playerHeight)/2,
 	)
 
-	g.UI.SwitchActiveDisplay("hud", nil)
-
-	g.UI.AddOverlay("screenfade", ui.NewOverlay(ui.NewScreenFade(), time.Second*2))
-	g.UI.AddOverlay("titlecard", ui.NewOverlay(ui.NewTitleCard(), time.Second*2))
-	g.UI.AddOverlay("levelcard", ui.NewOverlay(ui.NewLevelCard(), time.Second))
-
-	screenFade := g.UI.GetOverlay("screenfade")
+	screenFade := ui.NewOverlay(ui.NewScreenFade(), time.Second*2)
 	g.deathEffectEnterListener = events.NewEventListener(screenFade.OnFinishEnter)
-	titleCard := g.UI.GetOverlay("titlecard")
+	g.UI.AddOverlay("screenfade", screenFade)
+
+	titleCard := ui.NewOverlay(ui.NewTitleCard(), time.Second*2)
 	g.titleCardTimeoutListener = events.NewEventListener(titleCard.OnIdleTimeout)
-	levelCard := g.UI.GetOverlay("levelcard")
+	g.UI.AddOverlay("titlecard", titleCard)
+
+	levelCard := ui.NewOverlay(ui.NewLevelCard(), time.Second)
 	g.levelCardTimeoutListener = events.NewEventListener(levelCard.OnIdleTimeout)
+	g.UI.AddOverlay("levelcard", levelCard)
+
 	g.playerMoveListener = events.NewEventListener(g.player.OnMove)
 }
 
@@ -173,10 +173,8 @@ func (g *GameplayScene) Draw() {
 
 func (g *GameplayScene) GetName() string { return "gameplayScene" }
 func MakeGameplayScene() *GameplayScene {
-	hudLayer := errs.Must(assettypes.GetYamlAsset("hud")).(*ui.Layer)
-
 	return &GameplayScene{
-		UI:     ui.NewUI([]*ui.Layer{hudLayer}, make(map[string]*ui.Overlay)),
+		UI:     errs.Must(assettypes.GetYamlAsset("hud")).(*ui.UI),
 		player: player.NewPlayer(),
 		world:  world.NewWorld(),
 	}

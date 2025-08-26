@@ -17,17 +17,14 @@ type PauseScene struct {
 	UI *ui.UI
 }
 
-func (p *PauseScene) Init() {
-	p.UI.SwitchActiveDisplay("pausemenu", nil)
-}
-
 func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
 	p.UI.Update()
 	confirmations := p.UI.GetConfirmations()
 
-	if confirm, ok := confirmations["Resume"]; ok && confirm.IsConfirmed || inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+	if confirm, ok := confirmations["Resume"]; ok && confirm.IsConfirmed ||
+		inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return &scene.SceneTransition{
-			Kind: scene.Pop, // A bit sloppy
+			Kind: scene.Pop,
 		}, true
 	} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
 		save.SaveGame(save.SaveData{resources.PreviousLevelName, resources.Settings}, SaveProfile)
@@ -37,7 +34,7 @@ func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 		} else {
 			fmt.Println("Could not find gameplay scene")
 		}
-		// TODO: finish
+
 		return &scene.SceneTransition{
 			Kind:       scene.Replace,
 			Name:       "gameplayScene",
@@ -49,32 +46,16 @@ func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 			Name:       p.GetName(),
 			OtherScene: MakeOptionsScene(p),
 		}, true
-		// p.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
-		// 	"Master_vol": {SliderVal: resources.Settings.MasterVolume},
-		// 	"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
-		// 	"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
-		// })
-	} else if confirm, ok := confirmations["Back"]; ok && confirm.IsConfirmed {
-		p.UI.SwitchActiveDisplay("pausemenu", nil)
 	}
 
-	if confirm, ok := confirmations["Master_vol"]; ok && confirm.IsConfirmed {
-		resources.Settings.MasterVolume = confirm.SliderVal
-	} else if confirm, ok := confirmations["Music_vol"]; ok && confirm.IsConfirmed {
-		resources.Settings.MusicVolume = confirm.SliderVal
-	} else if confirm, ok := confirmations["Sound_vol"]; ok && confirm.IsConfirmed {
-		resources.Settings.SoundVolume = confirm.SliderVal
-	}
 	return nil, false
 }
 
+func (p *PauseScene) Init()           { p.UI.Reset(nil) }
 func (p *PauseScene) Draw()           { p.UI.Draw() }
 func (p *PauseScene) GetName() string { return "pauseScene" }
 func MakePauseScene() *PauseScene {
-	pauseMenuLayer := errs.Must(assettypes.GetYamlAsset("pauseMenu")).(*ui.Layer)
-	optionsMenuLayer := errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.Layer)
-
 	return &PauseScene{
-		UI: ui.NewUI([]*ui.Layer{pauseMenuLayer, optionsMenuLayer}, make(map[string]*ui.Overlay)),
+		UI: errs.Must(assettypes.GetYamlAsset("pauseMenu")).(*ui.UI),
 	}
 }

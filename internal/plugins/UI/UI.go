@@ -1,64 +1,54 @@
 package ui
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader"
+	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/libraries/node"
+	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 type UI struct {
-	activeLayer *Layer
-	layers      []*Layer
-	overlays    map[string]*Overlay
+	Root          node.Root `yaml:"Root"`
+	overlays      map[string]*Overlay
+	confirmations map[string]node.ConfirmInfo
 }
 
 // Create asset groups that can be loaded with a single function call?
 // Loads a single menu file and sets it as the active menu
 // TODO: Some problems here. First, the font loading is a bit dumb (why is it the way it is?)
 // Second, we should probably just use the standard asset loading for this too
-func (ui *UI) LoadPreamble(path string) {
+func LoadPreambleUI(path string) *UI {
 	assetloader.LoadPreamble()
-	loadingscreen, err := FromFile(path)
+
+	ui := UI{}
+	file, err := os.Open(path)
 	if err != nil {
-		panic(err)
+		return nil
 	}
+	defer file.Close()
 
-	ui.activeLayer = loadingscreen
-}
-
-func (ui *UI) Load(paths ...string) {
-	for _, path := range paths {
-		ui.layers = append(ui.layers, NewLayerAsset(path))
+	err = yaml.NewDecoder(file).Decode(&ui)
+	if err != nil {
+		return nil
 	}
-}
-
-func (ui *UI) AddDisplayManual(display *Layer) {
-	ui.layers = append(ui.layers, display)
-	ui.activeLayer = display
+	return &ui
 }
 
 func (ui *UI) AddOverlay(name string, overlay *Overlay) {
+	if ui.overlays == nil {
+		ui.overlays = make(map[string]*Overlay)
+	}
 	ui.overlays[name] = overlay
 }
 
 func (ui *UI) Update() {
-	ui.activeLayer.Update()
+	ui.confirmations = make(map[string]node.ConfirmInfo)
+	ui.Root.Update(ui.confirmations)
 	for _, overlay := range ui.overlays {
 		overlay.Update()
 	}
-}
-
-func (ui *UI) SwitchActiveDisplay(name string, overWriteInfo map[string]node.OverWriteInfo) {
-	for _, menu := range ui.layers {
-		if menu.Name != name {
-			continue
-		}
-		ui.activeLayer = menu
-		ui.activeLayer.Root.Reset(overWriteInfo)
-		return
-	}
-
-	panic(fmt.Sprintln("Failed to switch to menu with name", name))
 }
 
 func (ui *UI) GetOverlay(name string) *Overlay {
@@ -66,23 +56,22 @@ func (ui *UI) GetOverlay(name string) *Overlay {
 }
 
 func (ui *UI) Draw() {
-	ui.activeLayer.Draw()
+	ui.Root.Draw(0, 0, rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
+
 	for _, overlay := range ui.overlays {
 		overlay.Draw()
 	}
 }
 
 func (ui *UI) GetConfirmations() map[string]node.ConfirmInfo {
-	return ui.activeLayer.GetConfirmed()
+	return ui.confirmations
 }
 
 func (ui *UI) GetSubmits() map[string]string {
-	return ui.activeLayer.GetSubmitted()
+	// TODO: Implement??
+	return nil
 }
 
-func NewUI(layers []*Layer, overlays map[string]*Overlay) *UI {
-	return &UI{
-		layers:   layers,
-		overlays: overlays,
-	}
+func (ui *UI) Reset(overWriteInfo map[string]node.OverWriteInfo) {
+	ui.Root.Reset(overWriteInfo)
 }

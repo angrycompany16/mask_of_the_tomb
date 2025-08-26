@@ -6,7 +6,6 @@ definitions:
 - ScreenAlign: &Centered 0
 - ScreenAlign: &TopLeft 1
 
-Name: "mainUI"
 Root:
   Children:
   - Type: "textbox"
