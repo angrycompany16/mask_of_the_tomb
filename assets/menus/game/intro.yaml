@@ -22,8 +22,9 @@ Root:
     Name: "Introtext"
     RevealTime: 0.04
     Lines:
-    - "Fall, little one"
-    - "Be lost in the deep, be swallowed by gloom and darkness"
-    - "Quietly, you will ascend from the abyss."
+    - "Line 1"
+    # - "Fall, little one"
+    # - "Be lost in the deep, be swallowed by gloom and darkness"
+    # - "Quietly, you will ascend from the abyss."
     DialogueSound: dialogueSound
 ...

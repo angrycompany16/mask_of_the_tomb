@@ -14,7 +14,6 @@ type SceneStack struct {
 
 func (s *SceneStack) Update() bool {
 	for _, scene := range s.stack {
-		// fmt.Println("Updating scene", scene.GetName())
 		// TODO: Validate transition: For instance, insure that if the operation is not Pop or PopN, a
 		// scene was supplied.
 		transition, ok := scene.Update(s)
@@ -37,6 +36,7 @@ func (s *SceneStack) Draw() {
 func (s *SceneStack) Switch(transition *SceneTransition) {
 	switch transition.Kind {
 	case Replace:
+		// Loop through
 		s.stack = s.stack[:len(s.stack)-1]
 		s.Push(transition.OtherScene)
 	case Push:
@@ -46,14 +46,16 @@ func (s *SceneStack) Switch(transition *SceneTransition) {
 	case PopN:
 		s.stack = s.stack[:len(s.stack)-transition.N]
 	case PopName:
-		n := len(s.stack)
-		for i := len(s.stack); i > 0; i-- {
-			n--
+		n := len(s.stack) - 1
+		for i := len(s.stack) - 1; i >= 0; i-- {
+			fmt.Println(s.stack[i].GetName())
 			if s.stack[i].GetName() == transition.Name {
+				fmt.Println(s.stack)
+				n = i
 				break
 			}
 		}
-		s.stack = s.stack[:len(s.stack)-n]
+		s.stack = s.stack[:n-1]
 	}
 }
 

@@ -1,7 +1,6 @@
 package node
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/maths"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -32,16 +31,12 @@ func (s *SelectList) Update(confirmations map[string]ConfirmInfo) {
 
 	for i, child := range s.Children {
 		selectable := child.Node.(selectable)
-		fmt.Println("Updating seleactable", i)
-		fmt.Println("selector pos", s.SelectorPos)
 		if i == s.SelectorPos {
 			selectable.SetSelected()
 		} else {
 			selectable.SetDeselected()
 		}
-		fmt.Println("selectable:", selectable)
 		i++
-		fmt.Println("Finished updating seleactable", i)
 	}
 }
 

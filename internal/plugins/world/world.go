@@ -3,6 +3,7 @@ package world
 import (
 	"fmt"
 	"mask_of_the_tomb/assets"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
@@ -31,7 +32,9 @@ type World struct {
 }
 
 func NewWorld() *World {
-	return &World{}
+	return &World{
+		worldLDTK: errs.Must(assettypes.GetLDTKAsset("LDTKAsset")),
+	}
 }
 
 func (w *World) Init(initLevelName string, gameData save.SaveData) {
@@ -42,7 +45,7 @@ func (w *World) Init(initLevelName string, gameData save.SaveData) {
 			initLevelName = gameData.SpawnRoomName
 		}
 	}
-
+	fmt.Println(w)
 	ChangeActiveLevel(w, initLevelName, "")
 }
 
@@ -57,6 +60,7 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 
 	switch levelId := any(id).(type) {
 	case string:
+		fmt.Println("world:", newLevelLDTK)
 		newLevelLDTK, err = world.worldLDTK.GetLevelByName(levelId)
 		if err != nil {
 			fmt.Println("Couldn't switch levels by name (id string), trying Iid...")

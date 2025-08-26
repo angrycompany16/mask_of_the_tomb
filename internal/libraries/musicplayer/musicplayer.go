@@ -30,13 +30,13 @@ type MusicPlayer struct {
 }
 
 func (m *MusicPlayer) Init() {
-	menuThemeStream := errs.Must(assettypes.GetMp3Stream("menuTheme"))
-	basementThemeStream := errs.Must(assettypes.GetWavStream("basementTheme"))
-	libraryThemeStream := errs.Must(assettypes.GetMp3Stream("libraryTheme"))
+	// menuThemeStream := errs.Must(assettypes.GetMp3Stream("menuTheme"))
+	// basementThemeStream := errs.Must(assettypes.GetWavStream("basementTheme"))
+	// libraryThemeStream := errs.Must(assettypes.GetMp3Stream("libraryTheme"))
 
-	m.songs["menuTheme"] = errs.Must(sound.FromStream(menuThemeStream))
-	m.songs["basementTheme"] = errs.Must(sound.FromStream(basementThemeStream))
-	m.songs["libraryTheme"] = errs.Must(sound.FromStream(libraryThemeStream))
+	// m.songs["menuTheme"] = errs.Must(sound.FromStream(menuThemeStream))
+	// m.songs["basementTheme"] = errs.Must(sound.FromStream(basementThemeStream))
+	// m.songs["libraryTheme"] = errs.Must(sound.FromStream(libraryThemeStream))
 }
 
 func (m *MusicPlayer) PlayMenuMusic() {
@@ -107,7 +107,7 @@ func NewMusicPlayer() *MusicPlayer {
 	}
 
 	menuStream := errs.Must(assettypes.GetMp3Stream("menuTheme"))
-	basementStream := errs.Must(assettypes.GetOggStream("basementTheme"))
+	basementStream := errs.Must(assettypes.GetWavStream("basementTheme"))
 	libraryStream := errs.Must(assettypes.GetMp3Stream("libraryTheme"))
 
 	musicPlayer.songs["menuTheme"] = errs.Must(sound.FromStream(menuStream))

@@ -30,10 +30,8 @@ type GameplayScene struct {
 }
 
 func (g *GameplayScene) Init() {
-	g.player = player.NewPlayer()
-	g.world = world.NewWorld()
-
 	gameData := errs.Must(save.GetSaveAsset("saveData"))
+	fmt.Println(g.world)
 	g.world.Init(InitLevelName, gameData)
 
 	resetX, resetY := g.world.ActiveLevel.GetResetPoint()
@@ -49,9 +47,6 @@ func (g *GameplayScene) Init() {
 		(rendering.GAME_HEIGHT-playerHeight)/2,
 	)
 
-	hudLayer := errs.Must(assettypes.GetYamlAsset("hud")).(*ui.Layer)
-
-	g.UI = ui.NewUI([]*ui.Layer{hudLayer}, make(map[string]*ui.Overlay))
 	g.UI.SwitchActiveDisplay("hud", nil)
 
 	g.UI.AddOverlay("screenfade", ui.NewOverlay(ui.NewScreenFade(), time.Second*2))
@@ -150,7 +145,7 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return &scene.SceneTransition{
 			Kind:       scene.Push,
-			OtherScene: &PauseScene{},
+			OtherScene: MakePauseScene(),
 		}, true
 	}
 
@@ -176,3 +171,12 @@ func (g *GameplayScene) Draw() {
 }
 
 func (g *GameplayScene) GetName() string { return "gameplayScene" }
+func MakeGameplayScene() *GameplayScene {
+	hudLayer := errs.Must(assettypes.GetYamlAsset("hud")).(*ui.Layer)
+
+	return &GameplayScene{
+		UI:     ui.NewUI([]*ui.Layer{hudLayer}, make(map[string]*ui.Overlay)),
+		player: player.NewPlayer(),
+		world:  world.NewWorld(),
+	}
+}

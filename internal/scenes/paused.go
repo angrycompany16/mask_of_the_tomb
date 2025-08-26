@@ -19,14 +19,11 @@ type PauseScene struct {
 }
 
 func (p *PauseScene) Init() {
-	pauseMenuLayer := errs.Must(assettypes.GetYamlAsset("pauseMenu")).(*ui.Layer)
-	optionsMenuLayer := errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.Layer)
-
-	p.UI = ui.NewUI([]*ui.Layer{pauseMenuLayer, optionsMenuLayer}, make(map[string]*ui.Overlay))
 	p.UI.SwitchActiveDisplay("pausemenu", nil)
 }
 
 func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
+	p.UI.Update()
 	confirmations := p.UI.GetConfirmations()
 
 	if confirm, ok := confirmations["Resume"]; ok && confirm.IsConfirmed || inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
@@ -36,14 +33,16 @@ func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 	} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
 		save.SaveGame(save.SaveData{resources.PreviousLevelName, resources.Settings}, SaveProfile)
 
-		if gameplayScene, ok := sceneStack.GetScene("musicScene"); ok {
+		if gameplayScene, ok := sceneStack.GetScene("gameplayScene"); ok {
 			InitLevelName = gameplayScene.(*GameplayScene).world.ActiveLevel.GetName()
 		} else {
 			fmt.Println("Could not find gameplay scene")
 		}
+		// TODO: finish
 		return &scene.SceneTransition{
-			Kind: scene.PopName,
-			Name: "menuScene",
+			Kind:       scene.Replace,
+			Name:       "introScene",
+			OtherScene: MakeMenuScene(),
 		}, true
 	} else if confirm, ok := confirmations["Options"]; ok && confirm.IsConfirmed {
 		p.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
@@ -67,3 +66,11 @@ func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 
 func (p *PauseScene) Draw()           { p.UI.Draw() }
 func (p *PauseScene) GetName() string { return "pauseScene" }
+func MakePauseScene() *PauseScene {
+	pauseMenuLayer := errs.Must(assettypes.GetYamlAsset("pauseMenu")).(*ui.Layer)
+	optionsMenuLayer := errs.Must(assettypes.GetYamlAsset("optionsMenu")).(*ui.Layer)
+
+	return &PauseScene{
+		UI: ui.NewUI([]*ui.Layer{pauseMenuLayer, optionsMenuLayer}, make(map[string]*ui.Overlay)),
+	}
+}

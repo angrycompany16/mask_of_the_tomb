@@ -11,12 +11,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+// Not great, but cannot find a better solution
+var DialogueSound *sound.EffectPlayer
+
 type Dialogue struct {
 	Textbox         `yaml:",inline"`
 	Name            string   `yaml:"Name"`
 	RevealTime      float64  `yaml:"RevealTime"`
 	Lines           []string `yaml:"Lines"`
-	dialogueSound   *sound.EffectPlayer
 	revealTicker    *time.Ticker
 	activeLine      int
 	revealIndicator int
@@ -57,8 +59,8 @@ func (d *Dialogue) Update(confirmations map[string]ConfirmInfo) {
 			return
 		}
 
-		if d.dialogueSound != nil {
-			d.dialogueSound.Play()
+		if DialogueSound != nil {
+			DialogueSound.Play()
 		} else {
 			fmt.Println("Dialogue sound is nil, please fix")
 		}

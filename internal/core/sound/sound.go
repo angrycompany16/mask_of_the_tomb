@@ -1,7 +1,6 @@
 package sound
 
 import (
-	"fmt"
 	"io"
 	"mask_of_the_tomb/internal/core/resources"
 
@@ -15,19 +14,15 @@ type EffectPlayer struct {
 }
 
 func (e *EffectPlayer) Play() {
-	fmt.Println("Playing sound")
 	e.Player.SetVolume(e.Volume * resources.Settings.MasterVolume * resources.Settings.SoundVolume / 20000.0)
-	fmt.Println("We managed to set the colume level")
 
-	// if e.IsPlaying() {
-	// 	go playAudio(*e.Player)
-	// 	return
-	// }
-
-	if !e.IsPlaying() {
-		e.Rewind()
-		e.Player.Play()
+	if e.IsPlaying() {
+		go playAudio(*e.Player)
+		return
 	}
+
+	e.Rewind()
+	e.Player.Play()
 }
 
 func playAudio(player audio.Player) {

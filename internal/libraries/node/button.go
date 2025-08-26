@@ -17,7 +17,6 @@ type Button struct {
 	NormalColor   colors.ColorPair `yaml:"NormalColor"`
 	SelectedColor colors.ColorPair `yaml:"SelectedColor"`
 	Name          string           `yaml:"Name"`
-	selectSound   *sound.EffectPlayer
 	selected      bool
 }
 
@@ -31,8 +30,8 @@ func (b *Button) SetSelected() {
 	// switchActiveDisplay(), because that calls reset which sets the
 	// selector pos to 0. Pls fix
 	if !b.selected {
-		if b.selectSound != nil {
-			b.selectSound.Play()
+		if SelectSound != nil {
+			SelectSound.Play()
 		} else {
 			fmt.Println("selectSound was nil, no sound will be played")
 		}

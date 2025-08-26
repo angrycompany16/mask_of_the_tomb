@@ -20,13 +20,10 @@ type MenuScene struct {
 
 func (m *MenuScene) Init() {
 	m.UI.SwitchActiveDisplay("mainmenu", nil)
-	fmt.Println("Init menu")
 }
 
 func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
-	fmt.Println("Update")
 	m.UI.Update()
-	fmt.Println("Updated")
 
 	confirmations := m.UI.GetConfirmations()
 
@@ -44,12 +41,12 @@ func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 		if gameData.SpawnRoomName == "" {
 			return &scene.SceneTransition{
 				Kind:       scene.Replace,
-				OtherScene: &IntroSceneBehaviour{},
+				OtherScene: MakeIntroScene(),
 			}, true
 		} else {
 			return &scene.SceneTransition{
 				Kind:       scene.Replace,
-				OtherScene: &GameplayScene{},
+				OtherScene: MakeGameplayScene(),
 			}, true
 		}
 	} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
