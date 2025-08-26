@@ -37,8 +37,10 @@ func (s *SceneStack) Switch(transition *SceneTransition) {
 	switch transition.Kind {
 	case Replace:
 		// Loop through
-		s.stack = s.stack[:len(s.stack)-1]
-		s.Push(transition.OtherScene)
+		if _, n, ok := s.GetScene(transition.Name); ok {
+			s.stack = s.stack[:n]
+			s.Push(transition.OtherScene)
+		}
 	case Push:
 		s.Push(transition.OtherScene)
 	case Pop:
@@ -59,14 +61,14 @@ func (s *SceneStack) Switch(transition *SceneTransition) {
 	}
 }
 
-func (s *SceneStack) GetScene(name string) (Scene, bool) {
-	for _, scene := range s.stack {
+func (s *SceneStack) GetScene(name string) (Scene, int, bool) {
+	for i, scene := range s.stack {
 		if scene.GetName() == name {
-			return scene, true
+			return scene, i, true
 		}
 	}
 	fmt.Println("Could not find scene with name", name)
-	return nil, false
+	return nil, 0, false
 }
 
 func (s *SceneStack) Push(scene Scene) {

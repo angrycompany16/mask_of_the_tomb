@@ -6,7 +6,6 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/scene"
-	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 
@@ -27,8 +26,9 @@ func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 
 	confirmations := m.UI.GetConfirmations()
 
-	if musicScene, ok := sceneStack.GetScene("musicScene"); ok {
+	if musicScene, _, ok := sceneStack.GetScene("musicScene"); ok {
 		musicScene.(*BaseScene).musicPlayer.PlayMenuMusic()
+		musicScene.(*BaseScene).musicPlayer.ResetMusicVolume()
 	} else {
 		fmt.Println("Music player was not found in main menu")
 	}
@@ -41,11 +41,13 @@ func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 		if gameData.SpawnRoomName == "" {
 			return &scene.SceneTransition{
 				Kind:       scene.Replace,
+				Name:       m.GetName(),
 				OtherScene: MakeIntroScene(),
 			}, true
 		} else {
 			return &scene.SceneTransition{
 				Kind:       scene.Replace,
+				Name:       m.GetName(),
 				OtherScene: MakeGameplayScene(),
 			}, true
 		}
@@ -53,11 +55,16 @@ func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 		save.SaveGame(save.SaveData{resources.PreviousLevelName, resources.Settings}, SaveProfile)
 		return &scene.SceneTransition{Kind: scene.Quit}, true
 	} else if confirm, ok := confirmations["Options"]; ok && confirm.IsConfirmed {
-		m.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
-			"Master_vol": {SliderVal: resources.Settings.MasterVolume},
-			"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
-			"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
-		})
+		return &scene.SceneTransition{
+			Kind:       scene.Replace,
+			Name:       m.GetName(),
+			OtherScene: MakeOptionsScene(m),
+		}, true
+		// m.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
+		// 	"Master_vol": {SliderVal: resources.Settings.MasterVolume},
+		// 	"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
+		// 	"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
+		// })
 	} else if confirm, ok := confirmations["Back"]; ok && confirm.IsConfirmed {
 		m.UI.SwitchActiveDisplay("mainmenu", nil)
 	}

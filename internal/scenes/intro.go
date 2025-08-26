@@ -21,6 +21,7 @@ func (i *IntroScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 	if confirm, ok := confirmations["Introtext"]; ok && confirm.IsConfirmed {
 		return &scene.SceneTransition{
 			Kind:       scene.Replace,
+			Name:       i.GetName(),
 			OtherScene: MakeGameplayScene(),
 		}, true
 	}

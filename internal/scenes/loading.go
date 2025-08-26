@@ -80,6 +80,7 @@ func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransit
 
 		return &scene.SceneTransition{
 			Kind:       scene.Replace,
+			Name:       l.GetName(),
 			OtherScene: MakeBaseScene(),
 		}, true
 	}

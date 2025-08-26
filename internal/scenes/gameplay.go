@@ -1,5 +1,7 @@
 package scenes
 
+// Now we change all the ui layers into different scenes...
+
 import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
@@ -63,9 +65,8 @@ func (g *GameplayScene) Init() {
 }
 
 func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
-	// How to fix?
-	// This can probably be solved with an event or message
-	if musicScene, ok := sceneStack.GetScene("musicScene"); ok {
+	// TODO: Find a way to pause the game while in the menu screen
+	if musicScene, _, ok := sceneStack.GetScene("musicScene"); ok {
 		musicScene.(*BaseScene).musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
 	} else {
 		fmt.Println("Music player was not found in game")

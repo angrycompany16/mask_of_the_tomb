@@ -6,7 +6,6 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/scene"
-	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 
@@ -33,7 +32,7 @@ func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 	} else if confirm, ok := confirmations["Quit"]; ok && confirm.IsConfirmed {
 		save.SaveGame(save.SaveData{resources.PreviousLevelName, resources.Settings}, SaveProfile)
 
-		if gameplayScene, ok := sceneStack.GetScene("gameplayScene"); ok {
+		if gameplayScene, _, ok := sceneStack.GetScene("gameplayScene"); ok {
 			InitLevelName = gameplayScene.(*GameplayScene).world.ActiveLevel.GetName()
 		} else {
 			fmt.Println("Could not find gameplay scene")
@@ -41,15 +40,20 @@ func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 		// TODO: finish
 		return &scene.SceneTransition{
 			Kind:       scene.Replace,
-			Name:       "introScene",
+			Name:       "gameplayScene",
 			OtherScene: MakeMenuScene(),
 		}, true
 	} else if confirm, ok := confirmations["Options"]; ok && confirm.IsConfirmed {
-		p.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
-			"Master_vol": {SliderVal: resources.Settings.MasterVolume},
-			"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
-			"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
-		})
+		return &scene.SceneTransition{
+			Kind:       scene.Replace,
+			Name:       p.GetName(),
+			OtherScene: MakeOptionsScene(p),
+		}, true
+		// p.UI.SwitchActiveDisplay("options", map[string]node.OverWriteInfo{
+		// 	"Master_vol": {SliderVal: resources.Settings.MasterVolume},
+		// 	"Music_vol":  {SliderVal: resources.Settings.MusicVolume},
+		// 	"Sound_vol":  {SliderVal: resources.Settings.SoundVolume},
+		// })
 	} else if confirm, ok := confirmations["Back"]; ok && confirm.IsConfirmed {
 		p.UI.SwitchActiveDisplay("pausemenu", nil)
 	}
