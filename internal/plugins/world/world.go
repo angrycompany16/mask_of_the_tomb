@@ -60,7 +60,6 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 
 	switch levelId := any(id).(type) {
 	case string:
-		fmt.Println("world:", newLevelLDTK)
 		newLevelLDTK, err = world.worldLDTK.GetLevelByName(levelId)
 		if err != nil {
 			fmt.Println("Couldn't switch levels by name (id string), trying Iid...")

@@ -33,7 +33,6 @@ type GameplayScene struct {
 
 func (g *GameplayScene) Init() {
 	gameData := errs.Must(save.GetSaveAsset("saveData"))
-	fmt.Println(g.world)
 	g.world.Init(InitLevelName, gameData)
 
 	resetX, resetY := g.world.ActiveLevel.GetResetPoint()

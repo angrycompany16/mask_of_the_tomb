@@ -50,9 +50,7 @@ func (s *SceneStack) Switch(transition *SceneTransition) {
 	case PopName:
 		n := len(s.stack) - 1
 		for i := len(s.stack) - 1; i >= 0; i-- {
-			fmt.Println(s.stack[i].GetName())
 			if s.stack[i].GetName() == transition.Name {
-				fmt.Println(s.stack)
 				n = i
 				break
 			}
