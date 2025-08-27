@@ -35,6 +35,7 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("grassTilemap", assettypes.MakeImageAsset(assets.Grass_png))
 	assetloader.Add("turretSprite", assettypes.MakeImageAsset(assets.Turret_png))
 	assetloader.Add("catcherSprite", assettypes.MakeImageAsset(assets.Catcher_png))
+	assetloader.Add("lanternSprite", assettypes.MakeImageAsset(assets.Lantern_png))
 	assetloader.Add("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))
 	assetloader.Add("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))
 	assetloader.Add("pixelLightsShader", assettypes.MakeShaderAsset(assets.Pixel_lights_kage))

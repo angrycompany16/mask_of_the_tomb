@@ -40,6 +40,7 @@ const (
 	turretEntityName       = "TurretEnemy"
 	catcherEntityName      = "Catcher"
 	platformEntityName     = "OneWayPlatform"
+	lanternEntityName      = "Lantern"
 	levelTitleFieldName    = "Title"
 )
 
@@ -88,6 +89,7 @@ type Level struct {
 	turrets                  []*entities.Turret
 	catchers                 []*entities.Catcher
 	platforms                []*entities.Platform
+	lanterns                 []*entities.Lantern
 }
 
 // ------ CONSTRUCTOR ------
@@ -164,6 +166,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
 		case platformEntityName:
 			newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
+		case lanternEntityName:
+			newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
 		}
 	}
 
@@ -297,7 +301,11 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 	}
 
 	for _, catcher := range l.catchers {
-		catcher.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+		catcher.Draw(rendering.WithLayer(ctx, l.frameLayers.Midground))
+	}
+
+	for _, lantern := range l.lanterns {
+		lantern.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
 	ebitenrenderutil.DrawAt(l.tileLayers.Playerspace, l.frameLayers.Playerspace, 0, 0)
@@ -517,6 +525,8 @@ func (l *Level) GetShaderOp(ctx rendering.Ctx, src *ebiten.Image) ebiten.DrawRec
 
 	shakeX, shakeY := camera.GetShake()
 
+	// TODO: We want to create an interface that allows us to essentially pass structured data
+	// into the shader, we just need to convert it into simple uniforms
 	shaderOp.Uniforms = map[string]any{
 		"CamShake":     [2]float64{shakeX, shakeY},
 		"Time":         resources.Time / 5,

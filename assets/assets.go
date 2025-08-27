@@ -48,6 +48,8 @@ var (
 	Turret_png []byte
 	//go:embed sprites/environment/catcher.png
 	Catcher_png []byte
+	//go:embed sprites/environment/lantern.png
+	Lantern_png []byte
 	//go:embed sprites/UI/level-titlecard.png
 	Level_titlecard_sprite []byte
 	//go:embed particlesystems/jump-tight.yaml
