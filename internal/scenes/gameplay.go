@@ -29,6 +29,7 @@ type GameplayScene struct {
 	titleCardTimeoutListener *events.EventListener
 	levelCardTimeoutListener *events.EventListener
 	playerMoveListener       *events.EventListener
+	paused                   bool
 	// TODO: introduce gametime/globaltime?
 	// this would make it easier to pause the game
 }
@@ -66,7 +67,6 @@ func (g *GameplayScene) Init() {
 }
 
 func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
-	// TODO: Find a way to pause the game while in the menu screen
 	if musicScene, _, ok := sceneStack.GetScene("musicScene"); ok {
 		musicScene.(*BaseScene).musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
 	} else {
@@ -84,6 +84,10 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 	levelcard := g.UI.GetOverlay("levelcard")
 	if _, raised := g.levelCardTimeoutListener.Poll(); raised {
 		levelcard.StartFadeOut()
+	}
+
+	if g.paused {
+		return nil, false
 	}
 
 	velX, velY := g.player.GetMovementSize()
@@ -170,6 +174,7 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 	camera.SetPos(g.player.GetPosCentered())
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		g.paused = true
 		return &scene.SceneTransition{
 			Kind:       scene.Push,
 			OtherScene: MakePauseScene(),

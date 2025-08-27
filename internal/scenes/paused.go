@@ -23,6 +23,11 @@ func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 
 	if confirm, ok := confirmations["Resume"]; ok && confirm.IsConfirmed ||
 		inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		if gameplayScene, _, ok := sceneStack.GetScene("gameplayScene"); ok {
+			fmt.Println("Found gameplay scene")
+			gameplayScene.(*GameplayScene).paused = false
+		}
+
 		return &scene.SceneTransition{
 			Kind: scene.Pop,
 		}, true
