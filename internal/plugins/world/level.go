@@ -39,6 +39,7 @@ const (
 	hazardEntityName       = "Hazard"
 	turretEntityName       = "TurretEnemy"
 	catcherEntityName      = "Catcher"
+	platformEntityName     = "OneWayPlatform"
 	levelTitleFieldName    = "Title"
 )
 
@@ -86,6 +87,7 @@ type Level struct {
 	grassEntities            []entities.Grass
 	turrets                  []*entities.Turret
 	catchers                 []*entities.Catcher
+	platforms                []*entities.Platform
 }
 
 // ------ CONSTRUCTOR ------
@@ -160,6 +162,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
 		case catcherEntityName:
 			newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
+		case platformEntityName:
+			newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
 		}
 	}
 
@@ -180,7 +184,6 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			}
 		}
 		slambox.CreateSprite(errs.Must(assettypes.GetImageAsset("slamboxTilemap")))
-		// slambox.CreateSprite(assetloader.GetAsset("slamboxTilemap").(*assettypes.ImageAsset).Image)
 	}
 
 	// Optimization yeah
@@ -293,6 +296,10 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 		door.Draw(rendering.WithLayer(ctx, l.frameLayers.Midground))
 	}
 
+	for _, catcher := range l.catchers {
+		catcher.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+	}
+
 	ebitenrenderutil.DrawAt(l.tileLayers.Playerspace, l.frameLayers.Playerspace, 0, 0)
 	ebitenrenderutil.DrawAt(l.tileLayers.Midground, l.frameLayers.Midground, 0, 0)
 
@@ -354,6 +361,21 @@ func (l *Level) GetDisconnectedColliders(_slambox *Slambox) []*maths.Rect {
 
 func (l *Level) GetSlamboxRects() []*maths.Rect {
 	return arrays.MapSlice(l.slamboxes, func(s *Slambox) *maths.Rect { return s.Collider })
+}
+
+func (l *Level) GetCatcherRects() []*maths.Rect {
+	return arrays.MapSlice(l.catchers, func(c *entities.Catcher) *maths.Rect { return c.Hitbox })
+}
+
+// Get all the platforms matching the movement direction
+func (l *Level) GetPlatformHitboxes(up bool) []*maths.Rect {
+	hitboxes := make([]*maths.Rect, 0)
+	for _, platform := range l.platforms {
+		if platform.Up == up {
+			hitboxes = append(hitboxes, platform.Hitbox)
+		}
+	}
+	return hitboxes
 }
 
 func (l *Level) GetSlamboxTargetRects() []*maths.Rect {

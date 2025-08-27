@@ -55,7 +55,7 @@ func (m *MusicPlayer) PlayGameMusic(levelBiome string) {
 		m.playSong("libraryTheme")
 	default:
 		m.stopMusic()
-		fmt.Println("Level has no biome, so no song will be played")
+		fmt.Println("No song associated to biome", levelBiome)
 	}
 }
 

@@ -98,6 +98,24 @@ func (r *Rect) Lerp(other *Rect, t float64) Rect {
 	}
 }
 
+func (r *Rect) RaycastDirectional(posX, posY float64, direction Direction) (bool, float64, float64) {
+	if r.IsWithin(posX, posY) {
+		return false, 0, 0
+	}
+
+	switch direction {
+	case DirUp:
+		return posX >= r.Left() && posX <= r.Right() && posY >= r.Top(), r.Left(), r.Top()
+	case DirDown:
+		return posX >= r.Left() && posX <= r.Right() && posY <= r.Bottom(), r.Left(), r.Top()
+	case DirLeft:
+		return posY >= r.Top() && posY <= r.Bottom() && posX >= r.Left(), r.Left(), r.Top()
+	case DirRight:
+		return posY >= r.Top() && posY <= r.Bottom() && posX <= r.Right(), r.Left(), r.Top()
+	}
+	return false, 0, 0
+}
+
 func NewRect(x, y, width, height float64) *Rect {
 	return &Rect{x, y, width, height}
 }

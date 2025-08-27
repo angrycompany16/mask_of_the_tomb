@@ -10,14 +10,16 @@ import (
 	"mask_of_the_tomb/internal/libraries/musicplayer"
 	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
+	"time"
 )
 
 type BaseScene struct {
 	musicPlayer *musicplayer.MusicPlayer
 	lock        bool
+	initTime    time.Time
 }
 
-func (m *BaseScene) Init() {
+func (b *BaseScene) Init() {
 	gameData := errs.Must(save.GetSaveAsset("saveData"))
 	resources.Settings = gameData.Settings
 
@@ -28,12 +30,13 @@ func (m *BaseScene) Init() {
 	node.DialogueSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dialogueSoundStream)), 1.0}
 }
 
-func (m *BaseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
-	m.musicPlayer.ResetMusicVolume()
+func (b *BaseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
+	b.musicPlayer.ResetMusicVolume()
 	events.Update()
+	resources.Time = time.Since(b.initTime).Seconds()
 
-	if !m.lock {
-		m.lock = true
+	if !b.lock {
+		b.lock = true
 		return &scene.SceneTransition{
 			Kind:       scene.Push,
 			OtherScene: MakeMenuScene(),
@@ -42,6 +45,6 @@ func (m *BaseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 	return nil, false
 }
 
-func (m *BaseScene) Draw()           {}
-func (m *BaseScene) GetName() string { return "musicScene" }
-func MakeBaseScene() *BaseScene      { return &BaseScene{musicplayer.NewMusicPlayer(), false} }
+func (b *BaseScene) Draw()           {}
+func (b *BaseScene) GetName() string { return "musicScene" }
+func MakeBaseScene() *BaseScene      { return &BaseScene{musicplayer.NewMusicPlayer(), false, time.Now()} }

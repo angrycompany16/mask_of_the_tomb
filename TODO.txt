@@ -22,8 +22,6 @@ Bug list:
 - 44100 Hz audio does not seem to work on arch, which is quite a huge problem
 
 DEMO ROADMAP:
-- Finish implementation + art for one-way platforms
-- Finish implementation + art for catchers
 - Finish slam animation
 - Create interactive lanterns (a bit more optional)
 - Create music for the first area + menu music

@@ -39,13 +39,15 @@ var (
 	//go:embed shaders/transition.kage
 	Transition_kage []byte
 	//go:embed sprites/environment/slambox_tilemap.png
-	Slambox_tilemap []byte
+	Slambox_tilemap_png []byte
 	//go:embed sprites/player/player.png
-	Player_sprite []byte
+	Player_png []byte
 	//go:embed sprites/environment/grass.png
-	Grass_tiles []byte
+	Grass_png []byte
 	//go:embed sprites/environment/turret.png
-	Turret_sprite []byte
+	Turret_png []byte
+	//go:embed sprites/environment/catcher.png
+	Catcher_png []byte
 	//go:embed sprites/UI/level-titlecard.png
 	Level_titlecard_sprite []byte
 	//go:embed particlesystems/jump-tight.yaml

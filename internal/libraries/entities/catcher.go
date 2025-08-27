@@ -1,6 +1,9 @@
 package entities
 
 import (
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
+	"mask_of_the_tomb/internal/core/ebitenrenderutil"
+	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 
@@ -9,12 +12,12 @@ import (
 )
 
 type Catcher struct {
-	Sprite *ebiten.Image
+	sprite *ebiten.Image
 	Hitbox *maths.Rect
 }
 
 func (c *Catcher) Draw(ctx rendering.Ctx) {
-	// ebitenrenderutil.DrawAt(c.Sprite, ctx.Dst, c.Hitbox.Left(), c.Hitbox.Top())
+	ebitenrenderutil.DrawAt(c.sprite, ctx.Dst, c.Hitbox.Left(), c.Hitbox.Top())
 }
 
 func NewCatcher(
@@ -27,7 +30,7 @@ func NewCatcher(
 		entity.Width,
 		entity.Height,
 	)
-	newCatcher.Sprite = ebiten.NewImage(int(entity.Width), int(entity.Height))
+	newCatcher.sprite = errs.Must(assettypes.GetImageAsset("catcherSprite"))
 
 	return newCatcher
 }

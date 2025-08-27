@@ -45,7 +45,6 @@ func (w *World) Init(initLevelName string, gameData save.SaveData) {
 			initLevelName = gameData.SpawnRoomName
 		}
 	}
-	fmt.Println(w)
 	ChangeActiveLevel(w, initLevelName, "")
 }
 
@@ -83,6 +82,8 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 		return "", err
 	}
 
+	resources.PreviousLevelName = newLevel.name
+
 	newLevel.resetX, newLevel.resetY = newLevel.GetDefaultSpawnPoint()
 	if doorIid != "" {
 		doorEntity := errs.Must(newLevel.levelLDTK.GetEntityByIid(doorIid))
@@ -96,7 +97,6 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 	}
 	world.ActiveLevel = newLevel
 	world.currentBiome = newLevel.GetBiome()
-	resources.PreviousLevelName = newLevel.name
 	return "", nil
 }
 

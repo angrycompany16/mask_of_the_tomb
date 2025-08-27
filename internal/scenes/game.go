@@ -3,7 +3,6 @@ package scenes
 import (
 	"errors"
 	"mask_of_the_tomb/internal/core/scene"
-	"time"
 )
 
 // IMPORTANT NOTE: If there is a missing entity reference, the game world will not be able to load !!!
@@ -21,7 +20,6 @@ var (
 	// These should all be removed
 	InitLevelName string
 	SaveProfile   int
-	initTime      time.Time
 )
 
 type Game struct {

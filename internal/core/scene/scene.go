@@ -6,7 +6,6 @@ import (
 
 // Note: This is slowly turning into the `node` system we are using for UI. At some point it will
 // probably be possible to merge them
-// Lowkey, all the UI layers can just be converted into scenes
 
 type SceneStack struct {
 	stack []Scene
@@ -36,7 +35,6 @@ func (s *SceneStack) Draw() {
 func (s *SceneStack) Switch(transition *SceneTransition) {
 	switch transition.Kind {
 	case Replace:
-		// Loop through
 		if _, n, ok := s.GetScene(transition.Name); ok {
 			s.stack = s.stack[:n]
 			s.Push(transition.OtherScene)
@@ -101,6 +99,6 @@ const (
 type SceneTransition struct {
 	Kind       Kind
 	OtherScene Scene
-	N          int    // Only used for PopN
-	Name       string // Only used for PopName
+	Name       string
+	N          int // Only used for PopN
 }

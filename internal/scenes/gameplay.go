@@ -29,6 +29,8 @@ type GameplayScene struct {
 	titleCardTimeoutListener *events.EventListener
 	levelCardTimeoutListener *events.EventListener
 	playerMoveListener       *events.EventListener
+	// TODO: introduce gametime/globaltime?
+	// this would make it easier to pause the game
 }
 
 func (g *GameplayScene) Init() {
@@ -87,16 +89,41 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 	velX, velY := g.player.GetMovementSize()
 	posX, posY := g.player.GetPosCentered()
 
+	// TODO: Move even more logic out of here pleeease
 	g.world.Update(posX, posY, velX, velY)
 	if eventInfo, ok := g.playerMoveListener.Poll(); ok {
 		moveDir := eventInfo.Data.(maths.Direction)
-		slambox, hit := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
-		// also check if we can dash into a catcher
-		if hit {
+		slambox, hitSlambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
+
+		catcherHitboxes := g.world.ActiveLevel.GetCatcherRects()
+		hitCatcher, catcherX, catcherY := false, 0.0, 0.0
+		for _, catcherHitbox := range catcherHitboxes {
+			hit, x, y := catcherHitbox.RaycastDirectional(posX, posY, moveDir)
+			hitCatcher = hitCatcher || hit
+			if hit {
+				catcherX = x
+				catcherY = y
+			}
+		}
+
+		platformHitboxes := make([]*maths.Rect, 0)
+		if moveDir == maths.DirUp {
+			platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(false)
+		} else if moveDir == maths.DirDown {
+			platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(true)
+		}
+
+		if hitSlambox {
 			g.player.StartSlamming(moveDir)
 			slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox))
+		} else if hitCatcher {
+			g.player.Dash(moveDir, catcherX, catcherY)
 		} else {
-			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(g.player.GetHitbox(), moveDir, g.world.ActiveLevel.GetSlamboxTargetRects())
+			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(
+				g.player.GetHitbox(),
+				moveDir,
+				append(g.world.ActiveLevel.GetSlamboxTargetRects(), platformHitboxes...),
+			)
 			if newRect != *g.player.GetHitbox() {
 				g.player.Dash(moveDir, newRect.Left(), newRect.Top())
 			}

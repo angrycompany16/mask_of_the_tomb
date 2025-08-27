@@ -1,6 +1,7 @@
 package events
 
 // Maybe consider removing the singleton pattern
+// TODO: We will actually do this! It shall be replaced by the event bus.
 var (
 	_eventManager = eventManager{}
 )
