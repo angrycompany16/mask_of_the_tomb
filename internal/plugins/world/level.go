@@ -247,6 +247,9 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 		}
 		turret.Update((l.GetSlamboxRects()))
 	}
+	for _, lantern := range l.lanterns {
+		lantern.Update(playerX, playerY, playerVelX, playerVelY)
+	}
 
 	if _, tick := threads.Poll(l.playerLightBreatheTicker.C); tick {
 		PlayerLightRadius = 205.0 - math.Copysign(5, PlayerLightRadius-210.0)
@@ -511,6 +514,8 @@ func (l *Level) reset() {
 	}
 }
 
+// This needs to be generalized. The best thing would be if we could send in a general
+// point light struct and then automatically convert the info into a shaderOp
 func (l *Level) GetShaderOp(ctx rendering.Ctx, src *ebiten.Image) ebiten.DrawRectShaderOptions {
 	trueCamX, trueCamY := camera.GetStablePos()
 

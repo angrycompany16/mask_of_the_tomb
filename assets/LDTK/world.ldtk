@@ -29365,6 +29365,25 @@
 							"fieldInstances": [{ "__identifier": "Damage", "__type": "Float", "__value": 1, "__tile": null, "defUid": 22, "realEditorValues": [] }],
 							"__worldX": 1896,
 							"__worldY": 576
+						},
+						{
+							"__identifier": "Lantern",
+							"__grid": [15,23],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#18E0DD",
+							"iid": "e66d7a30-8560-11f0-9cea-51120359796e",
+							"width": 8,
+							"height": 8,
+							"defUid": 320,
+							"px": [120,184],
+							"fieldInstances": [{ "__identifier": "Anchor", "__type": "Point", "__value": { "cx": 15, "cy": 16 }, "__tile": null, "defUid": 321, "realEditorValues": [{
+								"id": "V_String",
+								"params": ["15,16"]
+							}] }],
+							"__worldX": 1560,
+							"__worldY": 728
 						}
 					]
 				},
