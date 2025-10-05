@@ -52,11 +52,10 @@ func PrintAssetRegistry() {
 }
 
 func LoadAll(doneChan chan<- int) {
-	for name, asset := range _assetLoader.assetPool {
+	for _, asset := range _assetLoader.assetPool {
 		err := asset.Load()
 		if err != nil {
-			fmt.Printf("Asset with name %s failed with error %s\n", name, err.Error())
-			asset.status = "FAILED"
+			asset.status = fmt.Sprintf("FAILED: Failed with error %s\n", err.Error())
 		} else {
 			asset.status = "SUCCESS"
 		}

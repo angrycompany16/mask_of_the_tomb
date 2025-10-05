@@ -33,6 +33,16 @@ func (r *Rect) Center() (float64, float64) {
 	return r.x + r.width/2, r.y + r.height/2
 }
 
+func (r *Rect) Cx() float64 {
+	cx, _ := r.Center()
+	return cx
+}
+
+func (r *Rect) Cy() float64 {
+	_, cy := r.Center()
+	return cy
+}
+
 func (r *Rect) TopLeft() (float64, float64) {
 	return r.Left(), r.Top()
 }
@@ -78,6 +88,7 @@ func (r *Rect) Overlapping(other *Rect) bool {
 		r.Bottom() > other.Top()
 }
 
+// Checks if a point is inside the rect
 func (r *Rect) IsWithin(x, y float64) bool {
 	return x <= r.Right() &&
 		r.Left() <= x &&
@@ -98,8 +109,11 @@ func (r *Rect) Lerp(other *Rect, t float64) Rect {
 	}
 }
 
+// Checks if a ray starting in posX, posY and travelling in the given direction will
+// intersect the rect.
 func (r *Rect) RaycastDirectional(posX, posY float64, direction Direction) (bool, float64, float64) {
 	if r.IsWithin(posX, posY) {
+		// Should be true?
 		return false, 0, 0
 	}
 

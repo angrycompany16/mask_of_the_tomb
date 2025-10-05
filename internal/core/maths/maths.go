@@ -30,6 +30,48 @@ func Opposite(dir Direction) Direction {
 	return DirNone
 }
 
+func RotateCW(dir Direction) Direction {
+	switch dir {
+	case DirUp:
+		return DirRight
+	case DirDown:
+		return DirLeft
+	case DirRight:
+		return DirDown
+	case DirLeft:
+		return DirUp
+	}
+	return DirNone
+}
+
+func RotateCCW(dir Direction) Direction {
+	switch dir {
+	case DirUp:
+		return DirLeft
+	case DirDown:
+		return DirRight
+	case DirRight:
+		return DirUp
+	case DirLeft:
+		return DirDown
+	}
+	return DirNone
+}
+
+func FromVector(x, y float64) Direction {
+	if x == 0 && y < 0 {
+		return DirUp
+	} else if x == 0 && y > 0 {
+		return DirDown
+	} else if x > 0 && y == 0 {
+		return DirRight
+	} else if x < 0 && y == 0 {
+		return DirLeft
+	} else {
+		return DirNone
+	}
+}
+
 func ToRadians(dir Direction) float64 {
 	switch dir {
 	case DirUp:
@@ -88,6 +130,14 @@ func Length(x ...float64) float64 {
 
 func Mod(x, m int) int {
 	return (x%m + m) % m
+}
+
+func Max(x ...float64) float64 {
+	m := math.Inf(-1)
+	for _, y := range x {
+		m = max(m, y)
+	}
+	return m
 }
 
 func MinInt(a, b int) int {

@@ -45,7 +45,7 @@ func (w *World) Init(initLevelName string, gameData save.SaveData) {
 			initLevelName = gameData.SpawnRoomName
 		}
 	}
-	ChangeActiveLevel(w, initLevelName, "")
+	errs.Must(ChangeActiveLevel(w, initLevelName, ""))
 }
 
 func (w *World) Update(playerX, playerY, playerVelX, playerVelY float64) {

@@ -1,6 +1,7 @@
 package assettypes
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"path/filepath"
 
@@ -16,7 +17,9 @@ type LDTKAsset struct {
 
 func (a *LDTKAsset) Load() error {
 	world, err := ebitenLDTK.LoadWorld(a.path)
+
 	if err != nil {
+		fmt.Println("error when loading world")
 		return err
 	}
 

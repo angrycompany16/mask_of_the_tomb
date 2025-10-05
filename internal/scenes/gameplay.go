@@ -119,7 +119,9 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 
 		if hitSlambox {
 			g.player.StartSlamming(moveDir)
-			slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox))
+			// TODO: Wait for an event instead of a fixed delay so that the system is
+			// more flexible
+			slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox), g.world.ActiveLevel.GetChainNodes())
 		} else if hitCatcher {
 			g.player.Dash(moveDir, catcherX, catcherY)
 		} else {

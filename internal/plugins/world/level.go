@@ -41,6 +41,7 @@ const (
 	catcherEntityName      = "Catcher"
 	platformEntityName     = "OneWayPlatform"
 	lanternEntityName      = "Lantern"
+	chainNodeEntityName    = "SlamboxChainNode"
 	levelTitleFieldName    = "Title"
 )
 
@@ -90,6 +91,7 @@ type Level struct {
 	catchers                 []*entities.Catcher
 	platforms                []*entities.Platform
 	lanterns                 []*entities.Lantern
+	chainNodes               []*entities.ChainNode
 }
 
 // ------ CONSTRUCTOR ------
@@ -168,6 +170,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
 		case lanternEntityName:
 			newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
+		case chainNodeEntityName:
+			newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 		}
 	}
 
@@ -186,7 +190,14 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
 				slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
 			}
+
+			// NOTE: This is very limited, since it only allows for one chain with
+			// exactly two slamboxes in each level.
+			if otherSlambox.chainNodeID != "" && otherSlambox != slambox {
+				slambox.ChainedSlambox = otherSlambox
+			}
 		}
+
 		slambox.CreateSprite(errs.Must(assettypes.GetImageAsset("slamboxTilemap")))
 	}
 
@@ -311,6 +322,10 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 		lantern.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
+	for _, chainNode := range l.chainNodes {
+		chainNode.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+	}
+
 	ebitenrenderutil.DrawAt(l.tileLayers.Playerspace, l.frameLayers.Playerspace, 0, 0)
 	ebitenrenderutil.DrawAt(l.tileLayers.Midground, l.frameLayers.Midground, 0, 0)
 
@@ -376,6 +391,10 @@ func (l *Level) GetSlamboxRects() []*maths.Rect {
 
 func (l *Level) GetCatcherRects() []*maths.Rect {
 	return arrays.MapSlice(l.catchers, func(c *entities.Catcher) *maths.Rect { return c.Hitbox })
+}
+
+func (l *Level) GetChainNodeRects() []*maths.Rect {
+	return arrays.MapSlice(l.chainNodes, func(c *entities.ChainNode) *maths.Rect { return c.Rect })
 }
 
 // Get all the platforms matching the movement direction
@@ -463,6 +482,10 @@ func (l *Level) GetGameEntryPos() (float64, float64) {
 		}
 	}
 	return 0, 0
+}
+
+func (l *Level) GetChainNodes() []*entities.ChainNode {
+	return l.chainNodes
 }
 
 // ------ INTERNAL ------
