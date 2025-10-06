@@ -33,12 +33,6 @@ func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
 }
 
 func main() {
-	// client := osc.NewClient("localhost", 57120)
-	// msg := osc.NewMessage("/osc")
-	// msg.Append("menu")
-	// client.Send(msg)
-
-	// return
 	flag.BoolVar(&resources.DebugMode, "debug", false, "enable debug mode")
 	flag.StringVar(&scenes.InitLevelName, "initlevel", "", "Level in which to spawn the player")
 	flag.IntVar(&scenes.SaveProfile, "saveprofile", 1, "Profile to use for saving/loading (99 for dev save)")

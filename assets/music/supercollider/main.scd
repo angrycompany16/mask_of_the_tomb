@@ -1,7 +1,9 @@
+(
 Server.killAll;
 s = Server.local();
 s.reboot();
 s.waitForBoot {
+	"server booted".postln;
 	s.freeAll;
 	CmdPeriod.run;
 
@@ -13,19 +15,23 @@ s.waitForBoot {
 	f = { |msg, time, addr, recvPort|
 		// Handle message, play the correct song based on the message
 		// received from the game
+		"received!".postln;
 		msg.postln;
-		if (msg[1] == 'menu') {
-			~playMusic.value.play();
-		};
+		switch (msg[1])
+		{'menu'} { ~playMusic.(); }
+		{'stopall'} { ~stopMusic.(); }
 	};
 
-	o = OSCFunc(f, '/osc');
+	o = OSCFunc(f, '/osc', nil, 9637);
+
+	("Ready and listening on port " ++ o.recvPort).postln;
 
 	// Send message indicating that the supercollider server is ready.
 	// This message will be awaited in the loading screen.
-	loop {
-		1.0.wait;
-	};
-
-	o.free;
-}
+	Routine({
+		loop {
+			1.0.wait;
+		}
+	}).play(AppClock);
+};
+)
