@@ -12,15 +12,13 @@ import (
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
-	threads "mask_of_the_tomb/internal/core/threads"
+	"mask_of_the_tomb/internal/core/shaders"
 	"mask_of_the_tomb/internal/libraries/camera"
 	"mask_of_the_tomb/internal/libraries/entities"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
-	"math"
 	"path/filepath"
 	"slices"
-	"time"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -57,7 +55,6 @@ var (
 	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "playerspace_tilemap_normal.png")
 	// TODO: *very* temporary solution
 	playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
-	PlayerLightRadius        = 200.0
 )
 
 type SlamboxPosition struct {
@@ -79,19 +76,19 @@ type Level struct {
 	fogShader                *ebiten.Shader
 	vignetteShader           *ebiten.Shader
 	pixelLightShader         *ebiten.Shader
-	playerLightBreatheTicker time.Ticker
-	resetX, resetY           float64
-	ambientParticles         *particles.ParticleSystem
-	grassTilemap             *ebiten.Image
-	slamboxes                []*Slambox
-	hazards                  []*entities.Hazard
-	doors                    []entities.Door
-	grassEntities            []entities.Grass
-	turrets                  []*entities.Turret
-	catchers                 []*entities.Catcher
-	platforms                []*entities.Platform
-	lanterns                 []*entities.Lantern
-	chainNodes               []*entities.ChainNode
+	// playerLightBreatheTicker time.Ticker
+	resetX, resetY   float64
+	ambientParticles *particles.ParticleSystem
+	grassTilemap     *ebiten.Image
+	slamboxes        []*Slambox
+	hazards          []*entities.Hazard
+	doors            []entities.Door
+	grassEntities    []entities.Grass
+	turrets          []*entities.Turret
+	catchers         []*entities.Catcher
+	platforms        []*entities.Platform
+	lanterns         []*entities.Lantern
+	chainNodes       []*entities.ChainNode
 }
 
 // ------ CONSTRUCTOR ------
@@ -111,7 +108,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.ambientParticles.Init(rendering.ScreenLayers.Foreground)
 	newLevel.grassTilemap = errs.Must(assettypes.GetImageAsset("grassTilemap"))
 
-	newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)
+	// newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)
 
 	// Most of these layers are completely unnecessary, so maybe it would be a good idea to
 	// delete a few of them to save performance
@@ -143,8 +140,6 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		}
 	}
 
-	// TODO: Why the hell is this running twice?
-	// fmt.Println("hello") // use this to see the point
 	intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
 	newLevel.TilemapCollider.Tiles = intGridCSV
 
@@ -262,14 +257,10 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 		lantern.Update(playerX, playerY, playerVelX, playerVelY)
 	}
 
-	if _, tick := threads.Poll(l.playerLightBreatheTicker.C); tick {
-		PlayerLightRadius = 205.0 - math.Copysign(5, PlayerLightRadius-210.0)
-	}
-
 	l.ambientParticles.Update()
 }
 
-func (l *Level) Draw(ctx rendering.Ctx) {
+func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 	l.frameLayers.Playerspace.Clear()
 	l.frameLayers.Midground.Clear()
 	rendering.ScreenLayers.Background2.Fill(l.bgColor)
@@ -330,14 +321,32 @@ func (l *Level) Draw(ctx rendering.Ctx) {
 	ebitenrenderutil.DrawAt(l.tileLayers.Midground, l.frameLayers.Midground, 0, 0)
 
 	// TODO: Give a light to each turret guy
-	shaderOp = l.GetShaderOp(ctx, l.frameLayers.Playerspace)
-	shaderOp.Uniforms["AmbientLight"] = [3]float64{0.3, 0.3, 0.3}
+	shakeX, shakeY := camera.GetShake()
+	camX, camY := camera.GetStablePos()
+	shaderOp = shaders.MakeShaderOp(
+		slices.Concat(
+			arrays.MapSlice(l.turrets, func(turret *entities.Turret) *shaders.Light { return turret.Light }),
+			arrays.MapSlice(l.lanterns, func(lantern *entities.Lantern) *shaders.Light { return lantern.Light }),
+			[]*shaders.Light{playerLight},
+		),
+		camX,
+		camY,
+		shakeX,
+		shakeY,
+		0.3,
+		0.3,
+		0.3,
+		resources.Time/5,
+		rendering.GAME_WIDTH,
+		rendering.GAME_HEIGHT,
+		l.frameLayers.Playerspace,
+	)
 	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
-	shaderOp = l.GetShaderOp(ctx, l.frameLayers.Midground)
+	shaderOp = shaders.ChangeSrc(shaderOp, camX, camY, rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.tileLayers.Midground)
 	rendering.ScreenLayers.Midground.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
-	shaderOp = l.GetShaderOp(ctx, l.tileLayers.Background)
+	shaderOp = shaders.ChangeSrc(shaderOp, camX, camY, rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.tileLayers.Background)
 	rendering.ScreenLayers.Background.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
 	l.ambientParticles.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Foreground))
@@ -537,38 +546,38 @@ func (l *Level) reset() {
 	}
 }
 
-// This needs to be generalized. The best thing would be if we could send in a general
-// point light struct and then automatically convert the info into a shaderOp
-func (l *Level) GetShaderOp(ctx rendering.Ctx, src *ebiten.Image) ebiten.DrawRectShaderOptions {
-	trueCamX, trueCamY := camera.GetStablePos()
+// // This needs to be generalized. The best thing would be if we could send in a general
+// // point light struct and then automatically convert the info into a shaderOp
+// func (l *Level) GetShaderOp(ctx rendering.Ctx, src *ebiten.Image) ebiten.DrawRectShaderOptions {
+// 	trueCamX, trueCamY := camera.GetStablePos()
 
-	shaderOp := ebiten.DrawRectShaderOptions{}
-	shaderOp.Images = [4]*ebiten.Image{
-		// NEVER touch the first texture argument. EVER.
-		nil,
-		src.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GAME_WIDTH), int(trueCamY+rendering.GAME_HEIGHT))).(*ebiten.Image),
-		nil,
-		nil,
-	}
+// 	shaderOp := ebiten.DrawRectShaderOptions{}
+// 	shaderOp.Images = [4]*ebiten.Image{
+// 		// NEVER touch the first texture argument. EVER.
+// 		nil,
+// 		src.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GAME_WIDTH), int(trueCamY+rendering.GAME_HEIGHT))).(*ebiten.Image),
+// 		nil,
+// 		nil,
+// 	}
 
-	shakeX, shakeY := camera.GetShake()
+// 	shakeX, shakeY := camera.GetShake()
 
-	// TODO: We want to create an interface that allows us to essentially pass structured data
-	// into the shader, we just need to convert it into simple uniforms
-	shaderOp.Uniforms = map[string]any{
-		"CamShake":     [2]float64{shakeX, shakeY},
-		"Time":         resources.Time / 5,
-		"PositionsX":   [10]float64{ctx.PlayerX - ctx.CamX},
-		"PositionsY":   [10]float64{ctx.PlayerY - ctx.CamY},
-		"InnerRadii":   [10]float64{0.0},
-		"OuterRadii":   [10]float64{PlayerLightRadius},
-		"ZOffsets":     [10]float64{0.2},
-		"Intensities":  [10]float64{0.6},
-		"ColorsR":      [10]float64{1.0},
-		"ColorsG":      [10]float64{1.0},
-		"ColorsB":      [10]float64{1.0},
-		"AmbientLight": [3]float64{0.6, 0.6, 0.6},
-	}
+// 	// TODO: We want to create an interface that allows us to essentially pass structured data
+// 	// into the shader, we just need to convert it into simple uniforms
+// 	shaderOp.Uniforms = map[string]any{
+// 		"CamShake":     [2]float64{shakeX, shakeY},
+// 		"Time":         resources.Time / 5,
+// 		"PositionsX":   [10]float64{ctx.PlayerX - ctx.CamX},
+// 		"PositionsY":   [10]float64{ctx.PlayerY - ctx.CamY},
+// 		"InnerRadii":   [10]float64{0.0},
+// 		"OuterRadii":   [10]float64{PlayerLightRadius},
+// 		"ZOffsets":     [10]float64{0.2},
+// 		"Intensities":  [10]float64{0.6},
+// 		"ColorsR":      [10]float64{1.0},
+// 		"ColorsG":      [10]float64{1.0},
+// 		"ColorsB":      [10]float64{1.0},
+// 		"AmbientLight": [3]float64{0.6, 0.6, 0.6},
+// 	}
 
-	return shaderOp
-}
+// 	return shaderOp
+// }

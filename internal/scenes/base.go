@@ -1,6 +1,7 @@
 package scenes
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
@@ -11,6 +12,8 @@ import (
 	"mask_of_the_tomb/internal/libraries/node"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"time"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type BaseScene struct {
@@ -45,6 +48,11 @@ func (b *BaseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 	return nil, false
 }
 
-func (b *BaseScene) Draw()           {}
+func (b *BaseScene) Draw() {
+	if resources.DebugMode {
+		fmt.Println(ebiten.ActualFPS())
+		fmt.Println(ebiten.ActualTPS())
+	}
+}
 func (b *BaseScene) GetName() string { return "musicScene" }
 func MakeBaseScene() *BaseScene      { return &BaseScene{musicplayer.NewMusicPlayer(), false, time.Now()} }

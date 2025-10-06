@@ -5,7 +5,9 @@ import (
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/camera"
+	"math"
 )
 
 type playerState int
@@ -80,6 +82,12 @@ func (p *Player) Update() {
 	p.animator.Update()
 	p.jumpParticlesBroad.Update()
 	p.jumpParticlesTight.Update()
+
+	if _, tick := threads.Poll(p.lightBreatheTicker.C); tick {
+		p.Light.OuterRadius = 205.0 - math.Copysign(5, p.Light.OuterRadius-210.0)
+	}
+	p.Light.X = p.hitbox.Cx()
+	p.Light.Y = p.hitbox.Cy()
 }
 
 // TODO: this will be changed back when we add some kind of death (sprite) animation

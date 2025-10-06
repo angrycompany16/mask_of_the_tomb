@@ -197,7 +197,7 @@ func (g *GameplayScene) Draw() {
 	}
 
 	g.player.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
-	g.world.ActiveLevel.Draw(drawCtx)
+	g.world.ActiveLevel.Draw(drawCtx, g.player.Light)
 
 	g.UI.Draw()
 	// UI is HARD-CODED to render at the UI layer...

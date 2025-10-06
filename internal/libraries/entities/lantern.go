@@ -8,6 +8,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/shaders"
 	"math"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -111,6 +112,7 @@ type Lantern struct {
 	sprite *ebiten.Image
 	x, y   float64
 	rope   []*RopeSegment
+	Light  *shaders.Light
 }
 
 func (l *Lantern) Update(playerX, playerY, playerVelX, playerVelY float64) {
@@ -120,6 +122,8 @@ func (l *Lantern) Update(playerX, playerY, playerVelX, playerVelY float64) {
 		forceY := playerVelY / math.Pow(dist, 2) * 400
 		ropeSeg.Update(forceX, forceY)
 	}
+	l.Light.X = l.rope[len(l.rope)-1].x - float64(l.sprite.Bounds().Dx()/2)
+	l.Light.Y = l.rope[len(l.rope)-1].y - float64(l.sprite.Bounds().Dy()/2)
 }
 
 func (l *Lantern) Draw(ctx rendering.Ctx) {
@@ -140,7 +144,7 @@ func (l *Lantern) Draw(ctx rendering.Ctx) {
 			false,
 		)
 	}
-	// Figure out the rotation
+
 	endPointX := l.rope[len(l.rope)-1].x - float64(l.sprite.Bounds().Dx()/2)
 	endPointY := l.rope[len(l.rope)-1].y - float64(l.sprite.Bounds().Dy()/2)
 	angle := l.GetRopeEndAngle()
@@ -171,6 +175,18 @@ func NewLantern(
 
 	centerX := newLantern.sprite.Bounds().Dx() / 2
 	centerY := newLantern.sprite.Bounds().Dy() / 2
+
+	newLantern.Light = &shaders.Light{
+		X:           entity.Px[0],
+		Y:           entity.Px[1],
+		InnerRadius: 0,
+		OuterRadius: 50,
+		ZOffset:     0,
+		Intensity:   0.6,
+		R:           1.0,
+		G:           1.0,
+		B:           1.0,
+	}
 
 	// Construct the rope segments
 	rope := []*RopeSegment{

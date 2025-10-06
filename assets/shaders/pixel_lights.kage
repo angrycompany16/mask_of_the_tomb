@@ -6,48 +6,31 @@ var (
     CamShake vec2
     Time float
 
-    PositionsX [10]float
-    PositionsY [10]float
-    InnerRadii [10]float
-    OuterRadii [10]float
-    Intensities [10]float
-    ZOffsets [10]float
-    NoiseValues [10]float
-    ColorsR [10]float
-    ColorsG [10]float
-    ColorsB [10]float
+    PositionsX [100]float
+    PositionsY [100]float
+    InnerRadii [100]float
+    OuterRadii [100]float
+    Intensities [100]float
+    ZOffsets [100]float
+    NoiseValues [100]float
+    ColorsR [100]float
+    ColorsG [100]float
+    ColorsB [100]float
 
     AmbientLight vec3
 )
 
 func Fragment(dstPos vec4, srcPos vec2) vec4 {
-    // Calculating and adjusting normals
-    // linearNormalSample := imageSrc2At(srcPos - CamShake)
-    // normal := linearNormalSample.xyz * 2.0 - 1
-    // if normal.x > -0.05 && normal.x < 0.05 && normal.y > -0.05 && normal.y < 0.05 {
-    //     normal = vec3(0.0, 0.0, 1.0)
-    // }
-
     lighting := vec3(0)
 
     // Point lights
-    for i := 0; i < 10; i++ {
+    for i := 0; i < 100; i++ {
         pos := vec2(PositionsX[i], PositionsY[i])
         color := vec3(ColorsR[i], ColorsG[i], ColorsB[i])
         attenuation := 1-smoothstep(InnerRadii[i], OuterRadii[i], distance(srcPos, pos))
-        // direction := vec3(normalize(pos - srcPos), ZOffsets[i])
-        // direction.y *= -1
-        // diffuseStrength := max(0.0, dot(normal, direction))
         noiseFactor := cnoise(vec3(srcPos * 0.1, Time * 2)) * smoothstep(70, 150, distance(srcPos, pos))
-        // strength := diffuseStrength * attenuation * Intensities[i] * (1 - noiseFactor)
         strength := attenuation * Intensities[i] * (1 - noiseFactor)
         
-        // color.r *= 
-        // color.g *= cnoise(vec3(srcPos * 0.1, Time))
-        // color.b *= cnoise(vec3(srcPos * 0.1, Time))
-        // if distance(srcPos, pos) > 30.0 {
-        //     // strength *= cnoise(vec3(srcPos * 0.1, Time))
-        // }
         lighting += strength * color
     }
 

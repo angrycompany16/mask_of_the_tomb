@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/shaders"
 	"mask_of_the_tomb/internal/core/threads"
 	"math"
 	"time"
@@ -29,6 +30,7 @@ type Turret struct {
 	dead             bool
 	rayPulseTicker   *time.Ticker
 	rayThickness     float64
+	Light            *shaders.Light
 }
 
 func (t *Turret) ShouldFire(target *maths.Rect) bool {
@@ -106,6 +108,18 @@ func NewTurret(
 
 	newTurret.aimDirX = directionField.Point.X*tileSize - entity.Px[0]
 	newTurret.aimDirY = directionField.Point.Y*tileSize - entity.Px[1]
+
+	newTurret.Light = &shaders.Light{
+		X:           entity.Px[0],
+		Y:           entity.Px[1],
+		InnerRadius: 50,
+		OuterRadius: 100,
+		ZOffset:     0,
+		Intensity:   1,
+		R:           1.0,
+		G:           1.0,
+		B:           1.0,
+	}
 
 	return newTurret
 }

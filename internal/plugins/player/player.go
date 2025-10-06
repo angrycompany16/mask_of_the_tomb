@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/shaders"
 	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/inputbuffer"
@@ -73,6 +74,8 @@ type Player struct {
 	deathSound                *sound.EffectPlayer
 	jumpParticlesBroad        *particles.ParticleSystem
 	jumpParticlesTight        *particles.ParticleSystem
+	Light                     *shaders.Light
+	lightBreatheTicker        *time.Ticker
 	// Events
 	OnDeath *events.Event
 	OnMove  *events.Event
@@ -84,12 +87,22 @@ type Player struct {
 // ------ CONSTRUCTOR ------
 func NewPlayer() *Player {
 	player := &Player{
-		movebox:     movebox.NewMovebox(moveSpeed),
-		InputBuffer: inputbuffer.NewInputBuffer(inputBufferDuration),
-		State:       Idle,
-		OnDeath:     events.NewEvent(),
-		OnMove:      events.NewEvent(),
-		deathAnim:   NewDeathAnim(),
+		movebox:            movebox.NewMovebox(moveSpeed),
+		InputBuffer:        inputbuffer.NewInputBuffer(inputBufferDuration),
+		State:              Idle,
+		OnDeath:            events.NewEvent(),
+		OnMove:             events.NewEvent(),
+		deathAnim:          NewDeathAnim(),
+		lightBreatheTicker: time.NewTicker(time.Millisecond * 560),
+		Light: &shaders.Light{
+			InnerRadius: 0,
+			OuterRadius: 200,
+			ZOffset:     0.2,
+			Intensity:   0.6,
+			R:           1.0,
+			G:           1.0,
+			B:           1.0,
+		},
 	}
 
 	player.moveFinishedListener = events.NewEventListener(player.movebox.OnMoveFinished)
@@ -97,7 +110,6 @@ func NewPlayer() *Player {
 }
 
 // ------ INIT ------
-
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.sprite = errs.Must(assettypes.GetImageAsset("playerSprite"))
 
