@@ -18,8 +18,8 @@ type LayerList struct {
 	Playerspace *ebiten.Image
 	Foreground  *ebiten.Image
 	Overlay     *ebiten.Image
-	ScreenUI    *ebiten.Image
 	GameplayUI  *ebiten.Image
+	ScreenUI    *ebiten.Image
 	layers      []*ebiten.Image
 }
 

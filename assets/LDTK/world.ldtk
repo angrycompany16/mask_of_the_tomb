@@ -32817,7 +32817,15 @@
 							"defUid": 83,
 							"px": [200,112],
 							"fieldInstances": [
-								{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 270, "realEditorValues": [] },
+								{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [{
+									"entityIid": "b483df50-d380-11f0-9676-87b9422ffbc9",
+									"layerIid": "e52cfcd1-1030-11f0-b12c-f96a13a117a8",
+									"levelIid": "e52cfcd0-1030-11f0-b12c-fb81b8dc6f61",
+									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
+								}], "__tile": null, "defUid": 270, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["b483df50-d380-11f0-9676-87b9422ffbc9"]
+								}] },
 								{ "__identifier": "ConnectedComponents", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
 								{ "__identifier": "ChainNode", "__type": "EntityRef", "__value": {
 									"entityIid": "5af199f0-8560-11f0-927b-c5234af9d603",
@@ -32971,6 +32979,34 @@
 							],
 							"__worldX": 2288,
 							"__worldY": -112
+						},
+						{
+							"__identifier": "Slambox",
+							"__grid": [28,15],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#BE4A2F",
+							"iid": "b483df50-d380-11f0-9676-87b9422ffbc9",
+							"width": 16,
+							"height": 16,
+							"defUid": 83,
+							"px": [224,120],
+							"fieldInstances": [
+								{ "__identifier": "ConnectedBoxes", "__type": "Array<EntityRef>", "__value": [{
+									"entityIid": "bdfd5760-8560-11f0-927b-f178e888aa5a",
+									"layerIid": "e52cfcd1-1030-11f0-b12c-f96a13a117a8",
+									"levelIid": "e52cfcd0-1030-11f0-b12c-fb81b8dc6f61",
+									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
+								}], "__tile": null, "defUid": 270, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["bdfd5760-8560-11f0-927b-f178e888aa5a"]
+								}] },
+								{ "__identifier": "ConnectedComponents", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
+								{ "__identifier": "ChainNode", "__type": "EntityRef", "__value": null, "__tile": null, "defUid": 327, "realEditorValues": [] }
+							],
+							"__worldX": 2384,
+							"__worldY": -152
 						}
 					]
 				},

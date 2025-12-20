@@ -343,7 +343,7 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 	)
 	rendering.ScreenLayers.Playerspace.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
-	shaderOp = shaders.ChangeSrc(shaderOp, camX, camY, rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.tileLayers.Midground)
+	shaderOp = shaders.ChangeSrc(shaderOp, camX, camY, rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.frameLayers.Midground)
 	rendering.ScreenLayers.Midground.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
 	shaderOp = shaders.ChangeSrc(shaderOp, camX, camY, rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.tileLayers.Background)

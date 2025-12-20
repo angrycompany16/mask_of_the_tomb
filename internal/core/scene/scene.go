@@ -53,7 +53,8 @@ func (s *SceneStack) Switch(transition *SceneTransition) {
 				break
 			}
 		}
-		s.stack = s.stack[:n-1]
+		s.stack[n] = s.stack[len(s.stack)-1]
+		s.stack = s.stack[:len(s.stack)-1]
 	}
 }
 

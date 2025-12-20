@@ -2,8 +2,7 @@ package world
 
 // TODO: A lot of stuff can be separated here. In particular we basically have the beginnings
 // of a DFS implementation. It is a good idea to export this to somewhere else
-
-// ... or do i just re-write the whole thing ...
+// TODO: Probably will need to rewrite the slambox chain implementation
 
 import (
 	"fmt"

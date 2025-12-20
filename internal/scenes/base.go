@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type BaseScene struct {
@@ -37,6 +38,15 @@ func (b *BaseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 	b.musicPlayer.ResetMusicVolume()
 	events.Update()
 	resources.Time = time.Since(b.initTime).Seconds()
+	if inpututil.IsKeyJustReleased(ebiten.KeyTab) {
+		_, _, exists := sceneStack.GetScene(MakeDebugScene().GetName())
+		if !exists {
+			return &scene.SceneTransition{
+				Kind:       scene.Push,
+				OtherScene: MakeDebugScene(),
+			}, true
+		}
+	}
 
 	if !b.lock {
 		b.lock = true
