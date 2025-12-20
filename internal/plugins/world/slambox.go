@@ -1,5 +1,10 @@
 package world
 
+// TODO: A lot of stuff can be separated here. In particular we basically have the beginnings
+// of a DFS implementation. It is a good idea to export this to somewhere else
+
+// ... or do i just re-write the whole thing ...
+
 import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
@@ -139,9 +144,9 @@ func ExploreNode(dir maths.Direction, currRect *maths.Rect, chainNodes []*entiti
 			directions := make([]maths.Direction, 0)
 			switch dir {
 			case maths.DirUp:
-				directions = []maths.Direction{maths.DirUp, maths.DirLeft, maths.DirRight}
+				directions = []maths.Direction{maths.DirUp, maths.DirRight, maths.DirLeft}
 			case maths.DirDown:
-				directions = []maths.Direction{maths.DirDown, maths.DirLeft, maths.DirRight}
+				directions = []maths.Direction{maths.DirDown, maths.DirRight, maths.DirLeft}
 			case maths.DirRight:
 				directions = []maths.Direction{maths.DirUp, maths.DirDown, maths.DirRight}
 			case maths.DirLeft:
@@ -170,13 +175,16 @@ func ComputeChainedSlamboxDirection(startRect *maths.Rect, endRect *maths.Rect, 
 	for _, searchDirection := range []maths.Direction{maths.DirUp, maths.DirDown, maths.DirRight, maths.DirLeft} {
 		foundSlambox, direction := ExploreNode(searchDirection, startRect, chainNodes, endRect)
 		if foundSlambox {
+			fmt.Println("Found slambox")
 			if searchDirection == dir {
-				fmt.Println("Regular case")
+				fmt.Println("Regular case, returning dir", direction)
 				return direction
 			} else {
 				fmt.Println("Opposite case")
 				return maths.Opposite(direction)
 			}
+		} else {
+			fmt.Println("Did not find slambox")
 		}
 	}
 	return dir
@@ -227,6 +235,7 @@ func (s *Slambox) Slam(slamCtx SlamContext) {
 			CWChainDist = ProjectInChain(s.ChainedSlambox.Collider, &otherSlamCtx)
 			otherSlamCtx.direction = maths.RotateCCW(dir)
 			CCWChainDist = ProjectInChain(s.ChainedSlambox.Collider, &otherSlamCtx)
+			otherSlamCtx.direction = dir
 			fmt.Println(CWChainDist)
 			fmt.Println(CCWChainDist)
 		}
