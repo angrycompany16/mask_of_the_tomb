@@ -64,7 +64,9 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("basementTheme", assettypes.MakeAudioStreamAsset(assets.Basement_wav, assettypes.Wav))
 	assetloader.Add("libraryTheme", assettypes.MakeAudioStreamAsset(assets.Library_mp3, assettypes.Mp3))
 
-	assetloader.Add("transitionShader", assettypes.MakeShaderAsset(assets.Transition_kage))
+	assetloader.Add("deathTransitionShader", assettypes.MakeShaderAsset(assets.Death_transition_kage))
+	assetloader.Add("levelTransitionEnterShader", assettypes.MakeShaderAsset(assets.Level_transition_enter_kage))
+	assetloader.Add("levelTransitionExitShader", assettypes.MakeShaderAsset(assets.Level_transition_exit_kage))
 	assetloader.Add("selectSound", assettypes.MakeAudioStreamAsset(assets.Select_ogg, assettypes.Ogg))
 	assetloader.Add("dialogueSound", assettypes.MakeAudioStreamAsset(assets.Text_scroll_ogg, assettypes.Ogg))
 	assetloader.Add("saveData", save.MakeSaveAsset(SaveProfile))

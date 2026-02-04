@@ -23,7 +23,6 @@ Bug list:
 
 DEMO ROADMAP:
 - Finish slam animation
-- Create interactive lanterns (a bit more optional)
 - Create music for the first area + menu music
 - Revamp & touch up sound effects
 - Add credits/shoutout page (is for me)
@@ -32,16 +31,29 @@ DEMO ROADMAP:
 - Create website + web build
 
 // Revamped roadmap because I want to create a demo
-// - One-way platforms
-// - Catchers
-// - Interactive lanterns
 // - Level transition
-// - Art/idea for level transitions
-// - Finish slam animation
-// - Remake dash animation
 // - Right now the game crashes if doors have a missing entity ref. Probably nice
 //   to fix this or at least give a better warning in ebiten-LDTK.
+
+// - Finish slam animation
+// - Remake dash animation
 // - Cheap hack for camera shake: Set the background color to the same as the darkest color in the tileset
+// - ABSOLUTELY need performance improvements
+// - MORE slam effects: E.g. when slambox lands. Sound + particle effect
+// - Remove the need for a 0.5s loading asset...
+
+// Modularization rework. The following should be fleshed out as proper modules:
+// - Slambox module. Includes all the basic logic for slamboxes 
+//   with a collision grid, projecting boxes in the environment 
+//   (slamming), chains, as well as slammable entities. For 
+//   testing we can make a simple graphic that renders boxes,
+//   environments etc. in various colors. Also maybe some debug 
+//   stuff
+// - NodeTree module. Includes a system for creating nodes, 
+//   a tree structure, and a visualization tool for nodes.
+// - Tilemap module. Improved auto-tiling features.
+// - Music/sound module? Includes better mixing controls and 
+//   stuff
 
 // Post-demo: The design/code quality revamp:
 // - Rewrite the overlay system from scratch because it's just so terrible and can't do what i want it to do

@@ -25,10 +25,16 @@ const (
 	firstLevelName = "Level_1"
 )
 
+type LevelSwapCtx struct {
+	LevelIid      string
+	DoorEntityIid string
+}
+
 type World struct {
 	currentBiome string
 	worldLDTK    *ebitenLDTK.World
 	ActiveLevel  *Level
+	LevelSwapCtx LevelSwapCtx
 }
 
 func NewWorld() *World {

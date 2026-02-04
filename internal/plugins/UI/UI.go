@@ -1,10 +1,13 @@
 package ui
 
 import (
+	"fmt"
+	"maps"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/libraries/node"
 	"os"
+	"slices"
 
 	"gopkg.in/yaml.v3"
 )
@@ -52,6 +55,16 @@ func (ui *UI) Update() {
 }
 
 func (ui *UI) GetOverlay(name string) *Overlay {
+	if ui.overlays[name] == nil {
+		fmt.Println("-------------")
+		fmt.Println("ERROR: Could not get screen overlay with name", name)
+		fmt.Println("List of names:")
+		names := slices.Collect(maps.Keys(ui.overlays))
+		for _, name := range names {
+			fmt.Println(name)
+		}
+		fmt.Println("-------------")
+	}
 	return ui.overlays[name]
 }
 

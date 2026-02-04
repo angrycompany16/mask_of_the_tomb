@@ -1,7 +1,6 @@
 package musicplayer
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
@@ -55,7 +54,7 @@ func (m *MusicPlayer) PlayGameMusic(levelBiome string) {
 		m.playSong("libraryTheme")
 	default:
 		m.stopMusic()
-		fmt.Println("No song associated to biome", levelBiome)
+		// fmt.Println("No song associated to biome", levelBiome)
 	}
 }
 

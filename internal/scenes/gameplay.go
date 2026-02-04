@@ -25,7 +25,8 @@ type GameplayScene struct {
 	UI                       *ui.UI
 	world                    *world.World
 	player                   *player.Player
-	deathEffectEnterListener *events.EventListener
+	deathTransitionListener  *events.EventListener
+	levelTransitionListener  *events.EventListener
 	titleCardTimeoutListener *events.EventListener
 	levelCardTimeoutListener *events.EventListener
 	playerMoveListener       *events.EventListener
@@ -51,9 +52,13 @@ func (g *GameplayScene) Init() {
 		(rendering.GAME_HEIGHT-playerHeight)/2,
 	)
 
-	screenFade := ui.NewOverlay(ui.NewScreenFade(), time.Second*2)
-	g.deathEffectEnterListener = events.NewEventListener(screenFade.OnFinishEnter)
-	g.UI.AddOverlay("screenfade", screenFade)
+	deathTransition := ui.NewOverlay(ui.NewDeathTransition(), time.Second*2)
+	g.deathTransitionListener = events.NewEventListener(deathTransition.OnFinishEnter)
+	g.UI.AddOverlay("deathTransition", deathTransition)
+
+	levelTransition := ui.NewOverlay(ui.NewLevelTransition(), time.Second*2)
+	g.levelTransitionListener = events.NewEventListener(levelTransition.OnFinishEnter)
+	g.UI.AddOverlay("levelTransition", levelTransition)
 
 	titleCard := ui.NewOverlay(ui.NewTitleCard(), time.Second*2)
 	g.titleCardTimeoutListener = events.NewEventListener(titleCard.OnIdleTimeout)
@@ -138,10 +143,17 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 
 	doorOverlap, levelIid, doorEntityIid := g.world.ActiveLevel.CheckDoorOverlap(g.player.GetHitbox())
 	if g.player.GetLevelSwapInput() && doorOverlap && !g.player.Disabled {
-		newBiome := errs.Must(world.ChangeActiveLevel(g.world, levelIid, doorEntityIid))
+		g.world.LevelSwapCtx = world.LevelSwapCtx{levelIid, doorEntityIid}
+		sceneTransition := g.UI.GetOverlay("levelTransition")
+		sceneTransition.StartFadeIn()
+	}
+
+	_, sceneTransitionReady := g.levelTransitionListener.Poll()
+	if sceneTransitionReady {
+		newBiome := errs.Must(world.ChangeActiveLevel(g.world, g.world.LevelSwapCtx.LevelIid, g.world.LevelSwapCtx.DoorEntityIid))
 		if newBiome != "" {
 			titleCardOverlay := g.UI.GetOverlay("titlecard")
-			titleCard, _ := titleCardOverlay.OverlayContent.(*ui.TitleCard)
+			titleCard := titleCardOverlay.OverlayContent.(*ui.TitleCard)
 			titleCard.ChangeText(newBiome)
 			titleCardOverlay.StartFadeIn()
 		}
@@ -151,6 +163,9 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 		levelCard, _ := levelCardOverlay.OverlayContent.(*ui.LevelCard)
 		levelCard.ChangeText(g.world.ActiveLevel.GetTitle())
 		levelCardOverlay.StartFadeIn()
+
+		sceneTransition := g.UI.GetOverlay("levelTransition")
+		sceneTransition.StartFadeOut()
 	}
 
 	restartPrompted := inpututil.IsKeyJustReleased(ebiten.KeyR)
@@ -158,18 +173,18 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 	hitTurret := g.world.ActiveLevel.CheckTurretHit(g.player.GetHitbox())
 	if hitTurret && !g.player.Disabled || hitHazard && !g.player.Disabled || restartPrompted {
 		g.player.Die()
-		screenFade := g.UI.GetOverlay("screenfade")
-		screenFade.StartFadeIn()
+		deathTransition := g.UI.GetOverlay("deathTransition")
+		deathTransition.StartFadeIn()
 	}
 
-	_, raised := g.deathEffectEnterListener.Poll()
-	if raised {
+	_, deathTransitionReady := g.deathTransitionListener.Poll()
+	if deathTransitionReady {
 		posX, posY := g.world.ResetActiveLevel()
 		g.player.SetPos(posX, posY)
 		g.player.Respawn()
 
-		screenFade := g.UI.GetOverlay("screenfade")
-		screenFade.StartFadeOut()
+		deathTransition := g.UI.GetOverlay("deathTransition")
+		deathTransition.StartFadeOut()
 	}
 
 	g.player.Update()

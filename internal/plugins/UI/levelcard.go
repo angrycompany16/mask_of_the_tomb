@@ -36,7 +36,7 @@ type LevelCard struct {
 	img  *ebiten.Image
 }
 
-func (lc *LevelCard) Draw(t float64) {
+func (lc *LevelCard) Draw(t float64, enter bool) {
 	h := maths.Lerp((rendering.GAME_HEIGHT+32)*rendering.PIXEL_SCALE, (rendering.GAME_HEIGHT-32)*rendering.PIXEL_SCALE, maths.CubicInOut(t))
 	ebitenrenderutil.DrawAt(lc.img, rendering.ScreenLayers.ScreenUI, rendering.GAME_WIDTH*rendering.PIXEL_SCALE/2, h, 0.5, 0.5)
 }

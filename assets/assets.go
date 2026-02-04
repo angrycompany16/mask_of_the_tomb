@@ -36,8 +36,12 @@ var (
 	Vignette_kage []byte
 	//go:embed shaders/pixel_lights.kage
 	Pixel_lights_kage []byte
-	//go:embed shaders/transition.kage
-	Transition_kage []byte
+	//go:embed shaders/death_transition.kage
+	Death_transition_kage []byte
+	//go:embed shaders/level_transition_enter.kage
+	Level_transition_enter_kage []byte
+	//go:embed shaders/level_transition_exit.kage
+	Level_transition_exit_kage []byte
 	//go:embed sprites/environment/slambox_tilemap.png
 	Slambox_tilemap_png []byte
 	//go:embed sprites/player/player.png

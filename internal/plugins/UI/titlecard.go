@@ -15,7 +15,7 @@ type TitleCard struct {
 	font *text.GoTextFaceSource
 }
 
-func (tc *TitleCard) Draw(t float64) {
+func (tc *TitleCard) Draw(t float64, enter bool) {
 	opText := &text.DrawOptions{}
 	opText.LayoutOptions.LineSpacing = 40
 	opText.LayoutOptions.PrimaryAlign = text.AlignCenter

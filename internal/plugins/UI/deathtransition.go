@@ -9,23 +9,23 @@ import (
 )
 
 var (
-	OverlayColor = []float64{0, 0, 0}
+	deathTransitionColor = []float64{0, 0, 0}
 )
 
-type ScreenFade struct {
+type DeathTransition struct {
 	image            *ebiten.Image
 	transitionShader *ebiten.Shader
 }
 
-func (d *ScreenFade) Draw(t float64) {
+func (d *DeathTransition) Draw(t float64, enter bool) {
 	op := ebiten.DrawRectShaderOptions{}
 	op.Uniforms = map[string]any{"T": t}
 	rendering.ScreenLayers.Overlay.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, d.transitionShader, &op)
 }
 
-func NewScreenFade() OverlayContent {
-	return &ScreenFade{
-		transitionShader: errs.Must(assettypes.GetShaderAsset("transitionShader")),
+func NewDeathTransition() OverlayContent {
+	return &DeathTransition{
+		transitionShader: errs.Must(assettypes.GetShaderAsset("deathTransitionShader")),
 		image:            ebiten.NewImage(rendering.GAME_WIDTH, rendering.GAME_HEIGHT),
 	}
 }

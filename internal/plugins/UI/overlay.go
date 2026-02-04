@@ -43,7 +43,12 @@ func (oi *Overlay) Update() {
 }
 
 func (oi *Overlay) Draw() {
-	oi.OverlayContent.Draw(oi.t)
+	switch oi.state {
+	case enter, on:
+		oi.OverlayContent.Draw(oi.t, true)
+	case exit, off:
+		oi.OverlayContent.Draw(oi.t, false)
+	}
 }
 
 func (oi *Overlay) StartFadeIn() {
@@ -86,5 +91,5 @@ func NewOverlay(content OverlayContent, timeout time.Duration) *Overlay {
 }
 
 type OverlayContent interface {
-	Draw(t float64)
+	Draw(t float64, enter bool)
 }

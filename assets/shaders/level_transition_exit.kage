@@ -1,0 +1,18 @@
+//kage:unit pixels
+
+package main
+
+var (
+    T float
+    Resolution vec2
+)
+
+func Fragment(dstPos vec4, srcPos vec2) vec4 {    
+    center := (1 - T) * Resolution.x
+
+	if srcPos.x > center {
+        return vec4(0.0, 0.0, 0.0, 1.0)
+    } else {
+        return vec4(0.0, 0.0, 0.0, 0.0)
+    }
+}

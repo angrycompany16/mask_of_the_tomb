@@ -1,7 +1,5 @@
 package player
 
-// TODO: Remove interdependency
-// Disconnect the effect from the player
 import (
 	"image/color"
 	"mask_of_the_tomb/internal/core/colors"

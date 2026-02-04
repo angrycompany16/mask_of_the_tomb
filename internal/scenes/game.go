@@ -10,7 +10,6 @@ import (
 
 // Some problems:
 // - When exiting to main menu, music volume remains low
-//   - This follows from the game not playing the proper song on pressing play
 // - When opening menus for the first time, the select sound plays
 // - Somehow it seems that the game itself gets darker if we don't draw the UI???
 

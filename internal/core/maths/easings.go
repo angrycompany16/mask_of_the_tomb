@@ -33,3 +33,11 @@ func QuartInOut(x float64) float64 {
 	}
 	return 1 - math.Pow(-2*x+2, 4)/2
 }
+
+func QuadIn(x float64) float64 {
+	return math.Pow(x, 2)
+}
+
+func QuadOut(x float64) float64 {
+	return 1 - math.Pow(1-x, 2)
+}
