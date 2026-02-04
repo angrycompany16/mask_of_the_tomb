@@ -143,9 +143,13 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 
 	doorOverlap, levelIid, doorEntityIid := g.world.ActiveLevel.CheckDoorOverlap(g.player.GetHitbox())
 	if g.player.GetLevelSwapInput() && doorOverlap && !g.player.Disabled {
-		g.world.LevelSwapCtx = world.LevelSwapCtx{levelIid, doorEntityIid}
-		sceneTransition := g.UI.GetOverlay("levelTransition")
-		sceneTransition.StartFadeIn()
+		if doorEntityIid == "" || levelIid == "" {
+			fmt.Println("Could not switch to empty level! Probably missing an entity ref.")
+		} else {
+			g.world.LevelSwapCtx = world.LevelSwapCtx{levelIid, doorEntityIid}
+			sceneTransition := g.UI.GetOverlay("levelTransition")
+			sceneTransition.StartFadeIn()
+		}
 	}
 
 	_, sceneTransitionReady := g.levelTransitionListener.Poll()

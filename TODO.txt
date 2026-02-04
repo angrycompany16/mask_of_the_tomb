@@ -25,16 +25,12 @@ DEMO ROADMAP:
 - Finish slam animation
 - Create music for the first area + menu music
 - Revamp & touch up sound effects
-- Add credits/shoutout page (is for me)
+- Add credits/shoutout page (is for me) 
 - Remake dash animation
 - Create levels (at least 20!)
 - Create website + web build
 
 // Revamped roadmap because I want to create a demo
-// - Level transition
-// - Right now the game crashes if doors have a missing entity ref. Probably nice
-//   to fix this or at least give a better warning in ebiten-LDTK.
-
 // - Finish slam animation
 // - Remake dash animation
 // - Cheap hack for camera shake: Set the background color to the same as the darkest color in the tileset
