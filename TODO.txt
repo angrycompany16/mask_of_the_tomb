@@ -31,12 +31,12 @@ DEMO ROADMAP:
 - Create website + web build
 
 // Revamped roadmap because I want to create a demo
+// - Cheap hack for camera shake: Set the background color to the same as the darkest color in the tileset
+
 // - Finish slam animation
 // - Remake dash animation
-// - Cheap hack for camera shake: Set the background color to the same as the darkest color in the tileset
 // - ABSOLUTELY need performance improvements
 // - MORE slam effects: E.g. when slambox lands. Sound + particle effect
-// - Remove the need for a 0.5s loading asset...
 
 // Modularization rework. The following should be fleshed out as proper modules:
 // - Slambox module. Includes all the basic logic for slamboxes 

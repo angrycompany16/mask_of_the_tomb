@@ -3,6 +3,7 @@
 package main
 
 var (
+    Resolution vec2
     CamShake vec2
     Time float
 
@@ -25,7 +26,7 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
 
     // Point lights
     for i := 0; i < 100; i++ {
-        pos := vec2(PositionsX[i], PositionsY[i])
+        pos := vec2(PositionsX[i], PositionsY[i]) - CamShake
         color := vec3(ColorsR[i], ColorsG[i], ColorsB[i])
         attenuation := 1-smoothstep(InnerRadii[i], OuterRadii[i], distance(srcPos, pos))
         noiseFactor := cnoise(vec3(srcPos * 0.1, Time * 2)) * smoothstep(70, 150, distance(srcPos, pos))
@@ -37,13 +38,23 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
     lighting += AmbientLight
 
     srcColor := imageSrc1At(srcPos - CamShake)
-    
+    if outOfBounds(srcPos - CamShake, Resolution) {
+        srcColor = vec4(0.055, 0.035, 0.184, 1.0)
+    }
+
     color := srcColor.xyz * lighting
     if srcColor.a == 0 {
         return vec4(srcColor)
     } else {
         return vec4(getNearest(color, srcColor.xyz), srcColor.a)
     }
+}
+
+func outOfBounds(pos vec2, bounds vec2) bool {
+    if pos.x < 0 || pos.x > bounds.x || pos.y < 0 || pos.y > bounds.y {
+        return true
+    }
+    return false
 }
 
 func getNearest(color vec3, srcColor vec3) vec3 {

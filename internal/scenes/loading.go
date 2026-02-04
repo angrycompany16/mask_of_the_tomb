@@ -12,7 +12,6 @@ import (
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"path/filepath"
-	"time"
 )
 
 var (
@@ -27,8 +26,6 @@ type LoadingScene struct {
 
 func (l *LoadingScene) Init() {
 	// l.UI.LoadPreamble(loadingScreenPath)
-
-	assetloader.Add("any", assettypes.NewDelayAsset(time.Second))
 
 	assetloader.Add("LDTKAsset", assettypes.NewLDTKAsset(LDTKMapPath))
 	assetloader.Add("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap_png))

@@ -221,13 +221,6 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		tilesize := tileset.TileGridSize
 		tilesetImage := tileset.Image
 
-		if targetRenderLayer == newLevel.tileLayers.Midground {
-			// tilesetImage = midgroundNormalTilemap
-			// drawTiles(tiles, tilesetImage, newLevel.normalLayers.Midground, tilesize)
-		} else if targetRenderLayer == newLevel.tileLayers.Playerspace {
-			drawTiles(tiles, playerspaceNormalTilemap, newLevel.normalLayers.Playerspace, tilesize)
-		}
-
 		drawTiles(tiles, tilesetImage, targetRenderLayer, tilesize)
 	}
 
@@ -329,6 +322,8 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 			arrays.MapSlice(l.lanterns, func(lantern *entities.Lantern) *shaders.Light { return lantern.Light }),
 			[]*shaders.Light{playerLight},
 		),
+		rendering.GAME_WIDTH,
+		rendering.GAME_HEIGHT,
 		camX,
 		camY,
 		shakeX,
@@ -503,7 +498,6 @@ func drawTiles(
 	tileset *ebiten.Image,
 	targetLayer *ebiten.Image,
 	tileSize float64,
-	// camX, camY float64,
 ) {
 	for _, tile := range tiles {
 		scaleX, scaleY := 1.0, 1.0
@@ -545,39 +539,3 @@ func (l *Level) reset() {
 		}
 	}
 }
-
-// // This needs to be generalized. The best thing would be if we could send in a general
-// // point light struct and then automatically convert the info into a shaderOp
-// func (l *Level) GetShaderOp(ctx rendering.Ctx, src *ebiten.Image) ebiten.DrawRectShaderOptions {
-// 	trueCamX, trueCamY := camera.GetStablePos()
-
-// 	shaderOp := ebiten.DrawRectShaderOptions{}
-// 	shaderOp.Images = [4]*ebiten.Image{
-// 		// NEVER touch the first texture argument. EVER.
-// 		nil,
-// 		src.SubImage(image.Rect(int(trueCamX), int(trueCamY), int(trueCamX+rendering.GAME_WIDTH), int(trueCamY+rendering.GAME_HEIGHT))).(*ebiten.Image),
-// 		nil,
-// 		nil,
-// 	}
-
-// 	shakeX, shakeY := camera.GetShake()
-
-// 	// TODO: We want to create an interface that allows us to essentially pass structured data
-// 	// into the shader, we just need to convert it into simple uniforms
-// 	shaderOp.Uniforms = map[string]any{
-// 		"CamShake":     [2]float64{shakeX, shakeY},
-// 		"Time":         resources.Time / 5,
-// 		"PositionsX":   [10]float64{ctx.PlayerX - ctx.CamX},
-// 		"PositionsY":   [10]float64{ctx.PlayerY - ctx.CamY},
-// 		"InnerRadii":   [10]float64{0.0},
-// 		"OuterRadii":   [10]float64{PlayerLightRadius},
-// 		"ZOffsets":     [10]float64{0.2},
-// 		"Intensities":  [10]float64{0.6},
-// 		"ColorsR":      [10]float64{1.0},
-// 		"ColorsG":      [10]float64{1.0},
-// 		"ColorsB":      [10]float64{1.0},
-// 		"AmbientLight": [3]float64{0.6, 0.6, 0.6},
-// 	}
-
-// 	return shaderOp
-// }

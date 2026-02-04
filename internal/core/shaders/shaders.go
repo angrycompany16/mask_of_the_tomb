@@ -35,7 +35,7 @@ type lightParameters struct {
 // time should be resources.time / 5
 func MakeShaderOp(
 	lights []*Light,
-	camX, camY, camShakeX, camShakeY float64,
+	resX, resY, camX, camY, camShakeX, camShakeY float64,
 	ambientR, ambientG, ambientB float64,
 	time float64,
 	game_width, game_height float64,
@@ -71,6 +71,7 @@ func MakeShaderOp(
 	}
 
 	shaderOp.Uniforms = map[string]any{
+		"Resolution":   [2]float64{resX, resY},
 		"CamShake":     [2]float64{camShakeX, camShakeY},
 		"Time":         time,
 		"PositionsX":   lightParameters.PositionsX,

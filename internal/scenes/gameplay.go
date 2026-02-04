@@ -226,7 +226,7 @@ func (g *GameplayScene) Draw() {
 func (g *GameplayScene) GetName() string { return "gameplayScene" }
 func MakeGameplayScene() *GameplayScene {
 	return &GameplayScene{
-		UI:     errs.Must(assettypes.GetYamlAsset("hud")).(*ui.UI),
+		UI:     errs.Must(assettypes.GetYamlAsset("emptyMenu")).(*ui.UI),
 		player: player.NewPlayer(),
 		world:  world.NewWorld(),
 	}
