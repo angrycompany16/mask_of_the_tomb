@@ -3,7 +3,9 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"log"
+	"mask_of_the_tomb/internal/core/profiling"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/scenes"
@@ -17,10 +19,10 @@ type App struct {
 
 func (a *App) Update() error {
 	err := a.game.Update()
-	if err == scenes.ErrTerminated {
-		return err
-	}
-	return nil
+	// if err == scenes.ErrTerminated {
+	return err
+	// }
+	// return nil
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
@@ -36,8 +38,14 @@ func main() {
 	flag.BoolVar(&resources.DebugMode, "debug", false, "enable debug mode")
 	flag.StringVar(&scenes.InitLevelName, "initlevel", "", "Level in which to spawn the player")
 	flag.IntVar(&scenes.SaveProfile, "saveprofile", 1, "Profile to use for saving/loading (99 for dev save)")
+	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file (.prof ending)")
 
 	flag.Parse()
+
+	if *cpuprofile != "" {
+		stopProfiling := profiling.StartProfiling(cpuprofile)
+		defer stopProfiling()
+	}
 
 	ebiten.SetWindowSize(rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
 	ebiten.SetWindowTitle("Mask of the tomb")
@@ -47,6 +55,9 @@ func main() {
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, errors.ErrUnsupported) {
+			return
+		} else if err == scenes.ErrTerminated {
+			fmt.Println("Successful end")
 			return
 		}
 		log.Fatal(err)

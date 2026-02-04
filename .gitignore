@@ -2,3 +2,4 @@
 save/*
 assets/LDTK/world/backups/*
 .venv
+.prof
