@@ -31,13 +31,13 @@ DEMO ROADMAP:
 - Create website + web build
 
 // Revamped roadmap because I want to create a demo
-// - MORE slam effects: E.g. when slambox lands. Sound + particle effect
-
 // - Finish slam animation
 // - Remake dash animation
 // - ABSOLUTELY need performance improvements
 // - Create a system (a kind of spectator mode) for placing 
 //   hand-painted assets into the world?
+// - Make slambox particle effect work with chained, as well as 
+//   multibox slamboxes.
 
 // Modularization rework. The following should be fleshed out as proper modules:
 // - Slambox module. Includes all the basic logic for slamboxes 
