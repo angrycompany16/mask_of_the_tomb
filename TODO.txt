@@ -31,10 +31,13 @@ DEMO ROADMAP:
 - Create website + web build
 
 // Revamped roadmap because I want to create a demo
+// - MORE slam effects: E.g. when slambox lands. Sound + particle effect
+
 // - Finish slam animation
 // - Remake dash animation
 // - ABSOLUTELY need performance improvements
-// - MORE slam effects: E.g. when slambox lands. Sound + particle effect
+// - Create a system (a kind of spectator mode) for placing 
+//   hand-painted assets into the world?
 
 // Modularization rework. The following should be fleshed out as proper modules:
 // - Slambox module. Includes all the basic logic for slamboxes 
@@ -44,8 +47,7 @@ DEMO ROADMAP:
 //   environments etc. in various colors. Also maybe some debug 
 //   stuff
 // - NodeTree module. Includes a system for creating nodes, 
-//   a tree structure, and a visualization tool for nodes.
-// - Tilemap module. Improved auto-tiling features.
+//   a tree structure, and a visualization tool for the node tree.
 // - Music/sound module? Includes better mixing controls and 
 //   stuff
 

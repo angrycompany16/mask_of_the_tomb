@@ -105,7 +105,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.vignetteShader = errs.Must(assettypes.GetShaderAsset("vignetteShader"))
 	newLevel.pixelLightShader = errs.Must(assettypes.GetShaderAsset("pixelLightsShader"))
 	newLevel.ambientParticles = errs.Must(assettypes.GetYamlAsset("ambientParticles")).(*particles.ParticleSystem)
-	newLevel.ambientParticles.Init(rendering.ScreenLayers.Foreground)
+	newLevel.ambientParticles.Init()
 	newLevel.grassTilemap = errs.Must(assettypes.GetImageAsset("grassTilemap"))
 
 	// newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)

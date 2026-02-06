@@ -58,7 +58,7 @@ func RotateCCW(dir Direction) Direction {
 	return DirNone
 }
 
-func FromVector(x, y float64) Direction {
+func DirFromVector(x, y float64) Direction {
 	if x == 0 && y < 0 {
 		return DirUp
 	} else if x == 0 && y > 0 {

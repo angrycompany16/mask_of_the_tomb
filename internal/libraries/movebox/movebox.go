@@ -8,6 +8,7 @@ import (
 
 type Movebox struct {
 	OnMoveFinished         *events.Event
+	isMoving               bool
 	posX, posY             float64
 	targetPosX, targetPosY float64
 	moveDirX, moveDirY     float64
@@ -29,6 +30,13 @@ func (m *Movebox) Update() {
 		m.posY = maths.Clamp(m.posY, m.posY, m.targetPosY)
 	}
 
+	if m.posX == m.targetPosX && m.posY == m.targetPosY && m.isMoving {
+		m.OnMoveFinished.Raise(events.EventInfo{
+			Data: maths.DirFromVector(m.moveDirX, m.moveDirY),
+		})
+		m.isMoving = false
+	}
+
 	if m.posX == m.targetPosX {
 		m.moveDirX = 0
 	}
@@ -36,9 +44,6 @@ func (m *Movebox) Update() {
 		m.moveDirY = 0
 	}
 
-	if m.posX == m.targetPosX && m.posY == m.targetPosY {
-		m.OnMoveFinished.Raise(events.EventInfo{})
-	}
 }
 
 func (m *Movebox) SetTarget(x, y float64) {
@@ -46,6 +51,7 @@ func (m *Movebox) SetTarget(x, y float64) {
 	m.targetPosY = y
 	m.moveDirX = math.Copysign(1, m.targetPosX-m.posX)
 	m.moveDirY = math.Copysign(1, m.targetPosY-m.posY)
+	m.isMoving = true
 }
 
 func (m *Movebox) SetPos(x, y float64) {
@@ -67,6 +73,7 @@ func (m *Movebox) GetMovedir() (float64, float64) {
 
 func NewMovebox(moveSpeed float64) *Movebox {
 	_movebox := &Movebox{
+		isMoving:       false,
 		OnMoveFinished: events.NewEvent(),
 		moveSpeed:      moveSpeed,
 	}

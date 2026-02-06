@@ -149,12 +149,11 @@ func (ps *ParticleSystem) newParticle() *Particle {
 // TODO: This is a challenging case: We have an asset that needs to load a path to another asset
 // Can this be solved? It shouldn't be a gigantic performance loss if not so most likely nothing to
 // worry about.
-func (ps *ParticleSystem) Init(dest *ebiten.Image) {
+func (ps *ParticleSystem) Init() {
 	ps.particles = make([]*Particle, 0)
 	ps.surf = ebiten.NewImage(ps.ImageWidth, ps.ImageHeight)
 	spritePath := errs.Must(filepath.Localize(ps.SpritePath))
 	ps.sprite = errs.MustNewImageFromFile(spritePath)
-	ps.layer = dest
 }
 
 type ParticleBurst struct {

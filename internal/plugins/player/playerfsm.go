@@ -57,7 +57,9 @@ func (p *Player) Update() {
 	case Moving:
 		p.movebox.Update()
 		_, finished := p.moveFinishedListener.Poll()
-		if finished && p.InputBuffer.Read() == maths.DirNone {
+		// bufInput := p.InputBuffer.Read()
+		//  && (bufInput == maths.DirNone || bufInput == p.direction)
+		if finished {
 			p.direction = maths.Opposite(p.direction)
 			p.State = Idle
 		}
@@ -74,6 +76,7 @@ func (p *Player) Update() {
 	playerMove := p.InputBuffer.Read()
 
 	if playerMove != maths.DirNone && p.CanMove() && !p.Disabled {
+		p.InputBuffer.Clear()
 		p.OnMove.Raise(events.EventInfo{Data: playerMove})
 	}
 

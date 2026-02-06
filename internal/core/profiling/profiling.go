@@ -8,7 +8,7 @@ import (
 )
 
 func StartProfiling(profile *string) func() {
-	fmt.Println("Starting profiling")
+	fmt.Println(" ** STARTING PROFILING ** ")
 	f, err := os.Create(*profile)
 	if err != nil {
 		log.Fatal(err)
@@ -16,7 +16,7 @@ func StartProfiling(profile *string) func() {
 	pprof.StartCPUProfile(f)
 
 	return func() {
-		fmt.Println("Stopping profiling")
+		fmt.Println(" ** STOPPING PROFILING ** ")
 		pprof.StopCPUProfile()
 		f.Close()
 	}

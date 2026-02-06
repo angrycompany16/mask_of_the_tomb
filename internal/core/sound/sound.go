@@ -15,12 +15,6 @@ type EffectPlayer struct {
 
 func (e *EffectPlayer) Play() {
 	e.Player.SetVolume(e.Volume * resources.Settings.MasterVolume * resources.Settings.SoundVolume / 20000.0)
-
-	// if e.IsPlaying() {
-	// 	go playAudio(*e.Player)
-	// 	return
-	// }
-
 	e.Rewind()
 	e.Player.Play()
 }

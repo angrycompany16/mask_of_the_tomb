@@ -55,6 +55,14 @@ func (r *Rect) Height() float64 {
 	return r.height
 }
 
+func (r *Rect) Size() (float64, float64) {
+	return r.width, r.height
+}
+
+func (r *Rect) HalfSize() (float64, float64) {
+	return r.width / 2, r.height / 2
+}
+
 func (r *Rect) Extended(dir Direction, length float64) Rect {
 	newRect := *r
 	switch dir {

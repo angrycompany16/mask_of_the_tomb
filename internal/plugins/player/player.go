@@ -6,7 +6,6 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
-	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/shaders"
 	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/libraries/animation"
@@ -124,8 +123,8 @@ func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.jumpParticlesBroad = errs.Must(assettypes.GetYamlAsset("jumpParticlesBroad")).(*particles.ParticleSystem)
 	p.jumpParticlesTight = errs.Must(assettypes.GetYamlAsset("jumpParticlesTight")).(*particles.ParticleSystem)
 
-	p.jumpParticlesBroad.Init(rendering.ScreenLayers.Playerspace)
-	p.jumpParticlesTight.Init(rendering.ScreenLayers.Playerspace)
+	p.jumpParticlesBroad.Init()
+	p.jumpParticlesTight.Init()
 
 	dashInitAnim := errs.Must(assettypes.GetYamlAsset("dashInitAnim")).(*animation.AnimationInfo)
 	dashLoopAnim := errs.Must(assettypes.GetYamlAsset("dashLoopAnim")).(*animation.AnimationInfo)

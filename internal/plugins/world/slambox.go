@@ -6,15 +6,19 @@ package world
 
 import (
 	"fmt"
+	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/autotile"
+	"mask_of_the_tomb/internal/libraries/camera"
 	"mask_of_the_tomb/internal/libraries/entities"
 	"mask_of_the_tomb/internal/libraries/movebox"
+	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
 	"math"
 	"time"
@@ -63,6 +67,8 @@ type Slambox struct {
 	slamTimerEventListener    *events.EventListener
 	currentSlamCtx            SlamContext
 	attachedHazardIDs         []string
+	particleSys               *particles.ParticleSystem
+	landSound                 *sound.EffectPlayer
 	// TODO: Hazard should not really be in entities, instead there should be a general Hazard struct
 	// that takes care of damage calculations and such, and then a specific hazard type
 	attachedHazards []*entities.Hazard
@@ -79,17 +85,77 @@ func (s *Slambox) Update() {
 
 	switch s.state {
 	case idle:
+		s.particleSys.Update()
 	case waiting:
 		if _, done := threads.Poll(s.slamTimer.C); done {
 			s.Slam(s.currentSlamCtx)
 			s.state = slamming
 		}
 	case slamming:
-		_, finished := s.moveFinishedEventListener.Poll()
-		if finished {
+		if eventInfo, finished := s.moveFinishedEventListener.Poll(); finished {
+			moveDir := eventInfo.Data.(maths.Direction)
 			s.state = idle
+			camera.Shake(0.4, 7, 1)
+			// Also rotate into correct position
+			s.PlayContactParticles(moveDir)
+			s.landSound.Play()
 		}
 	}
+}
+
+func (s *Slambox) PlayContactParticles(moveDir maths.Direction) {
+	w2, h2 := s.Collider.HalfSize()
+	spread := 20.0
+	minSpeed := 20.0
+	maxSpeed := 70.0
+	switch moveDir {
+	case maths.DirUp:
+		s.particleSys.PosX = s.Collider.Cx()
+		s.particleSys.PosY = s.Collider.Top()
+		s.particleSys.SpawnPosY.Min = 0
+		s.particleSys.SpawnPosY.Max = 0
+		s.particleSys.SpawnPosX.Min = -w2
+		s.particleSys.SpawnPosX.Max = w2
+		s.particleSys.SpawnVelX.Min = -spread
+		s.particleSys.SpawnVelX.Max = spread
+		s.particleSys.SpawnVelY.Min = minSpeed
+		s.particleSys.SpawnVelY.Max = maxSpeed
+	case maths.DirDown:
+		s.particleSys.PosX = s.Collider.Cx()
+		s.particleSys.PosY = s.Collider.Bottom()
+		s.particleSys.SpawnPosY.Min = 0
+		s.particleSys.SpawnPosY.Max = 0
+		s.particleSys.SpawnPosX.Min = -w2
+		s.particleSys.SpawnPosX.Max = w2
+		s.particleSys.SpawnVelX.Min = -spread
+		s.particleSys.SpawnVelX.Max = spread
+		s.particleSys.SpawnVelY.Max = -minSpeed
+		s.particleSys.SpawnVelY.Min = -maxSpeed
+	case maths.DirLeft:
+		s.particleSys.PosX = s.Collider.Left()
+		s.particleSys.PosY = s.Collider.Cy()
+		s.particleSys.SpawnPosX.Min = 0
+		s.particleSys.SpawnPosX.Max = 0
+		s.particleSys.SpawnPosY.Min = -h2
+		s.particleSys.SpawnPosY.Max = h2
+		s.particleSys.SpawnVelY.Min = -spread
+		s.particleSys.SpawnVelY.Max = spread
+		s.particleSys.SpawnVelX.Min = minSpeed
+		s.particleSys.SpawnVelX.Max = maxSpeed
+	case maths.DirRight:
+		s.particleSys.PosX = s.Collider.Right()
+		s.particleSys.PosY = s.Collider.Cy()
+		s.particleSys.SpawnPosX.Min = 0
+		s.particleSys.SpawnPosX.Max = 0
+		s.particleSys.SpawnPosY.Min = -h2
+		s.particleSys.SpawnPosY.Max = h2
+		s.particleSys.SpawnVelY.Min = -spread
+		s.particleSys.SpawnVelY.Max = spread
+		s.particleSys.SpawnVelX.Min = -minSpeed
+		s.particleSys.SpawnVelX.Max = -maxSpeed
+	case maths.DirNone:
+	}
+	s.particleSys.Play()
 }
 
 func ProjectInChain(rect *maths.Rect, slamCtx *SlamContext) float64 {
@@ -189,9 +255,10 @@ func ComputeChainedSlamboxDirection(startRect *maths.Rect, endRect *maths.Rect, 
 	return dir
 }
 
-func (s *Slambox) Draw(drawCtx rendering.Ctx) {
+func (s *Slambox) Draw(ctx rendering.Ctx) {
 	x, y := s.movebox.GetPos()
-	ebitenrenderutil.DrawAt(s.sprite, drawCtx.Dst, x, y)
+	ebitenrenderutil.DrawAt(s.sprite, ctx.Dst, x, y)
+	s.particleSys.Draw(ctx)
 }
 
 // Projects a slambox through the environment given by slamctx
@@ -383,6 +450,11 @@ func NewSlambox(
 	newSlambox.moveFinishedEventListener = events.NewEventListener(newSlambox.movebox.OnMoveFinished)
 	// TODO: Size dynamically by hazards
 	newSlambox.sprite = ebiten.NewImage(int(entity.Width), int(entity.Height))
+	newSlambox.particleSys = errs.Must(assettypes.GetYamlAsset("slamboxParticles")).(*particles.ParticleSystem)
+	newSlambox.particleSys.Init()
+
+	slamboxLandAudioStream := errs.Must(assettypes.GetMp3Stream("slamboxLandSound"))
+	newSlambox.landSound = &sound.EffectPlayer{errs.Must(sound.FromStream(slamboxLandAudioStream)), 0.7}
 
 	connectionField := errs.Must(entity.GetFieldByName(SlamboxConnectionFieldName))
 	for _, entityRef := range connectionField.EntityRefArray {

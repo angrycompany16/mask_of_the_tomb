@@ -24,6 +24,8 @@ var (
 	Dash_wav []byte
 	//go:embed sfx/slam.wav
 	Slam_wav []byte
+	//go:embed sfx/slambox-land.mp3
+	Slambox_land_mp3 []byte
 	//go:embed sfx/death.mp3
 	Death_mp3 []byte
 	//go:embed sfx/select.ogg
@@ -60,6 +62,8 @@ var (
 	Jump_tight_yaml []byte
 	//go:embed particlesystems/jump-broad.yaml
 	Jump_broad_yaml []byte
+	//go:embed particlesystems/slambox.yaml
+	Slambox_particles_yaml []byte
 	//go:embed particlesystems/basement.yaml
 	Basement_yaml []byte
 	//go:embed animations/teleporter.yaml

@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"mask_of_the_tomb/internal/core/profiling"
 	"mask_of_the_tomb/internal/core/rendering"
@@ -57,7 +56,6 @@ func main() {
 		if errors.Is(err, errors.ErrUnsupported) {
 			return
 		} else if err == scenes.ErrTerminated {
-			fmt.Println("Successful end")
 			return
 		}
 		log.Fatal(err)
