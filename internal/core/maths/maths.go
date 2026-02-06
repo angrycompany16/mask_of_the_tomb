@@ -162,3 +162,11 @@ func Mix(a, b color.Color, t float64) color.Color {
 func RandomRange(min, max float64) float64 {
 	return rand.Float64()*(max-min) + min
 }
+
+func IsBetween(min, max, val float64) bool {
+	if val >= min && val <= max {
+		return true
+	} else {
+		return false
+	}
+}

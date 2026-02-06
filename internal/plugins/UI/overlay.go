@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/threads"
@@ -72,7 +71,6 @@ func (oi *Overlay) fadeIn() {
 func (oi *Overlay) fadeOut() {
 	oi.t = maths.Lerp(oi.t, -2, 0.01)
 	if oi.t <= 0.01 {
-		fmt.Println("Faded out")
 		oi.t = 0
 		oi.OnFinishExit.Raise(events.EventInfo{})
 		oi.state = off

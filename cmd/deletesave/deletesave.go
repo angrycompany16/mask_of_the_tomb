@@ -1,4 +1,4 @@
-package deletesave
+package main
 
 import (
 	"flag"

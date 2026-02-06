@@ -18,10 +18,7 @@ type App struct {
 
 func (a *App) Update() error {
 	err := a.game.Update()
-	// if err == scenes.ErrTerminated {
 	return err
-	// }
-	// return nil
 }
 
 func (a *App) Draw(screen *ebiten.Image) {

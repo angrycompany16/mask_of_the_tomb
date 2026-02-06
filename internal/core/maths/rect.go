@@ -84,6 +84,11 @@ func (r *Rect) SetPos(x, y float64) {
 	r.x, r.y = x, y
 }
 
+func (r *Rect) Translate(x, y float64) {
+	r.x += x
+	r.y += y
+}
+
 // TODO: implement
 func (r *Rect) Draw(surf *ebiten.Image) {
 	// Render debug rect

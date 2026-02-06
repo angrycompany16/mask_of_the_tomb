@@ -82,6 +82,7 @@ func (tc *TilemapCollider) ProjectRect(collisionRect *maths.Rect, direction math
 	}
 	newX, newY := tc.gridPosToWorld(x, y)
 
+	// lowkey... why not just do all the collision against rects?
 	// Detect collision against rects
 	// If there is a collision, change the position based on movedir
 	var moveRect *maths.Rect

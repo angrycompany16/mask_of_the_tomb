@@ -5,6 +5,7 @@ slamboxes and (2) the ability to connect slamboxes in "any" configuration)
 // 9. Hold up hear me out. What about turrets / traps that insta-kill you if they get line of sight?
       They can be blocked with boxes and also killed
 // 3. One-way platforms
+// 4. Buttons... I might have to add buttons
 // what else?
 
 
@@ -31,6 +32,7 @@ DEMO ROADMAP:
 - Create website + web build
 
 // Revamped roadmap because I want to create a demo
+// - WORK ON SOKOBAN
 // - Finish slam animation
 // - Remake dash animation
 // - ABSOLUTELY need performance improvements
