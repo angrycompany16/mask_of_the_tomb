@@ -29,6 +29,11 @@ func (r *Rect) Bottom() float64 {
 	return r.y + r.height
 }
 
+// Pixel perfect version. Should replace the usual right?
+func (r *Rect) PPBottom() float64 {
+	return r.y + r.height - 1
+}
+
 func (r *Rect) Center() (float64, float64) {
 	return r.x + r.width/2, r.y + r.height/2
 }
@@ -89,9 +94,9 @@ func (r *Rect) Translate(x, y float64) {
 	r.y += y
 }
 
-// TODO: implement
-func (r *Rect) Draw(surf *ebiten.Image) {
-	// Render debug rect
+func (r *Rect) Extend(x, y float64) {
+	r.width += x
+	r.height += y
 }
 
 func (r *Rect) Overlapping(other *Rect) bool {
@@ -102,7 +107,7 @@ func (r *Rect) Overlapping(other *Rect) bool {
 }
 
 // Checks if a point is inside the rect
-func (r *Rect) IsWithin(x, y float64) bool {
+func (r *Rect) Contains(x, y float64) bool {
 	return x <= r.Right() &&
 		r.Left() <= x &&
 		r.Top() <= y &&
@@ -125,7 +130,7 @@ func (r *Rect) Lerp(other *Rect, t float64) Rect {
 // Checks if a ray starting in posX, posY and travelling in the given direction will
 // intersect the rect.
 func (r *Rect) RaycastDirectional(posX, posY float64, direction Direction) (bool, float64, float64) {
-	if r.IsWithin(posX, posY) {
+	if r.Contains(posX, posY) {
 		// Should be true?
 		return false, 0, 0
 	}

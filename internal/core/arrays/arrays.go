@@ -36,3 +36,9 @@ func DeleteAtUnordered[V any](input []V, i int) []V {
 	input = input[:len(input)-1]
 	return input
 }
+
+// func DeleteAtUnordered[V any](input []V, i int) []V {
+// 	input[i] = input[len(input)-1]
+// 	input = input[:len(input)-1]
+// 	return input
+// }

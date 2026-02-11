@@ -75,14 +75,14 @@ func CreateSprite(
 
 		// Painful and needs a refactor probably
 		var ul, um, ur, ml, mr, bl, bm, br bool
-		ul = rect.IsWithin(worldX-tileSize, worldY-tileSize)
-		um = rect.IsWithin(worldX, worldY-tileSize)
-		ur = rect.IsWithin(worldX+tileSize, worldY-tileSize)
-		ml = rect.IsWithin(worldX-tileSize, worldY)
-		mr = rect.IsWithin(worldX+tileSize, worldY)
-		bl = rect.IsWithin(worldX-tileSize, worldY+tileSize)
-		bm = rect.IsWithin(worldX, worldY+tileSize)
-		br = rect.IsWithin(worldX+tileSize, worldY+tileSize)
+		ul = rect.Contains(worldX-tileSize, worldY-tileSize)
+		um = rect.Contains(worldX, worldY-tileSize)
+		ur = rect.Contains(worldX+tileSize, worldY-tileSize)
+		ml = rect.Contains(worldX-tileSize, worldY)
+		mr = rect.Contains(worldX+tileSize, worldY)
+		bl = rect.Contains(worldX-tileSize, worldY+tileSize)
+		bm = rect.Contains(worldX, worldY+tileSize)
+		br = rect.Contains(worldX+tileSize, worldY+tileSize)
 
 		tileData := tileNeighbourData{
 			fromBool(kind, EMPTY, ul),
@@ -98,14 +98,14 @@ func CreateSprite(
 		for _, neighbourList := range neighbourLists {
 			var ul, um, ur, ml, mr, bl, bm, br bool
 			for _, wall := range neighbourList.List {
-				ul = ul || wall.IsWithin(worldX-tileSize, worldY-tileSize)
-				um = um || wall.IsWithin(worldX, worldY-tileSize)
-				ur = ur || wall.IsWithin(worldX+tileSize, worldY-tileSize)
-				ml = ml || wall.IsWithin(worldX-tileSize, worldY)
-				mr = mr || wall.IsWithin(worldX+tileSize, worldY)
-				bl = bl || wall.IsWithin(worldX-tileSize, worldY+tileSize)
-				bm = bm || wall.IsWithin(worldX, worldY+tileSize)
-				br = br || wall.IsWithin(worldX+tileSize, worldY+tileSize)
+				ul = ul || wall.Contains(worldX-tileSize, worldY-tileSize)
+				um = um || wall.Contains(worldX, worldY-tileSize)
+				ur = ur || wall.Contains(worldX+tileSize, worldY-tileSize)
+				ml = ml || wall.Contains(worldX-tileSize, worldY)
+				mr = mr || wall.Contains(worldX+tileSize, worldY)
+				bl = bl || wall.Contains(worldX-tileSize, worldY+tileSize)
+				bm = bm || wall.Contains(worldX, worldY+tileSize)
+				br = br || wall.Contains(worldX+tileSize, worldY+tileSize)
 			}
 
 			tileData = tileNeighbourData{

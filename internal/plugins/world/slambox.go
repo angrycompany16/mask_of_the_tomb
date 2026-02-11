@@ -163,7 +163,7 @@ func ProjectInChain(rect *maths.Rect, slamCtx *SlamContext) float64 {
 	shortestDist := 0.0
 	for i, chainNode := range slamCtx.chainNodes {
 		hitNode, _, _ := chainNode.Rect.RaycastDirectional(x, y, slamCtx.direction)
-		overlapsNode := chainNode.Rect.IsWithin(x, y)
+		overlapsNode := chainNode.Rect.Contains(x, y)
 		if hitNode {
 			dist := maths.Length(chainNode.Rect.Cx()-x, chainNode.Rect.Cy()-y)
 			shortestDist = dist

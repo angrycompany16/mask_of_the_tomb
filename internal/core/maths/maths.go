@@ -170,3 +170,11 @@ func IsBetween(min, max, val float64) bool {
 		return false
 	}
 }
+
+func IsBetweenStrict(min, max, val float64) bool {
+	if val > min && val < max {
+		return true
+	} else {
+		return false
+	}
+}
