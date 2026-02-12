@@ -1,7 +1,6 @@
 package slambox
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/maths"
 	"math"
 	"slices"
@@ -26,9 +25,20 @@ const (
 
 // Represents an environment which can contain moving and static boxes.
 type SlamboxEnvironment struct {
-	TileSize  float64 // Should only ever be a whole float. Data type for convenience
-	GridTiles [][]bool
-	Slamboxes []*maths.Rect
+	TileSize      float64 // Should only ever be a whole float. Data type for convenience
+	gridTiles     [][]bool
+	slamboxes     []*Slambox
+	slamboxGroups []*SlamboxGroup
+}
+
+func (se *SlamboxEnvironment) Update() {
+	for _, slambox := range se.slamboxes {
+		slambox.Update()
+	}
+
+	for _, slamboxGroup := range se.slamboxGroups {
+		slamboxGroup.Update()
+	}
 }
 
 // Constructs a list representing the tiles in the SlamboxEnvironment, using a 2D voxel meshing algorithm.
@@ -52,13 +62,13 @@ func (se *SlamboxEnvironment) Rectify() []*maths.Rect {
 			extendedY := newRect.Extended(maths.DirDown, se.TileSize)
 			extendedXY := extendedY.Extended(maths.DirRight, se.TileSize)
 
-			if int(newRect.Right()/se.TileSize) <= len(se.GridTiles[0])-1 {
+			if int(newRect.Right()/se.TileSize) <= len(se.gridTiles[0])-1 {
 				if se.validateRect(&extendedX, rectList) {
 					extensionType = EXTEND_X
 				}
 			}
 
-			if int(newRect.Bottom()/se.TileSize) <= len(se.GridTiles)-1 {
+			if int(newRect.Bottom()/se.TileSize) <= len(se.gridTiles)-1 {
 				if extensionType == EXTEND_X && se.validateRect(&extendedXY, rectList) {
 					extensionType = EXTEND_XY
 				} else if se.validateRect(&extendedY, rectList) {
@@ -93,10 +103,10 @@ func (se *SlamboxEnvironment) Rectify() []*maths.Rect {
 //   - An empty tile
 //   - Another rect in otherRects
 func (se *SlamboxEnvironment) validateRect(rect *maths.Rect, otherRects []*maths.Rect) bool {
-	for y := range se.GridTiles {
-		for x := range se.GridTiles[y] {
+	for y := range se.gridTiles {
+		for x := range se.gridTiles[y] {
 			cX, cY := se.getCenterPos(x, y)
-			if rect.Contains(float64(cX), float64(cY)) && !se.GridTiles[y][x] {
+			if rect.Contains(float64(cX), float64(cY)) && !se.gridTiles[y][x] {
 				return false
 			}
 		}
@@ -118,9 +128,9 @@ func (se *SlamboxEnvironment) getCenterPos(x, y int) (float64, float64) {
 // are not contained in any of the elements in rectList.
 // If none exist, returns 0, 0.
 func (se *SlamboxEnvironment) findNewRectCorner(rectList []*maths.Rect) (int, int) {
-	for y := range se.GridTiles {
-		for x := range se.GridTiles[y] {
-			if !se.GridTiles[y][x] {
+	for y := range se.gridTiles {
+		for x := range se.gridTiles[y] {
+			if !se.gridTiles[y][x] {
 				continue
 			}
 			cX, cY := se.getCenterPos(x, y)
@@ -143,11 +153,38 @@ func (se *SlamboxEnvironment) findNewRectCorner(rectList []*maths.Rect) (int, in
 	return 0, 0
 }
 
+// Slams the slambox at index i in the array through the environment.
+// Assumes that the index is within the array.
+func (se *SlamboxEnvironment) SlamSlambox(i int, dir maths.Direction) {
+	slambox := se.slamboxes[i]
+	projRect, _ := se.ProjectRect(*slambox.GetRect(), dir)
+	slambox.Slam(projRect.Left(), projRect.Top())
+}
+
+// Slams the slambox group at index i in the array through the environment.
+// Assumes that the index is within the array.
+func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) {
+	slamboxGroup := se.slamboxGroups[i]
+	shortestDist := math.Inf(1)
+	var closestRect maths.Rect
+	var closestID int
+	for i, slambox := range slamboxGroup.GetSlamboxes() {
+		projRect, dist := se.ProjectRect(*slambox.GetRect(), dir)
+		if dist < shortestDist {
+			closestRect = projRect
+			closestID = i
+			shortestDist = dist
+		}
+	}
+
+	slamboxGroup.Slam(closestRect.Left(), closestRect.Top(), closestID)
+}
+
 // Projects a rect (moves it as far as possible) through the slambox
 // environment. Returns the projected rect and the distance that it was
 // moved.
 func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction) (maths.Rect, float64) {
-	rects := slices.Concat(se.Rectify(), se.Slamboxes)
+	rects := slices.Concat(se.Rectify(), se.GetSlamboxRects())
 
 	var closestObstruction *maths.Rect
 	var closestDist = math.Inf(1)
@@ -167,14 +204,8 @@ func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction) 
 
 		switch dir {
 		case maths.DirUp:
-			fmt.Println(otherRect)
 			isAbove := otherRect.Bottom() <= rect.Top()
-			fmt.Println(isAbove)
-			fmt.Println(hrzWithin)
-			fmt.Println(isCloserY)
 
-			fmt.Println(rect.Left())
-			fmt.Println(otherRect.Right())
 			if !(hrzWithin && isCloserY && isAbove) {
 				continue
 			}
@@ -228,11 +259,55 @@ func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction) 
 	return rect, math.Abs(dx + dy)
 }
 
-func NewSlamboxEnvironment(tileSize float64, gridTiles [][]bool, slamboxes []*maths.Rect) *SlamboxEnvironment {
+// Returns the maths.Rect belonging to each slambox.
+func (se *SlamboxEnvironment) GetSlamboxRects() []*maths.Rect {
+	rects := make([]*maths.Rect, 0)
+	for _, slambox := range se.slamboxes {
+		rects = append(rects, slambox.GetRect())
+	}
+	return rects
+}
+
+// Returns a list of IDs of slamboxes overlapping with the rect.
+func (se *SlamboxEnvironment) CheckSlamboxOverlap(rect *maths.Rect) []int {
+	overlaps := make([]int, 0)
+	for i, slambox := range se.slamboxes {
+		if slambox.GetRect().Overlapping(rect) {
+			overlaps = append(overlaps, i)
+		}
+	}
+	return overlaps
+}
+
+func (se *SlamboxEnvironment) GetSlamboxes() []*Slambox {
+	return se.slamboxes
+}
+
+// Returns a list of IDs of slambox groups overlapping with the rect.
+func (se *SlamboxEnvironment) CheckSlamboxGroupOverlap(rect *maths.Rect) []int {
+	overlaps := make([]int, 0)
+outer:
+	for i, slamboxGroup := range se.slamboxGroups {
+		for _, slambox := range slamboxGroup.GetSlamboxes() {
+			if slambox.GetRect().Overlapping(rect) {
+				overlaps = append(overlaps, i)
+				continue outer
+			}
+		}
+	}
+	return overlaps
+}
+
+func (se *SlamboxEnvironment) GetSlamboxGroups() []*SlamboxGroup {
+	return se.slamboxGroups
+}
+
+func NewSlamboxEnvironment(tileSize float64, gridTiles [][]bool, slamboxes []*Slambox, slamboxGroups []*SlamboxGroup) *SlamboxEnvironment {
 	newSlamboxEnvironment := SlamboxEnvironment{
-		TileSize:  tileSize,
-		GridTiles: gridTiles,
-		Slamboxes: slamboxes,
+		TileSize:      tileSize,
+		gridTiles:     gridTiles,
+		slamboxes:     slamboxes,
+		slamboxGroups: slamboxGroups,
 	}
 	return &newSlamboxEnvironment
 }

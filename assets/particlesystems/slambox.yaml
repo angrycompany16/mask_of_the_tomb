@@ -33,8 +33,8 @@ EndScale:
   Min: 0.0
   Max: 0.0
 Lifetime:
-  Min: 0.1
-  Max: 0.5
+  Min: 0.4
+  Max: 0.7
 StartColor: [255, 255, 255, 255]
 EndColor: [255, 255, 255, 255]
 ImageWidth: 64

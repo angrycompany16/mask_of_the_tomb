@@ -111,8 +111,8 @@ func (s *Slambox) Update() {
 func (s *Slambox) PlayContactParticles(moveDir maths.Direction) {
 	w2, h2 := s.Collider.HalfSize()
 	spread := 20.0
-	minSpeed := 20.0
-	maxSpeed := 70.0
+	minSpeed := 2.0
+	maxSpeed := 50.0
 	switch moveDir {
 	case maths.DirUp:
 		s.particleSys.PosX = s.Collider.Cx()
