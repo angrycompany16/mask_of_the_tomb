@@ -17,3 +17,11 @@ type SlamboxChain struct {
 	slamboxes     []*Slambox
 	slamboxGroups []*SlamboxGroup
 }
+
+func (sc *SlamboxChain) SlamSlamboxChain() {
+
+}
+
+func NewSlamboxChain() *SlamboxChain {
+	return nil
+}

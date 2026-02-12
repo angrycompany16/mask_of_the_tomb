@@ -12,6 +12,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+var testSlamboxChains = []*SlamboxChain{
+	NewSlamboxChain(),
+}
+
 var testSlamboxGroups = []*SlamboxGroup{
 	NewSlamboxGroup(
 		[]*Slambox{
@@ -81,8 +85,9 @@ func RunTestEnv() {
 	gridTiles = append(gridTiles, []bool{true, false, false, false, true})
 	gridTiles = append(gridTiles, []bool{true, true, true, true, true})
 
+	// Fix
 	a := &testApp{
-		SlamboxEnvironment: NewSlamboxEnvironment(16, gridTiles, testSlamboxes, testSlamboxGroups),
+		SlamboxEnvironment: NewSlamboxEnvironment(16, gridTiles, testSlamboxes, testSlamboxGroups, testSlamboxChains),
 		surf:               ebiten.NewImage(480, 270),
 	}
 	ebiten.SetWindowSize(480*2, 270*2)

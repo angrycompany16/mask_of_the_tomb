@@ -29,6 +29,7 @@ type SlamboxEnvironment struct {
 	gridTiles     [][]bool
 	slamboxes     []*Slambox
 	slamboxGroups []*SlamboxGroup
+	slamboxChains []*SlamboxChain
 }
 
 func (se *SlamboxEnvironment) Update() {
@@ -165,11 +166,44 @@ func (se *SlamboxEnvironment) SlamSlambox(i int, dir maths.Direction) {
 // Assumes that the index is within the array.
 func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) {
 	slamboxGroup := se.slamboxGroups[i]
+	rects := slamboxGroup.GetSlamboxRects()
+	newRects, _ := se.ProjectRects(rects, dir)
+	slamboxGroup.Slam(newRects)
+}
+
+// Slams the slambox chain at index i in the array through the environment.
+// Assumes that the index is within the array.
+// Returns a direction + target for each slambox / slambox group
+// in the array.
+func (se *SlamboxEnvironment) SlamSlamboxChain(i int, dir maths.Direction) {
+	// General algorithm:
+	// 1. Start at any slambox / slambox group in the chain
+	// 2. Compute how for the slambox (group) can slam in the
+	//    given direction without leaving the chain
+	// 3. Explore in the same (eventually opposite) direction
+	//    recursively (maybe rewrite into a while loop)
+	// 4. When encountering a node, figure out the next direction
+	//    to move in.
+	// 5. When encountering a slambox (group), project it through
+	//    the environment and store the distance (we pick the
+	//    shortest). Also store direction of movement.
+	// 6. When reaching the end, go back to the start and
+	//    continue exploring in the opposite direction
+
+	// Note: Gotta ensure that projection through the
+	// environment ignores slambox (groups) that are in the
+	// chain.
+}
+
+// Projects a group of rects through the environment. Returns
+// a list of rects with the same length as the incoming one,
+// but projected in the specified direction.
+func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direction) ([]maths.Rect, float64) {
 	shortestDist := math.Inf(1)
 	var closestRect maths.Rect
 	var closestID int
-	for i, slambox := range slamboxGroup.GetSlamboxes() {
-		projRect, dist := se.ProjectRect(*slambox.GetRect(), dir)
+	for i, rect := range rects {
+		projRect, dist := se.ProjectRect(*rect, dir)
 		if dist < shortestDist {
 			closestRect = projRect
 			closestID = i
@@ -177,7 +211,16 @@ func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) {
 		}
 	}
 
-	slamboxGroup.Slam(closestRect.Left(), closestRect.Top(), closestID)
+	projectedList := make([]maths.Rect, 0)
+	anchor := rects[closestID]
+	anchorX, anchorY := anchor.TopLeft()
+	offsetX := closestRect.Left() - anchorX
+	offsetY := closestRect.Top() - anchorY
+	for _, otherRect := range rects {
+		translatedRect := otherRect.Translated(offsetX, offsetY)
+		projectedList = append(projectedList, translatedRect)
+	}
+	return projectedList, shortestDist
 }
 
 // Projects a rect (moves it as far as possible) through the slambox
@@ -302,12 +345,41 @@ func (se *SlamboxEnvironment) GetSlamboxGroups() []*SlamboxGroup {
 	return se.slamboxGroups
 }
 
-func NewSlamboxEnvironment(tileSize float64, gridTiles [][]bool, slamboxes []*Slambox, slamboxGroups []*SlamboxGroup) *SlamboxEnvironment {
+// Returns a list of IDs of slambox groups overlapping with the rect.
+func (se *SlamboxEnvironment) CheckSlamboxChainOverlap(rect *maths.Rect) []int {
+	overlaps := make([]int, 0)
+outer:
+	for i, slamboxChain := range se.slamboxChains {
+		for _, slambox := range slamboxChain.slamboxes {
+			if slambox.GetRect().Overlapping(rect) {
+				overlaps = append(overlaps, i)
+				continue outer
+			}
+		}
+
+		for _, slamboxGroup := range slamboxChain.slamboxGroups {
+			for _, slambox := range slamboxGroup.GetSlamboxes() {
+				if slambox.GetRect().Overlapping(rect) {
+					overlaps = append(overlaps, i)
+					continue outer
+				}
+			}
+		}
+	}
+	return overlaps
+}
+
+func (se *SlamboxEnvironment) GetSlamboxChains() []*SlamboxChain {
+	return se.slamboxChains
+}
+
+func NewSlamboxEnvironment(tileSize float64, gridTiles [][]bool, slamboxes []*Slambox, slamboxGroups []*SlamboxGroup, slamboxChains []*SlamboxChain) *SlamboxEnvironment {
 	newSlamboxEnvironment := SlamboxEnvironment{
 		TileSize:      tileSize,
 		gridTiles:     gridTiles,
 		slamboxes:     slamboxes,
 		slamboxGroups: slamboxGroups,
+		slamboxChains: slamboxChains,
 	}
 	return &newSlamboxEnvironment
 }

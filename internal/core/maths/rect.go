@@ -94,6 +94,13 @@ func (r *Rect) Translate(x, y float64) {
 	r.y += y
 }
 
+func (r *Rect) Translated(x, y float64) Rect {
+	newRect := *r
+	newRect.x += x
+	newRect.y += y
+	return newRect
+}
+
 func (r *Rect) Extend(x, y float64) {
 	r.width += x
 	r.height += y
