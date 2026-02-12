@@ -25,13 +25,14 @@ type LoadingScene struct {
 }
 
 func (l *LoadingScene) Init() {
-	// l.UI.LoadPreamble(loadingScreenPath)
-
 	assetloader.Add("LDTKAsset", assettypes.NewLDTKAsset(LDTKMapPath))
 	assetloader.Add("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap_png))
 	assetloader.Add("grassTilemap", assettypes.MakeImageAsset(assets.Grass_png))
 	assetloader.Add("turretSprite", assettypes.MakeImageAsset(assets.Turret_png))
 	assetloader.Add("catcherSprite", assettypes.MakeImageAsset(assets.Catcher_png))
+	assetloader.Add("lanternSprite", assettypes.MakeImageAsset(assets.Lantern_png))
+	assetloader.Add("slamboxGemBlue", assettypes.MakeImageAsset(assets.Slambox_gem_blue_png))
+	assetloader.Add("slamboxGemRed", assettypes.MakeImageAsset(assets.Slambox_gem_red_png))
 	assetloader.Add("lanternSprite", assettypes.MakeImageAsset(assets.Lantern_png))
 	assetloader.Add("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))
 	assetloader.Add("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))

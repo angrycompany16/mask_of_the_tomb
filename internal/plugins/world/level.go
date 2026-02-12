@@ -17,7 +17,6 @@ import (
 	"mask_of_the_tomb/internal/libraries/entities"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
-	"path/filepath"
 	"slices"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -52,9 +51,9 @@ var (
 		BlendOperationRGB:           ebiten.BlendOperationAdd,
 		BlendOperationAlpha:         ebiten.BlendOperationAdd,
 	}
-	playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "playerspace_tilemap_normal.png")
+	// playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "playerspace_tilemap_normal.png")
 	// TODO: *very* temporary solution
-	playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
+	// playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
 )
 
 type SlamboxPosition struct {
@@ -320,6 +319,7 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 		slices.Concat(
 			arrays.MapSlice(l.turrets, func(turret *entities.Turret) *shaders.Light { return turret.Light }),
 			arrays.MapSlice(l.lanterns, func(lantern *entities.Lantern) *shaders.Light { return lantern.Light }),
+			arrays.MapSlice(l.slamboxes, func(slambox *Slambox) *shaders.Light { return slambox.Light }),
 			[]*shaders.Light{playerLight},
 		),
 		rendering.GAME_WIDTH,

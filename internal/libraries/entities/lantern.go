@@ -127,7 +127,6 @@ func (l *Lantern) Update(playerX, playerY, playerVelX, playerVelY float64) {
 }
 
 func (l *Lantern) Draw(ctx rendering.Ctx) {
-	// TODO: Add rotation
 	for _, ropeSeg := range l.rope {
 		if ropeSeg.next == nil {
 			continue
@@ -188,7 +187,6 @@ func NewLantern(
 		B:           1.0,
 	}
 
-	// Construct the rope segments
 	rope := []*RopeSegment{
 		{
 			VerletObject: VerletObject{
@@ -216,7 +214,6 @@ func NewLantern(
 		})
 	}
 
-	// Connect rope segments with next
 	for i := 0; i < numRopeSegments-1; i++ {
 		rope[i].next = rope[i+1]
 	}

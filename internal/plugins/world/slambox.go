@@ -12,6 +12,7 @@ import (
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/shaders"
 	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/autotile"
@@ -73,12 +74,16 @@ type Slambox struct {
 	// that takes care of damage calculations and such, and then a specific hazard type
 	attachedHazards []*entities.Hazard
 	chainNodeID     string
+	Light           *shaders.Light
 }
 
 func (s *Slambox) Update() {
 	s.movebox.Update()
 	x, y := s.movebox.GetPos()
 	s.Collider.SetPos(x, y)
+	lightX, lightY := s.GetGemPos()
+	s.Light.X = lightX + x
+	s.Light.Y = lightY + y
 	for _, hazard := range s.attachedHazards {
 		hazard.Hitbox.SetPos(x+hazard.PosOffsetX, y+hazard.PosOffsetY)
 	}
@@ -393,6 +398,11 @@ func (s *Slambox) GetCollider() *maths.Rect {
 	return s.Collider
 }
 
+func (s *Slambox) GetGemPos() (float64, float64) {
+	sX, sY := s.Collider.HalfSize()
+	return sX, math.Min(sY, 8)
+}
+
 func (s *Slambox) SetPos(x, y float64) {
 	s.movebox.SetPos(x, y)
 }
@@ -431,6 +441,10 @@ func (s *Slambox) CreateSprite(slamboxTilemap *ebiten.Image) {
 			},
 		)
 	}
+
+	gemSprite := errs.Must(assettypes.GetImageAsset("slamboxGemRed"))
+	x, y := s.GetGemPos()
+	ebitenrenderutil.DrawAt(gemSprite, s.sprite, x, y, 0.5, 0.5)
 }
 
 func NewSlambox(
@@ -468,6 +482,18 @@ func NewSlambox(
 
 	chainNodeField := errs.Must(entity.GetFieldByName("ChainNode"))
 	newSlambox.chainNodeID = chainNodeField.EntityRef.EntityIid
+
+	newSlambox.Light = &shaders.Light{
+		X:           entity.Px[0],
+		Y:           entity.Px[1],
+		InnerRadius: 0,
+		OuterRadius: 50,
+		ZOffset:     0,
+		Intensity:   0.6,
+		R:           1.0,
+		G:           1.0,
+		B:           1.0,
+	}
 
 	return &newSlambox
 }

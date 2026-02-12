@@ -56,6 +56,10 @@ var (
 	Catcher_png []byte
 	//go:embed sprites/environment/lantern.png
 	Lantern_png []byte
+	//go:embed sprites/environment/slambox-gem-blue.png
+	Slambox_gem_blue_png []byte
+	//go:embed sprites/environment/slambox-gem-red.png
+	Slambox_gem_red_png []byte
 	//go:embed sprites/UI/level-titlecard.png
 	Level_titlecard_sprite []byte
 	//go:embed particlesystems/jump-tight.yaml
