@@ -44,7 +44,7 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("dashSound", assettypes.MakeAudioStreamAsset(assets.Dash_wav, assettypes.Wav))
 	assetloader.Add("slamSound", assettypes.MakeAudioStreamAsset(assets.Slam_wav, assettypes.Wav))
 	assetloader.Add("deathSound", assettypes.MakeAudioStreamAsset(assets.Death_mp3, assettypes.Mp3))
-	assetloader.Add("slamboxLandSound", assettypes.MakeAudioStreamAsset(assets.Slambox_land_mp3, assettypes.Mp3))
+	assetloader.Add("slamboxLandSound", assettypes.MakeAudioStreamAsset(assets.Slambox_land_wav, assettypes.Wav))
 	assetloader.Add("jumpParticlesBroad", assettypes.MakeYamlAsset(assets.Jump_broad_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("jumpParticlesTight", assettypes.MakeYamlAsset(assets.Jump_tight_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("slamboxParticles", assettypes.MakeYamlAsset(assets.Slambox_particles_yaml, &particles.ParticleSystem{}))

@@ -13,18 +13,18 @@ import (
 )
 
 var testSlamboxChains = []*SlamboxChain{
-	NewSlamboxChain(),
-}
-
-var testSlamboxGroups = []*SlamboxGroup{
-	NewSlamboxGroup(
+	NewSlamboxChain(
+		[]float64{16 + 4, 16 + 4, 48 + 4, 48 + 4},
+		[]float64{48 + 4, 16 + 4, 16 + 4, 64 + 4},
 		[]*Slambox{
-			NewSlambox(maths.NewRect(16, 16, 10, 32), 5),
-			NewSlambox(maths.NewRect(16+10, 16+16, 12, 16), 5),
+			NewSlambox(maths.NewRect(30, 18, 12, 12), 5),
+			NewSlambox(maths.NewRect(18, 34, 12, 12), 5),
 		},
+		[]*SlamboxGroup{},
 	),
 }
 
+var testSlamboxGroups = []*SlamboxGroup{}
 var testSlamboxes = []*Slambox{}
 
 const (
@@ -40,15 +40,16 @@ type testApp struct {
 
 func (t *testApp) Update() error {
 	t.SlamboxEnvironment.Update()
-	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
-		t.SlamboxEnvironment.SlamSlamboxGroup(0, maths.DirLeft)
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
-		t.SlamboxEnvironment.SlamSlamboxGroup(0, maths.DirRight)
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-		t.SlamboxEnvironment.SlamSlamboxGroup(0, maths.DirDown)
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-		t.SlamboxEnvironment.SlamSlamboxGroup(0, maths.DirUp)
+	if inpututil.IsKeyJustReleased(ebiten.KeyLeft) {
+		t.SlamboxEnvironment.SlamSlamboxChain(0, 0, false, maths.DirLeft)
+	} else if inpututil.IsKeyJustReleased(ebiten.KeyRight) {
+		t.SlamboxEnvironment.SlamSlamboxChain(0, 0, false, maths.DirRight)
+	} else if inpututil.IsKeyJustReleased(ebiten.KeyUp) {
+		t.SlamboxEnvironment.SlamSlamboxChain(0, 0, false, maths.DirUp)
+	} else if inpututil.IsKeyJustReleased(ebiten.KeyDown) {
+		t.SlamboxEnvironment.SlamSlamboxChain(0, 0, false, maths.DirDown)
 	}
+
 	return nil
 }
 
@@ -69,6 +70,21 @@ func (t *testApp) Draw(screen *ebiten.Image) {
 		}
 	}
 
+	slamboxChains := t.SlamboxEnvironment.GetSlamboxChains()
+	for _, slamboxChain := range slamboxChains {
+		for _, chainNode := range slamboxChain.GetNodes() {
+			DrawRect(t.surf, chainNode.GetRect(), color.RGBA{255, 0, 255, 255}, color.RGBA{100, 0, 255, 255})
+		}
+		for _, slambox := range slamboxChain.GetSlamboxes() {
+			DrawRect(t.surf, slambox.GetRect(), color.RGBA{255, 255, 255, 255}, color.RGBA{0, 200, 255, 255})
+		}
+		for _, slamboxGroup := range slamboxChain.GetSlamboxGroups() {
+			for _, slambox := range slamboxGroup.GetSlamboxes() {
+				DrawRect(t.surf, slambox.GetRect(), color.RGBA{255, 255, 255, 255}, color.RGBA{0, 200, 255, 255})
+			}
+		}
+	}
+
 	ebitenrenderutil.DrawAtScaled(t.surf, screen, 16, 16, 8, 8)
 }
 
@@ -79,13 +95,13 @@ func (t *testApp) Layout(outsideHeight, outsideWidth int) (int, int) {
 // Sets up a simple game loop for testing this package.
 func RunTestEnv() {
 	gridTiles := make([][]bool, 0)
-	gridTiles = append(gridTiles, []bool{true, true, true, true, true})
-	gridTiles = append(gridTiles, []bool{true, false, false, true, true})
-	gridTiles = append(gridTiles, []bool{true, false, false, false, true})
-	gridTiles = append(gridTiles, []bool{true, false, false, false, true})
-	gridTiles = append(gridTiles, []bool{true, true, true, true, true})
+	gridTiles = append(gridTiles, []bool{true, true, true, true, true, true})
+	gridTiles = append(gridTiles, []bool{true, false, false, false, false, true})
+	gridTiles = append(gridTiles, []bool{true, false, false, false, false, true})
+	gridTiles = append(gridTiles, []bool{true, false, false, false, false, true})
+	gridTiles = append(gridTiles, []bool{true, true, true, false, false, true})
+	gridTiles = append(gridTiles, []bool{true, true, true, true, true, true})
 
-	// Fix
 	a := &testApp{
 		SlamboxEnvironment: NewSlamboxEnvironment(16, gridTiles, testSlamboxes, testSlamboxGroups, testSlamboxChains),
 		surf:               ebiten.NewImage(480, 270),

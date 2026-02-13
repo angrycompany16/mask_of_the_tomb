@@ -24,8 +24,8 @@ var (
 	Dash_wav []byte
 	//go:embed sfx/slam.wav
 	Slam_wav []byte
-	//go:embed sfx/slambox-land.mp3
-	Slambox_land_mp3 []byte
+	//go:embed sfx/stone-crash-trimmed.wav
+	Slambox_land_wav []byte
 	//go:embed sfx/death.mp3
 	Death_mp3 []byte
 	//go:embed sfx/select.ogg

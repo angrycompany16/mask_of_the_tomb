@@ -467,7 +467,7 @@ func NewSlambox(
 	newSlambox.particleSys = errs.Must(assettypes.GetYamlAsset("slamboxParticles")).(*particles.ParticleSystem)
 	newSlambox.particleSys.Init()
 
-	slamboxLandAudioStream := errs.Must(assettypes.GetMp3Stream("slamboxLandSound"))
+	slamboxLandAudioStream := errs.Must(assettypes.GetWavStream("slamboxLandSound"))
 	newSlambox.landSound = &sound.EffectPlayer{errs.Must(sound.FromStream(slamboxLandAudioStream)), 0.7}
 
 	connectionField := errs.Must(entity.GetFieldByName(SlamboxConnectionFieldName))

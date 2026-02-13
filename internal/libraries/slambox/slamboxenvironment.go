@@ -1,6 +1,7 @@
 package slambox
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/maths"
 	"math"
 	"slices"
@@ -172,24 +173,75 @@ func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) {
 }
 
 // Slams the slambox chain at index i in the array through the environment.
+// objectID should be an index in the array of slamboxes / slambox
+// groups. To indicate which one, the objectID is used.
 // Assumes that the index is within the array.
 // Returns a direction + target for each slambox / slambox group
 // in the array.
-func (se *SlamboxEnvironment) SlamSlamboxChain(i int, dir maths.Direction) {
-	// General algorithm:
-	// 1. Start at any slambox / slambox group in the chain
-	// 2. Compute how for the slambox (group) can slam in the
-	//    given direction without leaving the chain
-	// 3. Explore in the same (eventually opposite) direction
-	//    recursively (maybe rewrite into a while loop)
-	// 4. When encountering a node, figure out the next direction
-	//    to move in.
-	// 5. When encountering a slambox (group), project it through
-	//    the environment and store the distance (we pick the
-	//    shortest). Also store direction of movement.
-	// 6. When reaching the end, go back to the start and
-	//    continue exploring in the opposite direction
+func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool, dir maths.Direction) {
+	// Idea:
+	// Check whether the direction of slamming is opposite to
+	// the direction of the array of not.
+	// If no, go through the array normally, projecting slamboxes
+	// along the way.
+	// If yes, go through the array in reversed order, projecting
+	// slamboxes.
+	// Find the shortest distance, and move all boxes that distance,
+	// in their respective direction.
+	chain := se.slamboxChains[i]
+	var targetSlambox *Slambox
+	// var targetSlamboxGroup *SlamboxGroup
+	if isGroup {
 
+	} else {
+		targetSlambox = chain.GetSlamboxes()[i]
+	}
+
+	cX, cY := targetSlambox.GetRect().Center()
+
+	shortestDistAlong := math.Inf(1)
+	var closestNodeAlong *ChainNode
+	var closestNodeAlongID int
+	for i, node := range chain.GetNodes() {
+		nodeRect := node.GetRect()
+		hitNode, hitX, hitY := nodeRect.RaycastDirectional(cX, cY, dir)
+		dist := maths.Length(hitX-cX, hitY-cY)
+		if !hitNode || dist > shortestDistAlong {
+			continue
+		}
+		closestNodeAlong = node
+		shortestDistAlong = dist
+		closestNodeAlongID = i
+	}
+
+	shortestDistAgainst := math.Inf(1)
+	var closestNodeAgainst *ChainNode
+	var closestNodeAgainstID int
+	for i, node := range chain.GetNodes() {
+		nodeRect := node.GetRect()
+		hitNode, hitX, hitY := nodeRect.RaycastDirectional(cX, cY, maths.Opposite(dir))
+		dist := maths.Length(hitX-cX, hitY-cY)
+		if !hitNode || dist > shortestDistAgainst {
+			continue
+		}
+		closestNodeAgainst = node
+		shortestDistAgainst = dist
+		closestNodeAgainstID = i
+	}
+
+	if closestNodeAlong == nil || closestNodeAgainst == nil {
+		fmt.Println("No closest node")
+		return
+	}
+	slamsAgainst := closestNodeAgainstID > closestNodeAlongID
+
+	fmt.Println(slamsAgainst)
+	// shortestMoveDist := math.Inf(1)
+	if slamsAgainst {
+		// Explore in reversed direction
+	} else {
+		// Explore in normal direction
+	}
 	// Note: Gotta ensure that projection through the
 	// environment ignores slambox (groups) that are in the
 	// chain.
@@ -227,6 +279,7 @@ func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direct
 // environment. Returns the projected rect and the distance that it was
 // moved.
 func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction) (maths.Rect, float64) {
+	// IMPORTANT: INCLUDE SLAMBOX GROUP / CHAIN RECTS
 	rects := slices.Concat(se.Rectify(), se.GetSlamboxRects())
 
 	var closestObstruction *maths.Rect
@@ -300,6 +353,26 @@ func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction) 
 
 	rect.Translate(dx, dy)
 	return rect, math.Abs(dx + dy)
+}
+
+func (se *SlamboxEnvironment) Raycast(posX, posY float64, dir maths.Direction) (bool, float64, float64) {
+	// IMPORTANT: INCLUDE SLAMBOX GROUP / CHAIN RECTS
+	rects := slices.Concat(se.Rectify(), se.GetSlamboxRects())
+	closestDist := math.Inf(1)
+	var closestX, closestY float64
+	wasHit := false
+	for _, rect := range rects {
+		if hit, hitX, hitY := rect.RaycastDirectional(posX, posY, dir); hit {
+			wasHit = true
+			dist := maths.Length(hitX-rect.Left(), hitY-rect.Top())
+			if dist < closestDist {
+				closestDist = dist
+				closestX = hitX
+				closestY = hitY
+			}
+		}
+	}
+	return wasHit, closestX, closestY
 }
 
 // Returns the maths.Rect belonging to each slambox.
