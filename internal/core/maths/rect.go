@@ -134,8 +134,27 @@ func (r *Rect) Lerp(other *Rect, t float64) Rect {
 	}
 }
 
+// Returns a rect which is half of the original one, according
+// to the passed in direction
+func (r *Rect) GetHalved(dir Direction) *Rect {
+	switch dir {
+	case DirUp:
+		return NewRect(r.x, r.y, r.width, r.height/2)
+	case DirDown:
+		return NewRect(r.x, r.y+r.height/2, r.width, r.height/2)
+	case DirLeft:
+		return NewRect(r.x, r.y, r.width/2, r.height)
+	case DirRight:
+		return NewRect(r.x+r.width/2, r.y, r.width/2, r.height)
+	}
+	return NewRect(0, 0, 0, 0)
+}
+
 // Checks if a ray starting in posX, posY and travelling in the given direction will
 // intersect the rect.
+// TODO: I think this should return the intersection point
+// rather than the top left corner of the rect (how in the world
+// was i able to use this successfully?)
 func (r *Rect) RaycastDirectional(posX, posY float64, direction Direction) (bool, float64, float64) {
 	if r.Contains(posX, posY) {
 		// Should be true?
@@ -153,6 +172,22 @@ func (r *Rect) RaycastDirectional(posX, posY float64, direction Direction) (bool
 		return posY >= r.Top() && posY <= r.Bottom() && posX <= r.Right(), r.Left(), r.Top()
 	}
 	return false, 0, 0
+}
+
+// Returns whether the point (x, y) lies directly above/below/left/right to
+// the center of the rect.
+func (r *Rect) IsInDirection(x, y float64, direction Direction) bool {
+	switch direction {
+	case DirUp:
+		return x == r.Cx() && y >= r.Cy()
+	case DirDown:
+		return x == r.Cx() && y <= r.Cy()
+	case DirLeft:
+		return x <= r.Cx() && y == r.Cy()
+	case DirRight:
+		return x >= r.Cx() && y == r.Cy()
+	}
+	return false
 }
 
 func NewRect(x, y, width, height float64) *Rect {

@@ -41,6 +41,10 @@ func (se *SlamboxEnvironment) Update() {
 	for _, slamboxGroup := range se.slamboxGroups {
 		slamboxGroup.Update()
 	}
+
+	for _, slamboxChain := range se.slamboxChains {
+		slamboxChain.Update()
+	}
 }
 
 // Constructs a list representing the tiles in the SlamboxEnvironment, using a 2D voxel meshing algorithm.
@@ -159,7 +163,8 @@ func (se *SlamboxEnvironment) findNewRectCorner(rectList []*maths.Rect) (int, in
 // Assumes that the index is within the array.
 func (se *SlamboxEnvironment) SlamSlambox(i int, dir maths.Direction) {
 	slambox := se.slamboxes[i]
-	projRect, _ := se.ProjectRect(*slambox.GetRect(), dir)
+	otherRects := slices.Concat(se.GetSlamboxRects(i), se.GetSlamboxGroupRects(-1), se.GetSlamboxChainRects(-1))
+	projRect, _ := se.ProjectRect(*slambox.GetRect(), dir, math.Inf(1), otherRects)
 	slambox.Slam(projRect.Left(), projRect.Top())
 }
 
@@ -168,7 +173,8 @@ func (se *SlamboxEnvironment) SlamSlambox(i int, dir maths.Direction) {
 func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) {
 	slamboxGroup := se.slamboxGroups[i]
 	rects := slamboxGroup.GetSlamboxRects()
-	newRects, _ := se.ProjectRects(rects, dir)
+	otherRects := slices.Concat(se.GetSlamboxRects(i), se.GetSlamboxGroupRects(-1), se.GetSlamboxChainRects(-1))
+	newRects, _ := se.ProjectRects(rects, dir, math.Inf(1), otherRects)
 	slamboxGroup.Slam(newRects)
 }
 
@@ -179,83 +185,139 @@ func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) {
 // Returns a direction + target for each slambox / slambox group
 // in the array.
 func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool, dir maths.Direction) {
-	// Idea:
-	// Check whether the direction of slamming is opposite to
-	// the direction of the array of not.
-	// If no, go through the array normally, projecting slamboxes
-	// along the way.
-	// If yes, go through the array in reversed order, projecting
-	// slamboxes.
-	// Find the shortest distance, and move all boxes that distance,
-	// in their respective direction.
 	chain := se.slamboxChains[i]
 	var targetSlambox *Slambox
-	// var targetSlamboxGroup *SlamboxGroup
+	otherRects := slices.Concat(se.GetSlamboxRects(-1), se.GetSlamboxGroupRects(-1), se.GetSlamboxChainRects(i))
+
 	if isGroup {
 
 	} else {
 		targetSlambox = chain.GetSlamboxes()[i]
 	}
 
+	// Revised algorithm:
+	// 1. Find closest node in slam direction (might be distance 0)
+	// 2. If dist != 0, just take the previous node and compare directions
+	// 3. If dist == 0, check if the next node dir aligns with the slam direction
+	// 4. If dist == 0, check if the previous node's next node dir is
+	//    opposite to the slam direction
+	// 5. If none work, then the slam direction is invalid.
+
+	var againstChain bool
 	cX, cY := targetSlambox.GetRect().Center()
+	closestNodeID, dist := chain.FindClosestNode(cX, cY)
 
-	shortestDistAlong := math.Inf(1)
-	var closestNodeAlong *ChainNode
-	var closestNodeAlongID int
-	for i, node := range chain.GetNodes() {
-		nodeRect := node.GetRect()
-		hitNode, hitX, hitY := nodeRect.RaycastDirectional(cX, cY, dir)
-		dist := maths.Length(hitX-cX, hitY-cY)
-		if !hitNode || dist > shortestDistAlong {
-			continue
+	if dist > 0 {
+		var oppositeNodeID int
+		nodes := chain.GetNodes()
+		if closestNodeID == 0 {
+			oppositeNodeID = 1
+		} else if closestNodeID == len(nodes)-1 {
+			oppositeNodeID = len(nodes) - 2
+		} else {
+			thisNode := nodes[closestNodeID]
+			prevNode := nodes[closestNodeID-1]
+			nextNode := nodes[closestNodeID+1]
+			if maths.IsBetween(prevNode.rect.Cx(), thisNode.rect.Cx(), cX) && maths.IsBetween(prevNode.rect.Cy(), thisNode.rect.Cy(), cY) {
+				oppositeNodeID = closestNodeID - 1
+			}
+			if maths.IsBetween(thisNode.rect.Cx(), nextNode.rect.Cx(), cX) && maths.IsBetween(thisNode.rect.Cy(), nextNode.rect.Cy(), cY) {
+				oppositeNodeID = closestNodeID + 1
+			}
 		}
-		closestNodeAlong = node
-		shortestDistAlong = dist
-		closestNodeAlongID = i
-	}
-
-	shortestDistAgainst := math.Inf(1)
-	var closestNodeAgainst *ChainNode
-	var closestNodeAgainstID int
-	for i, node := range chain.GetNodes() {
-		nodeRect := node.GetRect()
-		hitNode, hitX, hitY := nodeRect.RaycastDirectional(cX, cY, maths.Opposite(dir))
-		dist := maths.Length(hitX-cX, hitY-cY)
-		if !hitNode || dist > shortestDistAgainst {
-			continue
-		}
-		closestNodeAgainst = node
-		shortestDistAgainst = dist
-		closestNodeAgainstID = i
-	}
-
-	if closestNodeAlong == nil || closestNodeAgainst == nil {
-		fmt.Println("No closest node")
-		return
-	}
-	slamsAgainst := closestNodeAgainstID > closestNodeAlongID
-
-	fmt.Println(slamsAgainst)
-	// shortestMoveDist := math.Inf(1)
-	if slamsAgainst {
-		// Explore in reversed direction
+		fmt.Println(".-.----------")
+		fmt.Println(closestNodeID)
+		fmt.Println(oppositeNodeID)
+		fmt.Println(".-.----------")
 	} else {
-		// Explore in normal direction
+		fmt.Println("Invalid direction")
+		return
+		if closestNodeID+1 >= len(chain.GetNodes()) || closestNodeID-1 < 0 {
+			// stuckOnEdge = true
+		} else {
+			if chain.GetNodes()[closestNodeID+1].nextNodeDir == dir {
+				againstChain = false
+			} else if chain.GetNodes()[closestNodeID-1].nextNodeDir == maths.Opposite(dir) {
+				againstChain = true
+			} else {
+				// stuckOnEdge = true
+			}
+		}
 	}
-	// Note: Gotta ensure that projection through the
-	// environment ignores slambox (groups) that are in the
-	// chain.
+
+	// if !foundNodeAlong || stuckOnEdge {
+	// 	fmt.Println("Invalid slam direction")
+	// 	return
+	// }
+
+	// Determine loop params based on slam directions
+	var i0 int
+	var pred func(i int) bool
+	var inc func(i int) int
+	if againstChain {
+		i0 = len(chain.nodes) - 1
+		pred = func(i int) bool { return i > 0 }
+		inc = func(i int) int { return i - 1 }
+	} else {
+		i0 = 0
+		pred = func(i int) bool { return i < len(chain.nodes)-1 }
+		inc = func(i int) int { return i + 1 }
+	}
+
+	minDist := math.Inf(1)
+	for i := i0; pred(i); {
+		var nodeDir maths.Direction
+		var nextIndex int
+		if againstChain {
+			nodeDir = chain.GetPrevDir(i)
+			nextIndex = i - 1
+		} else {
+			nodeDir = chain.GetNextDir(i)
+			nextIndex = i + 1
+		}
+
+		x0, y0 := chain.GetNodes()[i].GetRect().Center()
+		for _, slambox := range chain.slamboxes {
+			if hit, _, _ := slambox.GetRect().RaycastDirectional(x0, y0, nodeDir); hit {
+				nodeDist := chain.DistFromNode(*slambox.GetRect(), nodeDir, nextIndex)
+				_, dist := se.ProjectRect(*slambox.GetRect(), nodeDir, nodeDist, otherRects)
+				if dist < minDist {
+					minDist = dist
+				}
+			}
+		}
+		i = inc(i)
+	}
+
+	// Slam constrained
+	for i := i0; pred(i); {
+		var nodeDir maths.Direction
+		if againstChain {
+			nodeDir = chain.GetPrevDir(i)
+		} else {
+			nodeDir = chain.GetNextDir(i)
+		}
+		x0, y0 := chain.GetNodes()[i].GetRect().Center()
+		for _, slambox := range chain.GetSlamboxes() {
+			// Probably also need to check if the rect contains the point
+			if hit, _, _ := slambox.GetRect().RaycastDirectional(x0, y0, nodeDir); hit {
+				projRect, _ := se.ProjectRect(*slambox.GetRect(), nodeDir, minDist, otherRects)
+				slambox.Slam(projRect.Left(), projRect.Top())
+			}
+		}
+		i = inc(i)
+	}
 }
 
 // Projects a group of rects through the environment. Returns
 // a list of rects with the same length as the incoming one,
 // but projected in the specified direction.
-func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direction) ([]maths.Rect, float64) {
+func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direction, maxDist float64, otherRects []*maths.Rect) ([]maths.Rect, float64) {
 	shortestDist := math.Inf(1)
 	var closestRect maths.Rect
 	var closestID int
 	for i, rect := range rects {
-		projRect, dist := se.ProjectRect(*rect, dir)
+		projRect, dist := se.ProjectRect(*rect, dir, maxDist, otherRects)
 		if dist < shortestDist {
 			closestRect = projRect
 			closestID = i
@@ -278,9 +340,9 @@ func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direct
 // Projects a rect (moves it as far as possible) through the slambox
 // environment. Returns the projected rect and the distance that it was
 // moved.
-func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction) (maths.Rect, float64) {
-	// IMPORTANT: INCLUDE SLAMBOX GROUP / CHAIN RECTS
-	rects := slices.Concat(se.Rectify(), se.GetSlamboxRects())
+// Also takes in a distance constraint. To ignore this, pass inmath.Inf(1).
+func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction, maxDist float64, otherRects []*maths.Rect) (maths.Rect, float64) {
+	rects := slices.Concat(se.Rectify(), otherRects)
 
 	var closestObstruction *maths.Rect
 	var closestDist = math.Inf(1)
@@ -343,43 +405,52 @@ func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction) 
 	switch dir {
 	case maths.DirUp:
 		dy = closestObstruction.Bottom() - rect.Top()
+		dy = maths.Clamp(dy, -maxDist, 0)
 	case maths.DirDown:
 		dy = closestObstruction.Top() - rect.Bottom()
+		dy = maths.Clamp(dy, 0, maxDist)
 	case maths.DirRight:
 		dx = closestObstruction.Left() - rect.Right()
+		dx = maths.Clamp(dx, 0, maxDist)
 	case maths.DirLeft:
 		dx = closestObstruction.Right() - rect.Left()
+		dx = maths.Clamp(dx, -maxDist, 0)
 	}
 
 	rect.Translate(dx, dy)
-	return rect, math.Abs(dx + dy)
-}
-
-func (se *SlamboxEnvironment) Raycast(posX, posY float64, dir maths.Direction) (bool, float64, float64) {
-	// IMPORTANT: INCLUDE SLAMBOX GROUP / CHAIN RECTS
-	rects := slices.Concat(se.Rectify(), se.GetSlamboxRects())
-	closestDist := math.Inf(1)
-	var closestX, closestY float64
-	wasHit := false
-	for _, rect := range rects {
-		if hit, hitX, hitY := rect.RaycastDirectional(posX, posY, dir); hit {
-			wasHit = true
-			dist := maths.Length(hitX-rect.Left(), hitY-rect.Top())
-			if dist < closestDist {
-				closestDist = dist
-				closestX = hitX
-				closestY = hitY
-			}
-		}
-	}
-	return wasHit, closestX, closestY
+	return rect, maths.Norm(1, dx, dy)
 }
 
 // Returns the maths.Rect belonging to each slambox.
-func (se *SlamboxEnvironment) GetSlamboxRects() []*maths.Rect {
+func (se *SlamboxEnvironment) GetSlamboxRects(except int) []*maths.Rect {
 	rects := make([]*maths.Rect, 0)
-	for _, slambox := range se.slamboxes {
+	for i, slambox := range se.slamboxes {
+		if except == i {
+			continue
+		}
 		rects = append(rects, slambox.GetRect())
+	}
+	return rects
+}
+
+func (se *SlamboxEnvironment) GetSlamboxGroupRects(except int) []*maths.Rect {
+	rects := make([]*maths.Rect, 0)
+	for i, slamboxGroup := range se.slamboxGroups {
+		if except == i {
+			continue
+		}
+		rects = slices.Concat(rects, slamboxGroup.GetSlamboxRects())
+	}
+	return rects
+}
+
+func (se *SlamboxEnvironment) GetSlamboxChainRects(except int) []*maths.Rect {
+	rects := make([]*maths.Rect, 0)
+	for i, slamboxChain := range se.slamboxChains {
+		if except == i {
+			continue
+		}
+		rects = slices.Concat(rects, slamboxChain.GetAllSlamboxRects())
 	}
 	return rects
 }

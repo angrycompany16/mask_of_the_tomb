@@ -16,6 +16,10 @@ const (
 	DirRight
 )
 
+func (d Direction) String() string {
+	return [...]string{"None", "Up", "Down", "Left", "Right"}[d+1]
+}
+
 func Opposite(dir Direction) Direction {
 	switch dir {
 	case DirUp:
@@ -58,6 +62,7 @@ func RotateCCW(dir Direction) Direction {
 	return DirNone
 }
 
+// Rewrite to use inner product
 func DirFromVector(x, y float64) Direction {
 	if x == 0 && y < 0 {
 		return DirUp
@@ -126,6 +131,18 @@ func Length(x ...float64) float64 {
 		l += x_i * x_i
 	}
 	return math.Sqrt(l)
+}
+
+func Taxicab(x ...float64) float64 {
+	return Norm(1, x...)
+}
+
+func Norm(n int, x ...float64) float64 {
+	l := 0.0
+	for _, x_i := range x {
+		l += math.Pow(math.Abs(x_i), 1)
+	}
+	return math.Pow(l, 1/float64(n))
 }
 
 func Mod(x, m int) int {
