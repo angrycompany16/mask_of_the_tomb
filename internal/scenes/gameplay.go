@@ -12,6 +12,7 @@ import (
 	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/libraries/camera"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
+	"mask_of_the_tomb/internal/libraries/slambox"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/plugins/player"
 	"mask_of_the_tomb/internal/plugins/world"
@@ -98,12 +99,11 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 	velX, velY := g.player.GetMovementSize()
 	posX, posY := g.player.GetPosCentered()
 
-	// TODO: Move even more logic out of here pleeease
 	g.world.Update(posX, posY, velX, velY)
 	if eventInfo, ok := g.playerMoveListener.Poll(); ok {
 		moveDir := eventInfo.Data.(maths.Direction)
-		slambox, hitSlambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
 
+		// Check for catcher hits
 		catcherHitboxes := g.world.ActiveLevel.GetCatcherRects()
 		hitCatcher, catcherX, catcherY := false, 0.0, 0.0
 		for _, catcherHitbox := range catcherHitboxes {
@@ -115,6 +115,7 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 			}
 		}
 
+		// Get platform rects
 		platformHitboxes := make([]*maths.Rect, 0)
 		if moveDir == maths.DirUp {
 			platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(false)
@@ -122,11 +123,25 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 			platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(true)
 		}
 
+		// Check for slambox hits
+		_slambox, hitSlambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
+		res := g.world.ActiveLevel.GetSlamboxHitNEW(g.player.GetHitbox(), moveDir)
+
+		// Resolve any collisions
+		switch res.HitKind {
+		case slambox.SLAMBOX:
+			g.world.ActiveLevel.SlamSlambox(res.Index, moveDir)
+		case slambox.SLAMBOX_GROUP:
+		case slambox.SLAMBOX_CHAIN:
+		case slambox.NONE:
+			// Here we handle other types of collisions
+		}
+
 		if hitSlambox {
 			g.player.StartSlamming(moveDir)
 			// TODO: Wait for an event instead of a fixed delay so that the system is
 			// more flexible
-			slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(slambox), g.world.ActiveLevel.GetChainNodes())
+			_slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(_slambox), g.world.ActiveLevel.GetChainNodes())
 		} else if hitCatcher {
 			g.player.Dash(moveDir, catcherX, catcherY)
 		} else {

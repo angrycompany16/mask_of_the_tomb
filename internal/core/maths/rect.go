@@ -1,6 +1,7 @@
 package maths
 
 import (
+	"math"
 	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -68,7 +69,7 @@ func (r *Rect) HalfSize() (float64, float64) {
 	return r.width / 2, r.height / 2
 }
 
-func (r *Rect) Extended(dir Direction, length float64) Rect {
+func (r *Rect) Extended(dir Direction, length float64) *Rect {
 	newRect := *r
 	switch dir {
 	case DirUp:
@@ -82,7 +83,7 @@ func (r *Rect) Extended(dir Direction, length float64) Rect {
 		newRect.x -= length
 		newRect.width += length
 	}
-	return newRect
+	return &newRect
 }
 
 func (r *Rect) SetPos(x, y float64) {
@@ -132,6 +133,37 @@ func (r *Rect) Lerp(other *Rect, t float64) Rect {
 		width:  Lerp(r.width, other.width, t),
 		height: Lerp(r.height, other.height, t),
 	}
+}
+
+// Returns the bounding box for the list of rects
+func BB(rects []Rect) *Rect {
+	BBrect := NewRect(0, 0, 0, 0)
+	minX := math.Inf(1)
+	minY := math.Inf(1)
+	for _, rect := range rects {
+		if rect.x < minX {
+			minX = rect.x
+			BBrect.x = rect.x
+		}
+		if rect.y < minY {
+			minY = rect.y
+			BBrect.y = rect.y
+		}
+	}
+	maxWidth := math.Inf(-1)
+	maxHeight := math.Inf(-1)
+	for _, rect := range rects {
+		if rect.Right()-minX > maxWidth {
+			maxWidth = rect.Right() - minX
+			BBrect.width = rect.Right() - minX
+		}
+
+		if rect.Bottom()-minY > maxHeight {
+			maxHeight = rect.Bottom() - minY
+			BBrect.height = rect.Bottom() - minY
+		}
+	}
+	return BBrect
 }
 
 // Returns a rect which is half of the original one, according

@@ -17,6 +17,7 @@ import (
 	"mask_of_the_tomb/internal/libraries/entities"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
+	"mask_of_the_tomb/internal/libraries/slambox"
 	"slices"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -51,15 +52,13 @@ var (
 		BlendOperationRGB:           ebiten.BlendOperationAdd,
 		BlendOperationAlpha:         ebiten.BlendOperationAdd,
 	}
-	// playerSpaceNormalTilemapPath = filepath.Join("assets", "sprites", "environment", "playerspace_tilemap_normal.png")
-	// TODO: *very* temporary solution
-	// playerspaceNormalTilemap = errs.MustNewImageFromFile(playerSpaceNormalTilemapPath)
 )
 
 type SlamboxPosition struct {
 	X, Y float64
 }
 
+// Sort of an everything-container
 type Level struct {
 	name                     string
 	defs                     *ebitenLDTK.Defs
@@ -70,24 +69,24 @@ type Level struct {
 	playerspaceNormalTilemap *ebiten.Image
 	midgroundNormalTilemap   *ebiten.Image
 	tileLayers               rendering.LayerList
-	normalLayers             rendering.LayerList
 	frameLayers              rendering.LayerList
 	fogShader                *ebiten.Shader
 	vignetteShader           *ebiten.Shader
 	pixelLightShader         *ebiten.Shader
-	// playerLightBreatheTicker time.Ticker
-	resetX, resetY   float64
-	ambientParticles *particles.ParticleSystem
-	grassTilemap     *ebiten.Image
-	slamboxes        []*Slambox
-	hazards          []*entities.Hazard
-	doors            []entities.Door
-	grassEntities    []entities.Grass
-	turrets          []*entities.Turret
-	catchers         []*entities.Catcher
-	platforms        []*entities.Platform
-	lanterns         []*entities.Lantern
-	chainNodes       []*entities.ChainNode
+	resetX, resetY           float64
+	ambientParticles         *particles.ParticleSystem
+	grassTilemap             *ebiten.Image
+	// In a sense these are all game objects
+	slamboxes          []*Slambox
+	hazards            []*entities.Hazard
+	doors              []entities.Door
+	grassEntities      []entities.Grass
+	turrets            []*entities.Turret
+	catchers           []*entities.Catcher
+	platforms          []*entities.Platform
+	lanterns           []*entities.Lantern
+	chainNodes         []*entities.ChainNode
+	slamboxEnvironment *slambox.SlamboxEnvironment
 }
 
 // ------ CONSTRUCTOR ------
@@ -107,13 +106,13 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.ambientParticles.Init()
 	newLevel.grassTilemap = errs.Must(assettypes.GetImageAsset("grassTilemap"))
 
-	// newLevel.playerLightBreatheTicker = *time.NewTicker(time.Millisecond * 560)
+	// Empty constructor for later setup
+	newLevel.slamboxEnvironment = slambox.NewSlamboxEnvironment(1, make([][]bool, 0), make([]*slambox.Slambox, 0), make([]*slambox.SlamboxGroup, 0), make([]*slambox.SlamboxChain, 0))
 
 	// Most of these layers are completely unnecessary, so maybe it would be a good idea to
 	// delete a few of them to save performance
 	// After all we do have some pretty dramatic frame drops when switching levels
 	newLevel.tileLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
-	newLevel.normalLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
 	newLevel.frameLayers = rendering.NewLayerList(int(levelLDTK.PxWid), int(levelLDTK.PxHei))
 
 	layerMap := map[string]*ebiten.Image{
@@ -141,9 +140,11 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 
 	intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
 	newLevel.TilemapCollider.Tiles = intGridCSV
+	newLevel.slamboxEnvironment.SetTiles(intGridCSV)
 
 	newLevel.tileSize = float64(playerspace.GridSize)
 	newLevel.TilemapCollider.TileSize = float64(playerspace.GridSize)
+	newLevel.slamboxEnvironment.SetTileSize(playerspace.GridSize)
 
 	entityLayer := errs.Must(levelLDTK.GetLayerByName(entityLayerName))
 	for _, entity := range entityLayer.Entities {
@@ -153,7 +154,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		case doorEntityName:
 			newLevel.doors = append(newLevel.doors, entities.NewDoor(&entity))
 		case slamboxEntityName:
-			newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity))
+			// Maybe also add
+			newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity, newLevel.slamboxEnvironment))
 		case grassEntityName:
 			newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
 		case turretEntityName:
@@ -250,6 +252,9 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	}
 
 	l.ambientParticles.Update()
+
+	// Listen for slambox notifications
+	// If ready to slam,
 }
 
 func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
@@ -427,6 +432,7 @@ func (l *Level) GetSlamboxPositions() []SlamboxPosition {
 
 // For now we assume that we will only ever be slamming one box at a time, though
 // this may change later
+// TODO: Rewrite to use slambox environment
 func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) (*Slambox, bool) {
 	extendedRect := playerCollider.Extended(dir, 1)
 	for _, slambox := range l.slamboxes {
@@ -435,6 +441,21 @@ func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) (
 		}
 	}
 	return nil, false
+}
+
+// Queries the slambox environment for overlaps with the playercollider extended
+// 1px in the slam direction. Returns the first hit, as well as an indication
+// of whether this is a slambox, a
+func (l *Level) GetSlamboxHitNEW(playerCollider *maths.Rect, dir maths.Direction) slambox.QueryResult {
+	extendedRect := playerCollider.Extended(dir, 1)
+	return l.slamboxEnvironment.QuerySlamboxes(extendedRect)
+}
+
+func (l *Level) SlamSlambox(index int, dir maths.Direction) {
+	// Set the slambox struct to waiting state, storing
+	// the index and dir
+	// Upon some player event, slam the slambox
+
 }
 
 func (l *Level) GetBiome() string {

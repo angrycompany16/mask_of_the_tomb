@@ -1,11 +1,14 @@
 package scene
 
 import (
+	"errors"
 	"fmt"
 )
 
 // Note: This is slowly turning into the `node` system we are using for UI. At some point it will
 // probably be possible to merge them
+
+var ErrTerminated = errors.New("Terminatednow")
 
 type SceneStack struct {
 	stack []Scene

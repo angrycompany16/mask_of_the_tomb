@@ -7,7 +7,13 @@ import (
 	"slices"
 )
 
-const nodeRectSize = 8
+const nodeRectSize = 2
+
+type SlamCtx struct {
+	againstChain  bool
+	closestNodeID int
+	dist          float64
+}
 
 type ChainNode struct {
 	rect *maths.Rect // Mostly for debugging / raycasting
@@ -24,16 +30,10 @@ func (cn *ChainNode) GetRect() *maths.Rect {
 }
 
 // A chain that can connect multiple slamboxes / slambox groups.
-// What if we just simply used the array order as an ordering
-// of the chain nodes? Branching is not allowed anyways...
 type SlamboxChain struct {
 	nodes         []*ChainNode
 	slamboxes     []*Slambox
 	slamboxGroups []*SlamboxGroup
-}
-
-func (sc *SlamboxChain) SlamSlamboxChain() {
-
 }
 
 func (sc *SlamboxChain) GetNodes() []*ChainNode {
@@ -86,20 +86,53 @@ func (sc *SlamboxChain) GetPrevDir(i int) maths.Direction {
 	return sc.nodes[i].prevNodeDir
 }
 
-func (sc *SlamboxChain) DistFromNode(rect maths.Rect, dir maths.Direction, i int) float64 {
-	cX0, cY0 := rect.Center()
-	nodeRect := sc.nodes[i].GetRect()
-	cX1, cY1 := nodeRect.Center()
-	hitNode, _, _ := nodeRect.RaycastDirectional(cX0, cY0, dir)
+func (sc *SlamboxChain) DistFromNode(x, y float64, i int) float64 {
+	cX, cY := sc.nodes[i].GetRect().Center()
+	return maths.Norm(1, x-cX, y-cY)
+}
 
-	if hitNode {
-		return maths.Norm(1, cX0-cX1, cY0-cY1)
-	} else {
-		return math.Inf(1)
+// Check whether (x, y) is in the bounding box spanned out by the i,j nodes.
+func (sc *SlamboxChain) IsBetween(i, j int, x, y float64) bool {
+	BB := maths.BB([]maths.Rect{
+		*sc.nodes[i].GetRect(),
+		*sc.nodes[j].GetRect(),
+	})
+	return BB.Contains(x, y)
+}
+
+func (sc *SlamboxChain) SortNodesByDist(x, y float64) ([]int, []float64) {
+	indices := make([]int, len(sc.nodes))
+	dists := make([]float64, len(sc.nodes))
+	for i, node := range sc.nodes {
+		cX, cY := node.GetRect().Center()
+		dists[i] = maths.Norm(1, cX-x, cY-y)
+		indices[i] = i
 	}
+
+	// MM my favourite insertion sort
+	i := 1
+	for i < len(sc.nodes) {
+		j := i
+		for j > 0 && dists[j-1] > dists[j] {
+			var tmp float64
+			tmp = dists[j]
+			dists[j] = dists[j-1]
+			dists[j-1] = tmp
+
+			var _tmp int
+			_tmp = indices[j]
+			indices[j] = indices[j-1]
+			indices[j-1] = _tmp
+
+			j--
+		}
+		i++
+	}
+	return indices, dists
 }
 
 func (sc *SlamboxChain) FindClosestNode(x, y float64) (int, float64) {
+
 	dist := math.Inf(1)
 	var closestNodeID int
 	for i, node := range sc.nodes {
@@ -115,38 +148,92 @@ func (sc *SlamboxChain) FindClosestNode(x, y float64) (int, float64) {
 	return closestNodeID, dist
 }
 
-// func (sc *SlamboxChain) FindClosestNode(x, y float64, dir maths.Direction) (bool, int, float64) {
-// 	dist := math.Inf(1)
-// 	foundNode := false
-// 	var closestNodeID int
-// 	for i, node := range sc.nodes {
-// 		nodeRect := node.GetRect()
-// 		cX, cY := nodeRect.Center()
-// 		nodeDist := maths.Norm(1, cX-x, cY-y)
-// 		hitNode, _, _ := nodeRect.RaycastDirectional(x, y, dir)
+func (sc *SlamboxChain) GetSlamDirection(rect maths.Rect, dir maths.Direction) (bool, bool) {
+	cX, cY := rect.Center()
+	indices, dists := sc.SortNodesByDist(cX, cY)
+	var closestNodeID int
+	var dist float64
+	var againstChain bool
+	// NOTE: This is not completely bug-free. If an invalid closest node overlaps
+	// with the slambox, that node will be picked as the closest node.
+	// However, this is an unlikely edge case i think
+	// I also don't know how to handle it O_o
+	for i, index := range indices {
+		if sc.nodes[index].GetRect().Overlapping(&rect) {
+			closestNodeID = index
+			dist = dists[i]
+			break
+		}
+		if hit, _, _ := sc.nodes[index].GetRect().RaycastDirectional(cX, cY, dir); hit {
+			closestNodeID = index
+			dist = dists[i]
+			break
+		}
+		if hit, _, _ := sc.nodes[index].GetRect().RaycastDirectional(cX, cY, maths.Opposite(dir)); hit {
+			closestNodeID = index
+			dist = dists[i]
+			break
+		}
+	}
 
-// 		if nodeRect.IsInDirection(x, y, maths.Opposite(dir)) {
-// 			foundNode = true
-// 			dist = nodeDist
-// 			closestNodeID = i
-// 		}
+	thisNode := sc.nodes[closestNodeID]
 
-// 		if !hitNode || dist < nodeDist {
-// 			continue
-// 		}
-
-// 		foundNode = true
-// 		dist = nodeDist
-// 		closestNodeID = i
-// 	}
-// 	return foundNode, closestNodeID, dist
-// }
+	if dist > 0 {
+		if closestNodeID == 0 {
+			if dir == thisNode.nextNodeDir {
+				againstChain = false
+			} else if dir == maths.Opposite(thisNode.nextNodeDir) {
+				againstChain = true
+			} else {
+				return false, false
+			}
+		} else if closestNodeID == len(sc.nodes)-1 {
+			if dir == thisNode.prevNodeDir {
+				againstChain = true
+			} else if dir == maths.Opposite(thisNode.prevNodeDir) {
+				againstChain = false
+			} else {
+				return false, false
+			}
+		} else {
+			if sc.IsBetween(closestNodeID-1, closestNodeID, cX, cY) {
+				if dir == thisNode.prevNodeDir {
+					againstChain = true
+				} else if dir == maths.Opposite(thisNode.prevNodeDir) {
+					againstChain = false
+				} else {
+					return false, false
+				}
+			} else if sc.IsBetween(closestNodeID, closestNodeID+1, cX, cY) {
+				if dir == thisNode.nextNodeDir {
+					againstChain = false
+				} else if dir == maths.Opposite(thisNode.nextNodeDir) {
+					againstChain = true
+				} else {
+					return false, false
+				}
+			} else {
+				return false, false
+			}
+		}
+	} else {
+		thisNode := sc.nodes[closestNodeID]
+		if dir == thisNode.nextNodeDir {
+			againstChain = false
+		} else if dir == thisNode.prevNodeDir {
+			againstChain = true
+		} else {
+			return false, false
+		}
+	}
+	return true, againstChain
+}
 
 func NewSlamboxChain(positionsX, positionsY []float64, slamboxes []*Slambox, slamboxGroups []*SlamboxGroup) *SlamboxChain {
 	newSlamboxChain := SlamboxChain{}
 	nodes := make([]*ChainNode, len(positionsX))
 	for i := range positionsX {
-		nodes[i] = &ChainNode{rect: maths.NewRect(positionsX[i], positionsY[i], nodeRectSize, nodeRectSize)}
+		nodes[i] = &ChainNode{rect: maths.NewRect(positionsX[i], positionsY[i], nodeRectSize, nodeRectSize), nextNodeDir: maths.DirNone, prevNodeDir: maths.DirNone}
 	}
 
 	for i := 0; i < len(positionsX)-1; i++ {

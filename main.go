@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/core/profiling"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
+	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/scenes"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -52,7 +53,7 @@ func main() {
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, errors.ErrUnsupported) {
 			return
-		} else if err == scenes.ErrTerminated {
+		} else if err == scene.ErrTerminated {
 			return
 		}
 		log.Fatal(err)

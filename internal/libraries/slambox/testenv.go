@@ -6,7 +6,7 @@ import (
 	"log"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/maths"
-	"mask_of_the_tomb/internal/scenes"
+	"mask_of_the_tomb/internal/core/scene"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -14,13 +14,19 @@ import (
 
 var testSlamboxChains = []*SlamboxChain{
 	NewSlamboxChain(
-		[]float64{16 + 4, 16 + 4, 48 + 4, 48 + 4},
-		[]float64{48 + 4, 16 + 4, 16 + 4, 64 + 4},
-		[]*Slambox{
-			NewSlambox(maths.NewRect(30, 18, 12, 12), 5),
-			NewSlambox(maths.NewRect(18, 34, 12, 12), 5),
+		[]float64{16 + 7, 16 + 7, 48 + 7, 48 + 7},
+		[]float64{48 + 7, 16 + 7, 16 + 7, 64 + 7},
+
+		[]*Slambox{NewSlambox(maths.NewRect(50, 50, 12, 12), 5)},
+		[]*SlamboxGroup{
+			NewSlamboxGroup(
+				[]*Slambox{
+					NewSlambox(maths.NewRect(18, 30, 12, 12), 5),
+					NewSlambox(maths.NewRect(19, 42, 10, 10), 5),
+				},
+				0,
+			),
 		},
-		[]*SlamboxGroup{},
 	),
 }
 
@@ -113,7 +119,7 @@ func RunTestEnv() {
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, errors.ErrUnsupported) {
 			return
-		} else if err == scenes.ErrTerminated {
+		} else if err == scene.ErrTerminated {
 			return
 		}
 		log.Fatal(err)

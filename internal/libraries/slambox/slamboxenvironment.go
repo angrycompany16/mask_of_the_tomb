@@ -16,6 +16,20 @@ const (
 	EXTEND_XY
 )
 
+type hitKind int
+
+const (
+	NONE hitKind = iota
+	SLAMBOX
+	SLAMBOX_GROUP
+	SLAMBOX_CHAIN
+)
+
+type QueryResult struct {
+	HitKind hitKind
+	Index   int
+}
+
 // Note: So far we have kept the grid tiles as simply integers
 // HOWEVER this presents a huge opportunity for adding interactivity
 // with the environment. If the data type is not bool, we can
@@ -69,15 +83,15 @@ func (se *SlamboxEnvironment) Rectify() []*maths.Rect {
 			extendedXY := extendedY.Extended(maths.DirRight, se.TileSize)
 
 			if int(newRect.Right()/se.TileSize) <= len(se.gridTiles[0])-1 {
-				if se.validateRect(&extendedX, rectList) {
+				if se.validateRect(extendedX, rectList) {
 					extensionType = EXTEND_X
 				}
 			}
 
 			if int(newRect.Bottom()/se.TileSize) <= len(se.gridTiles)-1 {
-				if extensionType == EXTEND_X && se.validateRect(&extendedXY, rectList) {
+				if extensionType == EXTEND_X && se.validateRect(extendedXY, rectList) {
 					extensionType = EXTEND_XY
-				} else if se.validateRect(&extendedY, rectList) {
+				} else if se.validateRect(extendedY, rectList) {
 					extensionType = EXTEND_Y
 				}
 			}
@@ -89,15 +103,16 @@ func (se *SlamboxEnvironment) Rectify() []*maths.Rect {
 				if cornerX == 0 && cornerY == 0 {
 					done = true
 				}
+				// What
 				if !done && len(rectList) != 0 {
 				}
 				maximal = true
 			case EXTEND_X:
-				newRect = &extendedX
+				newRect = extendedX
 			case EXTEND_Y:
-				newRect = &extendedY
+				newRect = extendedY
 			case EXTEND_XY:
-				newRect = &extendedXY
+				newRect = extendedXY
 			}
 		}
 	}
@@ -161,9 +176,9 @@ func (se *SlamboxEnvironment) findNewRectCorner(rectList []*maths.Rect) (int, in
 
 // Slams the slambox at index i in the array through the environment.
 // Assumes that the index is within the array.
-func (se *SlamboxEnvironment) SlamSlambox(i int, dir maths.Direction) {
-	slambox := se.slamboxes[i]
-	otherRects := slices.Concat(se.GetSlamboxRects(i), se.GetSlamboxGroupRects(-1), se.GetSlamboxChainRects(-1))
+func (se *SlamboxEnvironment) SlamSlambox(index int, dir maths.Direction) {
+	slambox := se.slamboxes[index]
+	otherRects := slices.Concat(se.GetSlamboxRects(index), se.GetSlamboxGroupRects(-1), se.GetSlamboxChainRects(-1))
 	projRect, _ := se.ProjectRect(*slambox.GetRect(), dir, math.Inf(1), otherRects)
 	slambox.Slam(projRect.Left(), projRect.Top())
 }
@@ -182,88 +197,44 @@ func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) {
 // objectID should be an index in the array of slamboxes / slambox
 // groups. To indicate which one, the objectID is used.
 // Assumes that the index is within the array.
-// Returns a direction + target for each slambox / slambox group
-// in the array.
+// Slightly complicated.
 func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool, dir maths.Direction) {
 	chain := se.slamboxChains[i]
-	var targetSlambox *Slambox
+	nodes := chain.GetNodes()
+	slamboxes := chain.GetSlamboxes()
+	slamboxGroups := chain.GetSlamboxGroups()
 	otherRects := slices.Concat(se.GetSlamboxRects(-1), se.GetSlamboxGroupRects(-1), se.GetSlamboxChainRects(i))
 
+	// var boxList
+	var targetSlambox *Slambox
 	if isGroup {
-
+		targetSlamboxGroup := chain.GetSlamboxGroups()[objectID]
+		targetSlambox = targetSlamboxGroup.GetCenterSlambox()
 	} else {
-		targetSlambox = chain.GetSlamboxes()[i]
+		targetSlambox = chain.GetSlamboxes()[objectID]
 	}
 
-	// Revised algorithm:
-	// 1. Find closest node in slam direction (might be distance 0)
-	// 2. If dist != 0, just take the previous node and compare directions
-	// 3. If dist == 0, check if the next node dir aligns with the slam direction
-	// 4. If dist == 0, check if the previous node's next node dir is
-	//    opposite to the slam direction
-	// 5. If none work, then the slam direction is invalid.
-
-	var againstChain bool
-	cX, cY := targetSlambox.GetRect().Center()
-	closestNodeID, dist := chain.FindClosestNode(cX, cY)
-
-	if dist > 0 {
-		var oppositeNodeID int
-		nodes := chain.GetNodes()
-		if closestNodeID == 0 {
-			oppositeNodeID = 1
-		} else if closestNodeID == len(nodes)-1 {
-			oppositeNodeID = len(nodes) - 2
-		} else {
-			thisNode := nodes[closestNodeID]
-			prevNode := nodes[closestNodeID-1]
-			nextNode := nodes[closestNodeID+1]
-			if maths.IsBetween(prevNode.rect.Cx(), thisNode.rect.Cx(), cX) && maths.IsBetween(prevNode.rect.Cy(), thisNode.rect.Cy(), cY) {
-				oppositeNodeID = closestNodeID - 1
-			}
-			if maths.IsBetween(thisNode.rect.Cx(), nextNode.rect.Cx(), cX) && maths.IsBetween(thisNode.rect.Cy(), nextNode.rect.Cy(), cY) {
-				oppositeNodeID = closestNodeID + 1
-			}
-		}
-		fmt.Println(".-.----------")
-		fmt.Println(closestNodeID)
-		fmt.Println(oppositeNodeID)
-		fmt.Println(".-.----------")
-	} else {
+	validDirection, againstChain := chain.GetSlamDirection(*targetSlambox.GetRect(), dir)
+	if !validDirection {
 		fmt.Println("Invalid direction")
 		return
-		if closestNodeID+1 >= len(chain.GetNodes()) || closestNodeID-1 < 0 {
-			// stuckOnEdge = true
-		} else {
-			if chain.GetNodes()[closestNodeID+1].nextNodeDir == dir {
-				againstChain = false
-			} else if chain.GetNodes()[closestNodeID-1].nextNodeDir == maths.Opposite(dir) {
-				againstChain = true
-			} else {
-				// stuckOnEdge = true
-			}
-		}
 	}
-
-	// if !foundNodeAlong || stuckOnEdge {
-	// 	fmt.Println("Invalid slam direction")
-	// 	return
-	// }
 
 	// Determine loop params based on slam directions
 	var i0 int
 	var pred func(i int) bool
 	var inc func(i int) int
 	if againstChain {
-		i0 = len(chain.nodes) - 1
+		i0 = len(nodes) - 1
 		pred = func(i int) bool { return i > 0 }
 		inc = func(i int) int { return i - 1 }
 	} else {
 		i0 = 0
-		pred = func(i int) bool { return i < len(chain.nodes)-1 }
+		pred = func(i int) bool { return i < len(nodes)-1 }
 		inc = func(i int) int { return i + 1 }
 	}
 
+	// Find minimal distance
 	minDist := math.Inf(1)
 	for i := i0; pred(i); {
 		var nodeDir maths.Direction
@@ -276,37 +247,81 @@ func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool
 			nextIndex = i + 1
 		}
 
-		x0, y0 := chain.GetNodes()[i].GetRect().Center()
-		for _, slambox := range chain.slamboxes {
-			if hit, _, _ := slambox.GetRect().RaycastDirectional(x0, y0, nodeDir); hit {
-				nodeDist := chain.DistFromNode(*slambox.GetRect(), nodeDir, nextIndex)
+		for _, slambox := range slamboxes {
+			if chain.IsBetween(i, nextIndex, slambox.GetRect().Cx(), slambox.GetRect().Cy()) {
+				skip, nodeDist := se.checkSkip(chain, slambox, nextIndex, nodeDir)
+				if skip {
+					continue
+				}
 				_, dist := se.ProjectRect(*slambox.GetRect(), nodeDir, nodeDist, otherRects)
 				if dist < minDist {
 					minDist = dist
 				}
 			}
 		}
+
+		for _, slamboxGroup := range slamboxGroups {
+			slambox := slamboxGroup.GetCenterSlambox()
+			if chain.IsBetween(i, nextIndex, slambox.GetRect().Cx(), slambox.GetRect().Cy()) {
+				skip, nodeDist := se.checkSkip(chain, slambox, nextIndex, nodeDir)
+				if skip {
+					continue
+				}
+				_, dist := se.ProjectRects(slamboxGroup.GetSlamboxRects(), nodeDir, nodeDist, otherRects)
+				if dist < minDist {
+					minDist = dist
+				}
+			}
+		}
+
 		i = inc(i)
 	}
 
-	// Slam constrained
+	// Slam slamboxes, constrained to minimal distance
 	for i := i0; pred(i); {
 		var nodeDir maths.Direction
+		var nextIndex int
 		if againstChain {
 			nodeDir = chain.GetPrevDir(i)
+			nextIndex = i - 1
 		} else {
 			nodeDir = chain.GetNextDir(i)
+			nextIndex = i + 1
 		}
-		x0, y0 := chain.GetNodes()[i].GetRect().Center()
-		for _, slambox := range chain.GetSlamboxes() {
-			// Probably also need to check if the rect contains the point
-			if hit, _, _ := slambox.GetRect().RaycastDirectional(x0, y0, nodeDir); hit {
+		for _, slambox := range slamboxes {
+			if chain.IsBetween(i, nextIndex, slambox.GetRect().Cx(), slambox.GetRect().Cy()) {
+				if skip, _ := se.checkSkip(chain, slambox, nextIndex, nodeDir); skip {
+					continue
+				}
 				projRect, _ := se.ProjectRect(*slambox.GetRect(), nodeDir, minDist, otherRects)
 				slambox.Slam(projRect.Left(), projRect.Top())
 			}
 		}
+
+		for _, slamboxGroup := range slamboxGroups {
+			slambox := slamboxGroup.GetCenterSlambox()
+			if chain.IsBetween(i, nextIndex, slambox.GetRect().Cx(), slambox.GetRect().Cy()) {
+				if skip, _ := se.checkSkip(chain, slambox, nextIndex, nodeDir); skip {
+					continue
+				}
+				projRects, _ := se.ProjectRects(slamboxGroup.GetSlamboxRects(), nodeDir, minDist, otherRects)
+				slamboxGroup.Slam(projRects)
+			}
+		}
 		i = inc(i)
 	}
+}
+
+func (se *SlamboxEnvironment) checkSkip(chain *SlamboxChain, slambox *Slambox, nextIndex int, nodeDir maths.Direction) (bool, float64) {
+	nodeDist := chain.DistFromNode(slambox.GetRect().Cx(), slambox.GetRect().Cy(), nextIndex)
+	if nodeDist == 0 {
+		t1 := nextIndex != 0 || nodeDir == chain.GetNextDir(nextIndex)
+		t2 := nextIndex != len(chain.GetNodes())-1 || nodeDir == chain.GetPrevDir(nextIndex)
+		if t1 && t2 {
+			return true, nodeDist
+		}
+	}
+	return false, nodeDist
 }
 
 // Projects a group of rects through the environment. Returns
@@ -494,14 +509,14 @@ func (se *SlamboxEnvironment) CheckSlamboxChainOverlap(rect *maths.Rect) []int {
 	overlaps := make([]int, 0)
 outer:
 	for i, slamboxChain := range se.slamboxChains {
-		for _, slambox := range slamboxChain.slamboxes {
+		for _, slambox := range slamboxChain.GetSlamboxes() {
 			if slambox.GetRect().Overlapping(rect) {
 				overlaps = append(overlaps, i)
 				continue outer
 			}
 		}
 
-		for _, slamboxGroup := range slamboxChain.slamboxGroups {
+		for _, slamboxGroup := range slamboxChain.GetSlamboxGroups() {
 			for _, slambox := range slamboxGroup.GetSlamboxes() {
 				if slambox.GetRect().Overlapping(rect) {
 					overlaps = append(overlaps, i)
@@ -515,6 +530,55 @@ outer:
 
 func (se *SlamboxEnvironment) GetSlamboxChains() []*SlamboxChain {
 	return se.slamboxChains
+}
+
+func (se *SlamboxEnvironment) SetTiles(tilemap [][]int) {
+	se.gridTiles = make([][]bool, 0)
+	for i := range se.gridTiles {
+		for j := range se.gridTiles {
+			se.gridTiles[i] = append(se.gridTiles[i], tilemap[i][j] != 0)
+		}
+		se.gridTiles = append(se.gridTiles, make([]bool, 0))
+	}
+}
+
+func (se *SlamboxEnvironment) SetTileSize(tileSize float64) {
+	se.TileSize = tileSize
+}
+
+func (se *SlamboxEnvironment) AddSlambox(slambox *Slambox) {
+	se.slamboxes = append(se.slamboxes, slambox)
+}
+
+func (se *SlamboxEnvironment) AddSlamboxGroup(slamboxGroup *SlamboxGroup) {
+	se.slamboxGroups = append(se.slamboxGroups, slamboxGroup)
+}
+
+func (se *SlamboxEnvironment) AddSlamboxChain(slamboxChain *SlamboxChain) {
+	se.slamboxChains = append(se.slamboxChains, slamboxChain)
+}
+
+func (se *SlamboxEnvironment) QuerySlamboxes(rect *maths.Rect) QueryResult {
+	for i, slamboxRect := range se.GetSlamboxRects(-1) {
+		if slamboxRect.Overlapping(rect) {
+			return QueryResult{HitKind: SLAMBOX, Index: i}
+		}
+	}
+	for i, slamboxGroup := range se.GetSlamboxGroups() {
+		for _, slamboxGroupRect := range slamboxGroup.GetSlamboxRects() {
+			if slamboxGroupRect.Overlapping(rect) {
+				return QueryResult{HitKind: SLAMBOX_GROUP, Index: i}
+			}
+		}
+	}
+	for i, slamboxChain := range se.GetSlamboxChains() {
+		for _, slamboxChainRect := range slamboxChain.GetAllSlamboxRects() {
+			if slamboxChainRect.Overlapping(rect) {
+				return QueryResult{HitKind: SLAMBOX_CHAIN, Index: i}
+			}
+		}
+	}
+	return QueryResult{}
 }
 
 func NewSlamboxEnvironment(tileSize float64, gridTiles [][]bool, slamboxes []*Slambox, slamboxGroups []*SlamboxGroup, slamboxChains []*SlamboxChain) *SlamboxEnvironment {

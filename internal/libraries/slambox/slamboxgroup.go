@@ -4,7 +4,8 @@ import "mask_of_the_tomb/internal/core/maths"
 
 // A group of slamboxes connected as one.
 type SlamboxGroup struct {
-	slamboxes []*Slambox
+	slamboxes   []*Slambox
+	centerIndex int
 }
 
 func (sg *SlamboxGroup) Update() {
@@ -25,6 +26,10 @@ func (sg *SlamboxGroup) GetSlamboxes() []*Slambox {
 	return sg.slamboxes
 }
 
+func (sg *SlamboxGroup) GetCenterSlambox() *Slambox {
+	return sg.slamboxes[sg.centerIndex]
+}
+
 func (sg *SlamboxGroup) GetSlamboxRects() []*maths.Rect {
 	rects := make([]*maths.Rect, 0)
 	for _, slambox := range sg.slamboxes {
@@ -33,8 +38,9 @@ func (sg *SlamboxGroup) GetSlamboxRects() []*maths.Rect {
 	return rects
 }
 
-func NewSlamboxGroup(slamboxes []*Slambox) *SlamboxGroup {
+func NewSlamboxGroup(slamboxes []*Slambox, centerIndex int) *SlamboxGroup {
 	newSlamboxGroup := SlamboxGroup{}
 	newSlamboxGroup.slamboxes = slamboxes
+	newSlamboxGroup.centerIndex = centerIndex
 	return &newSlamboxGroup
 }

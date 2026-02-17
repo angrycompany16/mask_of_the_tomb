@@ -1,7 +1,6 @@
 package scenes
 
 import (
-	"errors"
 	"mask_of_the_tomb/internal/core/scene"
 )
 
@@ -14,8 +13,6 @@ import (
 // - Somehow it seems that the game itself gets darker if we don't draw the UI???
 
 var (
-	ErrTerminated = errors.New("Terminatednow")
-
 	// These should all be removed
 	InitLevelName string
 	SaveProfile   int
@@ -28,7 +25,7 @@ type Game struct {
 func (g *Game) Update() error {
 	quit := g.sceneStack.Update()
 	if quit {
-		return ErrTerminated
+		return scene.ErrTerminated
 	}
 	return nil
 }

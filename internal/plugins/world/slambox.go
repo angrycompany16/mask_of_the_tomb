@@ -1,9 +1,5 @@
 package world
 
-// TODO: A lot of stuff can be separated here. In particular we basically have the beginnings
-// of a DFS implementation. It is a good idea to export this to somewhere else
-// TODO: Probably will need to rewrite the slambox chain implementation
-
 import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
@@ -21,6 +17,7 @@ import (
 	"mask_of_the_tomb/internal/libraries/movebox"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/physics"
+	"mask_of_the_tomb/internal/libraries/slambox"
 	"math"
 	"time"
 
@@ -29,9 +26,12 @@ import (
 )
 
 const (
+	// TODO: Use a different system. Wait for event
 	slamDelay                  = time.Millisecond * 500
 	SlamboxConnectionFieldName = "ConnectedBoxes"
 	HazardConnectionFieldName  = "ConnectedComponents" // The name is a lie
+	IsGroupFieldName           = "IsGroup"
+	InChainFieldName           = "InChain"
 )
 
 type slamboxState int
@@ -54,6 +54,8 @@ type SlamContext struct {
 	chainNodes            []*entities.ChainNode
 }
 
+// How do we convert this into a library? It contains both particle
+// sys and other things
 type Slambox struct {
 	Collider                  *maths.Rect
 	ConnectedBoxes            []*Slambox
@@ -78,6 +80,7 @@ type Slambox struct {
 }
 
 func (s *Slambox) Update() {
+	// Set position according to NEW slambox position
 	s.movebox.Update()
 	x, y := s.movebox.GetPos()
 	s.Collider.SetPos(x, y)
@@ -379,6 +382,11 @@ func (s *Slambox) Slam(slamCtx SlamContext) {
 	s.SetTarget(projectedSlamboxRect.Left(), projectedSlamboxRect.Top())
 }
 
+func (s *Slambox) StartSlamNEW(direction maths.Direction) {
+	s.slamTimer = time.NewTimer(slamDelay)
+	s.state = waiting
+}
+
 func (s *Slambox) StartSlam(direction maths.Direction, tilemapCollider *physics.TilemapCollider, disconnectedColliders []*maths.Rect, chainNodes []*entities.ChainNode) {
 	s.slamTimer = time.NewTimer(slamDelay)
 	s.state = waiting
@@ -449,7 +457,28 @@ func (s *Slambox) CreateSprite(slamboxTilemap *ebiten.Image) {
 
 func NewSlambox(
 	entity *ebitenLDTK.Entity,
+	slamboxEnvironment *slambox.SlamboxEnvironment,
 ) *Slambox {
+	isGroupField := errs.Must(entity.GetFieldByName(IsGroupFieldName))
+	inChainField := errs.Must(entity.GetFieldByName(InChainFieldName))
+	if inChainField.Bool {
+		// Add to proper chain. Skip for now
+	} else {
+		if isGroupField.Bool {
+			// Add as group, then find subboxes
+			// Skip for now
+		} else {
+			slamboxEnvironment.AddSlambox(
+				slambox.NewSlambox(maths.NewRect(
+					entity.Px[0],
+					entity.Px[1],
+					entity.Width,
+					entity.Height,
+				), moveSpeed),
+			)
+		}
+	}
+
 	newSlambox := Slambox{}
 	newSlambox.Collider = maths.NewRect(
 		entity.Px[0],
