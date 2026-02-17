@@ -48,8 +48,14 @@ type SlamboxEnvironment struct {
 }
 
 func (se *SlamboxEnvironment) Update() {
-	for _, slambox := range se.slamboxes {
+	for i, slambox := range se.slamboxes {
 		slambox.Update()
+		if slambox.slamRequest == maths.DirNone {
+			continue
+		}
+		fmt.Println("I take the request")
+		se.SlamSlambox(i, slambox.GetRequestedSlamDirection())
+		slambox.RequestSlam(maths.DirNone)
 	}
 
 	for _, slamboxGroup := range se.slamboxGroups {
@@ -534,11 +540,11 @@ func (se *SlamboxEnvironment) GetSlamboxChains() []*SlamboxChain {
 
 func (se *SlamboxEnvironment) SetTiles(tilemap [][]int) {
 	se.gridTiles = make([][]bool, 0)
-	for i := range se.gridTiles {
-		for j := range se.gridTiles {
+	for i := range tilemap {
+		se.gridTiles = append(se.gridTiles, make([]bool, 0))
+		for j := range tilemap[i] {
 			se.gridTiles[i] = append(se.gridTiles[i], tilemap[i][j] != 0)
 		}
-		se.gridTiles = append(se.gridTiles, make([]bool, 0))
 	}
 }
 
@@ -546,8 +552,9 @@ func (se *SlamboxEnvironment) SetTileSize(tileSize float64) {
 	se.TileSize = tileSize
 }
 
-func (se *SlamboxEnvironment) AddSlambox(slambox *Slambox) {
+func (se *SlamboxEnvironment) AddSlambox(slambox *Slambox) int {
 	se.slamboxes = append(se.slamboxes, slambox)
+	return len(se.slamboxes) - 1
 }
 
 func (se *SlamboxEnvironment) AddSlamboxGroup(slamboxGroup *SlamboxGroup) {

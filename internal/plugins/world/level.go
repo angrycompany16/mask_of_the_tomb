@@ -16,8 +16,8 @@ import (
 	"mask_of_the_tomb/internal/libraries/camera"
 	"mask_of_the_tomb/internal/libraries/entities"
 	"mask_of_the_tomb/internal/libraries/particles"
-	"mask_of_the_tomb/internal/libraries/physics"
 	"mask_of_the_tomb/internal/libraries/slambox"
+	"math"
 	"slices"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -40,6 +40,7 @@ const (
 	platformEntityName     = "OneWayPlatform"
 	lanternEntityName      = "Lantern"
 	chainNodeEntityName    = "SlamboxChainNode"
+	slamboxChainEntityName = "SlamboxChain"
 	levelTitleFieldName    = "Title"
 )
 
@@ -63,7 +64,6 @@ type Level struct {
 	name                     string
 	defs                     *ebitenLDTK.Defs
 	levelLDTK                *ebitenLDTK.Level
-	TilemapCollider          physics.TilemapCollider
 	tileSize                 float64
 	bgColor                  color.Color
 	playerspaceNormalTilemap *ebiten.Image
@@ -76,17 +76,17 @@ type Level struct {
 	resetX, resetY           float64
 	ambientParticles         *particles.ParticleSystem
 	grassTilemap             *ebiten.Image
+	slamboxEnvironment       *slambox.SlamboxEnvironment
 	// In a sense these are all game objects
-	slamboxes          []*Slambox
-	hazards            []*entities.Hazard
-	doors              []entities.Door
-	grassEntities      []entities.Grass
-	turrets            []*entities.Turret
-	catchers           []*entities.Catcher
-	platforms          []*entities.Platform
-	lanterns           []*entities.Lantern
-	chainNodes         []*entities.ChainNode
-	slamboxEnvironment *slambox.SlamboxEnvironment
+	slamboxEntities []*SlamboxEntity
+	hazards         []*entities.Hazard
+	doors           []entities.Door
+	grassEntities   []entities.Grass
+	turrets         []*entities.Turret
+	catchers        []*entities.Catcher
+	platforms       []*entities.Platform
+	lanterns        []*entities.Lantern
+	chainNodes      []*entities.ChainNode
 }
 
 // ------ CONSTRUCTOR ------
@@ -127,7 +127,6 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
 	if err != nil {
 		newLevel.tileSize = 1
-		newLevel.TilemapCollider.TileSize = 1
 		return newLevel, nil
 	}
 
@@ -139,11 +138,9 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	}
 
 	intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
-	newLevel.TilemapCollider.Tiles = intGridCSV
 	newLevel.slamboxEnvironment.SetTiles(intGridCSV)
 
 	newLevel.tileSize = float64(playerspace.GridSize)
-	newLevel.TilemapCollider.TileSize = float64(playerspace.GridSize)
 	newLevel.slamboxEnvironment.SetTileSize(playerspace.GridSize)
 
 	entityLayer := errs.Must(levelLDTK.GetLayerByName(entityLayerName))
@@ -154,8 +151,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		case doorEntityName:
 			newLevel.doors = append(newLevel.doors, entities.NewDoor(&entity))
 		case slamboxEntityName:
-			// Maybe also add
-			newLevel.slamboxes = append(newLevel.slamboxes, NewSlambox(&entity, newLevel.slamboxEnvironment))
+			newLevel.slamboxEntities = append(newLevel.slamboxEntities, NewSlambox(&entity, newLevel.slamboxEnvironment, levelLDTK))
 		case grassEntityName:
 			newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
 		case turretEntityName:
@@ -166,33 +162,33 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
 		case lanternEntityName:
 			newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
-		case chainNodeEntityName:
-			newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
+			// case chainNodeEntityName:
+			// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 		}
 	}
 
 	// NOTE: We need to loop twice to ensure that all slamboxes have been added
 	// before we link them together
-	for _, slambox := range newLevel.slamboxes {
-		for _, hazard := range newLevel.hazards {
-			if slices.Contains(slambox.attachedHazardIDs, hazard.LinkID) {
-				slambox.attachedHazards = append(slambox.attachedHazards, hazard)
-				hazard.PosOffsetX = hazard.Hitbox.Left() - slambox.Collider.Left()
-				hazard.PosOffsetY = hazard.Hitbox.Top() - slambox.Collider.Top()
-			}
-		}
+	for _, slambox := range newLevel.slamboxEntities {
+		// for _, hazard := range newLevel.hazards {
+		// 	if slices.Contains(slambox.attachedHazardIDs, hazard.LinkID) {
+		// 		slambox.attachedHazards = append(slambox.attachedHazards, hazard)
+		// 		hazard.PosOffsetX = hazard.Hitbox.Left() - slambox.Collider.Left()
+		// 		hazard.PosOffsetY = hazard.Hitbox.Top() - slambox.Collider.Top()
+		// 	}
+		// }
 
-		for _, otherSlambox := range newLevel.slamboxes {
-			if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
-				slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
-			}
+		// for _, otherSlambox := range newLevel.slamboxEntities {
+		// 	if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
+		// 		slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
+		// 	}
 
-			// NOTE: This is very limited, since it only allows for one chain with
-			// exactly two slamboxes in each level.
-			if otherSlambox.chainNodeID != "" && otherSlambox != slambox {
-				slambox.ChainedSlambox = otherSlambox
-			}
-		}
+		// 	// NOTE: This is very limited, since it only allows for one chain with
+		// 	// exactly two slamboxes in each level.
+		// 	if otherSlambox.chainNodeID != "" && otherSlambox != slambox {
+		// 		slambox.ChainedSlambox = otherSlambox
+		// 	}
+		// }
 
 		slambox.CreateSprite(errs.Must(assettypes.GetImageAsset("slamboxTilemap")))
 	}
@@ -230,7 +226,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 
 // ------ ENTITY ------
 func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
-	for _, slambox := range l.slamboxes {
+	for _, slambox := range l.slamboxEntities {
 		slambox.Update()
 	}
 	for _, grassEntity := range l.grassEntities {
@@ -239,19 +235,20 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	for _, door := range l.doors {
 		door.Update()
 	}
-	for _, turret := range l.turrets {
-		hit, x, y := l.TilemapCollider.Raycast(turret.Hitbox.Left(), turret.Hitbox.Top(), turret.GetAimDir(), l.GetSlamboxRects())
-		if hit {
-			turret.RayEndX = x
-			turret.RayEndY = y
-		}
-		turret.Update((l.GetSlamboxRects()))
-	}
+	// for _, turret := range l.turrets {
+	// hit, x, y := l.TilemapCollider.Raycast(turret.Hitbox.Left(), turret.Hitbox.Top(), turret.GetAimDir(), l.GetSlamboxRects())
+	// if hit {
+	// 	turret.RayEndX = x
+	// 	turret.RayEndY = y
+	// }
+	// turret.Update((l.GetSlamboxRects()))
+	// }
 	for _, lantern := range l.lanterns {
 		lantern.Update(playerX, playerY, playerVelX, playerVelY)
 	}
 
 	l.ambientParticles.Update()
+	l.slamboxEnvironment.Update()
 
 	// Listen for slambox notifications
 	// If ready to slam,
@@ -286,7 +283,7 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 		turretEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
-	for _, box := range l.slamboxes {
+	for _, box := range l.slamboxEntities {
 		box.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
@@ -310,9 +307,9 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 		lantern.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
-	for _, chainNode := range l.chainNodes {
-		chainNode.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
-	}
+	// for _, chainNode := range l.chainNodes {
+	// 	chainNode.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+	// }
 
 	ebitenrenderutil.DrawAt(l.tileLayers.Playerspace, l.frameLayers.Playerspace, 0, 0)
 	ebitenrenderutil.DrawAt(l.tileLayers.Midground, l.frameLayers.Midground, 0, 0)
@@ -324,7 +321,7 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 		slices.Concat(
 			arrays.MapSlice(l.turrets, func(turret *entities.Turret) *shaders.Light { return turret.Light }),
 			arrays.MapSlice(l.lanterns, func(lantern *entities.Lantern) *shaders.Light { return lantern.Light }),
-			arrays.MapSlice(l.slamboxes, func(slambox *Slambox) *shaders.Light { return slambox.Light }),
+			// arrays.MapSlice(l.slamboxEntities, func(slambox *Slambox) *shaders.Light { return slambox.Light }),
 			[]*shaders.Light{playerLight},
 		),
 		rendering.GAME_WIDTH,
@@ -350,6 +347,15 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 	rendering.ScreenLayers.Background.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
 	l.ambientParticles.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Foreground))
+}
+
+func (l *Level) ProjectRect(rect *maths.Rect, dir maths.Direction) (maths.Rect, float64) {
+	otherRects := slices.Concat(
+		l.slamboxEnvironment.GetSlamboxRects(-1),
+		l.slamboxEnvironment.GetSlamboxGroupRects(-1),
+		l.slamboxEnvironment.GetSlamboxChainRects(-1))
+	projRect, dist := l.slamboxEnvironment.ProjectRect(*rect, dir, math.Inf(1), otherRects)
+	return projRect, dist
 }
 
 // ------ GETTERS ------
@@ -382,29 +388,13 @@ func (l *Level) CheckTurretHit(playerHitBox *maths.Rect) bool {
 	return false
 }
 
-// Get all the rect colliders that are not connected to slambox
-func (l *Level) GetDisconnectedColliders(_slambox *Slambox) []*maths.Rect {
-	// I love writing unreadable code
-	return arrays.MapSlice(
-		arrays.Filter(
-			l.slamboxes, func(s *Slambox) bool { return !slices.Contains(_slambox.ConnectedBoxes, s) && s != _slambox },
-		),
-		func(s *Slambox) *maths.Rect { return s.Collider },
-	)
-
-}
-
-func (l *Level) GetSlamboxRects() []*maths.Rect {
-	return arrays.MapSlice(l.slamboxes, func(s *Slambox) *maths.Rect { return s.Collider })
-}
-
 func (l *Level) GetCatcherRects() []*maths.Rect {
 	return arrays.MapSlice(l.catchers, func(c *entities.Catcher) *maths.Rect { return c.Hitbox })
 }
 
-func (l *Level) GetChainNodeRects() []*maths.Rect {
-	return arrays.MapSlice(l.chainNodes, func(c *entities.ChainNode) *maths.Rect { return c.Rect })
-}
+// func (l *Level) GetChainNodeRects() []*maths.Rect {
+// 	return arrays.MapSlice(l.chainNodes, func(c *entities.ChainNode) *maths.Rect { return c.Rect })
+// }
 
 // Get all the platforms matching the movement direction
 func (l *Level) GetPlatformHitboxes(up bool) []*maths.Rect {
@@ -417,45 +407,32 @@ func (l *Level) GetPlatformHitboxes(up bool) []*maths.Rect {
 	return hitboxes
 }
 
-func (l *Level) GetSlamboxTargetRects() []*maths.Rect {
-	return arrays.MapSlice(l.slamboxes, func(s *Slambox) *maths.Rect {
-		tX, tY := s.movebox.GetTarget()
-		return maths.NewRect(tX, tY, s.Collider.Width(), s.Collider.Height())
-	})
-}
-
 func (l *Level) GetSlamboxPositions() []SlamboxPosition {
-	return arrays.MapSlice(l.slamboxes, func(s *Slambox) SlamboxPosition {
-		return SlamboxPosition{X: s.Collider.Left(), Y: s.Collider.Top()}
+	return arrays.MapSlice(l.slamboxEntities, func(s *SlamboxEntity) SlamboxPosition {
+		return SlamboxPosition{X: s.rect.Left(), Y: s.rect.Top()}
 	})
-}
-
-// For now we assume that we will only ever be slamming one box at a time, though
-// this may change later
-// TODO: Rewrite to use slambox environment
-func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) (*Slambox, bool) {
-	extendedRect := playerCollider.Extended(dir, 1)
-	for _, slambox := range l.slamboxes {
-		if extendedRect.Overlapping(slambox.Collider) {
-			return slambox, true
-		}
-	}
-	return nil, false
 }
 
 // Queries the slambox environment for overlaps with the playercollider extended
 // 1px in the slam direction. Returns the first hit, as well as an indication
 // of whether this is a slambox, a
-func (l *Level) GetSlamboxHitNEW(playerCollider *maths.Rect, dir maths.Direction) slambox.QueryResult {
+func (l *Level) GetSlamboxHit(playerCollider *maths.Rect, dir maths.Direction) slambox.QueryResult {
 	extendedRect := playerCollider.Extended(dir, 1)
 	return l.slamboxEnvironment.QuerySlamboxes(extendedRect)
 }
 
-func (l *Level) SlamSlambox(index int, dir maths.Direction) {
-	// Set the slambox struct to waiting state, storing
-	// the index and dir
-	// Upon some player event, slam the slambox
+func (l *Level) SlamSlambox(id int, dir maths.Direction) {
+	slambox := l.GetSlamboxEntity(id)
+	slambox.StartSlam(id, dir)
+}
 
+func (l *Level) GetSlamboxEntity(id int) *SlamboxEntity {
+	for i, slamboxEntity := range l.slamboxEntities {
+		if i == id {
+			return slamboxEntity
+		}
+	}
+	return nil
 }
 
 func (l *Level) GetBiome() string {
@@ -509,9 +486,9 @@ func (l *Level) GetGameEntryPos() (float64, float64) {
 	return 0, 0
 }
 
-func (l *Level) GetChainNodes() []*entities.ChainNode {
-	return l.chainNodes
-}
+// func (l *Level) GetChainNodes() []*entities.ChainNode {
+// 	return l.chainNodes
+// }
 
 // ------ INTERNAL ------
 func drawTiles(
@@ -552,11 +529,11 @@ func (l *Level) reset() {
 			continue
 		}
 
-		for _, slambox := range l.slamboxes {
-			if slambox.LinkID != entity.Iid {
-				continue
-			}
-			slambox.SetPos(entity.Px[0], entity.Px[1])
-		}
+		// for _, slambox := range l.slamboxEntities {
+		// if slambox.LinkID != entity.Iid {
+		// 	continue
+		// }
+		// slambox.SetPos(entity.Px[0], entity.Px[1])
+		// }
 	}
 }

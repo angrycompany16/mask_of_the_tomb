@@ -10,6 +10,7 @@ type Slambox struct {
 	rect        *maths.Rect
 	attachments []*Attachment
 	tracker     *Tracker
+	slamRequest maths.Direction
 }
 
 func (s *Slambox) Update() {
@@ -21,6 +22,14 @@ func (s *Slambox) Update() {
 
 func (s *Slambox) Slam(x, y float64) {
 	s.tracker.SetTarget(x, y)
+}
+
+func (s *Slambox) RequestSlam(dir maths.Direction) {
+	s.slamRequest = dir
+}
+
+func (s *Slambox) GetRequestedSlamDirection() maths.Direction {
+	return s.slamRequest
 }
 
 func (s *Slambox) GetRect() *maths.Rect {

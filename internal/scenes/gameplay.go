@@ -116,42 +116,36 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 		}
 
 		// Get platform rects
-		platformHitboxes := make([]*maths.Rect, 0)
-		if moveDir == maths.DirUp {
-			platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(false)
-		} else if moveDir == maths.DirDown {
-			platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(true)
-		}
+		// platformHitboxes := make([]*maths.Rect, 0)
+		// if moveDir == maths.DirUp {
+		// 	platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(false)
+		// } else if moveDir == maths.DirDown {
+		// 	platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(true)
+		// }
 
 		// Check for slambox hits
-		_slambox, hitSlambox := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
-		res := g.world.ActiveLevel.GetSlamboxHitNEW(g.player.GetHitbox(), moveDir)
+		res := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
 
 		// Resolve any collisions
 		switch res.HitKind {
 		case slambox.SLAMBOX:
 			g.world.ActiveLevel.SlamSlambox(res.Index, moveDir)
+			g.player.StartSlamming(moveDir)
+
+			// _slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(_slambox), g.world.ActiveLevel.GetChainNodes())
 		case slambox.SLAMBOX_GROUP:
 		case slambox.SLAMBOX_CHAIN:
 		case slambox.NONE:
-			// Here we handle other types of collisions
-		}
-
-		if hitSlambox {
-			g.player.StartSlamming(moveDir)
-			// TODO: Wait for an event instead of a fixed delay so that the system is
-			// more flexible
-			_slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(_slambox), g.world.ActiveLevel.GetChainNodes())
-		} else if hitCatcher {
-			g.player.Dash(moveDir, catcherX, catcherY)
-		} else {
-			newRect, _ := g.world.ActiveLevel.TilemapCollider.ProjectRect(
-				g.player.GetHitbox(),
-				moveDir,
-				append(g.world.ActiveLevel.GetSlamboxTargetRects(), platformHitboxes...),
-			)
-			if newRect != *g.player.GetHitbox() {
-				g.player.Dash(moveDir, newRect.Left(), newRect.Top())
+			if hitCatcher {
+				g.player.Dash(moveDir, catcherX, catcherY)
+			} else {
+				newRect, _ := g.world.ActiveLevel.ProjectRect(
+					g.player.GetHitbox(),
+					moveDir,
+				)
+				if newRect != *g.player.GetHitbox() {
+					g.player.Dash(moveDir, newRect.Left(), newRect.Top())
+				}
 			}
 		}
 	}
