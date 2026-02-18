@@ -93,9 +93,9 @@ func (sc *SlamboxChain) DistFromNode(x, y float64, i int) float64 {
 
 // Check whether (x, y) is in the bounding box spanned out by the i,j nodes.
 func (sc *SlamboxChain) IsBetween(i, j int, x, y float64) bool {
-	BB := maths.BB([]maths.Rect{
-		*sc.nodes[i].GetRect(),
-		*sc.nodes[j].GetRect(),
+	BB := maths.BB([]*maths.Rect{
+		sc.nodes[i].GetRect(),
+		sc.nodes[j].GetRect(),
 	})
 	return BB.Contains(x, y)
 }

@@ -174,28 +174,28 @@ func evalRule(data tileNeighbourData, rule tileRule) bool {
 func GetDefaultTileRectData(tileRegionX, tileRegionY, tileSize float64) tilemapSrcData {
 	tileRectData := make(tilemapSrcData)
 
-	tileRectData[TOP_LEFT_INNER] = image.Rect(
+	tileRectData[BOTTOM_RIGHT_INNER] = image.Rect(
 		int(tileRegionX+tileSize*3),
 		int(tileRegionY),
 		int(tileRegionX+tileSize*4),
 		int(tileRegionY+tileSize),
 	)
 
-	tileRectData[TOP_RIGHT_INNER] = image.Rect(
+	tileRectData[BOTTOM_LEFT_INNER] = image.Rect(
 		int(tileRegionX+tileSize*4),
 		int(tileRegionY),
 		int(tileRegionX+tileSize*5),
 		int(tileRegionY+tileSize),
 	)
 
-	tileRectData[BOTTOM_LEFT_INNER] = image.Rect(
+	tileRectData[TOP_RIGHT_INNER] = image.Rect(
 		int(tileRegionX+tileSize*3),
 		int(tileRegionY+tileSize),
 		int(tileRegionX+tileSize*4),
 		int(tileRegionY+tileSize*2),
 	)
 
-	tileRectData[BOTTOM_RIGHT_INNER] = image.Rect(
+	tileRectData[TOP_LEFT_INNER] = image.Rect(
 		int(tileRegionX+tileSize*4),
 		int(tileRegionY+tileSize),
 		int(tileRegionX+tileSize*5),
@@ -357,6 +357,11 @@ func GetDefaultTileRuleset() []tileRule {
 			FREE, WALL, FREE,
 			FREE /**/, FREE,
 			FREE, EMPTY, FREE},
+		},
+		tileRule{_type: CENTER, def: [8]tileKind{
+			WALL, WALL, WALL,
+			WALL /**/, WALL,
+			WALL, WALL, WALL},
 		},
 	}
 

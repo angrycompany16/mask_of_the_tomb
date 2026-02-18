@@ -53,13 +53,18 @@ func (se *SlamboxEnvironment) Update() {
 		if slambox.slamRequest == maths.DirNone {
 			continue
 		}
-		fmt.Println("I take the request")
 		se.SlamSlambox(i, slambox.GetRequestedSlamDirection())
 		slambox.RequestSlam(maths.DirNone)
 	}
 
-	for _, slamboxGroup := range se.slamboxGroups {
+	for i, slamboxGroup := range se.slamboxGroups {
 		slamboxGroup.Update()
+		if slamboxGroup.GetCenterSlambox().slamRequest == maths.DirNone {
+			continue
+		}
+		fmt.Println(slamboxGroup.GetRequestedSlamDirection())
+		se.SlamSlamboxGroup(i, slamboxGroup.GetRequestedSlamDirection())
+		slamboxGroup.RequestSlam(maths.DirNone)
 	}
 
 	for _, slamboxChain := range se.slamboxChains {
@@ -194,7 +199,7 @@ func (se *SlamboxEnvironment) SlamSlambox(index int, dir maths.Direction) {
 func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) {
 	slamboxGroup := se.slamboxGroups[i]
 	rects := slamboxGroup.GetSlamboxRects()
-	otherRects := slices.Concat(se.GetSlamboxRects(i), se.GetSlamboxGroupRects(-1), se.GetSlamboxChainRects(-1))
+	otherRects := slices.Concat(se.GetSlamboxRects(-1), se.GetSlamboxGroupRects(i), se.GetSlamboxChainRects(-1))
 	newRects, _ := se.ProjectRects(rects, dir, math.Inf(1), otherRects)
 	slamboxGroup.Slam(newRects)
 }
@@ -361,59 +366,57 @@ func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direct
 // Projects a rect (moves it as far as possible) through the slambox
 // environment. Returns the projected rect and the distance that it was
 // moved.
-// Also takes in a distance constraint. To ignore this, pass inmath.Inf(1).
+// Also takes in a distance constraint. To ignore this, pass in math.Inf(1).
 func (se *SlamboxEnvironment) ProjectRect(rect maths.Rect, dir maths.Direction, maxDist float64, otherRects []*maths.Rect) (maths.Rect, float64) {
 	rects := slices.Concat(se.Rectify(), otherRects)
 
 	var closestObstruction *maths.Rect
 	var closestDist = math.Inf(1)
 	for _, otherRect := range rects {
-		hrzWithin := maths.IsBetween(rect.Left(), rect.Right()-1, otherRect.Left()) ||
-			maths.IsBetween(rect.Left(), rect.Right()-1, otherRect.Right()-1) ||
-			maths.IsBetween(otherRect.Left(), otherRect.Right()-1, rect.Left()) ||
-			maths.IsBetween(otherRect.Left(), otherRect.Right()-1, rect.Right()-1)
-		vrtWithin := maths.IsBetween(rect.Top(), rect.Bottom()-1, otherRect.Top()) ||
-			maths.IsBetween(rect.Top(), rect.Bottom()-1, otherRect.Bottom()-1) ||
-			maths.IsBetween(otherRect.Top(), otherRect.Bottom()-1, rect.Top()) ||
-			maths.IsBetween(otherRect.Top(), otherRect.Bottom()-1, rect.Bottom()-1)
-		distY := math.Abs(rect.Cy() - otherRect.Cy())
-		distX := math.Abs(rect.Cx() - otherRect.Cx())
-		isCloserY := distY < closestDist
-		isCloserX := distX < closestDist
+		// alternative method
+		projXRect := rect.Translated(0, -rect.Top())
+		projXOtherRect := otherRect.Translated(0, -otherRect.Top())
+		projYRect := rect.Translated(-rect.Left(), 0)
+		projYOtherRect := otherRect.Translated(-otherRect.Left(), 0)
+		hrzWithin := projXRect.Overlapping(&projXOtherRect)
+		vrtWithin := projYRect.Overlapping(&projYOtherRect)
 
 		switch dir {
 		case maths.DirUp:
+			dist := math.Abs(otherRect.Bottom() - rect.Top())
 			isAbove := otherRect.Bottom() <= rect.Top()
 
-			if !(hrzWithin && isCloserY && isAbove) {
+			if !(hrzWithin && isAbove && dist < closestDist) {
 				continue
 			}
+			closestDist = dist
 			closestObstruction = otherRect
-			closestDist = distY
 		case maths.DirDown:
+			dist := math.Abs(otherRect.Top() - rect.Bottom())
 			isBelow := otherRect.Top() >= rect.Bottom()
 
-			if !(hrzWithin && isCloserY && isBelow) {
+			if !(hrzWithin && isBelow && dist < closestDist) {
 				continue
 			}
-			closestDist = distY
+			closestDist = dist
 			closestObstruction = otherRect
 		case maths.DirRight:
+			dist := math.Abs(otherRect.Left() - rect.Right())
 			isRight := otherRect.Left() >= rect.Right()
 
-			if !(vrtWithin && isCloserX && isRight) {
+			if !(vrtWithin && isRight && dist < closestDist) {
 				continue
 			}
-			closestDist = distX
+			closestDist = dist
 			closestObstruction = otherRect
 		case maths.DirLeft:
+			dist := math.Abs(otherRect.Right() - rect.Left())
 			isLeft := otherRect.Right() <= rect.Left()
 
-			if !(vrtWithin && isCloserX && isLeft) {
+			if !(vrtWithin && isLeft && dist < closestDist) {
 				continue
 			}
-
-			closestDist = distX
+			closestDist = dist
 			closestObstruction = otherRect
 		}
 	}
@@ -557,8 +560,9 @@ func (se *SlamboxEnvironment) AddSlambox(slambox *Slambox) int {
 	return len(se.slamboxes) - 1
 }
 
-func (se *SlamboxEnvironment) AddSlamboxGroup(slamboxGroup *SlamboxGroup) {
+func (se *SlamboxEnvironment) AddSlamboxGroup(slamboxGroup *SlamboxGroup) int {
 	se.slamboxGroups = append(se.slamboxGroups, slamboxGroup)
+	return len(se.slamboxGroups) - 1
 }
 
 func (se *SlamboxEnvironment) AddSlamboxChain(slamboxChain *SlamboxChain) {

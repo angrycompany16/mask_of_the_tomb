@@ -134,6 +134,8 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 
 			// _slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(_slambox), g.world.ActiveLevel.GetChainNodes())
 		case slambox.SLAMBOX_GROUP:
+			g.world.ActiveLevel.SlamSlamboxGroup(res.Index, moveDir)
+			g.player.StartSlamming(moveDir)
 		case slambox.SLAMBOX_CHAIN:
 		case slambox.NONE:
 			if hitCatcher {

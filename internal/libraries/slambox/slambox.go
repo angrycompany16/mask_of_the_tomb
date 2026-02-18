@@ -36,10 +36,15 @@ func (s *Slambox) GetRect() *maths.Rect {
 	return s.rect
 }
 
+func (s *Slambox) GetTracker() *Tracker {
+	return s.tracker
+}
+
 func NewSlambox(rect *maths.Rect, moveSpeed float64) *Slambox {
 	newSlambox := Slambox{}
 	newSlambox.rect = rect
 	newSlambox.tracker = NewTracker(moveSpeed, rect.Left(), rect.Top())
+	newSlambox.slamRequest = maths.DirNone
 	return &newSlambox
 }
 

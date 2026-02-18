@@ -30,6 +30,7 @@ func (d *DebugScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 	ebiten.ReadDebugInfo(&d.renderDebugInfo)
 	return &scene.SceneTransition{}, false
 }
+
 func (d *DebugScene) Draw() {
 	debugString := fmt.Sprintf(`
 		FPS: %f,

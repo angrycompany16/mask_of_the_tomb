@@ -22,6 +22,14 @@ func (sg *SlamboxGroup) Slam(targetRects []maths.Rect) {
 	}
 }
 
+func (sg *SlamboxGroup) GetRequestedSlamDirection() maths.Direction {
+	return sg.slamboxes[sg.centerIndex].GetRequestedSlamDirection()
+}
+
+func (sg *SlamboxGroup) RequestSlam(dir maths.Direction) {
+	sg.slamboxes[sg.centerIndex].RequestSlam(dir)
+}
+
 func (sg *SlamboxGroup) GetSlamboxes() []*Slambox {
 	return sg.slamboxes
 }

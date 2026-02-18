@@ -151,7 +151,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		case doorEntityName:
 			newLevel.doors = append(newLevel.doors, entities.NewDoor(&entity))
 		case slamboxEntityName:
-			newLevel.slamboxEntities = append(newLevel.slamboxEntities, NewSlambox(&entity, newLevel.slamboxEnvironment, levelLDTK))
+			newLevel.slamboxEntities = append(newLevel.slamboxEntities, NewSlamboxEntity(&entity, newLevel.slamboxEnvironment, levelLDTK))
 		case grassEntityName:
 			newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
 		case turretEntityName:
@@ -165,32 +165,6 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			// case chainNodeEntityName:
 			// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 		}
-	}
-
-	// NOTE: We need to loop twice to ensure that all slamboxes have been added
-	// before we link them together
-	for _, slambox := range newLevel.slamboxEntities {
-		// for _, hazard := range newLevel.hazards {
-		// 	if slices.Contains(slambox.attachedHazardIDs, hazard.LinkID) {
-		// 		slambox.attachedHazards = append(slambox.attachedHazards, hazard)
-		// 		hazard.PosOffsetX = hazard.Hitbox.Left() - slambox.Collider.Left()
-		// 		hazard.PosOffsetY = hazard.Hitbox.Top() - slambox.Collider.Top()
-		// 	}
-		// }
-
-		// for _, otherSlambox := range newLevel.slamboxEntities {
-		// 	if slices.Contains(slambox.OtherLinkIDs, otherSlambox.LinkID) {
-		// 		slambox.ConnectedBoxes = append(slambox.ConnectedBoxes, otherSlambox)
-		// 	}
-
-		// 	// NOTE: This is very limited, since it only allows for one chain with
-		// 	// exactly two slamboxes in each level.
-		// 	if otherSlambox.chainNodeID != "" && otherSlambox != slambox {
-		// 		slambox.ChainedSlambox = otherSlambox
-		// 	}
-		// }
-
-		slambox.CreateSprite(errs.Must(assettypes.GetImageAsset("slamboxTilemap")))
 	}
 
 	// Optimization yeah
@@ -249,9 +223,6 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 
 	l.ambientParticles.Update()
 	l.slamboxEnvironment.Update()
-
-	// Listen for slambox notifications
-	// If ready to slam,
 }
 
 func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
@@ -283,8 +254,8 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 		turretEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
-	for _, box := range l.slamboxEntities {
-		box.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+	for _, slamboxEntity := range l.slamboxEntities {
+		slamboxEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
 	}
 
 	for _, hazard := range l.hazards {
@@ -321,7 +292,7 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 		slices.Concat(
 			arrays.MapSlice(l.turrets, func(turret *entities.Turret) *shaders.Light { return turret.Light }),
 			arrays.MapSlice(l.lanterns, func(lantern *entities.Lantern) *shaders.Light { return lantern.Light }),
-			// arrays.MapSlice(l.slamboxEntities, func(slambox *Slambox) *shaders.Light { return slambox.Light }),
+			arrays.MapSlice(l.slamboxEntities, func(slambox *SlamboxEntity) *shaders.Light { return slambox.Light }),
 			[]*shaders.Light{playerLight},
 		),
 		rendering.GAME_WIDTH,
@@ -346,6 +317,7 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 	shaderOp = shaders.ChangeSrc(shaderOp, camX, camY, rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.tileLayers.Background)
 	rendering.ScreenLayers.Background.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
+	// rendering.ScreenLayers.Foreground.DrawImage(l.frameLayers.Foreground, &ebiten.DrawImageOptions{})
 	l.ambientParticles.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Foreground))
 }
 
@@ -426,9 +398,14 @@ func (l *Level) SlamSlambox(id int, dir maths.Direction) {
 	slambox.StartSlam(id, dir)
 }
 
+func (l *Level) SlamSlamboxGroup(id int, dir maths.Direction) {
+	slambox := l.GetSlamboxEntity(id)
+	slambox.StartSlam(id, dir)
+}
+
 func (l *Level) GetSlamboxEntity(id int) *SlamboxEntity {
-	for i, slamboxEntity := range l.slamboxEntities {
-		if i == id {
+	for _, slamboxEntity := range l.slamboxEntities {
+		if slamboxEntity.backendID == id {
 			return slamboxEntity
 		}
 	}

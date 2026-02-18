@@ -136,7 +136,7 @@ func (r *Rect) Lerp(other *Rect, t float64) Rect {
 }
 
 // Returns the bounding box for the list of rects
-func BB(rects []Rect) *Rect {
+func BB(rects []*Rect) *Rect {
 	BBrect := NewRect(0, 0, 0, 0)
 	minX := math.Inf(1)
 	minY := math.Inf(1)
