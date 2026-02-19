@@ -63,7 +63,7 @@ Routine {
 			6.do {
 				if (frequencies.notNil) {
 					Synth(\ping,  [freq: frequencies.choose * 2, amp: -28.dbamp]);
-				}
+				};
 
 
 				exprand(0.1, 0.5).wait;
