@@ -116,6 +116,11 @@ func (s *SlamboxEntity) StartSlam(id int, dir maths.Direction) {
 	}
 }
 
+func (s *SlamboxEntity) SetPos(x, y float64) {
+	// s.slambox.SetPosDirect(x, y)
+	s.slamboxGroup.SetPosDirect(x, y)
+}
+
 func (s *SlamboxEntity) createSprite(slamboxTilemap *ebiten.Image) {
 	autotile.CreateSprite(
 		slamboxTilemap,
@@ -163,7 +168,7 @@ func (s *SlamboxEntity) PlayContactParticles(moveDir maths.Direction) {
 	w2, h2 := s.rect.HalfSize()
 	spread := 20.0
 	minSpeed := 2.0
-	maxSpeed := 50.0
+	maxSpeed := 120.0
 	switch moveDir {
 	case maths.DirUp:
 		s.particleSys.PosX = s.rect.Cx()

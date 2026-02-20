@@ -19,7 +19,6 @@ import (
 // TODO: Implement stop time so it doesn't run forever
 // TODO: Make burst count random
 // TODO: Make color random
-// TODO: Some kind of air friction coefficient?
 // TODO: Convert angles to degrees
 // NOTE: there's an effective cap on emission (it cannot be higher than 60) because
 // we only ever add one particle to the system
@@ -39,6 +38,7 @@ type ParticleSystem struct {
 	SpawnVelY       maths.RandomFloat64 `yaml:"SpawnVelY"`
 	SpawnAngle      maths.RandomFloat64 `yaml:"SpawnAngle"`
 	SpawnAngularVel maths.RandomFloat64 `yaml:"SpawnAngularVel"`
+	AirFriction     maths.RandomFloat64 `yaml:"AirFriction"`
 	StartScale      maths.RandomFloat64 `yaml:"StartScale"`
 	EndScale        maths.RandomFloat64 `yaml:"EndScale"`
 	Lifetime        maths.RandomFloat64 `yaml:"Lifetime"`
@@ -56,6 +56,8 @@ type ParticleSystem struct {
 	layer       *ebiten.Image
 }
 
+// TODO: fix
+// This might be the dumbest thign I've ever seen
 func (ps *ParticleSystem) Play() {
 	ps.particles = nil
 	// Not good, really not good...
@@ -93,7 +95,6 @@ func (ps *ParticleSystem) Update() {
 	}
 }
 
-// TODO: Maybe take in the layer as a function parameter?
 func (ps *ParticleSystem) Draw(ctx rendering.Ctx) {
 	if ps.GlobalSpace {
 		for _, particle := range ps.particles {
@@ -138,6 +139,7 @@ func (ps *ParticleSystem) newParticle() *Particle {
 	return &Particle{
 		x, y, ps.SpawnVelX.Eval(), ps.SpawnVelY.Eval(),
 		ps.SpawnAngle.Eval(), ps.SpawnAngularVel.Eval(),
+		ps.AirFriction.Eval(),
 		startScale, startScale, ps.EndScale.Eval(),
 		ps.Lifetime.Eval(), 0,
 		startColor, startColor, endColor,

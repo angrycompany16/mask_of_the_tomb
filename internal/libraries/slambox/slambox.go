@@ -40,6 +40,12 @@ func (s *Slambox) GetTracker() *Tracker {
 	return s.tracker
 }
 
+// Immediately sets the slambox position to (x, y)
+func (s *Slambox) SetPosDirect(x, y float64) {
+	s.rect.SetPos(x, y)
+	s.tracker.SetPos(x, y)
+}
+
 func NewSlambox(rect *maths.Rect, moveSpeed float64) *Slambox {
 	newSlambox := Slambox{}
 	newSlambox.rect = rect

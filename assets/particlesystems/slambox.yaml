@@ -26,6 +26,9 @@ SpawnAngle:
 SpawnAngularVel:
   Min: 0
   Max: 0
+AirFriction:
+  Min: 3
+  Max: 5
 StartScale:
   Min: 0.15
   Max: 0.3

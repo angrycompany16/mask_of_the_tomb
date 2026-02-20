@@ -115,14 +115,6 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 			}
 		}
 
-		// Get platform rects
-		// platformHitboxes := make([]*maths.Rect, 0)
-		// if moveDir == maths.DirUp {
-		// 	platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(false)
-		// } else if moveDir == maths.DirDown {
-		// 	platformHitboxes = g.world.ActiveLevel.GetPlatformHitboxes(true)
-		// }
-
 		// Check for slambox hits
 		res := g.world.ActiveLevel.GetSlamboxHit(g.player.GetHitbox(), moveDir)
 
@@ -131,8 +123,6 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 		case slambox.SLAMBOX:
 			g.world.ActiveLevel.SlamSlambox(res.Index, moveDir)
 			g.player.StartSlamming(moveDir)
-
-			// _slambox.StartSlam(moveDir, &g.world.ActiveLevel.TilemapCollider, g.world.ActiveLevel.GetDisconnectedColliders(_slambox), g.world.ActiveLevel.GetChainNodes())
 		case slambox.SLAMBOX_GROUP:
 			g.world.ActiveLevel.SlamSlamboxGroup(res.Index, moveDir)
 			g.player.StartSlamming(moveDir)

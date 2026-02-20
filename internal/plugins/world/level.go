@@ -17,6 +17,7 @@ import (
 	"mask_of_the_tomb/internal/libraries/entities"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"mask_of_the_tomb/internal/libraries/slambox"
+	"mask_of_the_tomb/internal/libraries/speechbubble"
 	"math"
 	"slices"
 
@@ -24,24 +25,27 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+var names = resources.LDTKNames
+
 const (
-	entityLayerName        = "Entities"
-	playerSpaceLayerName   = "Playerspace"
-	spawnPosEntityName     = "DefaultSpawnPos"
-	doorEntityName         = "Door"
-	spawnPointEntityName   = "SpawnPoint"
-	slamboxEntityName      = "Slambox"
-	SpikeIntGridName       = "Spikes"
-	gameEntryPosEntityName = "GameEntryPos"
-	grassEntityName        = "Grass"
-	hazardEntityName       = "Hazard"
-	turretEntityName       = "TurretEnemy"
-	catcherEntityName      = "Catcher"
-	platformEntityName     = "OneWayPlatform"
-	lanternEntityName      = "Lantern"
-	chainNodeEntityName    = "SlamboxChainNode"
-	slamboxChainEntityName = "SlamboxChain"
-	levelTitleFieldName    = "Title"
+// entityLayerName            = "Entities"
+// playerSpaceLayerName       = "Playerspace"
+// spawnPosEntityName         = "DefaultSpawnPos"
+// doorEntityName             = "Door"
+// spawnPointEntityName       = "SpawnPoint"
+// slamboxEntityName          = "Slambox"
+// SpikeIntGridName           = "Spikes"
+// gameEntryPosEntityName     = "GameEntryPos"
+// grassEntityName            = "Grass"
+// hazardEntityName           = "Hazard"
+// turretEntityName           = "TurretEnemy"
+// catcherEntityName          = "Catcher"
+// platformEntityName         = "OneWayPlatform"
+// lanternEntityName          = "Lantern"
+// chainNodeEntityName        = "SlamboxChainNode"
+// slamboxChainEntityName     = "SlamboxChain"
+// testSpeechBubbleEntityName = "TestSpeechBubble"
+// levelTitleFieldName        = "Title"
 )
 
 var (
@@ -55,6 +59,7 @@ var (
 	}
 )
 
+// newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 type SlamboxPosition struct {
 	X, Y float64
 }
@@ -78,15 +83,16 @@ type Level struct {
 	grassTilemap             *ebiten.Image
 	slamboxEnvironment       *slambox.SlamboxEnvironment
 	// In a sense these are all game objects
-	slamboxEntities []*SlamboxEntity
-	hazards         []*entities.Hazard
-	doors           []entities.Door
-	grassEntities   []entities.Grass
-	turrets         []*entities.Turret
-	catchers        []*entities.Catcher
-	platforms       []*entities.Platform
-	lanterns        []*entities.Lantern
-	chainNodes      []*entities.ChainNode
+	slamboxEntities  []*SlamboxEntity
+	hazards          []*entities.Hazard
+	doors            []entities.Door
+	grassEntities    []entities.Grass
+	turrets          []*entities.Turret
+	catchers         []*entities.Catcher
+	platforms        []*entities.Platform
+	lanterns         []*entities.Lantern
+	chainNodes       []*entities.ChainNode
+	testSpeechBubble *speechbubble.SpeechBubble
 }
 
 // ------ CONSTRUCTOR ------
@@ -124,7 +130,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 		"BackgroundTiles":  newLevel.tileLayers.Background,
 	}
 
-	playerspace, err := levelLDTK.GetLayerByName(playerSpaceLayerName)
+	playerspace, err := levelLDTK.GetLayerByName(names.PlayerSpaceLayer)
 	if err != nil {
 		newLevel.tileSize = 1
 		return newLevel, nil
@@ -132,8 +138,8 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 
 	var spikeIntGridID int
 	for _, layerDef := range defs.LayerDefs {
-		if layerDef.Name == playerSpaceLayerName {
-			spikeIntGridID = layerDef.GetIntGridValue(SpikeIntGridName)
+		if layerDef.Name == names.PlayerSpaceLayer {
+			spikeIntGridID = layerDef.GetIntGridValue(names.SpikeIntGrid)
 		}
 	}
 
@@ -143,27 +149,32 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.tileSize = float64(playerspace.GridSize)
 	newLevel.slamboxEnvironment.SetTileSize(playerspace.GridSize)
 
-	entityLayer := errs.Must(levelLDTK.GetLayerByName(entityLayerName))
+	entityLayer := errs.Must(levelLDTK.GetLayerByName(names.EntityLayer))
 	for _, entity := range entityLayer.Entities {
 		switch entity.Name {
-		case hazardEntityName:
+		case names.HazardEntity:
 			newLevel.hazards = append(newLevel.hazards, entities.NewHazard(&entity))
-		case doorEntityName:
+		case names.DoorEntity:
 			newLevel.doors = append(newLevel.doors, entities.NewDoor(&entity))
-		case slamboxEntityName:
+		case names.SlamboxEntity:
 			newLevel.slamboxEntities = append(newLevel.slamboxEntities, NewSlamboxEntity(&entity, newLevel.slamboxEnvironment, levelLDTK))
-		case grassEntityName:
+		case names.GrassEntity:
 			newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
-		case turretEntityName:
+		case names.TurretEntity:
 			newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
-		case catcherEntityName:
+		case names.CatcherEntity:
 			newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
-		case platformEntityName:
+		case names.PlatformEntity:
 			newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
-		case lanternEntityName:
+		case names.LanternEntity:
 			newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
-			// case chainNodeEntityName:
-			// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
+		// case chainNodeEntityName:
+		// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
+		case names.TestSpeechBubbleEntity:
+			fmt.Println(entity.Px[0], entity.Px[1])
+			newLevel.testSpeechBubble = speechbubble.NewSpeechBubble(
+				entity.Px[0], entity.Px[1], entity.Width, entity.Height,
+			)
 		}
 	}
 
@@ -223,9 +234,18 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 
 	l.ambientParticles.Update()
 	l.slamboxEnvironment.Update()
+	// l.testSpeechBubble.Update()
+
+	// if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+	// 	cursorX, cursorY := ebiten.CursorPosition()
+	// 	cursorX = cursorX / rendering.PIXEL_SCALE
+	// 	cursorY = cursorY / rendering.PIXEL_SCALE
+	// 	l.testSpeechBubble.SetAnchor(float64(cursorX), float64(cursorY))
+	// }
 }
 
 func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
+	l.frameLayers.Foreground.Clear()
 	l.frameLayers.Playerspace.Clear()
 	l.frameLayers.Midground.Clear()
 	rendering.ScreenLayers.Background2.Fill(l.bgColor)
@@ -317,15 +337,29 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 	shaderOp = shaders.ChangeSrc(shaderOp, camX, camY, rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.tileLayers.Background)
 	rendering.ScreenLayers.Background.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
-	// rendering.ScreenLayers.Foreground.DrawImage(l.frameLayers.Foreground, &ebiten.DrawImageOptions{})
+	// if l.testSpeechBubble != nil {
+	// 	l.testSpeechBubble.Draw(rendering.WithLayer(ctx, l.frameLayers.Foreground))
+	// }
+	rendering.ScreenLayers.Foreground.DrawImage(l.frameLayers.Foreground, &ebiten.DrawImageOptions{})
+
 	l.ambientParticles.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Foreground))
 }
 
 func (l *Level) ProjectRect(rect *maths.Rect, dir maths.Direction) (maths.Rect, float64) {
+	// Get platform rects
+	platformHitboxes := make([]*maths.Rect, 0)
+	if dir == maths.DirUp {
+		platformHitboxes = l.GetPlatformHitboxes(false)
+	} else if dir == maths.DirDown {
+		platformHitboxes = l.GetPlatformHitboxes(true)
+	}
+
 	otherRects := slices.Concat(
 		l.slamboxEnvironment.GetSlamboxRects(-1),
 		l.slamboxEnvironment.GetSlamboxGroupRects(-1),
-		l.slamboxEnvironment.GetSlamboxChainRects(-1))
+		l.slamboxEnvironment.GetSlamboxChainRects(-1),
+		platformHitboxes,
+	)
 	projRect, dist := l.slamboxEnvironment.ProjectRect(*rect, dir, math.Inf(1), otherRects)
 	return projRect, dist
 }
@@ -363,10 +397,6 @@ func (l *Level) CheckTurretHit(playerHitBox *maths.Rect) bool {
 func (l *Level) GetCatcherRects() []*maths.Rect {
 	return arrays.MapSlice(l.catchers, func(c *entities.Catcher) *maths.Rect { return c.Hitbox })
 }
-
-// func (l *Level) GetChainNodeRects() []*maths.Rect {
-// 	return arrays.MapSlice(l.chainNodes, func(c *entities.ChainNode) *maths.Rect { return c.Rect })
-// }
 
 // Get all the platforms matching the movement direction
 func (l *Level) GetPlatformHitboxes(up bool) []*maths.Rect {
@@ -425,15 +455,15 @@ func (l *Level) GetBounds() (float64, float64) {
 }
 
 func (l *Level) GetDefaultSpawnPoint() (float64, float64) {
-	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(entityLayerName))
+	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(names.EntityLayer))
 	for _, entity := range entityLayer.Entities {
-		if entity.Name != spawnPosEntityName {
+		if entity.Name != names.SpawnPosEntity {
 			continue
 		}
 		return entity.Px[0], entity.Px[1]
 	}
 	for _, entity := range entityLayer.Entities {
-		if entity.Name != doorEntityName {
+		if entity.Name != names.DoorEntity {
 			continue
 		}
 		return entity.Px[0], entity.Px[1]
@@ -450,13 +480,13 @@ func (l *Level) GetName() string {
 }
 
 func (l *Level) GetTitle() string {
-	return errs.Must(l.levelLDTK.GetFieldByName(levelTitleFieldName)).String
+	return errs.Must(l.levelLDTK.GetFieldByName(names.LevelTitleField)).String
 }
 
 func (l *Level) GetGameEntryPos() (float64, float64) {
-	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(entityLayerName))
+	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(names.EntityLayer))
 	for _, entity := range entityLayer.Entities {
-		if entity.Name == gameEntryPosEntityName {
+		if entity.Name == names.GameEntryPos {
 			return entity.Px[0], entity.Px[1]
 		}
 	}
@@ -500,17 +530,14 @@ func drawTiles(
 
 // TODO: Respawn enemies
 func (l *Level) reset() {
-	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(entityLayerName))
+	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(names.EntityLayer))
 	for _, entity := range entityLayer.Entities {
-		if entity.Name != slamboxEntityName {
+		if entity.Name != names.SlamboxEntity {
 			continue
 		}
 
-		// for _, slambox := range l.slamboxEntities {
-		// if slambox.LinkID != entity.Iid {
-		// 	continue
-		// }
-		// slambox.SetPos(entity.Px[0], entity.Px[1])
-		// }
+		for _, slambox := range l.slamboxEntities {
+			slambox.SetPos(entity.Px[0], entity.Px[1])
+		}
 	}
 }

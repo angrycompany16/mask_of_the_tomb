@@ -14,6 +14,7 @@ type Particle struct {
 	posX, posY                  float64
 	velX, velY                  float64
 	angle, angleVel             float64
+	airFriction                 float64
 	startScale, scale, endScale float64
 	lifetime, t                 float64 // seconds
 	startColor, color, endColor color.Color
@@ -38,6 +39,8 @@ func (p *Particle) update() bool {
 	p.posY += p.velY * dt
 	p.velX += (rand.Float64() - 0.5) * p.noiseFactorX
 	p.velY += (rand.Float64() - 0.5) * p.noiseFactorY
+	p.velX = maths.Lerp(p.velX, 0, p.airFriction*dt)
+	p.velY = maths.Lerp(p.velY, 0, p.airFriction*dt)
 	p.color = maths.Mix(p.startColor, p.endColor, p.t/p.lifetime)
 
 	return false

@@ -46,6 +46,12 @@ func (sg *SlamboxGroup) GetSlamboxRects() []*maths.Rect {
 	return rects
 }
 
+func (sg *SlamboxGroup) SetPosDirect(x, y float64) {
+	for _, slambox := range sg.slamboxes {
+		slambox.SetPosDirect(x, y)
+	}
+}
+
 func NewSlamboxGroup(slamboxes []*Slambox, centerIndex int) *SlamboxGroup {
 	newSlamboxGroup := SlamboxGroup{}
 	newSlamboxGroup.slamboxes = slamboxes

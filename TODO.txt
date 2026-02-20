@@ -9,18 +9,12 @@ slamboxes and (2) the ability to connect slamboxes in "any" configuration)
 // what else?
 
 
-Theme idea:
-Take inspiration from DSFWAN albums? For example, we can have
-- One section inspired by dream desert
-- One inspired by above / below babylon's hanging gardens
-- One inspired by Perli tal-Passat (Which basement kind of already is)
-- One inspired by the purple album (name unknown)
-
-
 Bug list:
 - Sometimes spamming pause/play while respawning causes the player to not appear
   at all (SEVERITY: LOW)
 - 44100 Hz audio does not seem to work on arch, which is quite a huge problem
+- Opening the game and then exiting from the main menu deletes the current save
+- Random crash can occur when loading audio???
 
 DEMO ROADMAP:
 - Finish slam animation
@@ -32,9 +26,6 @@ DEMO ROADMAP:
 - Create website + web build
 
 // Revamped roadmap because I want to create a demo
-// - WORK ON SOKOBAN
-// - Finish slam animation
-// - Remake dash animation
 // - ABSOLUTELY need performance improvements
 // - Create a system (a kind of spectator mode) for placing 
 //   hand-painted assets into the world?
@@ -42,12 +33,6 @@ DEMO ROADMAP:
 //   multibox slamboxes.
 
 // Modularization rework. The following should be fleshed out as proper modules:
-// - Slambox module. Includes all the basic logic for slamboxes 
-//   with a collision grid, projecting boxes in the environment 
-//   (slamming), chains, as well as slammable entities. For 
-//   testing we can make a simple graphic that renders boxes,
-//   environments etc. in various colors. Also maybe some debug 
-//   stuff
 // - NodeTree module. Includes a system for creating nodes, 
 //   a tree structure, and a visualization tool for the node tree.
 // - Music/sound module? Includes better mixing controls and 
