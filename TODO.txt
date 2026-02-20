@@ -15,6 +15,7 @@ Bug list:
 - 44100 Hz audio does not seem to work on arch, which is quite a huge problem
 - Opening the game and then exiting from the main menu deletes the current save
 - Random crash can occur when loading audio???
+- Some error message keeps occuring in the loading section
 
 DEMO ROADMAP:
 - Finish slam animation

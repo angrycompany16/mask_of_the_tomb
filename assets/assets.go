@@ -56,6 +56,8 @@ var (
 	Catcher_png []byte
 	//go:embed sprites/environment/lantern.png
 	Lantern_png []byte
+	//go:embed sprites/icons/textbox-tick.png
+	Textbox_tick_png []byte
 	//go:embed sprites/environment/slambox-gem-blue.png
 	Slambox_gem_blue_png []byte
 	//go:embed sprites/environment/slambox-gem-red.png

@@ -108,7 +108,7 @@ func (p *Player) Draw(ctx rendering.Ctx) {
 			ctx.Dst,
 			posX-ctx.CamX-jumpOffsetX,
 			posY-ctx.CamY-jumpOffsetY,
-			maths.ToRadians(p.direction),
+			maths.DirToRadians(p.direction),
 			0.5,
 			0.5,
 		)

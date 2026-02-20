@@ -234,14 +234,16 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 
 	l.ambientParticles.Update()
 	l.slamboxEnvironment.Update()
-	// l.testSpeechBubble.Update()
+	if l.testSpeechBubble != nil {
+		l.testSpeechBubble.Update()
 
-	// if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-	// 	cursorX, cursorY := ebiten.CursorPosition()
-	// 	cursorX = cursorX / rendering.PIXEL_SCALE
-	// 	cursorY = cursorY / rendering.PIXEL_SCALE
-	// 	l.testSpeechBubble.SetAnchor(float64(cursorX), float64(cursorY))
-	// }
+		// if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		cursorX, cursorY := ebiten.CursorPosition()
+		cursorX = cursorX / rendering.PIXEL_SCALE
+		cursorY = cursorY / rendering.PIXEL_SCALE
+		l.testSpeechBubble.SetAnchor(float64(cursorX), float64(cursorY))
+		// }
+	}
 }
 
 func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
@@ -337,9 +339,9 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 	shaderOp = shaders.ChangeSrc(shaderOp, camX, camY, rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.tileLayers.Background)
 	rendering.ScreenLayers.Background.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
-	// if l.testSpeechBubble != nil {
-	// 	l.testSpeechBubble.Draw(rendering.WithLayer(ctx, l.frameLayers.Foreground))
-	// }
+	if l.testSpeechBubble != nil {
+		l.testSpeechBubble.Draw(rendering.WithLayer(ctx, l.frameLayers.Foreground))
+	}
 	rendering.ScreenLayers.Foreground.DrawImage(l.frameLayers.Foreground, &ebiten.DrawImageOptions{})
 
 	l.ambientParticles.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Foreground))

@@ -221,7 +221,7 @@ func (p *Player) EnterSlamAnim() {
 
 // ------ INTERNAL ------
 func (p *Player) calculateJumpOffset() (float64, float64) {
-	angle := maths.ToRadians(p.direction)
+	angle := maths.DirToRadians(p.direction)
 	if angle == 0 {
 		return 0, p.jumpOffset
 	} else if angle == math.Pi/2 {

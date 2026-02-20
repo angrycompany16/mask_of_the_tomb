@@ -77,7 +77,7 @@ func DirFromVector(x, y float64) Direction {
 	}
 }
 
-func ToRadians(dir Direction) float64 {
+func DirToRadians(dir Direction) float64 {
 	switch dir {
 	case DirUp:
 		return 0
