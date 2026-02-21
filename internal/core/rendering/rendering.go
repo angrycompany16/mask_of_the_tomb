@@ -12,27 +12,29 @@ const (
 )
 
 type LayerList struct {
-	Background2 *ebiten.Image
-	Background  *ebiten.Image
-	Midground   *ebiten.Image
-	Playerspace *ebiten.Image
-	Foreground  *ebiten.Image
-	Overlay     *ebiten.Image
-	GameplayUI  *ebiten.Image
-	ScreenUI    *ebiten.Image
-	layers      []*ebiten.Image
+	Background2  *ebiten.Image
+	Background   *ebiten.Image
+	Midground    *ebiten.Image
+	Playerspace  *ebiten.Image
+	Foreground   *ebiten.Image
+	ForegroundHD *ebiten.Image // Used for in-world UI elements
+	Overlay      *ebiten.Image
+	GameplayUI   *ebiten.Image
+	ScreenUI     *ebiten.Image
+	layers       []*ebiten.Image
 }
 
 var ScreenLayers = NewLayerList(GAME_WIDTH, GAME_HEIGHT)
 
 func NewLayerList(w, h int) LayerList {
 	layerList := LayerList{
-		Background2: ebiten.NewImage(w, h),
-		Background:  ebiten.NewImage(w, h),
-		Midground:   ebiten.NewImage(w, h),
-		Playerspace: ebiten.NewImage(w, h),
-		Foreground:  ebiten.NewImage(w, h),
-		Overlay:     ebiten.NewImage(w, h),
+		Background2:  ebiten.NewImage(w, h),
+		Background:   ebiten.NewImage(w, h),
+		Midground:    ebiten.NewImage(w, h),
+		Playerspace:  ebiten.NewImage(w, h),
+		Foreground:   ebiten.NewImage(w, h),
+		ForegroundHD: ebiten.NewImage(w*PIXEL_SCALE, h*PIXEL_SCALE),
+		Overlay:      ebiten.NewImage(w, h),
 		// TODO: Maybe find a better way to do this
 		GameplayUI: ebiten.NewImage(w*PIXEL_SCALE, h*PIXEL_SCALE),
 		ScreenUI:   ebiten.NewImage(w*PIXEL_SCALE, h*PIXEL_SCALE),
@@ -44,6 +46,7 @@ func NewLayerList(w, h int) LayerList {
 		layerList.Midground,
 		layerList.Playerspace,
 		layerList.Foreground,
+		layerList.ForegroundHD,
 		layerList.Overlay,
 		layerList.GameplayUI,
 		layerList.ScreenUI,

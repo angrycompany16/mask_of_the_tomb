@@ -1,6 +1,7 @@
 package maths
 
 import (
+	"cmp"
 	"image/color"
 	"math"
 	"math/rand/v2"
@@ -91,7 +92,7 @@ func DirToRadians(dir Direction) float64 {
 	return 0
 }
 
-func Clamp(val, min, max float64) float64 {
+func Clamp[T cmp.Ordered](val, min, max T) T {
 	if val < min {
 		return min
 	} else if val > max {

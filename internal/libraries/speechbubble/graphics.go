@@ -5,12 +5,16 @@ import (
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/threads"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-const padding = 4
+const padding = 4 * rendering.PIXEL_SCALE
 
 var interiorColor = color.RGBA{21, 10, 31, 255}
 var borderColor = color.RGBA{255, 253, 240, 255}
@@ -59,39 +63,39 @@ func (sg *speechBubbleGraphic) Update() {
 		switch sg.rect.GetInteriorSection(sg.anchorX, sg.anchorY) {
 		case maths.TOP:
 			sg.tickRotation = maths.DirDown
-			sg.tickX = maths.Clamp(sg.tickX, sg.rect.Left()+float64(s.X), sg.rect.Right()-1)
-			sg.tickY += 1
+			sg.tickX = maths.Clamp(sg.tickX, sg.rect.Left()+float64(s.X)*rendering.PIXEL_SCALE, sg.rect.Right()-rendering.PIXEL_SCALE)
+			sg.tickY += 2
 		case maths.LEFT:
 			sg.tickRotation = maths.DirRight
-			sg.tickY = maths.Clamp(sg.tickY, sg.rect.Top()+1, sg.rect.Bottom()-float64(s.Y))
-			sg.tickX += 1
+			sg.tickY = maths.Clamp(sg.tickY, sg.rect.Top()+rendering.PIXEL_SCALE, sg.rect.Bottom()-float64(s.Y)*rendering.PIXEL_SCALE)
+			sg.tickX += 2
 		case maths.RIGHT:
 			sg.tickRotation = maths.DirLeft
-			sg.tickY = maths.Clamp(sg.tickY, sg.rect.Top()+float64(s.Y), sg.rect.Bottom()+1)
-			sg.tickX -= 1
+			sg.tickY = maths.Clamp(sg.tickY, sg.rect.Top()+float64(s.Y)*rendering.PIXEL_SCALE, sg.rect.Bottom()+rendering.PIXEL_SCALE)
+			sg.tickX -= 2
 		case maths.BOTTOM:
 			sg.tickRotation = maths.DirUp
-			sg.tickX = maths.Clamp(sg.tickX, sg.rect.Left()+1, sg.rect.Right()-float64(s.X))
-			sg.tickY -= 1
+			sg.tickX = maths.Clamp(sg.tickX, sg.rect.Left()+rendering.PIXEL_SCALE, sg.rect.Right()-float64(s.X)*rendering.PIXEL_SCALE)
+			sg.tickY -= 2
 		}
 	} else {
 		switch sg.rect.GetExteriorSection(sg.anchorX, sg.anchorY) {
 		case maths.TOP_LEFT, maths.TOP_MIDDLE, maths.TOP_RIGHT:
 			sg.tickRotation = maths.DirDown
-			sg.tickX = maths.Clamp(sg.tickX, sg.rect.Left()+float64(s.X), sg.rect.Right()-1)
-			sg.tickY += 1
+			sg.tickX = maths.Clamp(sg.tickX, sg.rect.Left()+float64(s.X)*rendering.PIXEL_SCALE, sg.rect.Right()-rendering.PIXEL_SCALE)
+			sg.tickY += 2
 		case maths.MIDDLE_LEFT:
 			sg.tickRotation = maths.DirRight
-			sg.tickY = maths.Clamp(sg.tickY, sg.rect.Top()+1, sg.rect.Bottom()-float64(s.Y))
-			sg.tickX += 1
+			sg.tickY = maths.Clamp(sg.tickY, sg.rect.Top()+rendering.PIXEL_SCALE, sg.rect.Bottom()-float64(s.Y)*rendering.PIXEL_SCALE)
+			sg.tickX += 2
 		case maths.MIDDLE_RIGHT:
 			sg.tickRotation = maths.DirLeft
-			sg.tickY = maths.Clamp(sg.tickY, sg.rect.Top()+float64(s.Y), sg.rect.Bottom()+1)
-			sg.tickX -= 1
+			sg.tickY = maths.Clamp(sg.tickY, sg.rect.Top()+float64(s.Y)*rendering.PIXEL_SCALE, sg.rect.Bottom()+rendering.PIXEL_SCALE)
+			sg.tickX -= 2
 		case maths.BOTTOM_LEFT, maths.BOTTOM_MIDDLE, maths.BOTTOM_RIGHT:
 			sg.tickRotation = maths.DirUp
-			sg.tickX = maths.Clamp(sg.tickX, sg.rect.Left()+1, sg.rect.Right()-float64(s.X))
-			sg.tickY -= 1
+			sg.tickX = maths.Clamp(sg.tickX, sg.rect.Left()+rendering.PIXEL_SCALE, sg.rect.Right()-float64(s.X)*rendering.PIXEL_SCALE)
+			sg.tickY -= 2
 		}
 	}
 }
@@ -103,18 +107,80 @@ func (sg *speechBubbleGraphic) Draw(ctx rendering.Ctx) {
 	b := float32(sg.rect.Bottom())
 	w := float32(sg.rect.Width())
 	h := float32(sg.rect.Height())
-	vector.StrokeLine(ctx.Dst, l+1, t, r-1, t, 1, borderColor, false)
-	vector.StrokeLine(ctx.Dst, l, t+1, l, b-1, 1, borderColor, false)
-	vector.StrokeLine(ctx.Dst, l+1, b, r-1, b, 1, borderColor, false)
-	vector.StrokeLine(ctx.Dst, r, t+1, r, b-1, 1, borderColor, false)
-	// This shouldn't really be necessary but it seems to fix some pixel perfect bugs
-	vector.StrokeRect(ctx.Dst, l+1, t+1, w-2, h-2, 1, interiorColor, false)
-	vector.FillRect(ctx.Dst, l+1, t+1, w-2, h-2, interiorColor, false)
+	vector.StrokeLine(ctx.Dst, l+rendering.PIXEL_SCALE/2, t, r-rendering.PIXEL_SCALE/2, t, rendering.PIXEL_SCALE, borderColor, false)
+	vector.StrokeLine(ctx.Dst, l, t+rendering.PIXEL_SCALE/2, l, b-rendering.PIXEL_SCALE/2, rendering.PIXEL_SCALE, borderColor, false)
+	vector.StrokeLine(ctx.Dst, l+rendering.PIXEL_SCALE/2, b, r-rendering.PIXEL_SCALE/2, b, rendering.PIXEL_SCALE, borderColor, false)
+	vector.StrokeLine(ctx.Dst, r, t+rendering.PIXEL_SCALE/2, r, b-rendering.PIXEL_SCALE/2, rendering.PIXEL_SCALE, borderColor, false)
 
-	ebitenrenderutil.DrawAtRotated(sg.tickSprite, ctx.Dst, sg.tickX, sg.tickY, maths.DirToRadians(sg.tickRotation))
+	vector.FillRect(ctx.Dst, l+rendering.PIXEL_SCALE/2, t+rendering.PIXEL_SCALE/2, w-rendering.PIXEL_SCALE, h-rendering.PIXEL_SCALE, interiorColor, false)
+
+	ebitenrenderutil.DrawAtRotatedScaled(sg.tickSprite, ctx.Dst, sg.tickX, sg.tickY, maths.DirToRadians(sg.tickRotation), rendering.PIXEL_SCALE, rendering.PIXEL_SCALE)
 }
 
 // Function that sets width / height based on text
 func (sg *speechBubbleGraphic) FitText() {
 
+}
+
+// TODO: Figure out text breaking and box sizing
+// Then figure out how to play audio along with
+// the text.
+// Then profit
+// Then code the whole NPC system
+// Then we possible also need some more customization
+
+const revealPeriod = 0.12
+
+type speechBubbleText struct {
+	x, y               float64
+	paddingX, paddingY float64
+	activeLine         int
+	lines              []string
+	text               string
+	revealIndex        int
+	font               *text.GoTextFaceSource
+	fontSize           float64
+	revealTicker       *time.Ticker
+}
+
+func (st *speechBubbleText) Update() {
+	if _, raised := threads.Poll(st.revealTicker.C); raised {
+		// Reveal another letter
+		st.revealIndex++
+		st.revealIndex = maths.Clamp(st.revealIndex, 0, len(st.text))
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+		st.LoadActiveLine()
+		st.revealIndex = 0
+	}
+}
+
+func (st *speechBubbleText) GetRevealed() string {
+	return st.text[0:st.revealIndex]
+}
+
+func (st *speechBubbleText) LoadActiveLine() {
+	if st.activeLine == len(st.lines) {
+		st.text = ""
+		return
+	}
+	st.text = st.lines[st.activeLine]
+	st.activeLine++
+}
+
+func (st *speechBubbleText) Draw(ctx rendering.Ctx) {
+	opText := &text.DrawOptions{}
+	// Just need to figure out how we're supposed to find out the position
+	// of this thing
+	opText.GeoM.Translate(st.x, st.y)
+	opText.ColorScale = ebiten.ColorScale{}
+	opText.ColorScale.SetR(float32(borderColor.R))
+	opText.ColorScale.SetG(float32(borderColor.G))
+	opText.ColorScale.SetB(float32(borderColor.B))
+
+	text.Draw(ctx.Dst, st.GetRevealed(), &text.GoTextFace{
+		Source: st.font,
+		Size:   st.fontSize,
+	}, opText)
 }

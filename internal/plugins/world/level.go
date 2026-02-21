@@ -239,8 +239,8 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 
 		// if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		cursorX, cursorY := ebiten.CursorPosition()
-		cursorX = cursorX / rendering.PIXEL_SCALE
-		cursorY = cursorY / rendering.PIXEL_SCALE
+		// cursorX = cursorX / rendering.PIXEL_SCALE
+		// cursorY = cursorY / rendering.PIXEL_SCALE
 		l.testSpeechBubble.SetAnchor(float64(cursorX), float64(cursorY))
 		// }
 	}
@@ -340,7 +340,7 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 	rendering.ScreenLayers.Background.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
 	if l.testSpeechBubble != nil {
-		l.testSpeechBubble.Draw(rendering.WithLayer(ctx, l.frameLayers.Foreground))
+		l.testSpeechBubble.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.ForegroundHD))
 	}
 	rendering.ScreenLayers.Foreground.DrawImage(l.frameLayers.Foreground, &ebiten.DrawImageOptions{})
 
