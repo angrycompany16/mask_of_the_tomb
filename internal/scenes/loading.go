@@ -72,6 +72,22 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("saveData", save.MakeSaveAsset(SaveProfile))
 	assetloader.Add("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
 
+	assetloader.Add("vowelA", assettypes.MakeAudioStreamAsset(assets.Vowel_A_wav, assettypes.Wav))
+	assetloader.Add("vowelE", assettypes.MakeAudioStreamAsset(assets.Vowel_E_wav, assettypes.Wav))
+	assetloader.Add("vowelI", assettypes.MakeAudioStreamAsset(assets.Vowel_I_wav, assettypes.Wav))
+	assetloader.Add("vowelO", assettypes.MakeAudioStreamAsset(assets.Vowel_O_wav, assettypes.Wav))
+	assetloader.Add("vowelU", assettypes.MakeAudioStreamAsset(assets.Vowel_U_wav, assettypes.Wav))
+	assetloader.Add("constD", assettypes.MakeAudioStreamAsset(assets.Const_D_wav, assettypes.Wav))
+	assetloader.Add("constF", assettypes.MakeAudioStreamAsset(assets.Const_F_wav, assettypes.Wav))
+	assetloader.Add("constG", assettypes.MakeAudioStreamAsset(assets.Const_G_wav, assettypes.Wav))
+	assetloader.Add("constK", assettypes.MakeAudioStreamAsset(assets.Const_K_wav, assettypes.Wav))
+	assetloader.Add("constL", assettypes.MakeAudioStreamAsset(assets.Const_L_wav, assettypes.Wav))
+	assetloader.Add("constM", assettypes.MakeAudioStreamAsset(assets.Const_M_wav, assettypes.Wav))
+	assetloader.Add("constP", assettypes.MakeAudioStreamAsset(assets.Const_P_wav, assettypes.Wav))
+	assetloader.Add("constS", assettypes.MakeAudioStreamAsset(assets.Const_S_wav, assettypes.Wav))
+	assetloader.Add("constT", assettypes.MakeAudioStreamAsset(assets.Const_T_wav, assettypes.Wav))
+	assetloader.Add("constX", assettypes.MakeAudioStreamAsset(assets.Const_X_wav, assettypes.Wav))
+
 	go assetloader.LoadAll(l.loadFinishedChan)
 }
 

@@ -20555,6 +20555,22 @@
 							}] }],
 							"__worldX": 1832,
 							"__worldY": 336
+						},
+						{
+							"__identifier": "TestSpeechBubble",
+							"__grid": [16,13],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": { "tilesetUid": 368, "x": 176, "y": 16, "w": 16, "h": 16 },
+							"__smartColor": "#D77643",
+							"iid": "5b3a4f00-fa90-11f0-a280-9146f7d258f4",
+							"width": 16,
+							"height": 16,
+							"defUid": 371,
+							"px": [128,104],
+							"fieldInstances": [],
+							"__worldX": 1808,
+							"__worldY": 376
 						}
 					]
 				},

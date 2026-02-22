@@ -120,7 +120,7 @@ func (sg *speechBubbleGraphic) Draw(ctx rendering.Ctx) {
 // Then code the whole NPC system
 // Then we possible also need some more customization
 
-const revealPeriod = 0.12
+const revealPeriod = 0.08
 
 type speechBubbleText struct {
 	x, y               float64
@@ -133,12 +133,16 @@ type speechBubbleText struct {
 	relLineSpacing     float64
 }
 
-func (st *speechBubbleText) Update() {
+func (st *speechBubbleText) Update() (bool, byte) {
 	if _, raised := threads.Poll(st.revealTicker.C); raised {
-		// Reveal another letter
 		st.revealIndex++
+		isNew := st.revealIndex < len(st.text)+1
 		st.revealIndex = maths.Clamp(st.revealIndex, 0, len(st.text))
+		if st.revealIndex > 0 {
+			return isNew, st.text[st.revealIndex-1]
+		}
 	}
+	return false, 0
 }
 
 func (st *speechBubbleText) GetRevealed() string {

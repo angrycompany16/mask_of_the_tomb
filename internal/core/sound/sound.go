@@ -13,6 +13,8 @@ type EffectPlayer struct {
 	Volume float64
 }
 
+// For now this is fine. However, multithreading / playing multiple sounds at the same time
+// may be necessary at some point..
 func (e *EffectPlayer) Play() {
 	e.Player.SetVolume(e.Volume * resources.Settings.MasterVolume * resources.Settings.SoundVolume / 20000.0)
 	e.Rewind()

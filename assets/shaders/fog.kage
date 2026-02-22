@@ -33,7 +33,7 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
 
     noise := octave1 + octave2 + octave3 + octave4
     pos := srcPos / Resolution
-    falloff := clip(distance(pos, Center)*1.4, 0.35)
+    falloff := clip(dot(pos - Center, pos -Center)*6, 0.3)
     noise *= falloff
 
     var color vec4
@@ -50,7 +50,7 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
 }
 
 func clip(x float, threshold float) float {
-    return clamp((x - threshold) / (1 - threshold), 0.0, 1.0)
+    return clamp((x - threshold) / (1 - threshold), 0.15, 1.0)
 }
 
 //	Classic Perlin 3D Noise 

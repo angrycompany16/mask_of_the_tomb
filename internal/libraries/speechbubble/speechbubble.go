@@ -15,13 +15,17 @@ import (
 type SpeechBubble struct {
 	graphic     *speechBubbleGraphic
 	textDisplay *speechBubbleText
+	vocalizer   *vocalizer
 	currentLine int
 	lines       []string
 }
 
 func (sb *SpeechBubble) Update() {
 	sb.graphic.Update()
-	sb.textDisplay.Update()
+	newChar, c := sb.textDisplay.Update()
+	if newChar {
+		sb.vocalizer.Vocalize(string(c))
+	}
 
 	sb.textDisplay.x = sb.graphic.rect.Left() + sb.textDisplay.paddingX
 	sb.textDisplay.y = sb.graphic.rect.Top() + sb.textDisplay.paddingY
@@ -88,10 +92,14 @@ func NewSpeechBubble(anchorX, anchorY, width, height float64) *SpeechBubble {
 		revealTicker:   time.NewTicker(time.Duration(revealPeriod * float64(time.Second))),
 		relLineSpacing: 1.2,
 	}
+	newSpeechBubble.vocalizer = newVocalizer()
 	newSpeechBubble.lines = []string{
-		"HEisann!",
-		"På degsann!",
+		"Heisann!",
+		"...",
 		"Lorem ipsum\nmultiline",
+		"AAAAAAAAA",
+		"Dad? Pop?",
+		"Let's talk for real man. \nThis is gonna be a long sentence,\nand I'm sorry about that.",
 	}
 	return &newSpeechBubble
 }

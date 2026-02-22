@@ -94,4 +94,34 @@ var (
 	Empty_yaml []byte
 	//go:embed menus/game/hud.yaml
 	Hud_yaml []byte
+	//go:embed sfx/speech/vowel_A.wav
+	Vowel_A_wav []byte
+	//go:embed sfx/speech/vowel_E.wav
+	Vowel_E_wav []byte
+	//go:embed sfx/speech/vowel_I.wav
+	Vowel_I_wav []byte
+	//go:embed sfx/speech/vowel_O.wav
+	Vowel_O_wav []byte
+	//go:embed sfx/speech/vowel_U.wav
+	Vowel_U_wav []byte
+	//go:embed sfx/speech/const_d.wav
+	Const_D_wav []byte
+	//go:embed sfx/speech/const_f.wav
+	Const_F_wav []byte
+	//go:embed sfx/speech/const_g.wav
+	Const_G_wav []byte
+	//go:embed sfx/speech/const_k.wav
+	Const_K_wav []byte
+	//go:embed sfx/speech/const_l.wav
+	Const_L_wav []byte
+	//go:embed sfx/speech/const_m.wav
+	Const_M_wav []byte
+	//go:embed sfx/speech/const_p.wav
+	Const_P_wav []byte
+	//go:embed sfx/speech/const_s.wav
+	Const_S_wav []byte
+	//go:embed sfx/speech/const_t.wav
+	Const_T_wav []byte
+	//go:embed sfx/speech/const_x.wav
+	Const_X_wav []byte
 )

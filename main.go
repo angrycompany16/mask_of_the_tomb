@@ -46,7 +46,7 @@ func main() {
 
 	ebiten.SetWindowSize(rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
 	ebiten.SetWindowTitle("Mask of the tomb")
-	ebiten.SetCursorMode(ebiten.CursorModeHidden)
+	// ebiten.SetCursorMode(ebiten.CursorModeHidden)
 
 	a := &App{scenes.NewGame()}
 	ebiten.SetFullscreen(true)
