@@ -1,6 +1,6 @@
 # Mask of the tomb (temporary title)
 
-This is a small, sokoban-style puzzle platformer I've been sporadiucally working on over the past year. It is written in Go using ebitengine, and uses LDtk for level editing. I also (plan to) make music for the game using Supercollider. The project can be run by downloading the repo and using 
+This is a small, sokoban-style puzzle platformer I've been sporadiucally working on over the past year. It is written in Go using ebitengine, and uses LDtk for level editing. I also (plan to) make music for the game using Supercollider. The project can be run by cloning the repo and using 
 
 ```
   go run .
