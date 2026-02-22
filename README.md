@@ -14,4 +14,7 @@ I have also made a small package that integrates LDtk with ebitengine (https://g
 
 coming soon
 
-![1](https://github.com/angrycompany16/mask_of_the_tomb/blob/main/screenshots/1.png)
+|![1](https://github.com/angrycompany16/mask_of_the_tomb/blob/main/screenshots/1.png)|![2](https://github.com/angrycompany16/mask_of_the_tomb/blob/main/screenshots/2.png)|
+|![3](https://github.com/angrycompany16/mask_of_the_tomb/blob/main/screenshots/3.png)|![4](https://github.com/angrycompany16/mask_of_the_tomb/blob/main/screenshots/4.png)|
+
+
