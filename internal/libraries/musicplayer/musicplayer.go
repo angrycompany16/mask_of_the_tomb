@@ -28,16 +28,6 @@ type MusicPlayer struct {
 	ambience   map[ambienceName]*audio.Player
 }
 
-func (m *MusicPlayer) Init() {
-	// menuThemeStream := errs.Must(assettypes.GetMp3Stream("menuTheme"))
-	// basementThemeStream := errs.Must(assettypes.GetWavStream("basementTheme"))
-	// libraryThemeStream := errs.Must(assettypes.GetMp3Stream("libraryTheme"))
-
-	// m.songs["menuTheme"] = errs.Must(sound.FromStream(menuThemeStream))
-	// m.songs["basementTheme"] = errs.Must(sound.FromStream(basementThemeStream))
-	// m.songs["libraryTheme"] = errs.Must(sound.FromStream(libraryThemeStream))
-}
-
 func (m *MusicPlayer) PlayMenuMusic() {
 	m.tryRestartSong()
 	m.playSong("menuTheme")

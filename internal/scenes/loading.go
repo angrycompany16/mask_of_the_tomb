@@ -25,7 +25,13 @@ type LoadingScene struct {
 }
 
 func (l *LoadingScene) Init() {
+	// LDTK
 	assetloader.Add("LDTKAsset", assettypes.NewLDTKAsset(LDTKMapPath))
+
+	// Save asset
+	assetloader.Add("saveData", save.MakeSaveAsset(SaveProfile))
+
+	// Images
 	assetloader.Add("slamboxTilemap", assettypes.MakeImageAsset(assets.Slambox_tilemap_png))
 	assetloader.Add("grassTilemap", assettypes.MakeImageAsset(assets.Grass_png))
 	assetloader.Add("turretSprite", assettypes.MakeImageAsset(assets.Turret_png))
@@ -34,25 +40,30 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("slamboxGemRed", assettypes.MakeImageAsset(assets.Slambox_gem_red_png))
 	assetloader.Add("lanternSprite", assettypes.MakeImageAsset(assets.Lantern_png))
 	assetloader.Add("textBoxTickSprite", assettypes.MakeImageAsset(assets.Textbox_tick_png))
+	assetloader.Add("playerSprite", assettypes.MakeImageAsset(assets.Player_png))
+	assetloader.Add("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
+
+	// Shaders
 	assetloader.Add("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))
 	assetloader.Add("vignetteShader", assettypes.MakeShaderAsset(assets.Vignette_kage))
 	assetloader.Add("pixelLightsShader", assettypes.MakeShaderAsset(assets.Pixel_lights_kage))
-	assetloader.Add("ambientParticles", assettypes.MakeYamlAsset(assets.Basement_yaml, &particles.ParticleSystem{}))
-	assetloader.Add("teleporterAnimation", assettypes.MakeYamlAsset(assets.Teleporter_yaml, &animation.AnimationInfo{}))
+	assetloader.Add("deathTransitionShader", assettypes.MakeShaderAsset(assets.Death_transition_kage))
+	assetloader.Add("levelTransitionEnterShader", assettypes.MakeShaderAsset(assets.Level_transition_enter_kage))
+	assetloader.Add("levelTransitionExitShader", assettypes.MakeShaderAsset(assets.Level_transition_exit_kage))
 
-	assetloader.Add("playerSprite", assettypes.MakeImageAsset(assets.Player_png))
-	assetloader.Add("dashSound", assettypes.MakeAudioStreamAsset(assets.Dash_wav, assettypes.Wav))
-	assetloader.Add("slamSound", assettypes.MakeAudioStreamAsset(assets.Slam_wav, assettypes.Wav))
-	assetloader.Add("deathSound", assettypes.MakeAudioStreamAsset(assets.Death_mp3, assettypes.Mp3))
-	assetloader.Add("slamboxLandSound", assettypes.MakeAudioStreamAsset(assets.Slambox_land_wav, assettypes.Wav))
+	// YAML assets
+	//   Particles
+	assetloader.Add("ambientParticles", assettypes.MakeYamlAsset(assets.Basement_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("jumpParticlesBroad", assettypes.MakeYamlAsset(assets.Jump_broad_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("jumpParticlesTight", assettypes.MakeYamlAsset(assets.Jump_tight_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("slamboxParticles", assettypes.MakeYamlAsset(assets.Slambox_particles_yaml, &particles.ParticleSystem{}))
+	//   Animations
+	assetloader.Add("teleporterAnimation", assettypes.MakeYamlAsset(assets.Teleporter_yaml, &animation.AnimationInfo{}))
 	assetloader.Add("dashInitAnim", assettypes.MakeYamlAsset(assets.Dash_init_yaml, &animation.AnimationInfo{}))
 	assetloader.Add("dashLoopAnim", assettypes.MakeYamlAsset(assets.Dash_loop_yaml, &animation.AnimationInfo{}))
 	assetloader.Add("playerIdleAnim", assettypes.MakeYamlAsset(assets.Player_idle_yaml, &animation.AnimationInfo{}))
 	assetloader.Add("playerSlamAnim", assettypes.MakeYamlAsset(assets.Player_slam_yaml, &animation.AnimationInfo{}))
-
+	//   Menus
 	assetloader.Add("mainMenu", assettypes.MakeYamlAsset(assets.Main_menu_yaml, &ui.UI{}))
 	assetloader.Add("pauseMenu", assettypes.MakeYamlAsset(assets.Pause_menu_yaml, &ui.UI{}))
 	assetloader.Add("optionsMenu", assettypes.MakeYamlAsset(assets.Options_yaml, &ui.UI{}))
@@ -60,18 +71,16 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("emptyMenu", assettypes.MakeYamlAsset(assets.Empty_yaml, &ui.UI{}))
 	assetloader.Add("hud", assettypes.MakeYamlAsset(assets.Hud_yaml, &ui.UI{}))
 
+	// Load Audio
+	assetloader.Add("dashSound", assettypes.MakeAudioStreamAsset(assets.Dash_wav, assettypes.Wav))
+	assetloader.Add("slamSound", assettypes.MakeAudioStreamAsset(assets.Slam_wav, assettypes.Wav))
+	assetloader.Add("deathSound", assettypes.MakeAudioStreamAsset(assets.Death_mp3, assettypes.Mp3))
+	assetloader.Add("slamboxLandSound", assettypes.MakeAudioStreamAsset(assets.Slambox_land_wav, assettypes.Wav))
 	assetloader.Add("menuTheme", assettypes.MakeAudioStreamAsset(assets.Menu_mp3, assettypes.Mp3))
 	assetloader.Add("basementTheme", assettypes.MakeAudioStreamAsset(assets.Basement_wav, assettypes.Wav))
 	assetloader.Add("libraryTheme", assettypes.MakeAudioStreamAsset(assets.Library_mp3, assettypes.Mp3))
-
-	assetloader.Add("deathTransitionShader", assettypes.MakeShaderAsset(assets.Death_transition_kage))
-	assetloader.Add("levelTransitionEnterShader", assettypes.MakeShaderAsset(assets.Level_transition_enter_kage))
-	assetloader.Add("levelTransitionExitShader", assettypes.MakeShaderAsset(assets.Level_transition_exit_kage))
 	assetloader.Add("selectSound", assettypes.MakeAudioStreamAsset(assets.Select_ogg, assettypes.Ogg))
 	assetloader.Add("dialogueSound", assettypes.MakeAudioStreamAsset(assets.Text_scroll_ogg, assettypes.Ogg))
-	assetloader.Add("saveData", save.MakeSaveAsset(SaveProfile))
-	assetloader.Add("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
-
 	assetloader.Add("vowelA", assettypes.MakeAudioStreamAsset(assets.Vowel_A_wav, assettypes.Wav))
 	assetloader.Add("vowelE", assettypes.MakeAudioStreamAsset(assets.Vowel_E_wav, assettypes.Wav))
 	assetloader.Add("vowelI", assettypes.MakeAudioStreamAsset(assets.Vowel_I_wav, assettypes.Wav))
@@ -88,6 +97,7 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("constT", assettypes.MakeAudioStreamAsset(assets.Const_T_wav, assettypes.Wav))
 	assetloader.Add("constX", assettypes.MakeAudioStreamAsset(assets.Const_X_wav, assettypes.Wav))
 
+	// NO
 	go assetloader.LoadAll(l.loadFinishedChan)
 }
 

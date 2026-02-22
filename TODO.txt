@@ -17,6 +17,11 @@ Bug list:
 - Random crash can occur when loading audio???
 - Some error message keeps occuring in the loading section
 
+
+NOTE: Converting lots of audio assets into .ogg format should make life (everything)
+better
+
+
 DEMO ROADMAP:
 - Finish slam animation
 - Create music for the first area + menu music

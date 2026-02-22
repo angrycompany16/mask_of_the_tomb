@@ -5,6 +5,14 @@ import (
 	"fmt"
 )
 
+// How to make this work:
+// Asset loader has a channel for each asset
+// Getting an asset correspons to finding the proper channel and listening
+// Those channels will typically be handing out pointers to their respective assets'
+// data
+// But that doesn't help with thread-safety... two processes could still read
+// a resource at the same time...
+
 var (
 	_assetLoader = assetLoader{
 		assetPool: make(map[string]*AssetEntry),
