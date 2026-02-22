@@ -1,17 +1,15 @@
-# Go + ebitengine puzzle platformer
+# Mask of the tomb (temporary title)
 
-Small puzzle platformer game written with the Go programming language and ebitengine.
-
-To run the game for yourself, clone the repo and use
+This is a small, sokoban-style puzzle platformer I've been sporadiucally working on over the past year. It is written in Go using ebitengine, and uses LDtk for level editing. I also (plan to) make music for the game using Supercollider. The project can be run by downloading the repo and using 
 
 ```
   go run .
 ```
 
-The game also includes a simple asset editor (although as of right now (03.04.25) it can only preview assets). To run it, use 
+but there will most likely be lots of bugs, and the player experience will not be great. At some point I will make a demo/alpha release, then I will also add it here. 
 
-```
-  go run editor/main.go
-```
+I have also made a small package that integrates LDtk with ebitengine (https://github.com/angrycompany16/ebiten-LDTK), so check that out if you're interested. The game also has an [itch.io page](https://angrycompany16.itch.io/mask-of-the-tomb), so maybe check that out as well, I will eventually be uploading web builds there.
 
-If you discover any bugs, please raise an issue or something idk
+# Screenshots
+
+coming soon
