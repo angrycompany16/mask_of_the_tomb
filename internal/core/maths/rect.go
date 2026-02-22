@@ -110,6 +110,11 @@ func (r *Rect) Extended(dir Direction, length float64) *Rect {
 	return &newRect
 }
 
+func (r *Rect) SetSize(w, h float64) {
+	r.width = w
+	r.height = h
+}
+
 func (r *Rect) SetPos(x, y float64) {
 	r.x, r.y = x, y
 }

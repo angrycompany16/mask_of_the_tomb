@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-const padding = 4 * rendering.PIXEL_SCALE
+const interactPadding = 4 * rendering.PIXEL_SCALE
 
 var interiorColor = color.RGBA{21, 10, 31, 255}
 var borderColor = color.RGBA{255, 253, 240, 255}
@@ -30,28 +29,25 @@ type speechBubbleGraphic struct {
 
 func (sg *speechBubbleGraphic) Update() {
 	paddedRect := maths.NewRect(
-		sg.rect.Left()-padding,
-		sg.rect.Top()-padding,
-		sg.rect.Width()+padding*2,
-		sg.rect.Height()+padding*2,
+		sg.rect.Left()-interactPadding,
+		sg.rect.Top()-interactPadding,
+		sg.rect.Width()+interactPadding*2,
+		sg.rect.Height()+interactPadding*2,
 	)
 
 	var targetRect maths.Rect
+	targetRect.SetSize(sg.targetWidth, sg.targetHeight)
 	if !paddedRect.Contains(sg.anchorX, sg.anchorY) {
 		newPaddedRect := paddedRect.Reach(sg.anchorX, sg.anchorY)
-		targetRect = *maths.NewRect(
-			newPaddedRect.Left()+padding,
-			newPaddedRect.Top()+padding,
-			sg.rect.Width(),
-			sg.rect.Height(),
-		)
-		newRect := sg.rect.Lerp(&targetRect, 0.05)
-		sg.rect = &newRect
+		targetRect.SetPos(newPaddedRect.Left()+interactPadding, newPaddedRect.Top()+interactPadding)
 	} else if sg.rect.Contains(sg.anchorX, sg.anchorY) {
-		targetRect = sg.rect.Reach(sg.anchorX, sg.anchorY)
-		newRect := sg.rect.Lerp(&targetRect, 0.05)
-		sg.rect = &newRect
+		reachRect := sg.rect.Reach(sg.anchorX, sg.anchorY)
+		targetRect.SetPos(reachRect.Left(), reachRect.Top())
+	} else {
+		targetRect.SetPos(sg.rect.Left(), sg.rect.Top())
 	}
+	newRect := sg.rect.Lerp(&targetRect, 0.05)
+	sg.rect = &newRect
 
 	closestX, closestY := sg.rect.FindClosestPointOnEdge(sg.anchorX, sg.anchorY)
 	sg.tickX = closestX
@@ -117,11 +113,6 @@ func (sg *speechBubbleGraphic) Draw(ctx rendering.Ctx) {
 	ebitenrenderutil.DrawAtRotatedScaled(sg.tickSprite, ctx.Dst, sg.tickX, sg.tickY, maths.DirToRadians(sg.tickRotation), rendering.PIXEL_SCALE, rendering.PIXEL_SCALE)
 }
 
-// Function that sets width / height based on text
-func (sg *speechBubbleGraphic) FitText() {
-
-}
-
 // TODO: Figure out text breaking and box sizing
 // Then figure out how to play audio along with
 // the text.
@@ -134,13 +125,12 @@ const revealPeriod = 0.12
 type speechBubbleText struct {
 	x, y               float64
 	paddingX, paddingY float64
-	activeLine         int
-	lines              []string
 	text               string
 	revealIndex        int
 	font               *text.GoTextFaceSource
 	fontSize           float64
 	revealTicker       *time.Ticker
+	relLineSpacing     float64
 }
 
 func (st *speechBubbleText) Update() {
@@ -149,24 +139,17 @@ func (st *speechBubbleText) Update() {
 		st.revealIndex++
 		st.revealIndex = maths.Clamp(st.revealIndex, 0, len(st.text))
 	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
-		st.LoadActiveLine()
-		st.revealIndex = 0
-	}
 }
 
 func (st *speechBubbleText) GetRevealed() string {
 	return st.text[0:st.revealIndex]
 }
 
-func (st *speechBubbleText) LoadActiveLine() {
-	if st.activeLine == len(st.lines) {
-		st.text = ""
-		return
-	}
-	st.text = st.lines[st.activeLine]
-	st.activeLine++
+func (st *speechBubbleText) Size() (float64, float64) {
+	return text.Measure(st.text, &text.GoTextFace{
+		Source: st.font,
+		Size:   st.fontSize,
+	}, st.fontSize*st.relLineSpacing)
 }
 
 func (st *speechBubbleText) Draw(ctx rendering.Ctx) {
@@ -178,6 +161,7 @@ func (st *speechBubbleText) Draw(ctx rendering.Ctx) {
 	opText.ColorScale.SetR(float32(borderColor.R))
 	opText.ColorScale.SetG(float32(borderColor.G))
 	opText.ColorScale.SetB(float32(borderColor.B))
+	opText.LineSpacing = st.fontSize * st.relLineSpacing
 
 	text.Draw(ctx.Dst, st.GetRevealed(), &text.GoTextFace{
 		Source: st.font,

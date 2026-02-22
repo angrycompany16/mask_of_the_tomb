@@ -181,7 +181,7 @@ func NewLantern(
 		InnerRadius: 0,
 		OuterRadius: 50,
 		ZOffset:     0,
-		Intensity:   0.6,
+		Intensity:   0.5,
 		R:           1.0,
 		G:           1.0,
 		B:           1.0,

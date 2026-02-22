@@ -20555,22 +20555,6 @@
 							}] }],
 							"__worldX": 1832,
 							"__worldY": 336
-						},
-						{
-							"__identifier": "TestSpeechBubble",
-							"__grid": [20,13],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": { "tilesetUid": 368, "x": 176, "y": 16, "w": 16, "h": 16 },
-							"__smartColor": "#D77643",
-							"iid": "7fa08680-fa90-11f0-a386-a3659b3a7f3e",
-							"width": 80,
-							"height": 40,
-							"defUid": 371,
-							"px": [160,104],
-							"fieldInstances": [],
-							"__worldX": 1840,
-							"__worldY": 376
 						}
 					]
 				},
