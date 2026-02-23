@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader"
 	"path/filepath"
+	"strings"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -28,6 +29,12 @@ func (a *LDTKAsset) Load() error {
 	for i := 0; i < len(a.World.Defs.Tilesets); i++ {
 		tileset := &a.World.Defs.Tilesets[i]
 		tilesetPath := filepath.Join(LDTKpath, tileset.RelPath)
+
+		if !strings.HasSuffix(tilesetPath, ".png") {
+			fmt.Println("Skipping non-png tileset")
+			continue
+		}
+
 		tilesetImage, _, err := ebitenutil.NewImageFromFile(tilesetPath)
 		if err != nil {
 			return err

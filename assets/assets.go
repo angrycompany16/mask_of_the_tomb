@@ -1,8 +1,14 @@
 package assets
 
 import (
+	"embed"
 	_ "embed"
 	"path/filepath"
+)
+
+var (
+	//go:embed *
+	FS embed.FS
 )
 
 var (

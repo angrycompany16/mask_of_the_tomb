@@ -4,6 +4,7 @@ import (
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/libraries/sound_v2"
 	"strings"
 )
 
@@ -18,7 +19,8 @@ type vocalizer struct {
 func (v *vocalizer) Vocalize(c string) {
 	switch strings.ToLower(c) {
 	case "a":
-		v.playerA.Play()
+		sound_v2.PlaySound("vowelA", 1.0)
+		// v.playerA.Play()
 	case "e":
 		v.playerE.Play()
 	case "i":

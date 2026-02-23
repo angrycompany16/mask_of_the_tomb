@@ -6,10 +6,12 @@ import (
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/scene"
+	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
+	"mask_of_the_tomb/internal/libraries/sound_v2"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"path/filepath"
 )
@@ -25,6 +27,7 @@ type LoadingScene struct {
 }
 
 func (l *LoadingScene) Init() {
+	sound.GetAudioContext()
 	// LDTK
 	assetloader.Add("LDTKAsset", assettypes.NewLDTKAsset(LDTKMapPath))
 
@@ -86,19 +89,43 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("vowelI", assettypes.MakeAudioStreamAsset(assets.Vowel_I_wav, assettypes.Wav))
 	assetloader.Add("vowelO", assettypes.MakeAudioStreamAsset(assets.Vowel_O_wav, assettypes.Wav))
 	assetloader.Add("vowelU", assettypes.MakeAudioStreamAsset(assets.Vowel_U_wav, assettypes.Wav))
-	assetloader.Add("constD", assettypes.MakeAudioStreamAsset(assets.Const_D_wav, assettypes.Wav))
-	assetloader.Add("constF", assettypes.MakeAudioStreamAsset(assets.Const_F_wav, assettypes.Wav))
-	assetloader.Add("constG", assettypes.MakeAudioStreamAsset(assets.Const_G_wav, assettypes.Wav))
-	assetloader.Add("constK", assettypes.MakeAudioStreamAsset(assets.Const_K_wav, assettypes.Wav))
-	assetloader.Add("constL", assettypes.MakeAudioStreamAsset(assets.Const_L_wav, assettypes.Wav))
-	assetloader.Add("constM", assettypes.MakeAudioStreamAsset(assets.Const_M_wav, assettypes.Wav))
-	assetloader.Add("constP", assettypes.MakeAudioStreamAsset(assets.Const_P_wav, assettypes.Wav))
-	assetloader.Add("constS", assettypes.MakeAudioStreamAsset(assets.Const_S_wav, assettypes.Wav))
-	assetloader.Add("constT", assettypes.MakeAudioStreamAsset(assets.Const_T_wav, assettypes.Wav))
-	assetloader.Add("constX", assettypes.MakeAudioStreamAsset(assets.Const_X_wav, assettypes.Wav))
+
+	soundCatalogue := map[string]sound_v2.SoundData{
+		"vowelA": sound_v2.SoundData{
+			Path:        "sfx/speech/vowel_A.ogg",
+			Looping:     false,
+			AudioFormat: assettypes.Ogg,
+			QueueSize:   2,
+		},
+		"vowelE": sound_v2.SoundData{
+			Path:        "sfx/speech/vowel_E.ogg",
+			Looping:     false,
+			AudioFormat: assettypes.Ogg,
+			QueueSize:   2,
+		},
+		"vowelI": sound_v2.SoundData{
+			Path:        "sfx/speech/vowel_I.ogg",
+			Looping:     false,
+			AudioFormat: assettypes.Ogg,
+			QueueSize:   2,
+		},
+		"vowelO": sound_v2.SoundData{
+			Path:        "sfx/speech/vowel_O.ogg",
+			Looping:     false,
+			AudioFormat: assettypes.Ogg,
+			QueueSize:   2,
+		},
+		"vowelU": sound_v2.SoundData{
+			Path:        "sfx/speech/vowel_U.ogg",
+			Looping:     false,
+			AudioFormat: assettypes.Ogg,
+			QueueSize:   2,
+		},
+	}
 
 	// NO
 	go assetloader.LoadAll(l.loadFinishedChan)
+	go sound_v2.SoundServer(soundCatalogue)
 }
 
 func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
