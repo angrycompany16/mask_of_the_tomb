@@ -27,25 +27,14 @@ import (
 
 var names = resources.LDTKNames
 
-const (
-// entityLayerName            = "Entities"
-// playerSpaceLayerName       = "Playerspace"
-// spawnPosEntityName         = "DefaultSpawnPos"
-// doorEntityName             = "Door"
-// spawnPointEntityName       = "SpawnPoint"
-// slamboxEntityName          = "Slambox"
-// SpikeIntGridName           = "Spikes"
-// gameEntryPosEntityName     = "GameEntryPos"
-// grassEntityName            = "Grass"
-// hazardEntityName           = "Hazard"
-// turretEntityName           = "TurretEnemy"
-// catcherEntityName          = "Catcher"
-// platformEntityName         = "OneWayPlatform"
-// lanternEntityName          = "Lantern"
-// chainNodeEntityName        = "SlamboxChainNode"
-// slamboxChainEntityName     = "SlamboxChain"
-// testSpeechBubbleEntityName = "TestSpeechBubble"
-// levelTitleFieldName        = "Title"
+var (
+	biomeSongs = map[string]string{
+		"Basement":                     "basementTheme",
+		"Library":                      "libraryTheme",
+		"Grasslands":                   "grasslandsTheme",
+		"Strange_dark_blue_palm_trees": "",
+		"Royal_palace":                 "",
+	}
 )
 
 var (
@@ -450,6 +439,11 @@ func (l *Level) GetBiome() string {
 		return ""
 	}
 	return field.Biome
+}
+
+func (l *Level) GetBiomeSong() string {
+	biome := l.GetBiome()
+	return biomeSongs[biome]
 }
 
 func (l *Level) GetBounds() (float64, float64) {

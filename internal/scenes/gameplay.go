@@ -161,6 +161,11 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 			titleCard := titleCardOverlay.OverlayContent.(*ui.TitleCard)
 			titleCard.ChangeText(newBiome)
 			titleCardOverlay.StartFadeIn()
+			// songTitle := g.world.ActiveLevel.GetBiomeSong()
+			// if songTitle != "" {
+			// 	sound_v2.PlaySound(songTitle, 1.0)
+			// }
+			// Play music
 		}
 		camera.SetBorders(g.world.ActiveLevel.GetBounds())
 		g.player.SetHitboxPos(g.world.ActiveLevel.GetResetPoint())

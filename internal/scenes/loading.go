@@ -7,11 +7,11 @@ import (
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
-	"mask_of_the_tomb/internal/libraries/sound_v2"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"path/filepath"
 )
@@ -84,43 +84,17 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("libraryTheme", assettypes.MakeAudioStreamAsset(assets.Library_mp3, assettypes.Mp3))
 	assetloader.Add("selectSound", assettypes.MakeAudioStreamAsset(assets.Select_ogg, assettypes.Ogg))
 	assetloader.Add("dialogueSound", assettypes.MakeAudioStreamAsset(assets.Text_scroll_ogg, assettypes.Ogg))
-	assetloader.Add("vowelA", assettypes.MakeAudioStreamAsset(assets.Vowel_A_wav, assettypes.Wav))
-	assetloader.Add("vowelE", assettypes.MakeAudioStreamAsset(assets.Vowel_E_wav, assettypes.Wav))
-	assetloader.Add("vowelI", assettypes.MakeAudioStreamAsset(assets.Vowel_I_wav, assettypes.Wav))
-	assetloader.Add("vowelO", assettypes.MakeAudioStreamAsset(assets.Vowel_O_wav, assettypes.Wav))
-	assetloader.Add("vowelU", assettypes.MakeAudioStreamAsset(assets.Vowel_U_wav, assettypes.Wav))
 
 	soundCatalogue := map[string]sound_v2.SoundData{
-		"vowelA": sound_v2.SoundData{
-			Path:        "sfx/speech/vowel_A.ogg",
-			Looping:     false,
-			AudioFormat: assettypes.Ogg,
-			QueueSize:   2,
-		},
-		"vowelE": sound_v2.SoundData{
-			Path:        "sfx/speech/vowel_E.ogg",
-			Looping:     false,
-			AudioFormat: assettypes.Ogg,
-			QueueSize:   2,
-		},
-		"vowelI": sound_v2.SoundData{
-			Path:        "sfx/speech/vowel_I.ogg",
-			Looping:     false,
-			AudioFormat: assettypes.Ogg,
-			QueueSize:   2,
-		},
-		"vowelO": sound_v2.SoundData{
-			Path:        "sfx/speech/vowel_O.ogg",
-			Looping:     false,
-			AudioFormat: assettypes.Ogg,
-			QueueSize:   2,
-		},
-		"vowelU": sound_v2.SoundData{
-			Path:        "sfx/speech/vowel_U.ogg",
-			Looping:     false,
-			AudioFormat: assettypes.Ogg,
-			QueueSize:   2,
-		},
+		"menuTheme":       sound_v2.Loop("music/menu.ogg"),
+		"basementTheme":   sound_v2.Loop("music/basement.ogg"),
+		"libraryTheme":    sound_v2.Loop("music/library.ogg"),
+		"grasslandsTheme": sound_v2.Loop("music/grasslands.ogg"),
+		"vowelA":          sound_v2.Oneshot("sfx/speech/vowel_A.ogg", 5),
+		"vowelE":          sound_v2.Oneshot("sfx/speech/vowel_E.ogg", 5),
+		"vowelI":          sound_v2.Oneshot("sfx/speech/vowel_I.ogg", 5),
+		"vowelO":          sound_v2.Oneshot("sfx/speech/vowel_O.ogg", 5),
+		"vowelU":          sound_v2.Oneshot("sfx/speech/vowel_U.ogg", 5),
 	}
 
 	// NO

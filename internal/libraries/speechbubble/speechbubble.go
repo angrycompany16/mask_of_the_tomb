@@ -15,7 +15,7 @@ import (
 type SpeechBubble struct {
 	graphic     *speechBubbleGraphic
 	textDisplay *speechBubbleText
-	vocalizer   *vocalizer
+	// vocalizer   *vocalizer
 	currentLine int
 	lines       []string
 }
@@ -24,7 +24,7 @@ func (sb *SpeechBubble) Update() {
 	sb.graphic.Update()
 	newChar, c := sb.textDisplay.Update()
 	if newChar {
-		sb.vocalizer.Vocalize(string(c))
+		Vocalize(string(c))
 	}
 
 	sb.textDisplay.x = sb.graphic.rect.Left() + sb.textDisplay.paddingX
@@ -92,7 +92,7 @@ func NewSpeechBubble(anchorX, anchorY, width, height float64) *SpeechBubble {
 		revealTicker:   time.NewTicker(time.Duration(revealPeriod * float64(time.Second))),
 		relLineSpacing: 1.2,
 	}
-	newSpeechBubble.vocalizer = newVocalizer()
+	// newSpeechBubble.vocalizer = newVocalizer()
 	newSpeechBubble.lines = []string{
 		"Heisann!",
 		"...",
