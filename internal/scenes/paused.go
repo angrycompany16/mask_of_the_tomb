@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/scene"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 
@@ -35,6 +36,8 @@ func (p *PauseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransitio
 		save.SaveGame(save.SaveData{resources.PreviousLevelName, resources.Settings}, SaveProfile)
 
 		if gameplayScene, _, ok := sceneStack.GetScene("gameplayScene"); ok {
+			song := gameplayScene.(*GameplayScene).world.ActiveLevel.GetBiomeSong()
+			sound_v2.StopSound(song)
 			InitLevelName = gameplayScene.(*GameplayScene).world.ActiveLevel.GetName()
 		} else {
 			fmt.Println("Could not find gameplay scene")

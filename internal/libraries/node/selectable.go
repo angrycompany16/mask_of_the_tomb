@@ -1,7 +1,7 @@
 package node
 
 type selectable interface {
-	SetSelected()
+	SetSelected(suppressSound bool)
 	SetDeselected()
 }
 

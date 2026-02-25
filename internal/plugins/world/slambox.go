@@ -9,7 +9,7 @@ import (
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/shaders"
-	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/autotile"
 	"mask_of_the_tomb/internal/libraries/camera"
@@ -40,20 +40,20 @@ type slamCache struct {
 }
 
 type SlamboxEntity struct {
-	slambox                   *slambox.Slambox
-	slamboxGroup              *slambox.SlamboxGroup
-	backendID                 int
-	sprite                    *ebiten.Image
-	inChain                   bool
-	rect                      *maths.Rect
-	slamCache                 slamCache
-	state                     slamboxState
-	slamTimer                 *time.Timer
-	subSlamboxRects           []*maths.Rect
-	subSlamboxSprites         []*ebiten.Image
-	particleSys               *particles.ParticleSystem
-	Light                     *shaders.Light
-	landSound                 *sound.EffectPlayer
+	slambox           *slambox.Slambox
+	slamboxGroup      *slambox.SlamboxGroup
+	backendID         int
+	sprite            *ebiten.Image
+	inChain           bool
+	rect              *maths.Rect
+	slamCache         slamCache
+	state             slamboxState
+	slamTimer         *time.Timer
+	subSlamboxRects   []*maths.Rect
+	subSlamboxSprites []*ebiten.Image
+	particleSys       *particles.ParticleSystem
+	Light             *shaders.Light
+	// landSound                 *sound.EffectPlayer
 	moveFinishedEventListener *events.EventListener
 }
 
@@ -85,7 +85,8 @@ func (s *SlamboxEntity) Update() {
 			camera.Shake(0.4, 7, 1)
 			// Also rotate into correct position
 			s.PlayContactParticles(moveDir)
-			s.landSound.Play()
+			// s.landSound.Play()
+			sound_v2.PlaySound("slamboxLand", "sfxMaster", 0.04)
 		}
 	}
 }
@@ -268,8 +269,8 @@ func NewSlamboxEntity(
 
 	sprite := ebiten.NewImage(int(newSlamboxRect.Width()), int(newSlamboxRect.Height()))
 
-	slamboxLandAudioStream := errs.Must(assettypes.GetWavStream("slamboxLandSound"))
-	landSoundEffectPlayer := &sound.EffectPlayer{errs.Must(sound.FromStream(slamboxLandAudioStream)), 0.7}
+	// slamboxLandAudioStream := errs.Must(assettypes.GetWavStream("slamboxLandSound"))
+	// landSoundEffectPlayer := &sound.EffectPlayer{errs.Must(sound.FromStream(slamboxLandAudioStream)), 0.7}
 
 	// NOTHING is a problem for the GOD og programming
 	particleSys := *errs.Must(assettypes.GetYamlAsset("slamboxParticles")).(*particles.ParticleSystem)
@@ -280,7 +281,7 @@ func NewSlamboxEntity(
 	newSlamboxEntity.backendID = backendID
 	newSlamboxEntity.Light = light
 	newSlamboxEntity.sprite = sprite
-	newSlamboxEntity.landSound = landSoundEffectPlayer
+	// newSlamboxEntity.landSound = landSoundEffectPlayer
 	newSlamboxEntity.particleSys = &particleSys
 
 	newSlamboxEntity.particleSys.Init()

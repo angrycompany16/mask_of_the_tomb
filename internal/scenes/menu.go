@@ -1,11 +1,11 @@
 package scenes
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/scene"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 )
@@ -19,13 +19,8 @@ func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 
 	confirmations := m.UI.GetConfirmations()
 
-	if musicScene, _, ok := sceneStack.GetScene("musicScene"); ok {
-		musicScene.(*BaseScene).musicPlayer.PlayMenuMusic()
-	} else {
-		fmt.Println("Music player was not found in main menu")
-	}
-
 	if confirm, ok := confirmations["Play"]; ok && confirm.IsConfirmed {
+		sound_v2.StopSound("menuTheme")
 		gameData := errs.Must(save.GetSaveAsset("saveData"))
 		if gameData.SpawnRoomName == "" {
 			return &scene.SceneTransition{
@@ -54,7 +49,10 @@ func (m *MenuScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition
 	return nil, false
 }
 
-func (m *MenuScene) Init()           { m.UI.Reset(nil) }
+func (m *MenuScene) Init() {
+	m.UI.Reset(nil)
+	sound_v2.PlaySound("menuTheme", "musicMaster", 0)
+}
 func (m *MenuScene) Draw()           { m.UI.Draw() }
 func (m *MenuScene) GetName() string { return "menuScene" }
 func MakeMenuScene() *MenuScene {

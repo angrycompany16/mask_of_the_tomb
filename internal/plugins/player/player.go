@@ -7,7 +7,7 @@ import (
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/shaders"
-	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/inputbuffer"
 	"mask_of_the_tomb/internal/libraries/movebox"
@@ -68,9 +68,6 @@ type Player struct {
 	canPlaySlamSound          bool // Ugly :(
 	InputBuffer               inputbuffer.InputBuffer
 	deathAnim                 *DeathAnim
-	dashSound                 *sound.EffectPlayer
-	slamSound                 *sound.EffectPlayer
-	deathSound                *sound.EffectPlayer
 	jumpParticlesBroad        *particles.ParticleSystem
 	jumpParticlesTight        *particles.ParticleSystem
 	Light                     *shaders.Light
@@ -111,14 +108,6 @@ func NewPlayer() *Player {
 // ------ INIT ------
 func (p *Player) Init(posX, posY float64, direction maths.Direction) {
 	p.sprite = errs.Must(assettypes.GetImageAsset("playerSprite"))
-
-	dashSoundStream := errs.Must(assettypes.GetWavStream("dashSound"))
-	slamSoundStream := errs.Must(assettypes.GetWavStream("slamSound"))
-	deathSoundStream := errs.Must(assettypes.GetMp3Stream("deathSound"))
-
-	p.dashSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dashSoundStream)), 0.7}
-	p.slamSound = &sound.EffectPlayer{errs.Must(sound.FromStream(slamSoundStream)), 0.7}
-	p.deathSound = &sound.EffectPlayer{errs.Must(sound.FromStream(deathSoundStream)), 1.0}
 
 	p.jumpParticlesBroad = errs.Must(assettypes.GetYamlAsset("jumpParticlesBroad")).(*particles.ParticleSystem)
 	p.jumpParticlesTight = errs.Must(assettypes.GetYamlAsset("jumpParticlesTight")).(*particles.ParticleSystem)
@@ -193,7 +182,7 @@ func (p *Player) Die() {
 	p.State = Dying
 	p.deathAnim.Play()
 	p.deathAnim.SetPos(p.hitbox.Center())
-	p.deathSound.Play()
+	sound_v2.PlaySound("playerDeath", "sfxMaster", 0.01)
 
 	// May not be necessary
 	p.OnDeath.Raise(events.EventInfo{})
@@ -209,7 +198,7 @@ func (p *Player) Dash(direction maths.Direction, x, y float64) {
 	p.direction = direction
 	p.State = Moving
 
-	p.dashSound.Play()
+	sound_v2.PlaySound("playerDash", "sfxMaster", 0.06)
 	p.animator.SwitchClip(DASH_INIT_ANIM)
 	p.movebox.SetTarget(x, y)
 	p.playJumpParticles(direction)

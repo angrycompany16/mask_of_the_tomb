@@ -2,40 +2,34 @@ package scenes
 
 import (
 	"fmt"
-	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/scene"
-	"mask_of_the_tomb/internal/core/sound"
-	"mask_of_the_tomb/internal/libraries/musicplayer"
-	"mask_of_the_tomb/internal/libraries/node"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/solarlune/resound/effects"
 )
 
 type BaseScene struct {
-	musicPlayer *musicplayer.MusicPlayer
-	lock        bool
-	initTime    time.Time
+	lock     bool
+	initTime time.Time
 }
 
+// bruh. Scene system is kinda ass
 func (b *BaseScene) Init() {
 	gameData := errs.Must(save.GetSaveAsset("saveData"))
 	resources.Settings = gameData.Settings
 
-	selectSoundStream := errs.Must(assettypes.GetOggStream("selectSound"))
-	node.SelectSound = &sound.EffectPlayer{errs.Must(sound.FromStream(selectSoundStream)), 1.0}
-
-	dialogueSoundStream := errs.Must(assettypes.GetOggStream("dialogueSound"))
-	node.DialogueSound = &sound.EffectPlayer{errs.Must(sound.FromStream(dialogueSoundStream)), 1.0}
+	sound_v2.AddDSPChannelEffect("sfxMaster", "vol", effects.NewVolume().SetStrength(resources.Settings.GetTotalSfxVolume()))
+	sound_v2.AddDSPChannelEffect("musicMaster", "vol", effects.NewVolume().SetStrength(resources.Settings.GetTotalMusicVolume()))
 }
 
 func (b *BaseScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
-	b.musicPlayer.ResetMusicVolume()
 	events.Update()
 	resources.Time = time.Since(b.initTime).Seconds()
 	if inpututil.IsKeyJustReleased(ebiten.KeyTab) {
@@ -65,4 +59,4 @@ func (b *BaseScene) Draw() {
 	}
 }
 func (b *BaseScene) GetName() string { return "musicScene" }
-func MakeBaseScene() *BaseScene      { return &BaseScene{musicplayer.NewMusicPlayer(), false, time.Now()} }
+func MakeBaseScene() *BaseScene      { return &BaseScene{false, time.Now()} }

@@ -60,8 +60,8 @@ func (s *Slider) Reset(overWriteInfo map[string]OverWriteInfo) {
 	}
 }
 
-func (s *Slider) SetSelected() {
-	s.Button.SetSelected()
+func (s *Slider) SetSelected(suppressSound bool) {
+	s.Button.SetSelected(suppressSound)
 }
 
 func (s *Slider) SetDeselected() {

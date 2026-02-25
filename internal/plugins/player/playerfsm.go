@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/camera"
 	"math"
@@ -21,7 +22,8 @@ const (
 
 // FINALLY it feels good
 func (p *Player) StartSlamming(direction maths.Direction) {
-	p.dashSound.Play()
+	// p.dashSound.Play()
+	sound_v2.PlaySound("playerDash", "sfxMaster", 0.06)
 	p.direction = maths.Opposite(direction)
 	p.animator.SwitchClip(SLAM_ANIM)
 	p.State = Slamming
@@ -48,7 +50,8 @@ func (p *Player) Update() {
 		p.jumpOffset += p.jumpOffsetvel
 		p.jumpOffset = maths.Clamp(p.jumpOffset, 0, 1000000)
 		if p.jumpOffset == 0 && p.canPlaySlamSound {
-			p.slamSound.Play()
+			// p.slamSound.Play()
+			sound_v2.PlaySound("playerSlam", "sfxMaster", 0.04)
 			p.canPlaySlamSound = false
 			camera.Shake(0.4, 7, 1)
 		}

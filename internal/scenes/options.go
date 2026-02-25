@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/scene"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/libraries/node"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 
@@ -43,6 +44,13 @@ func (o *OptionsScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransit
 	} else if confirm, ok := confirmations["Sound_vol"]; ok && confirm.IsConfirmed {
 		resources.Settings.SoundVolume = confirm.SliderVal
 	}
+	// Apply volume to sound server (maybe we don't need settings as resource anymore?)
+	totalSfx := resources.Settings.MasterVolume * resources.Settings.SoundVolume / 10000
+	totalMusic := resources.Settings.MasterVolume * resources.Settings.MusicVolume / 10000
+
+	// AN EPIC system
+	sound_v2.EditDSPChannelEffect("sfxMaster", "vol", sound_v2.SetVolumeAction(totalSfx))
+	sound_v2.EditDSPChannelEffect("musicMaster", "vol", sound_v2.SetVolumeAction(totalMusic))
 
 	return nil, false
 }

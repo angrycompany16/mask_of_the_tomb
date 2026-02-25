@@ -10,6 +10,7 @@ import (
 type SelectList struct {
 	NodeData    `yaml:",inline"`
 	SelectorPos int
+	initialized bool
 }
 
 func (s *SelectList) Update(confirmations map[string]ConfirmInfo) {
@@ -32,7 +33,8 @@ func (s *SelectList) Update(confirmations map[string]ConfirmInfo) {
 	for i, child := range s.Children {
 		selectable := child.Node.(selectable)
 		if i == s.SelectorPos {
-			selectable.SetSelected()
+			selectable.SetSelected(!s.initialized)
+			s.initialized = true
 		} else {
 			selectable.SetDeselected()
 		}
@@ -47,5 +49,6 @@ func (s *SelectList) Draw(offsetX, offsetY float64, parentWidth, parentHeight fl
 
 func (s *SelectList) Reset(overWriteInfo map[string]OverWriteInfo) {
 	s.SelectorPos = 0
+	s.initialized = false
 	s.ResetChildren(overWriteInfo)
 }

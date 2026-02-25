@@ -1,8 +1,7 @@
 package node
 
 import (
-	"fmt"
-	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/core/threads"
 	"strings"
 	"time"
@@ -10,9 +9,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
-
-// Not great, but cannot find a better solution
-var DialogueSound *sound.EffectPlayer
 
 type Dialogue struct {
 	Textbox         `yaml:",inline"`
@@ -59,11 +55,7 @@ func (d *Dialogue) Update(confirmations map[string]ConfirmInfo) {
 			return
 		}
 
-		if DialogueSound != nil {
-			DialogueSound.Play()
-		} else {
-			fmt.Println("Dialogue sound is nil, please fix")
-		}
+		sound_v2.PlaySound("dialogueUI", "sfxMaster", 0)
 		d.Text = strings.Join([]string{
 			d.Text, string(d.Lines[d.activeLine][d.revealIndicator]),
 		}, "")

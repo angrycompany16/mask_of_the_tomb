@@ -9,7 +9,6 @@ import (
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/scene"
-	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/scenes"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -46,7 +45,7 @@ func main() {
 		defer stopProfiling()
 	}
 
-	sound.GetAudioContext()
+	// sound.GetAudioContext()
 
 	ebiten.SetWindowSize(rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
 	ebiten.SetWindowTitle("Mask of the tomb")

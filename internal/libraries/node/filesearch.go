@@ -20,7 +20,7 @@ func (f *FileSearch) Update(confirmations map[string]ConfirmInfo) {
 		IsConfirmed: inpututil.IsKeyJustPressed(ebiten.KeyEnter),
 	}
 	if !searchField.selected {
-		searchField.SetSelected()
+		searchField.SetSelected(false)
 	}
 
 	// Update the result list

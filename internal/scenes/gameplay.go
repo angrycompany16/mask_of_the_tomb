@@ -10,6 +10,7 @@ import (
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/scene"
+	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/libraries/camera"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"mask_of_the_tomb/internal/libraries/slambox"
@@ -70,15 +71,12 @@ func (g *GameplayScene) Init() {
 	g.UI.AddOverlay("levelcard", levelCard)
 
 	g.playerMoveListener = events.NewEventListener(g.player.OnMove)
+
+	biomeSong := g.world.ActiveLevel.GetBiomeSong()
+	sound_v2.PlaySound(biomeSong, "musicMaster", 0)
 }
 
 func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
-	if musicScene, _, ok := sceneStack.GetScene("musicScene"); ok {
-		musicScene.(*BaseScene).musicPlayer.PlayGameMusic(g.world.ActiveLevel.GetBiome())
-	} else {
-		fmt.Println("Music player was not found in game")
-	}
-
 	camera.Update()
 
 	g.UI.Update()
@@ -155,17 +153,17 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 
 	_, sceneTransitionReady := g.levelTransitionListener.Poll()
 	if sceneTransitionReady {
+		oldBiomeSong := g.world.ActiveLevel.GetBiomeSong()
 		newBiome := errs.Must(world.ChangeActiveLevel(g.world, g.world.LevelSwapCtx.LevelIid, g.world.LevelSwapCtx.DoorEntityIid))
 		if newBiome != "" {
+			sound_v2.StopSound(oldBiomeSong)
 			titleCardOverlay := g.UI.GetOverlay("titlecard")
 			titleCard := titleCardOverlay.OverlayContent.(*ui.TitleCard)
 			titleCard.ChangeText(newBiome)
 			titleCardOverlay.StartFadeIn()
-			// songTitle := g.world.ActiveLevel.GetBiomeSong()
-			// if songTitle != "" {
-			// 	sound_v2.PlaySound(songTitle, 1.0)
-			// }
-			// Play music
+
+			newBiomeSong := g.world.ActiveLevel.GetBiomeSong()
+			sound_v2.PlaySound(newBiomeSong, "musicMaster", 0)
 		}
 		camera.SetBorders(g.world.ActiveLevel.GetBounds())
 		g.player.SetHitboxPos(g.world.ActiveLevel.GetResetPoint())

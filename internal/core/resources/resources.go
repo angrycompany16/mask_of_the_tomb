@@ -14,6 +14,14 @@ type SettingsConfig struct {
 	MusicVolume  float64
 }
 
+func (sc *SettingsConfig) GetTotalSfxVolume() float64 {
+	return sc.MasterVolume * sc.SoundVolume / 10000
+}
+
+func (sc *SettingsConfig) GetTotalMusicVolume() float64 {
+	return sc.MasterVolume * sc.MusicVolume / 10000
+}
+
 type ldtkNames struct {
 	EntityLayer            string
 	PlayerSpaceLayer       string

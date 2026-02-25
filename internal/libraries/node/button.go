@@ -1,16 +1,12 @@
 package node
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/colors"
-	"mask_of_the_tomb/internal/core/sound"
+	"mask_of_the_tomb/internal/core/sound_v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
-
-// Not great, but cannot find a better solution
-var SelectSound *sound.EffectPlayer
 
 type Button struct {
 	Textbox       `yaml:",inline"`
@@ -25,16 +21,9 @@ func (b *Button) Update(confirmations map[string]ConfirmInfo) {
 	b.UpdateChildren(confirmations)
 }
 
-func (b *Button) SetSelected() {
-	// TODO: Annoyingly, this also runs when we call
-	// switchActiveDisplay(), because that calls reset which sets the
-	// selector pos to 0. Pls fix
-	if !b.selected {
-		if SelectSound != nil {
-			SelectSound.Play()
-		} else {
-			fmt.Println("selectSound was nil, no sound will be played")
-		}
+func (b *Button) SetSelected(suppresSound bool) {
+	if !b.selected && !suppresSound {
+		sound_v2.PlaySound("selectUI", "sfxMaster", 0)
 	}
 
 	b.selected = true

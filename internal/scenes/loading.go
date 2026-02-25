@@ -77,11 +77,6 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("slamSound", assettypes.MakeAudioStreamAsset(assets.Slam_wav, assettypes.Wav))
 	assetloader.Add("deathSound", assettypes.MakeAudioStreamAsset(assets.Death_mp3, assettypes.Mp3))
 	assetloader.Add("slamboxLandSound", assettypes.MakeAudioStreamAsset(assets.Slambox_land_wav, assettypes.Wav))
-	assetloader.Add("menuTheme", assettypes.MakeAudioStreamAsset(assets.Menu_mp3, assettypes.Mp3))
-	assetloader.Add("basementTheme", assettypes.MakeAudioStreamAsset(assets.Basement_wav, assettypes.Wav))
-	assetloader.Add("libraryTheme", assettypes.MakeAudioStreamAsset(assets.Library_mp3, assettypes.Mp3))
-	assetloader.Add("selectSound", assettypes.MakeAudioStreamAsset(assets.Select_ogg, assettypes.Ogg))
-	assetloader.Add("dialogueSound", assettypes.MakeAudioStreamAsset(assets.Text_scroll_ogg, assettypes.Ogg))
 
 	soundCatalogue := map[string]sound_v2.SoundData{
 		"menuTheme":       sound_v2.Loop("music/menu.ogg"),
@@ -93,18 +88,22 @@ func (l *LoadingScene) Init() {
 		"vowelI":          sound_v2.Oneshot("sfx/speech/vowel_I.ogg", 5),
 		"vowelO":          sound_v2.Oneshot("sfx/speech/vowel_O.ogg", 5),
 		"vowelU":          sound_v2.Oneshot("sfx/speech/vowel_U.ogg", 5),
+		"selectUI":        sound_v2.Oneshot("sfx/select.ogg", 2),
+		"dialogueUI":      sound_v2.Oneshot("sfx/text-scroll.ogg", 5),
+		"playerDash":      sound_v2.Oneshot("sfx/dash.ogg", 2),
+		"playerSlam":      sound_v2.Oneshot("sfx/slam.ogg", 2),
+		"playerDeath":     sound_v2.Oneshot("sfx/death.ogg", 2),
+		"slamboxLand":     sound_v2.Oneshot("sfx/slambox-land.ogg", 2),
 	}
 
 	DSPChannelNames := []string{
-		"main",
+		// Volume-only channels
+		"sfxMaster",
+		"musicMaster",
 	}
 
-	// NO
 	go assetloader.LoadAll(l.loadFinishedChan)
 	go sound_v2.SoundServer(soundCatalogue, DSPChannelNames)
-
-	// sound_v2.AddDSPChannelEffect("main", "delayShort", effects.NewDelay().SetWait(0.018))
-	// sound_v2.AddDSPChannelEffect("main", "delayLong", effects.NewDelay().SetWait(0.055))
 }
 
 func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {

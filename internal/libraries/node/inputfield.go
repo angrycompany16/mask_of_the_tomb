@@ -11,7 +11,7 @@ type InputField struct {
 	Button `yaml:",inline"`
 }
 
-func (i *InputField) SetSelected() {
+func (i *InputField) SetSelected(suppresSound bool) {
 	i.selected = true
 	i.Color = i.SelectedColor
 }
