@@ -12,6 +12,7 @@ import (
 	"mask_of_the_tomb/internal/core/scene"
 	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/libraries/camera"
+	"mask_of_the_tomb/internal/libraries/npc/lemma"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"mask_of_the_tomb/internal/libraries/slambox"
 	ui "mask_of_the_tomb/internal/plugins/UI"
@@ -27,6 +28,7 @@ type GameplayScene struct {
 	UI                       *ui.UI
 	world                    *world.World
 	player                   *player.Player
+	lemma                    *lemma.Lemma
 	deathTransitionListener  *events.EventListener
 	levelTransitionListener  *events.EventListener
 	titleCardTimeoutListener *events.EventListener
@@ -196,6 +198,7 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 	}
 
 	g.player.Update()
+	g.lemma.Update()
 	camera.SetPos(g.player.GetPosCentered())
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
@@ -221,6 +224,7 @@ func (g *GameplayScene) Draw() {
 
 	g.player.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
 	g.world.ActiveLevel.Draw(drawCtx, g.player.Light)
+	g.lemma.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
 
 	g.UI.Draw()
 	// UI is HARD-CODED to render at the UI layer...
@@ -232,6 +236,7 @@ func MakeGameplayScene() *GameplayScene {
 	return &GameplayScene{
 		UI:     errs.Must(assettypes.GetYamlAsset("emptyMenu")).(*ui.UI),
 		player: player.NewPlayer(),
+		lemma:  lemma.NewLemma(100.0, 100.0),
 		world:  world.NewWorld(),
 	}
 }

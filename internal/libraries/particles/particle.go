@@ -49,7 +49,7 @@ func (p *Particle) update() bool {
 func (p *Particle) draw(layer *ebiten.Image, offsetX, offsetY float64) {
 	c := colorm.ColorM{}
 	c.ScaleWithColor(p.color)
-	op := ebitenrenderutil.RotatedScaledOp(p.sprite, p.posX-offsetX, p.posY-offsetY, p.angle, p.scale, p.scale)
+	op := ebitenrenderutil.RotatedScaledOp(p.sprite, p.posX-offsetX, p.posY-offsetY, p.angle, p.scale, p.scale, 0.5, 0.5)
 
 	colorm.DrawImage(layer, p.sprite, c, ebitenrenderutil.OpConvert(op))
 }

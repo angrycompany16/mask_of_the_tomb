@@ -113,12 +113,7 @@ func (sg *speechBubbleGraphic) Draw(ctx rendering.Ctx) {
 	ebitenrenderutil.DrawAtRotatedScaled(sg.tickSprite, ctx.Dst, sg.tickX, sg.tickY, maths.DirToRadians(sg.tickRotation), rendering.PIXEL_SCALE, rendering.PIXEL_SCALE)
 }
 
-// TODO: Figure out text breaking and box sizing
-// Then figure out how to play audio along with
-// the text.
-// Then profit
-// Then code the whole NPC system
-// Then we possible also need some more customization
+// TODO: Figure out a fade-in/fade-out animation
 
 const revealPeriod = 0.08
 

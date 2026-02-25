@@ -117,7 +117,7 @@ func CubicOut(t float64) float64 {
 	return 1 - math.Pow(1-t, 3)
 }
 
-func InCubic(t float64) float64 {
+func CubicIn(t float64) float64 {
 	return math.Pow(t, 3)
 }
 
@@ -144,6 +144,23 @@ func Norm(n int, x ...float64) float64 {
 		l += math.Pow(math.Abs(x_i), 1)
 	}
 	return math.Pow(l, 1/float64(n))
+}
+
+func Normalize(x ...float64) []float64 {
+	norm := Norm(2, x...)
+	normalized := make([]float64, len(x))
+	for i, x_i := range x {
+		normalized[i] = x_i / norm
+	}
+	return normalized
+}
+
+func AbsPowerSum(n int, x ...float64) float64 {
+	s := 0.0
+	for _, x_i := range x {
+		s += math.Pow(math.Abs(x_i), 1)
+	}
+	return s
 }
 
 func Mod(x, m int) int {

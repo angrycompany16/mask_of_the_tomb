@@ -238,6 +238,7 @@ func (p *Player) readMoveInput() maths.Direction {
 
 func (p *Player) playJumpParticles(direction maths.Direction) {
 	centerX, centerY := p.hitbox.Center()
+	// s := p.jumpParticlesBroad.
 	switch direction {
 	case maths.DirUp:
 		p.jumpParticlesBroad.PosX = centerX
@@ -270,5 +271,5 @@ func (p *Player) playJumpParticles(direction maths.Direction) {
 	}
 
 	p.jumpParticlesBroad.Play()
-	// p.jumpParticlesTight.Play()
+	p.jumpParticlesTight.Play()
 }

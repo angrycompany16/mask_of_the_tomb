@@ -99,6 +99,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 	newLevel.pixelLightShader = errs.Must(assettypes.GetShaderAsset("pixelLightsShader"))
 	newLevel.ambientParticles = errs.Must(assettypes.GetYamlAsset("ambientParticles")).(*particles.ParticleSystem)
 	newLevel.ambientParticles.Init()
+	newLevel.ambientParticles.Play()
 	newLevel.grassTilemap = errs.Must(assettypes.GetImageAsset("grassTilemap"))
 
 	// Empty constructor for later setup

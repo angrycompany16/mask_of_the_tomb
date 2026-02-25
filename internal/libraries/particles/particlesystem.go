@@ -6,11 +6,15 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/threads"
 	"path/filepath"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
+
+// I'm very strongly considering rewriting this to a multithreaded
+// (and almost completely reworked) system cause this is broken AF
 
 // Maybe we can convert the non-rendering part of the particlesystem into
 // a struct and then only use the drawing part outside of that
@@ -51,30 +55,36 @@ type ParticleSystem struct {
 	ImageWidth  int           `yaml:"ImageWidth"`
 	ImageHeight int           `yaml:"ImageHeight"`
 	SpritePath  string        `yaml:"SpritePath"`
-	surf        *ebiten.Image // The surf that the particles are drawn onto
+	surf        *ebiten.Image // The image that the particles are drawn onto
 	sprite      *ebiten.Image // The sprite for the particles
 	layer       *ebiten.Image
+	burstTimers []*time.Timer
+	isPlaying   bool
 }
 
-// TODO: fix
-// This might be the dumbest thign I've ever seen
 func (ps *ParticleSystem) Play() {
-	ps.particles = nil
-	// Not good, really not good...
-	// This is literally just not thread safe at all...
-	go func() {
-		for _, burst := range ps.Bursts {
-			time.Sleep(time.Duration(burst.Time) * time.Second)
-			for i := 0; i < burst.Count; i++ {
-				ps.particles = append(ps.particles, ps.newParticle())
-			}
-		}
-	}()
+	ps.t = 0
+	ps.isPlaying = true
+	// ps.particles = make([]*Particle, 0)
+	for i, burst := range ps.Bursts {
+		ps.burstTimers[i] = time.NewTimer(time.Duration(burst.Time * 1e9))
+	}
+}
+
+func (ps *ParticleSystem) Stop() {
+	if !ps.isPlaying {
+		return
+	}
+	ps.isPlaying = false
+	for i := range ps.Bursts {
+		ps.burstTimers[i].Stop()
+	}
 }
 
 func (ps *ParticleSystem) Update() {
 	ps.t += 0.016666666667
 
+	// Hmm... this might not be that efficient
 	j := 0
 	for i, particle := range ps.particles {
 		finished := particle.update()
@@ -85,11 +95,19 @@ func (ps *ParticleSystem) Update() {
 	}
 	ps.particles = ps.particles[:len(ps.particles)-j]
 
-	if ps.Emission == 0 {
+	if !ps.isPlaying {
 		return
 	}
 
-	if ps.t > 1/ps.Emission {
+	for i, burst := range ps.Bursts {
+		if _, ok := threads.Poll(ps.burstTimers[i].C); ok {
+			for range burst.Count {
+				ps.particles = append(ps.particles, ps.newParticle())
+			}
+		}
+	}
+
+	if ps.Emission > 0 && ps.t > 1/ps.Emission {
 		ps.particles = append(ps.particles, ps.newParticle())
 		ps.t = 0
 	}
@@ -103,23 +121,30 @@ func (ps *ParticleSystem) Draw(ctx rendering.Ctx) {
 		return
 	}
 
+	// Local-space rendering is very cursed ngl
 	s := ps.surf.Bounds().Size()
 	for _, particle := range ps.particles {
-		particle.draw(ps.surf, -float64(s.X)/2, -float64(s.Y)/2)
+		particle.draw(ps.surf, 0, 0)
 	}
+
 	ebitenrenderutil.DrawAtRotated(
 		ps.surf, ctx.Dst,
-		ps.PosX-float64(s.X)/2-ctx.CamX,
-		ps.PosY-float64(s.Y)/2-ctx.CamY,
+		ps.PosX-ctx.CamX-float64(s.X)/2,
+		ps.PosY-ctx.CamY-float64(s.Y)/2,
 		ps.Angle, 0.5, 0.5)
 
 	ps.surf.Clear()
 }
 
+func (ps *ParticleSystem) SetPos(x, y float64) {
+	ps.PosX = x
+	ps.PosY = y
+}
+
 func (ps *ParticleSystem) newParticle() *Particle {
 	var x, y float64
 	if ps.GlobalSpace {
-		x, y = ps.SpawnPosX.Eval()+ps.PosX, ps.SpawnPosY.Eval()+ps.PosY
+		x, y = ps.SpawnPosX.Eval()+ps.PosX-float64(ps.ImageWidth)/2, ps.SpawnPosY.Eval()+ps.PosY-float64(ps.ImageHeight)/2
 	} else {
 		x, y = ps.SpawnPosX.Eval(), ps.SpawnPosY.Eval()
 	}
@@ -156,6 +181,7 @@ func (ps *ParticleSystem) Init() {
 	ps.surf = ebiten.NewImage(ps.ImageWidth, ps.ImageHeight)
 	spritePath := errs.Must(filepath.Localize(ps.SpritePath))
 	ps.sprite = errs.MustNewImageFromFile(spritePath)
+	ps.burstTimers = make([]*time.Timer, len(ps.Bursts))
 }
 
 type ParticleBurst struct {

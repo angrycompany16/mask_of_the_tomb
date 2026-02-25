@@ -58,6 +58,9 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("jumpParticlesBroad", assettypes.MakeYamlAsset(assets.Jump_broad_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("jumpParticlesTight", assettypes.MakeYamlAsset(assets.Jump_tight_yaml, &particles.ParticleSystem{}))
 	assetloader.Add("slamboxParticles", assettypes.MakeYamlAsset(assets.Slambox_particles_yaml, &particles.ParticleSystem{}))
+	assetloader.Add("lemmaIdleParticles", assettypes.MakeYamlAsset(assets.Lemma_idle_particles_yaml, &particles.ParticleSystem{}))
+	assetloader.Add("lemmaAppearParticles", assettypes.MakeYamlAsset(assets.Lemma_appear_particles_yaml, &particles.ParticleSystem{}))
+	assetloader.Add("lemmaDisappearParticles", assettypes.MakeYamlAsset(assets.Lemma_disappear_particles_yaml, &particles.ParticleSystem{}))
 	//   Animations
 	assetloader.Add("teleporterAnimation", assettypes.MakeYamlAsset(assets.Teleporter_yaml, &animation.AnimationInfo{}))
 	assetloader.Add("dashInitAnim", assettypes.MakeYamlAsset(assets.Dash_init_yaml, &animation.AnimationInfo{}))
@@ -71,12 +74,6 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("introScreen", assettypes.MakeYamlAsset(assets.Intro_yaml, &ui.UI{}))
 	assetloader.Add("emptyMenu", assettypes.MakeYamlAsset(assets.Empty_yaml, &ui.UI{}))
 	assetloader.Add("hud", assettypes.MakeYamlAsset(assets.Hud_yaml, &ui.UI{}))
-
-	// Load Audio
-	assetloader.Add("dashSound", assettypes.MakeAudioStreamAsset(assets.Dash_wav, assettypes.Wav))
-	assetloader.Add("slamSound", assettypes.MakeAudioStreamAsset(assets.Slam_wav, assettypes.Wav))
-	assetloader.Add("deathSound", assettypes.MakeAudioStreamAsset(assets.Death_mp3, assettypes.Mp3))
-	assetloader.Add("slamboxLandSound", assettypes.MakeAudioStreamAsset(assets.Slambox_land_wav, assettypes.Wav))
 
 	soundCatalogue := map[string]sound_v2.SoundData{
 		"menuTheme":       sound_v2.Loop("music/menu.ogg"),
