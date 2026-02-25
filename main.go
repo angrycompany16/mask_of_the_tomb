@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"errors"
 	"flag"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
 	"mask_of_the_tomb/internal/core/scene"
+	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/scenes"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -44,9 +46,25 @@ func main() {
 		defer stopProfiling()
 	}
 
+	sound.GetAudioContext()
+
 	ebiten.SetWindowSize(rendering.GAME_WIDTH*rendering.PIXEL_SCALE, rendering.GAME_HEIGHT*rendering.PIXEL_SCALE)
 	ebiten.SetWindowTitle("Mask of the tomb")
 	// ebiten.SetCursorMode(ebiten.CursorModeHidden)
+
+	// TEST
+
+	// // Note: cannot use F32!
+	// oggstream, err := vorbis.DecodeWithSampleRate(48000, bytes.NewReader(assets.Vowel_E_ogg))
+	// if err != nil {
+	// 	fmt.Println("err", err)
+	// }
+	// // soundBytes, _ := io.ReadAll(oggstream)
+
+	// player2 := errs.Must(resound.NewPlayer(0, oggstream)).AddEffect(
+	// 	"vol", effects.NewVolume().SetStrength(1.0),
+	// )
+	// player2.Play()
 
 	a := &App{scenes.NewGame()}
 	ebiten.SetFullscreen(true)

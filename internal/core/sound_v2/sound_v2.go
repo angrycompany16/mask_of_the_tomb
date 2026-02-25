@@ -6,7 +6,9 @@ import (
 	"io/fs"
 	"log"
 	"mask_of_the_tomb/assets"
+	"mask_of_the_tomb/internal/core/errs"
 	resound "mask_of_the_tomb/resound_butwithbytes"
+	"sync"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -26,20 +28,34 @@ const (
 const sampleRate = 48000
 const requestBufferSize = 4
 
+var dspChannels = DSPChannels{
+	mtx:      &sync.Mutex{},
+	channels: make(map[string]*resound.DSPChannel, 0),
+}
+
 var playChan = make(chan playRequest)
 var stopChan = make(chan string)
 var volumeChan = make(chan volumeRequest)
+var makeDSPChannelsChan = make(chan []string, 1)
+var DSPChannelEffectChan = make(chan effectRequest)
 
 type SoundData struct {
-	Path      string
-	Looping   bool
-	format    AudioFormat
-	QueueSize int
+	Path        string
+	Looping     bool
+	format      AudioFormat
+	QueueSize   int
+	DSPChannels []string
 }
 
 type playRequest struct {
+	name           string
+	volume         float64
+	DSPChannelName string
+}
+
+type effectRequest struct {
 	name   string
-	volume float64
+	effect resound.IEffect
 }
 
 type volumeRequest struct {
@@ -47,40 +63,41 @@ type volumeRequest struct {
 	volume float64
 }
 
-func PlaySound(name string, volume float64) {
-	playChan <- playRequest{name, volume}
+func PlaySound(name string, volume float64, DSPChannel string) {
+	playChan <- playRequest{name, volume, DSPChannel}
 }
 
-func StopSound(name string) {
-	stopChan <- name
+func MakeDSPChannels(names []string) {
+	makeDSPChannelsChan <- names
 }
 
-func SetVolume(name string, volume float64) {
-	volumeChan <- volumeRequest{name, volume}
+func AddDSPChannelEffect(name string, effect resound.IEffect) {
+	DSPChannelEffectChan <- effectRequest{name, effect}
 }
 
+// DSP channel effects can be added either when initializing the server or at
+// runtime.
+// Hmmm. How do we make sure that the players created in worker() are actually
+// made to have the correct DSP channel?
+// I don't like the current method...
 func SoundServer(
 	// Data - Always pass by value so we don't get shared memory errors
 	soundCatalogue map[string]SoundData,
+	DSPChannelNames []string,
 ) {
 	// We will need to uncomment this when we fully deprecate the old sound
 	// lib
 	// audio.NewContext(sampleRate)
 	playChans := make(map[string]chan playRequest)
-	stopChans := make(map[string]chan int)
-	volumeChans := make(map[string]chan float64)
+	dspChannels.MakeDSPChannels(DSPChannelNames)
 
 	for name, soundData := range soundCatalogue {
 		playerChan := make(chan *resound.Player, soundData.QueueSize)
 		playChan := make(chan playRequest, requestBufferSize)
-		stopChan := make(chan int, requestBufferSize)
-		volumeChan := make(chan float64, requestBufferSize)
 
 		playChans[name] = playChan
-		stopChans[name] = stopChan
-		volumeChans[name] = volumeChan
 
-		go player(playChan, stopChan, playerChan, volumeChan)
+		go player(playChan, playerChan)
 		go worker(playerChan, soundData.Path, soundData.Looping, soundData.format)
 	}
 
@@ -88,10 +105,8 @@ func SoundServer(
 		select {
 		case audioRequest := <-playChan:
 			playChans[audioRequest.name] <- audioRequest
-		case name := <-stopChan:
-			stopChans[name] <- 1
-		case volumeRequest := <-volumeChan:
-			volumeChans[volumeRequest.name] <- volumeRequest.volume
+		case effectRequest := <-DSPChannelEffectChan:
+			dspChannels.AddEffect(effectRequest.name, effectRequest.effect)
 		}
 	}
 }
@@ -102,48 +117,17 @@ func SoundServer(
 func player(
 	// Inputs
 	playChan <-chan playRequest,
-	stopChan <-chan int,
 	playerChan <-chan *resound.Player,
-	volumeChan <-chan float64,
 ) {
-	// players := make([]*audio.Player, 0)
-
 	for rq := range playChan {
 		player := <-playerChan
-		player.SetVolume(rq.volume)
+		dspChannels.AddPlayer(player, rq.DSPChannelName)
 		player.Play()
-	}
 
-	// for {
-	// 	select {
-	// 	case rq := <-playChan:
-	// 		player := <-playerChan
-	// 		player.SetVolume(rq.volume)
-	// 		player.Play()
-	// 		// players = append(players, player)
-	// 		// case <-stopChan:
-	// 		// 	for _, player := range players {
-	// 		// 		player.Pause()
-	// 		// 	}
-	// 		// case volume := <-volumeChan:
-	// 		// 	for _, player := range players {
-	// 		// 		player.SetVolume(volume)
-	// 		// 	}
-	// 		// default:
-	// 		// 	// Check which players are finished, and remove those.
-	// 		// 	activePlayers := make([]*audio.Player, len(players))
-	// 		// 	activePlayers = slices.Collect(func(yield func(*audio.Player) bool) {
-	// 		// 		for _, player := range players {
-	// 		// 			if player.IsPlaying() {
-	// 		// 				if !yield(player) {
-	// 		// 					return
-	// 		// 				}
-	// 		// 			}
-	// 		// 		}
-	// 		// 	})
-	// 		// 	players = activePlayers
-	// 	}
-	// }
+		// So this effect works? Mamma mia
+		// Why would this one work, but others not???
+		// TEST END
+	}
 }
 
 // Worker thread that fills the queue up again
@@ -174,7 +158,7 @@ func worker(
 		if looping {
 			byteStream := bytes.NewReader(soundBytes)
 			loopedStream := audio.NewInfiniteLoopF32(byteStream, int64(byteStream.Len()))
-			player, err := resound.NewPlayer(0, loopedStream)
+			player, err := resound.NewPlayer("KAnjeg", loopedStream)
 			// player, err = audio.CurrentContext().NewPlayerF32(loopedStream)
 			if err != nil {
 				log.Fatal("Infinite loop player failed:", err)
@@ -183,9 +167,10 @@ func worker(
 			// done := AddStream(player)
 			// <-done
 		} else {
-			player = resound.NewPlayerFromBytes(0, soundBytes)
+			player = errs.Must(resound.NewPlayer(0, bytes.NewReader(soundBytes)))
 			player.SetBufferSize(50 * time.Millisecond)
 		}
+
 		playerChan <- player
 	}
 }
@@ -198,80 +183,15 @@ func decodeFile(f fs.File, format AudioFormat) ([]byte, error) {
 	var err error
 	switch format {
 	case Mp3:
-		mp3Stream, err = mp3.DecodeF32(f)
+		mp3Stream, err = mp3.DecodeWithoutResampling(f)
 		soundBytes, err = io.ReadAll(mp3Stream)
 	case Ogg:
-		oggStream, err = vorbis.DecodeF32(f)
+		oggStream, err = vorbis.DecodeWithoutResampling(f)
 		soundBytes, err = io.ReadAll(oggStream)
 	case Wav:
-		wavStream, err = wav.DecodeF32(f)
+		wavStream, err = wav.DecodeWithoutResampling(f)
 		soundBytes, err = io.ReadAll(wavStream)
 	}
 
 	return soundBytes, err
 }
-
-type playerRequest struct {
-	player *resound.Player
-	done   chan int
-}
-
-type effectRequest struct {
-	effect resound.IEffect
-	name   string
-}
-
-var playerRequestChan chan playerRequest
-var effectRequestChan chan effectRequest
-
-func AddStream(player *resound.Player) chan int {
-	doneChan := make(chan int)
-	playerRequestChan <- playerRequest{
-		player: player,
-		done:   doneChan,
-	}
-	return doneChan
-}
-
-func AddEffect(effect resound.IEffect, name string) {
-	effectRequestChan <- effectRequest{
-		effect: effect,
-		name:   name,
-	}
-}
-
-// Thread-safe resound DSP channel
-func DSPChannel(
-	streamChan <-chan playerRequest,
-	effectChan <-chan effectRequest,
-) {
-	dspChannel := resound.NewDSPChannel()
-
-	for {
-		select {
-		case playerRequest := <-streamChan:
-			playerRequest.player.SetDSPChannel(dspChannel)
-			playerRequest.done <- 1
-		case effectRequest := <-effectChan:
-			dspChannel.AddEffect(effectRequest.name, effectRequest.effect)
-		}
-	}
-}
-
-// func newPlayerFromBytes() *resound.Player {
-// 	cp := &resound.Player{
-// 		id:      id,
-// 		Source:  sourceStream,
-// 		effects: map[any]IEffect{},
-// 	}
-
-// 	player, err := audio.CurrentContext().NewPlayer(cp)
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	cp.Player = player
-
-// 	return cp, nil
-// }

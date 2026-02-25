@@ -100,10 +100,10 @@ var (
 	Empty_yaml []byte
 	//go:embed menus/game/hud.yaml
 	Hud_yaml []byte
-	//go:embed sfx/speech/vowel_A.wav
-	Vowel_A_wav []byte
-	//go:embed sfx/speech/vowel_E.wav
-	Vowel_E_wav []byte
+	//go:embed sfx/speech/vowel_A.ogg
+	Vowel_A_ogg []byte
+	//go:embed sfx/speech/vowel_E.ogg
+	Vowel_E_ogg []byte
 	//go:embed sfx/speech/vowel_I.wav
 	Vowel_I_wav []byte
 	//go:embed sfx/speech/vowel_O.wav

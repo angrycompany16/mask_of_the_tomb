@@ -6,13 +6,13 @@ import (
 	"mask_of_the_tomb/internal/core/assetloader"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/scene"
-	"mask_of_the_tomb/internal/core/sound"
 	"mask_of_the_tomb/internal/core/sound_v2"
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/animation"
 	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
+	"mask_of_the_tomb/resound_butwithbytes/effects"
 	"path/filepath"
 )
 
@@ -27,7 +27,6 @@ type LoadingScene struct {
 }
 
 func (l *LoadingScene) Init() {
-	sound.GetAudioContext()
 	// LDTK
 	assetloader.Add("LDTKAsset", assettypes.NewLDTKAsset(LDTKMapPath))
 
@@ -97,9 +96,15 @@ func (l *LoadingScene) Init() {
 		"vowelU":          sound_v2.Oneshot("sfx/speech/vowel_U.ogg", 5),
 	}
 
+	DSPChannelNames := []string{
+		"main",
+	}
+
 	// NO
 	go assetloader.LoadAll(l.loadFinishedChan)
-	go sound_v2.SoundServer(soundCatalogue)
+	go sound_v2.SoundServer(soundCatalogue, DSPChannelNames)
+
+	sound_v2.AddDSPChannelEffect("main", effects.NewVolume().SetStrength(0.0))
 }
 
 func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {
