@@ -12,7 +12,6 @@ import (
 	"mask_of_the_tomb/internal/libraries/particles"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	ui "mask_of_the_tomb/internal/plugins/UI"
-	"mask_of_the_tomb/resound_butwithbytes/effects"
 	"path/filepath"
 )
 
@@ -104,7 +103,8 @@ func (l *LoadingScene) Init() {
 	go assetloader.LoadAll(l.loadFinishedChan)
 	go sound_v2.SoundServer(soundCatalogue, DSPChannelNames)
 
-	sound_v2.AddDSPChannelEffect("main", effects.NewVolume().SetStrength(0.0))
+	// sound_v2.AddDSPChannelEffect("main", "delayShort", effects.NewDelay().SetWait(0.018))
+	// sound_v2.AddDSPChannelEffect("main", "delayLong", effects.NewDelay().SetWait(0.055))
 }
 
 func (l *LoadingScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransition, bool) {

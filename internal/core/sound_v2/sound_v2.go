@@ -36,8 +36,7 @@ var dspChannels = DSPChannels{
 var playChan = make(chan playRequest)
 var stopChan = make(chan string)
 var volumeChan = make(chan volumeRequest)
-var makeDSPChannelsChan = make(chan []string, 1)
-var DSPChannelEffectChan = make(chan effectRequest)
+var dspChannelEffectChan = make(chan effectRequest)
 
 type SoundData struct {
 	Path        string
@@ -54,8 +53,9 @@ type playRequest struct {
 }
 
 type effectRequest struct {
-	name   string
-	effect resound.IEffect
+	channelName string
+	effectName  string
+	effect      resound.IEffect
 }
 
 type volumeRequest struct {
@@ -67,19 +67,10 @@ func PlaySound(name string, volume float64, DSPChannel string) {
 	playChan <- playRequest{name, volume, DSPChannel}
 }
 
-func MakeDSPChannels(names []string) {
-	makeDSPChannelsChan <- names
+func AddDSPChannelEffect(channelName string, effectName string, effect resound.IEffect) {
+	dspChannelEffectChan <- effectRequest{channelName, effectName, effect}
 }
 
-func AddDSPChannelEffect(name string, effect resound.IEffect) {
-	DSPChannelEffectChan <- effectRequest{name, effect}
-}
-
-// DSP channel effects can be added either when initializing the server or at
-// runtime.
-// Hmmm. How do we make sure that the players created in worker() are actually
-// made to have the correct DSP channel?
-// I don't like the current method...
 func SoundServer(
 	// Data - Always pass by value so we don't get shared memory errors
 	soundCatalogue map[string]SoundData,
@@ -105,8 +96,8 @@ func SoundServer(
 		select {
 		case audioRequest := <-playChan:
 			playChans[audioRequest.name] <- audioRequest
-		case effectRequest := <-DSPChannelEffectChan:
-			dspChannels.AddEffect(effectRequest.name, effectRequest.effect)
+		case effectRequest := <-dspChannelEffectChan:
+			dspChannels.AddEffect(effectRequest.channelName, effectRequest.effectName, effectRequest.effect)
 		}
 	}
 }
@@ -123,10 +114,6 @@ func player(
 		player := <-playerChan
 		dspChannels.AddPlayer(player, rq.DSPChannelName)
 		player.Play()
-
-		// So this effect works? Mamma mia
-		// Why would this one work, but others not???
-		// TEST END
 	}
 }
 
