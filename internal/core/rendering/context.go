@@ -8,7 +8,13 @@ type Ctx struct {
 	PlayerX, PlayerY float64
 }
 
+// Deprecated: use ctx.withLayer instead
 func WithLayer(drawCtx Ctx, layer *ebiten.Image) Ctx {
 	drawCtx.Dst = layer
 	return drawCtx
+}
+
+func (ctx *Ctx) WithLayer(layer *ebiten.Image) Ctx {
+	ctx.Dst = layer
+	return *ctx
 }

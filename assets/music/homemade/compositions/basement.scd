@@ -105,7 +105,8 @@ SynthDef(\ping, {
 }).add;
 )
 
-Synth(\ping, [freq: (68 + 12).midicps]);
+Synth(\piano);
+// Synth(\ping, [freq: (68 + 12).midicps]);
 
 
 (

@@ -15,7 +15,7 @@ Root:
     Color:
       Bright: [205, 247, 226, 255]
       Dark: [199, 176, 139, 255]
-    Font: "JSE_AmigaAMOS"
+    Font: "test"
     FontSize: 72
     LineSpacing: 10
     PrimaryAlign: *AlignCenter
@@ -30,7 +30,7 @@ Root:
       PosY: -100
       Name: "Play"
       Text: "Play video game"
-      Font: "JSE_AmigaAMOS"
+      Font: "test"
       FontSize: 48
       LineSpacing: 10
       PrimaryAlign: *AlignCenter
@@ -49,7 +49,7 @@ Root:
       Text: "Options"
       PosX: 0
       PosY: 0
-      Font: "JSE_AmigaAMOS"
+      Font: "test"
       FontSize: 48
       LineSpacing: 10
       PrimaryAlign: *AlignCenter
@@ -68,7 +68,7 @@ Root:
       Text: "Don't play video game"
       PosX: 0
       PosY: 100
-      Font: "JSE_AmigaAMOS"
+      Font: "test"
       FontSize: 48
       LineSpacing: 10
       PrimaryAlign: *AlignCenter

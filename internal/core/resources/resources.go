@@ -27,6 +27,7 @@ type ldtkNames struct {
 	PlayerSpaceLayer       string
 	SpawnPosEntity         string
 	DoorEntity             string
+	DoorV2Entity           string
 	SpawnPointEntity       string
 	SlamboxEntity          string
 	SpikeIntGrid           string
@@ -48,6 +49,7 @@ var LDTKNames = ldtkNames{
 	PlayerSpaceLayer:       "Playerspace",
 	SpawnPosEntity:         "DefaultSpawnPos",
 	DoorEntity:             "Door",
+	DoorV2Entity:           "DoorV2",
 	SpawnPointEntity:       "SpawnPoint",
 	SlamboxEntity:          "Slambox",
 	SpikeIntGrid:           "Spikes",

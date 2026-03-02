@@ -75,6 +75,7 @@ type Level struct {
 	slamboxEntities  []*SlamboxEntity
 	hazards          []*entities.Hazard
 	doors            []entities.Door
+	doorsV2          []entities.DoorV2
 	grassEntities    []entities.Grass
 	turrets          []*entities.Turret
 	catchers         []*entities.Catcher
@@ -86,7 +87,7 @@ type Level struct {
 
 // ------ CONSTRUCTOR ------
 // TODO: Refactor because this is very big
-func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error) {
+func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs, tilesets map[string]*ebiten.Image) (*Level, error) {
 	newLevel := &Level{}
 	newLevel.levelLDTK = levelLDTK
 	newLevel.defs = defs
@@ -158,12 +159,14 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 			newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
 		case names.LanternEntity:
 			newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
-		// case chainNodeEntityName:
+		case names.DoorV2Entity:
+			newLevel.doorsV2 = append(newLevel.doorsV2, entities.DoorV2(entities.NewDoorV2(&entity)))
+			// case chainNodeEntityName:
 		// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 		case names.TestSpeechBubbleEntity:
 			fmt.Println(entity.Px[0], entity.Px[1])
 			newLevel.testSpeechBubble = speechbubble.NewSpeechBubble(
-				entity.Px[0], entity.Px[1], entity.Width, entity.Height,
+				entity.Px[0], entity.Px[1], entity.Width, entity.Height, false,
 			)
 		}
 	}
@@ -191,7 +194,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs) (*Level, error
 
 		tileset := errs.Must(newLevel.defs.GetTilesetByUid(layer.TilesetUid))
 		tilesize := tileset.TileGridSize
-		tilesetImage := tileset.Image
+		tilesetImage := tilesets[tileset.Name]
 
 		drawTiles(tiles, tilesetImage, targetRenderLayer, tilesize)
 	}
@@ -227,12 +230,8 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	if l.testSpeechBubble != nil {
 		l.testSpeechBubble.Update()
 
-		// if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		cursorX, cursorY := ebiten.CursorPosition()
-		// cursorX = cursorX / rendering.PIXEL_SCALE
-		// cursorY = cursorY / rendering.PIXEL_SCALE
 		l.testSpeechBubble.SetAnchor(float64(cursorX), float64(cursorY))
-		// }
 	}
 }
 
@@ -439,7 +438,8 @@ func (l *Level) GetBiome() string {
 	if err != nil {
 		return ""
 	}
-	return field.Biome
+	biome := ebitenLDTK.GetSingleValue[ebitenLDTK.Enum](field)
+	return biome.Value
 }
 
 func (l *Level) GetBiomeSong() string {
@@ -477,7 +477,8 @@ func (l *Level) GetName() string {
 }
 
 func (l *Level) GetTitle() string {
-	return errs.Must(l.levelLDTK.GetFieldByName(names.LevelTitleField)).String
+	titleField := errs.Must(l.levelLDTK.GetFieldByName(names.LevelTitleField))
+	return ebitenLDTK.GetSingleValue[string](titleField)
 }
 
 func (l *Level) GetGameEntryPos() (float64, float64) {

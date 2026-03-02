@@ -43,6 +43,7 @@ func (l *LoadingScene) Init() {
 	assetloader.Add("textBoxTickSprite", assettypes.MakeImageAsset(assets.Textbox_tick_png))
 	assetloader.Add("playerSprite", assettypes.MakeImageAsset(assets.Player_png))
 	assetloader.Add("titleCard", assettypes.MakeImageAsset(assets.Level_titlecard_sprite))
+	assetloader.Add("doorV2", assettypes.MakeImageAsset(assets.Door_v2_png))
 
 	// Shaders
 	assetloader.Add("fogShader", assettypes.MakeShaderAsset(assets.Fog_kage))

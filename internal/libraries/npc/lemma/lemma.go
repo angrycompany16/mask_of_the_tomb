@@ -1,6 +1,7 @@
 package lemma
 
 import (
+	"fmt"
 	"image/color"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
@@ -9,15 +10,18 @@ import (
 	"mask_of_the_tomb/internal/core/threads"
 	"mask_of_the_tomb/internal/libraries/particles"
 	"time"
-
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+var DefaultLines = []string{
+	"Hi! I'm Lemma, the \nuseless NPC.",
+	"For now, all I do is zip \naround and show some \nplaceholder dialogue.",
+	"Maybe one day someone \nwill give me some \nuseful features...",
+}
+
 // TODO: Add color gradient to vfx body!
-// And then, we must implement some kind of actual hint/NPX system
+// And then, we must implement some kind of actual hint/NPC system
 // Also we gotta give the guy some dialogue... Now that will be a bit tricky
-// Idk how well it's conna work but we'll see
+// Idk how well it's gonna work but we'll see
 // Then we also want to add some sound effects to the NPC itself
 // But overall not bad for a days work!
 
@@ -25,8 +29,16 @@ import (
 // Redo door animation/visual
 // Finish implementing slambox chains
 // Redo turret visuals
+// Create button prompts
 // Create shaders and ambient particle systems for other biomes than just
 // basement
+// Slambox particles have a draw order defined by the slambox draw order,
+// which is not too good of an idea.
+// Also, lemma does not in any sense follow the camera position (i guess
+// that's kind of fair though)
+// Lowkey maybe it would be nice to implement a non-pixel perfect camera..
+// (take aarthificial approach)
+// IMPROVE PERFORMANCE
 
 type LemmaState int
 
@@ -41,6 +53,8 @@ const (
 	idleEmission      = 8
 	appearEmission    = 8
 	disappearEmission = 8
+	zipTimeMin        = 5.0
+	zipTimeMax        = 10.0
 )
 
 var dark = []float64{14, 9, 47}
@@ -55,6 +69,7 @@ const (
 type Lemma struct {
 	appearTimer          *time.Timer
 	disappearTimer       *time.Timer
+	zipTimer             *time.Timer
 	state                LemmaState
 	idleParticleSys      *particles.ParticleSystem
 	appearParticleSys    *particles.ParticleSystem
@@ -78,18 +93,19 @@ func (l *Lemma) Update() {
 	case IDLE_PRESENT:
 		l.vfx.Update()
 
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			mouseX, mouseY := ebiten.CursorPosition()
-			l.vfx.SeekTarget(float64(mouseX)/rendering.PIXEL_SCALE, float64(mouseY)/rendering.PIXEL_SCALE)
+		// if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		// 	mouseX, mouseY := ebiten.CursorPosition()
+		// 	l.vfx.SeekTarget(float64(mouseX)/rendering.PIXEL_SCALE, float64(mouseY)/rendering.PIXEL_SCALE)
+		// }
+		if _, ok := threads.Poll(l.zipTimer.C); ok {
+			targetX := maths.RandomRange(60, rendering.GAME_WIDTH-60)
+			targetY := maths.RandomRange(40, rendering.GAME_HEIGHT-40)
+			l.vfx.SeekTarget(targetX, targetY)
+			l.zipTimer = time.NewTimer(time.Duration(maths.RandomRange(zipTimeMin, zipTimeMax) * 1e9))
 		}
 
-		if inpututil.IsKeyJustPressed(ebiten.KeyH) {
-			l.Hide()
-		}
 	case IDLE_GONE:
-		if inpututil.IsKeyJustPressed(ebiten.KeyH) {
-			l.Reveal()
-		}
+
 	case APPEARING:
 		l.appearTime += dt
 		l.vfx.Update()
@@ -151,6 +167,22 @@ func (l *Lemma) Reveal() {
 	l.appearParticleSys.Play()
 }
 
+// Returns whether we was turned on or off
+func (l *Lemma) ToggleVisibility() bool {
+	fmt.Println("Brh?")
+	fmt.Println(l.state)
+	if l.state == IDLE_GONE {
+		l.Reveal()
+		fmt.Println("I was hidden")
+		return true
+	} else if l.state == IDLE_PRESENT {
+		fmt.Println("I was present")
+		l.Hide()
+		return false
+	}
+	return false
+}
+
 func (l *Lemma) Draw(ctx rendering.Ctx) {
 	l.idleParticleSys.Draw(ctx)
 	l.appearParticleSys.Draw(ctx)
@@ -164,6 +196,14 @@ func (l *Lemma) Draw(ctx rendering.Ctx) {
 	case APPEARING:
 		l.vfx.Draw(ctx)
 	}
+}
+
+func (l *Lemma) X() float64 {
+	return l.vfx.visualX
+}
+
+func (l *Lemma) Y() float64 {
+	return l.vfx.visualY
 }
 
 func NewLemma(x, y float64) *Lemma {
@@ -184,6 +224,8 @@ func NewLemma(x, y float64) *Lemma {
 	disappearParticles := errs.Must(assettypes.GetYamlAsset("lemmaDisappearParticles")).(*particles.ParticleSystem)
 	disappearParticles.Init()
 	newLemma.disappearParticleSys = disappearParticles
+
+	newLemma.zipTimer = time.NewTimer(time.Duration(maths.RandomRange(zipTimeMin, zipTimeMax) * 1e9))
 
 	return &newLemma
 }

@@ -12,22 +12,17 @@ slamboxes and (2) the ability to connect slamboxes in "any" configuration)
 Bug list:
 - Sometimes spamming pause/play while respawning causes the player to not appear
   at all (SEVERITY: LOW)
-- 44100 Hz audio does not seem to work on arch, which is quite a huge problem
+- 44100 Hz audio does not work on arch, which is quite a huge problem
 - Opening the game and then exiting from the main menu deletes the current save
 - Random crash can occur when loading audio???
 - Some error message keeps occuring in the loading section
-
-
-NOTE: Converting lots of audio assets into .ogg format should make life (everything)
-better
-
+- It seems that resetting the game completely causes the game to freeze on playing
+  (not sure if it is the 1st or 2nd time) (This is important so please fix)
 
 DEMO ROADMAP:
-- Finish slam animation
 - Create music for the first area + menu music
 - Revamp & touch up sound effects
 - Add credits/shoutout page (is for me) 
-- Remake dash animation
 - Create levels (at least 20!)
 - Create website + web build
 
@@ -49,5 +44,4 @@ DEMO ROADMAP:
 // - Remove the singletons. These should not exist
 // - Use the race condition checker...
 // - Implement generalized input handler
-// - Improve the asset loader, turn into actual editor
 // - Create animation/sprite asset files

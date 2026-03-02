@@ -31,15 +31,15 @@ type LevelSwapCtx struct {
 }
 
 type World struct {
+	*assettypes.LDTKAsset
 	currentBiome string
-	worldLDTK    *ebitenLDTK.World
 	ActiveLevel  *Level
 	LevelSwapCtx LevelSwapCtx
 }
 
 func NewWorld() *World {
 	return &World{
-		worldLDTK: errs.Must(assettypes.GetLDTKAsset("LDTKAsset")),
+		LDTKAsset: errs.Must(assettypes.GetLDTKAsset("LDTKAsset")),
 	}
 }
 
@@ -65,25 +65,25 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 
 	switch levelId := any(id).(type) {
 	case string:
-		newLevelLDTK, err = world.worldLDTK.GetLevelByName(levelId)
+		newLevelLDTK, err = world.World.GetLevelByName(levelId)
 		if err != nil {
 			fmt.Println("Couldn't switch levels by name (id string), trying Iid...")
 			var Ierr error
-			newLevelLDTK, Ierr = world.worldLDTK.GetLevelByIid(levelId)
+			newLevelLDTK, Ierr = world.World.GetLevelByIid(levelId)
 			if Ierr != nil {
 				fmt.Println("Error when switching levels by Iid (id string)")
 				return "", Ierr
 			}
 		}
 	case int:
-		newLevelLDTK, err = world.worldLDTK.GetLevelByUid(levelId)
+		newLevelLDTK, err = world.World.GetLevelByUid(levelId)
 		if err != nil {
 			fmt.Println("Error when switching levels (id int)")
 			return "", err
 		}
 	}
 
-	newLevel, err := newLevel(&newLevelLDTK, &world.worldLDTK.Defs)
+	newLevel, err := newLevel(&newLevelLDTK, &world.World.Defs, world.Tilesets)
 	if err != nil {
 		return "", err
 	}

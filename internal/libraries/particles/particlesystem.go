@@ -144,6 +144,8 @@ func (ps *ParticleSystem) SetPos(x, y float64) {
 func (ps *ParticleSystem) newParticle() *Particle {
 	var x, y float64
 	if ps.GlobalSpace {
+		// Oh god...
+		// How did i manage to write something so convoluted?
 		x, y = ps.SpawnPosX.Eval()+ps.PosX-float64(ps.ImageWidth)/2, ps.SpawnPosY.Eval()+ps.PosY-float64(ps.ImageHeight)/2
 	} else {
 		x, y = ps.SpawnPosX.Eval(), ps.SpawnPosY.Eval()

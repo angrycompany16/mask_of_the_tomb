@@ -36,6 +36,8 @@ var (
 	Slambox_gem_red_png []byte
 	//go:embed sprites/UI/level-titlecard.png
 	Level_titlecard_sprite []byte
+	//go:embed sprites/environment/door_v2.png
+	Door_v2_png []byte
 
 	// Shaders
 	//go:embed shaders/fog.kage
@@ -99,4 +101,6 @@ var (
 	JSE_ZXSpectrum_ttf []byte
 	//go:embed fonts/dude.ttf
 	C_AND_C_Red_Alert_ttf []byte
+	//go:embed fonts/alagard.ttf
+	Test_ttf []byte
 )

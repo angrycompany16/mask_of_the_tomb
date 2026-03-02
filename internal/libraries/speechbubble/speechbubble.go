@@ -15,8 +15,8 @@ import (
 type SpeechBubble struct {
 	graphic     *speechBubbleGraphic
 	textDisplay *speechBubbleText
-	// vocalizer   *vocalizer
 	currentLine int
+	hidden      bool
 	lines       []string
 }
 
@@ -54,8 +54,10 @@ func (sb *SpeechBubble) LoadActiveLine() {
 }
 
 func (sb *SpeechBubble) Draw(ctx rendering.Ctx) {
-	sb.graphic.Draw(ctx)
-	sb.textDisplay.Draw(ctx)
+	if !sb.hidden {
+		sb.graphic.Draw(ctx)
+		sb.textDisplay.Draw(ctx)
+	}
 }
 
 func (sb *SpeechBubble) SetAnchor(x, y float64) {
@@ -63,13 +65,30 @@ func (sb *SpeechBubble) SetAnchor(x, y float64) {
 	sb.graphic.anchorY = y
 }
 
-func NewSpeechBubble(anchorX, anchorY, width, height float64) *SpeechBubble {
+// Very simple for now - These can be expanded later
+func (sb *SpeechBubble) Hide() {
+	sb.hidden = true
+}
+
+func (sb *SpeechBubble) Reveal() {
+	sb.hidden = false
+}
+
+func (sb *SpeechBubble) ToggleVisibility() {
+	sb.hidden = !sb.hidden
+}
+
+func (sb *SpeechBubble) SetLines(lines []string) {
+	sb.textDisplay.revealIndex = 0
+	sb.currentLine = 0
+	sb.lines = lines
+}
+
+func NewSpeechBubble(anchorX, anchorY, width, height float64, hidden bool) *SpeechBubble {
 	speechBubbleTick := errs.Must(assettypes.GetImageAsset("textBoxTickSprite"))
 	newSpeechBubble := SpeechBubble{}
 
 	newSpeechBubble.graphic = &speechBubbleGraphic{
-		// This will change
-		// Or will it...
 		rect:         maths.NewRect(anchorX, anchorY, width*rendering.PIXEL_SCALE, height*rendering.PIXEL_SCALE),
 		anchorX:      anchorX,
 		anchorY:      anchorY,
@@ -93,13 +112,7 @@ func NewSpeechBubble(anchorX, anchorY, width, height float64) *SpeechBubble {
 		relLineSpacing: 1.2,
 	}
 	// newSpeechBubble.vocalizer = newVocalizer()
-	newSpeechBubble.lines = []string{
-		"Heisann!",
-		"...",
-		"Lorem ipsum\nmultiline",
-		"AAAAAAAAA",
-		"Dad? Pop?",
-		"Let's talk for real man. \nThis is gonna be a long sentence,\nand I'm sorry about that.",
-	}
+	newSpeechBubble.lines = make([]string, 0)
+	newSpeechBubble.hidden = hidden
 	return &newSpeechBubble
 }

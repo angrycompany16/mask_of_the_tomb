@@ -236,6 +236,7 @@ func (p *Player) readMoveInput() maths.Direction {
 	return maths.DirNone
 }
 
+// Let's maybe make this a bit cleaner
 func (p *Player) playJumpParticles(direction maths.Direction) {
 	centerX, centerY := p.hitbox.Center()
 	// s := p.jumpParticlesBroad.

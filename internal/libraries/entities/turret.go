@@ -104,10 +104,11 @@ func NewTurret(
 	newTurret.rayPulseTicker = time.NewTicker(rayPulsePeriod)
 	newTurret.rayThickness = 4.0
 
-	directionField := errs.Must(entity.GetFieldByName(directionFieldName))
+	directionField := errs.Must(entity.GetFieldByName(doorDirectionFieldName))
+	point := ebitenLDTK.GetSingleValue[ebitenLDTK.Point](directionField)
 
-	newTurret.aimDirX = directionField.Point.X*tileSize - entity.Px[0]
-	newTurret.aimDirY = directionField.Point.Y*tileSize - entity.Px[1]
+	newTurret.aimDirX = point.X*tileSize - entity.Px[0]
+	newTurret.aimDirY = point.Y*tileSize - entity.Px[1]
 
 	newTurret.Light = &shaders.Light{
 		X:           entity.Px[0],

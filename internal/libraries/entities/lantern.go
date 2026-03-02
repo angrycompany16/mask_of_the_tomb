@@ -168,9 +168,10 @@ func NewLantern(
 	newLantern.sprite = errs.Must(assettypes.GetImageAsset("lanternSprite"))
 
 	anchorPointField := errs.Must(entity.GetFieldByName("Anchor"))
+	point := ebitenLDTK.GetSingleValue[ebitenLDTK.Point](anchorPointField)
 
-	anchorX := anchorPointField.Point.X * tileSize
-	anchorY := anchorPointField.Point.Y * tileSize
+	anchorX := point.X * tileSize
+	anchorY := point.Y * tileSize
 
 	centerX := newLantern.sprite.Bounds().Dx() / 2
 	centerY := newLantern.sprite.Bounds().Dy() / 2

@@ -15,6 +15,7 @@ import (
 	"mask_of_the_tomb/internal/libraries/npc/lemma"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"mask_of_the_tomb/internal/libraries/slambox"
+	"mask_of_the_tomb/internal/libraries/speechbubble"
 	ui "mask_of_the_tomb/internal/plugins/UI"
 	"mask_of_the_tomb/internal/plugins/player"
 	"mask_of_the_tomb/internal/plugins/world"
@@ -29,6 +30,7 @@ type GameplayScene struct {
 	world                    *world.World
 	player                   *player.Player
 	lemma                    *lemma.Lemma
+	lemmaSpeechBubble        *speechbubble.SpeechBubble
 	deathTransitionListener  *events.EventListener
 	levelTransitionListener  *events.EventListener
 	titleCardTimeoutListener *events.EventListener
@@ -199,7 +201,18 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 
 	g.player.Update()
 	g.lemma.Update()
+	g.lemmaSpeechBubble.Update()
+	g.lemmaSpeechBubble.SetAnchor(g.lemma.X()*rendering.PIXEL_SCALE, g.lemma.Y()*rendering.PIXEL_SCALE)
 	camera.SetPos(g.player.GetPosCentered())
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
+		revealed := g.lemma.ToggleVisibility()
+		g.lemmaSpeechBubble.ToggleVisibility()
+		if revealed {
+			fmt.Println("New lines")
+			g.lemmaSpeechBubble.SetLines(lemma.DefaultLines)
+		}
+	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		g.paused = true
@@ -225,6 +238,7 @@ func (g *GameplayScene) Draw() {
 	g.player.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
 	g.world.ActiveLevel.Draw(drawCtx, g.player.Light)
 	g.lemma.Draw(rendering.WithLayer(drawCtx, rendering.ScreenLayers.Playerspace))
+	g.lemmaSpeechBubble.Draw(drawCtx.WithLayer(rendering.ScreenLayers.ForegroundHD))
 
 	g.UI.Draw()
 	// UI is HARD-CODED to render at the UI layer...
@@ -234,9 +248,10 @@ func (g *GameplayScene) Draw() {
 func (g *GameplayScene) GetName() string { return "gameplayScene" }
 func MakeGameplayScene() *GameplayScene {
 	return &GameplayScene{
-		UI:     errs.Must(assettypes.GetYamlAsset("emptyMenu")).(*ui.UI),
-		player: player.NewPlayer(),
-		lemma:  lemma.NewLemma(100.0, 100.0),
-		world:  world.NewWorld(),
+		UI:                errs.Must(assettypes.GetYamlAsset("emptyMenu")).(*ui.UI),
+		player:            player.NewPlayer(),
+		lemma:             lemma.NewLemma(rendering.GAME_WIDTH/4, rendering.GAME_HEIGHT/4),
+		lemmaSpeechBubble: speechbubble.NewSpeechBubble(rendering.GAME_WIDTH/4, rendering.GAME_HEIGHT/4, 16, 16, true),
+		world:             world.NewWorld(),
 	}
 }

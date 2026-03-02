@@ -9,8 +9,8 @@ SpawnPosX:
   Min: 0
   Max: 480
 SpawnPosY:
-  Min: 40
-  Max: 310
+  Min: 0
+  Max: 270
 SpawnVelX:
   Min: 0
   Max: 0
@@ -40,7 +40,7 @@ NoiseFactorY:
   Max: 5.0
 StartColor: [255, 255, 255, 255]
 EndColor: [255, 255, 255, 255]
-ImageWidth: 480
-ImageHeight: 270
+ImageWidth: 13
+ImageHeight: 13
 SpritePath: assets/sprites/environment/star.png
 ...

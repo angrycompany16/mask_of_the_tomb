@@ -7,13 +7,15 @@ import (
 	"strings"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 // TODO: Add funcitonality for loading LDTK from bytes (go embed)
 type LDTKAsset struct {
-	path  string
-	World ebitenLDTK.World
+	path     string
+	World    ebitenLDTK.World
+	Tilesets map[string]*ebiten.Image
 }
 
 func (a *LDTKAsset) Load() error {
@@ -24,6 +26,7 @@ func (a *LDTKAsset) Load() error {
 		return err
 	}
 
+	a.Tilesets = make(map[string]*ebiten.Image, len(a.World.Defs.Tilesets))
 	a.World = world
 	LDTKpath := filepath.Clean(filepath.Join(a.path, ".."))
 	for i := 0; i < len(a.World.Defs.Tilesets); i++ {
@@ -39,14 +42,14 @@ func (a *LDTKAsset) Load() error {
 		if err != nil {
 			return err
 		}
-		tileset.Image = tilesetImage
+		a.Tilesets[tileset.Name] = tilesetImage
 	}
 	return nil
 }
 
-func GetLDTKAsset(name string) (*ebitenLDTK.World, error) {
+func GetLDTKAsset(name string) (*LDTKAsset, error) {
 	ldtkAsset, err := assetloader.GetAsset(name)
-	return &ldtkAsset.(*LDTKAsset).World, err
+	return ldtkAsset.(*LDTKAsset), err
 }
 
 func NewLDTKAsset(path string) *LDTKAsset {
