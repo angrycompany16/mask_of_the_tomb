@@ -438,7 +438,7 @@ func (l *Level) GetBiome() string {
 	if err != nil {
 		return ""
 	}
-	biome := ebitenLDTK.GetSingleValue[ebitenLDTK.Enum](field)
+	biome := ebitenLDTK.As[ebitenLDTK.Enum](field)
 	return biome.Value
 }
 
@@ -478,7 +478,7 @@ func (l *Level) GetName() string {
 
 func (l *Level) GetTitle() string {
 	titleField := errs.Must(l.levelLDTK.GetFieldByName(names.LevelTitleField))
-	return ebitenLDTK.GetSingleValue[string](titleField)
+	return ebitenLDTK.As[string](titleField)
 }
 
 func (l *Level) GetGameEntryPos() (float64, float64) {

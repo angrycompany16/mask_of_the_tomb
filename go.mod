@@ -3,7 +3,7 @@ module mask_of_the_tomb
 go 1.24.3
 
 require (
-	github.com/angrycompany16/ebiten-LDTK v0.0.0-20260302161018-ad85f23114de
+	github.com/angrycompany16/ebiten-LDTK v0.0.0-20260302175427-27fe9e4eafb6
 	github.com/aquilax/go-perlin v1.1.0
 	github.com/hajimehoshi/ebiten/v2 v2.9.8
 	github.com/solarlune/resound v0.4.0
@@ -16,7 +16,7 @@ require (
 	github.com/ebitengine/oto/v3 v3.4.0 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200707082815-5321531c36a2 // indirect
-	github.com/go-text/typesetting v0.3.4 // indirect
+	github.com/go-text/typesetting v0.3.3 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/jezek/xgb v1.3.0 // indirect
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect

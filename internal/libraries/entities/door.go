@@ -52,7 +52,7 @@ func NewDoor(
 	newDoor.animator.SwitchClip(1)
 
 	fieldInstance := errs.Must(entity.GetFieldByName(doorOtherSideFieldName))
-	entityRef := ebitenLDTK.GetSingleValue[ebitenLDTK.EntityRef](fieldInstance)
+	entityRef := ebitenLDTK.As[ebitenLDTK.EntityRef](fieldInstance)
 	newDoor.LevelIid = entityRef.LevelIid
 	newDoor.EntityIid = entityRef.EntityIid
 

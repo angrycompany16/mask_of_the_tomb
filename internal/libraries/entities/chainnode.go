@@ -35,7 +35,7 @@ func NewChainNode(
 
 	newChainNode.NodeConnections = make([]string, 0)
 	nextNodeField := errs.Must(entity.GetFieldByName("NodeConnector"))
-	for _, entityRef := range ebitenLDTK.GetArray[ebitenLDTK.EntityRef](nextNodeField) {
+	for _, entityRef := range ebitenLDTK.AsArray[ebitenLDTK.EntityRef](nextNodeField) {
 		newChainNode.NodeConnections = append(newChainNode.NodeConnections, entityRef.EntityIid)
 	}
 

@@ -50,7 +50,7 @@ func NewDoorV2(
 
 	// directionField := errs.Must(entity.GetFieldByName(doorDirectionFieldName))
 	fieldInstance := errs.Must(entity.GetFieldByName(doorV2OtherSideFieldName))
-	entityRef := ebitenLDTK.GetSingleValue[ebitenLDTK.EntityRef](fieldInstance)
+	entityRef := ebitenLDTK.As[ebitenLDTK.EntityRef](fieldInstance)
 	newDoor.LevelIid = entityRef.LevelIid
 	newDoor.EntityIid = entityRef.EntityIid
 

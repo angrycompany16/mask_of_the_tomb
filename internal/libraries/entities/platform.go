@@ -33,7 +33,7 @@ func NewPlatform(
 	newPlatform.Sprite = ebiten.NewImage(int(entity.Width), int(entity.Height))
 
 	directionField := errs.Must(entity.GetFieldByName("Direction"))
-	point := ebitenLDTK.GetSingleValue[ebitenLDTK.Point](directionField)
+	point := ebitenLDTK.As[ebitenLDTK.Point](directionField)
 	newPlatform.Up = point.Y*tileSize < entity.Px[1]
 
 	return newPlatform

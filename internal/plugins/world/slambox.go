@@ -237,7 +237,7 @@ func NewSlamboxEntity(
 	subSlamboxes := make([]*slambox.Slambox, 0)
 	subSlamboxSprites := make([]*ebiten.Image, 0)
 	subSlamboxesField := errs.Must(entity.GetFieldByName(subSlamboxesFieldName))
-	for _, subSlamboxEntityRef := range ebitenLDTK.GetArray[ebitenLDTK.EntityRef](subSlamboxesField) {
+	for _, subSlamboxEntityRef := range ebitenLDTK.AsArray[ebitenLDTK.EntityRef](subSlamboxesField) {
 		subSlamboxEntity := errs.Must(levelLDTK.GetEntityByIid(subSlamboxEntityRef.EntityIid))
 		subSlamboxRect := maths.NewRect(subSlamboxEntity.Px[0], subSlamboxEntity.Px[1], subSlamboxEntity.Width, subSlamboxEntity.Height)
 		subSlamboxRects = append(subSlamboxRects, subSlamboxRect)

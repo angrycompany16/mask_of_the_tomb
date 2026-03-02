@@ -3,6 +3,8 @@ github.com/angrycompany16/ebiten-LDTK v0.0.0-20260217180302-aca3f91c8809 h1:J1GN
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20260217180302-aca3f91c8809/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20260302161018-ad85f23114de h1:igPvCLsKzMRgy1Xc+YIOBf7RbQSiojXWH3Gwb7gA2mM=
 github.com/angrycompany16/ebiten-LDTK v0.0.0-20260302161018-ad85f23114de/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
+github.com/angrycompany16/ebiten-LDTK v0.0.0-20260302175427-27fe9e4eafb6 h1:N4x7uGMHjPN8oAwDcWUYr20MhdVH0p78+ra6woKagCs=
+github.com/angrycompany16/ebiten-LDTK v0.0.0-20260302175427-27fe9e4eafb6/go.mod h1:4Wk2jBxSVLyZy9XVUeJEeeaSw5aSGQSNlxyDv5GnFbs=
 github.com/aquilax/go-perlin v1.1.0 h1:Gg+3jQ24wT4Y5GI7TCRLmYarzUG0k+n/JATFqOimb7s=
 github.com/aquilax/go-perlin v1.1.0/go.mod h1:z9Rl7EM4BZY0Ikp2fEN1I5mKSOJ26HQpk0O2TBdN2HE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

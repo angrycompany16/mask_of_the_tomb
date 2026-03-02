@@ -105,7 +105,7 @@ func NewTurret(
 	newTurret.rayThickness = 4.0
 
 	directionField := errs.Must(entity.GetFieldByName(doorDirectionFieldName))
-	point := ebitenLDTK.GetSingleValue[ebitenLDTK.Point](directionField)
+	point := ebitenLDTK.As[ebitenLDTK.Point](directionField)
 
 	newTurret.aimDirX = point.X*tileSize - entity.Px[0]
 	newTurret.aimDirY = point.Y*tileSize - entity.Px[1]
