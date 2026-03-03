@@ -45,9 +45,9 @@ func (g *GameplayScene) Init() {
 	gameData := errs.Must(save.GetSaveAsset("saveData"))
 	g.world.Init(InitLevelName, gameData)
 
-	resetX, resetY := g.world.ActiveLevel.GetResetPoint()
+	resetX, resetY, resetDir := g.world.ActiveLevel.GetResetInfo()
 
-	g.player.Init(resetX, resetY, maths.DirNone)
+	g.player.Init(resetX, resetY, resetDir)
 	playerWidth, playerHeight := g.player.GetSize()
 
 	w, h := g.world.ActiveLevel.GetBounds()
@@ -144,7 +144,8 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 		}
 	}
 
-	doorOverlap, levelIid, doorEntityIid := g.world.ActiveLevel.CheckDoorOverlap(g.player.GetHitbox())
+	// doorOverlap, levelIid, doorEntityIid := g.world.ActiveLevel.CheckDoorOverlap(g.player.GetHitbox())
+	doorOverlap, levelIid, doorEntityIid := g.world.ActiveLevel.CheckDoorOverlapV2(g.player.GetHitbox())
 	if g.player.GetLevelSwapInput() && doorOverlap && !g.player.Disabled {
 		if doorEntityIid == "" || levelIid == "" {
 			fmt.Println("Could not switch to empty level! Probably missing an entity ref.")
@@ -170,7 +171,10 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 			sound_v2.PlaySound(newBiomeSong, "musicMaster", 0)
 		}
 		camera.SetBorders(g.world.ActiveLevel.GetBounds())
-		g.player.SetHitboxPos(g.world.ActiveLevel.GetResetPoint())
+		// g.player.(g.world.ActiveLevel.GetReset)
+		resetX, resetY, resetDir := g.world.ActiveLevel.GetResetInfo()
+		g.player.SetPos(resetX, resetY)
+		g.player.SetDir(resetDir)
 		levelCardOverlay := g.UI.GetOverlay("levelcard")
 		levelCard, _ := levelCardOverlay.OverlayContent.(*ui.LevelCard)
 		levelCard.ChangeText(g.world.ActiveLevel.GetTitle())
@@ -191,8 +195,9 @@ func (g *GameplayScene) Update(sceneStack *scene.SceneStack) (*scene.SceneTransi
 
 	_, deathTransitionReady := g.deathTransitionListener.Poll()
 	if deathTransitionReady {
-		posX, posY := g.world.ResetActiveLevel()
+		posX, posY, dir := g.world.ResetActiveLevel()
 		g.player.SetPos(posX, posY)
+		g.player.SetDir(dir)
 		g.player.Respawn()
 
 		deathTransition := g.UI.GetOverlay("deathTransition")

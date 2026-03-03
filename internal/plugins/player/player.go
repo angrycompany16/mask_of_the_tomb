@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
@@ -168,13 +169,14 @@ func (p *Player) IsMoving() bool {
 }
 
 // ------ SETTERS ------
+// Why do we have two of these???
 func (p *Player) SetPos(x, y float64) {
 	p.movebox.SetPos(x, y)
 }
 
-func (p *Player) SetHitboxPos(x, y float64) {
-	p.movebox.SetPos(x, y)
-	p.hitbox.SetPos(x, y)
+func (p *Player) SetDir(dir maths.Direction) {
+	fmt.Println("direction:", dir)
+	p.direction = dir
 }
 
 func (p *Player) Die() {
@@ -190,7 +192,6 @@ func (p *Player) Die() {
 
 func (p *Player) Respawn() {
 	p.Disabled = false
-	p.direction = maths.DirUp
 	p.State = Idle
 }
 

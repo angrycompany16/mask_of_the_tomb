@@ -68,6 +68,7 @@ type Level struct {
 	vignetteShader           *ebiten.Shader
 	pixelLightShader         *ebiten.Shader
 	resetX, resetY           float64
+	resetDir                 maths.Direction
 	ambientParticles         *particles.ParticleSystem
 	grassTilemap             *ebiten.Image
 	slamboxEnvironment       *slambox.SlamboxEnvironment
@@ -75,7 +76,7 @@ type Level struct {
 	slamboxEntities  []*SlamboxEntity
 	hazards          []*entities.Hazard
 	doors            []entities.Door
-	doorsV2          []entities.DoorV2
+	doorsV2          []*entities.DoorV2
 	grassEntities    []entities.Grass
 	turrets          []*entities.Turret
 	catchers         []*entities.Catcher
@@ -160,7 +161,7 @@ func newLevel(levelLDTK *ebitenLDTK.Level, defs *ebitenLDTK.Defs, tilesets map[s
 		case names.LanternEntity:
 			newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
 		case names.DoorV2Entity:
-			newLevel.doorsV2 = append(newLevel.doorsV2, entities.DoorV2(entities.NewDoorV2(&entity)))
+			newLevel.doorsV2 = append(newLevel.doorsV2, entities.NewDoorV2(&entity, levelLDTK))
 			// case chainNodeEntityName:
 		// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 		case names.TestSpeechBubbleEntity:
@@ -213,6 +214,11 @@ func (l *Level) Update(playerX, playerY, playerVelX, playerVelY float64) {
 	for _, door := range l.doors {
 		door.Update()
 	}
+	// BRUH
+	for _, doorV2 := range l.doorsV2 {
+		doorV2.Update(playerX, playerY)
+	}
+
 	// for _, turret := range l.turrets {
 	// hit, x, y := l.TilemapCollider.Raycast(turret.Hitbox.Left(), turret.Hitbox.Top(), turret.GetAimDir(), l.GetSlamboxRects())
 	// if hit {
@@ -262,31 +268,35 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 
 	// Consider creating an entity interface
 	for _, turretEntity := range l.turrets {
-		turretEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+		turretEntity.Draw(ctx.WithLayer(l.frameLayers.Playerspace))
 	}
 
 	for _, slamboxEntity := range l.slamboxEntities {
-		slamboxEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+		slamboxEntity.Draw(ctx.WithLayer(l.frameLayers.Playerspace))
 	}
 
 	for _, hazard := range l.hazards {
-		hazard.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+		hazard.Draw(ctx.WithLayer(l.frameLayers.Playerspace))
 	}
 
 	for _, grassEntity := range l.grassEntities {
-		grassEntity.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+		grassEntity.Draw(ctx.WithLayer(l.frameLayers.Playerspace))
 	}
 
 	for _, door := range l.doors {
-		door.Draw(rendering.WithLayer(ctx, l.frameLayers.Midground))
+		door.Draw(ctx.WithLayer(l.frameLayers.Midground))
+	}
+
+	for _, doorV2 := range l.doorsV2 {
+		doorV2.Draw(ctx.WithLayer(l.frameLayers.Playerspace))
 	}
 
 	for _, catcher := range l.catchers {
-		catcher.Draw(rendering.WithLayer(ctx, l.frameLayers.Midground))
+		catcher.Draw(ctx.WithLayer(l.frameLayers.Midground))
 	}
 
 	for _, lantern := range l.lanterns {
-		lantern.Draw(rendering.WithLayer(ctx, l.frameLayers.Playerspace))
+		lantern.Draw(ctx.WithLayer(l.frameLayers.Playerspace))
 	}
 
 	// for _, chainNode := range l.chainNodes {
@@ -329,15 +339,14 @@ func (l *Level) Draw(ctx rendering.Ctx, playerLight *shaders.Light) {
 	rendering.ScreenLayers.Background.DrawRectShader(rendering.GAME_WIDTH, rendering.GAME_HEIGHT, l.pixelLightShader, &shaderOp)
 
 	if l.testSpeechBubble != nil {
-		l.testSpeechBubble.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.ForegroundHD))
+		l.testSpeechBubble.Draw(ctx.WithLayer(rendering.ScreenLayers.ForegroundHD))
 	}
 	rendering.ScreenLayers.Foreground.DrawImage(l.frameLayers.Foreground, &ebiten.DrawImageOptions{})
 
-	l.ambientParticles.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Foreground))
+	l.ambientParticles.Draw(ctx.WithLayer(rendering.ScreenLayers.Foreground))
 }
 
 func (l *Level) ProjectRect(rect *maths.Rect, dir maths.Direction) (maths.Rect, float64) {
-	// Get platform rects
 	platformHitboxes := make([]*maths.Rect, 0)
 	if dir == maths.DirUp {
 		platformHitboxes = l.GetPlatformHitboxes(false)
@@ -345,11 +354,14 @@ func (l *Level) ProjectRect(rect *maths.Rect, dir maths.Direction) (maths.Rect, 
 		platformHitboxes = l.GetPlatformHitboxes(true)
 	}
 
+	// doorHitBoxes := make([]*maths.Rect, 0)
+
 	otherRects := slices.Concat(
 		l.slamboxEnvironment.GetSlamboxRects(-1),
 		l.slamboxEnvironment.GetSlamboxGroupRects(-1),
 		l.slamboxEnvironment.GetSlamboxChainRects(-1),
 		platformHitboxes,
+		l.GetDoorHitBoxes(),
 	)
 	projRect, dist := l.slamboxEnvironment.ProjectRect(*rect, dir, math.Inf(1), otherRects)
 	return projRect, dist
@@ -362,6 +374,17 @@ func (l *Level) CheckDoorOverlap(playerHitbox *maths.Rect) (hit bool, levelIid, 
 			hit = true
 			levelIid = door.LevelIid
 			entityIid = door.EntityIid
+		}
+	}
+	return
+}
+
+func (l *Level) CheckDoorOverlapV2(playerHitbox *maths.Rect) (hit bool, levelIid, entityIid string) {
+	for _, doorV2 := range l.doorsV2 {
+		if doorV2.IsReady() {
+			hit = true
+			levelIid = doorV2.OtherSideLevelIid
+			entityIid = doorV2.OtherSideEntityIid
 		}
 	}
 	return
@@ -396,6 +419,14 @@ func (l *Level) GetPlatformHitboxes(up bool) []*maths.Rect {
 		if platform.Up == up {
 			hitboxes = append(hitboxes, platform.Hitbox)
 		}
+	}
+	return hitboxes
+}
+
+func (l *Level) GetDoorHitBoxes() []*maths.Rect {
+	hitboxes := make([]*maths.Rect, 0)
+	for _, doorV2 := range l.doorsV2 {
+		hitboxes = append(hitboxes, doorV2.Hitbox)
 	}
 	return hitboxes
 }
@@ -468,8 +499,8 @@ func (l *Level) GetDefaultSpawnPoint() (float64, float64) {
 	return 0, 0
 }
 
-func (l *Level) GetResetPoint() (float64, float64) {
-	return l.resetX, l.resetY
+func (l *Level) GetResetInfo() (float64, float64, maths.Direction) {
+	return l.resetX, l.resetY, l.resetDir
 }
 
 func (l *Level) GetName() string {
@@ -489,6 +520,17 @@ func (l *Level) GetGameEntryPos() (float64, float64) {
 		}
 	}
 	return 0, 0
+}
+
+func (l *Level) ResetInfoFromIid(doorEntityIid string) (float64, float64, maths.Direction) {
+	for _, doorV2 := range l.doorsV2 {
+		if doorV2.EntityIid != doorEntityIid {
+			continue
+		}
+		x, y := doorV2.GetSpawnPos()
+		return x, y, doorV2.GetDir()
+	}
+	return 0, 0, maths.DirNone
 }
 
 // func (l *Level) GetChainNodes() []*entities.ChainNode {

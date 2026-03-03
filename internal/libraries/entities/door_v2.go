@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
+	"mask_of_the_tomb/internal/core/resources"
 
 	// TODO: This needs to be fixed
 
@@ -19,25 +20,64 @@ const (
 )
 
 type DoorV2 struct {
-	LevelIid  string
-	EntityIid string
-	Hitbox    *maths.Rect
-	sprite    *ebiten.Image
-	direction maths.Direction
+	EntityIid          string
+	OtherSideLevelIid  string
+	OtherSideEntityIid string
+	Hitbox             *maths.Rect
+	InteractRegion     *maths.Rect
+	sprite             *ebiten.Image
+	direction          maths.Direction
+	isReady            bool
 }
 
-func (d *DoorV2) Update() {
-
+func (d *DoorV2) Update(playerX, playerY float64) {
+	d.isReady = d.InteractRegion.Contains(playerX, playerY)
+	// d.ready = true
+	// fmt.Println(d.ready)
 }
 
 func (d *DoorV2) Draw(ctx rendering.Ctx) {
-	x, y := d.Hitbox.TopLeft()
-	ebitenrenderutil.DrawAt(d.sprite, ctx.Dst, x, y)
+	// fmt.Println(d.ready)
+	// d.ready = true
+	if d.isReady {
+		x, y := d.Hitbox.TopLeft()
+		rot := maths.DirToRadians(d.direction)
+		ebitenrenderutil.DrawAtRotated(d.sprite, ctx.Dst, x, y, rot, 0.5, 0.5)
+	} else {
+		x, y := d.Hitbox.TopLeft()
+		rot := maths.DirToRadians(maths.Opposite(d.direction))
+		ebitenrenderutil.DrawAtRotated(d.sprite, ctx.Dst, x, y, rot, 0.5, 0.5)
+	}
+}
+
+func (d *DoorV2) IsReady() bool {
+	return d.isReady
+}
+
+// Hard-coded for now. Not great but might have to do
+func (d *DoorV2) GetSpawnPos() (float64, float64) {
+	cx, cy := d.Hitbox.Center()
+	switch d.direction {
+	case maths.DirUp:
+		return cx - 8, d.Hitbox.Top() - 16
+	case maths.DirDown:
+		return cx - 8, d.Hitbox.Bottom()
+	case maths.DirLeft:
+		return d.Hitbox.Left() - 16, cy - 8
+	case maths.DirRight:
+		return d.Hitbox.Right(), cy - 8
+	}
+	return 0, 0
+}
+
+func (d *DoorV2) GetDir() maths.Direction {
+	return d.direction
 }
 
 func NewDoorV2(
 	entity *ebitenLDTK.Entity,
-) DoorV2 {
+	levelLDTK *ebitenLDTK.Level,
+) *DoorV2 {
 	newDoor := DoorV2{}
 	newDoor.Hitbox = maths.NewRect(
 		entity.Px[0],
@@ -46,13 +86,27 @@ func NewDoorV2(
 		entity.Height,
 	)
 
+	newDoor.EntityIid = entity.Iid
 	newDoor.sprite = errs.Must(assettypes.GetImageAsset("doorV2"))
 
-	// directionField := errs.Must(entity.GetFieldByName(doorDirectionFieldName))
-	fieldInstance := errs.Must(entity.GetFieldByName(doorV2OtherSideFieldName))
-	entityRef := ebitenLDTK.As[ebitenLDTK.EntityRef](fieldInstance)
-	newDoor.LevelIid = entityRef.LevelIid
-	newDoor.EntityIid = entityRef.EntityIid
+	directionField := errs.Must(entity.GetFieldByName(doorDirectionFieldName))
+	newDoor.direction = maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)
 
-	return newDoor
+	doorOtherSideField := errs.Must(entity.GetFieldByName(doorV2OtherSideFieldName))
+	doorOtherSide := ebitenLDTK.As[ebitenLDTK.EntityRef](doorOtherSideField)
+
+	newDoor.OtherSideLevelIid = doorOtherSide.LevelIid
+	newDoor.OtherSideEntityIid = doorOtherSide.EntityIid
+
+	interactRegionField := errs.Must(entity.GetFieldByName(resources.LDTKNames.DoorInteractRegionField))
+	interactRegion := errs.Must(levelLDTK.GetEntityByIid(ebitenLDTK.As[ebitenLDTK.EntityRef](interactRegionField).EntityIid))
+
+	newDoor.InteractRegion = maths.NewRect(
+		interactRegion.Px[0],
+		interactRegion.Px[1],
+		interactRegion.Width,
+		interactRegion.Height,
+	)
+
+	return &newDoor
 }

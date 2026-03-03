@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
@@ -60,8 +61,6 @@ func (p *Player) Update() {
 	case Moving:
 		p.movebox.Update()
 		_, finished := p.moveFinishedListener.Poll()
-		// bufInput := p.InputBuffer.Read()
-		//  && (bufInput == maths.DirNone || bufInput == p.direction)
 		if finished {
 			p.direction = maths.Opposite(p.direction)
 			p.State = Idle
@@ -104,6 +103,7 @@ func (p *Player) Draw(ctx rendering.Ctx) {
 	if p.State == Dying {
 		p.deathAnim.Draw(ctx)
 	} else {
+		fmt.Println(p.direction)
 		posX, posY := p.movebox.GetPos()
 		jumpOffsetX, jumpOffsetY := p.calculateJumpOffset()
 		ebitenrenderutil.DrawAtRotated(

@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"math"
 	"math/rand/v2"
+	"strings"
 )
 
 type Direction int
@@ -63,7 +64,7 @@ func RotateCCW(dir Direction) Direction {
 	return DirNone
 }
 
-// Rewrite to use inner product
+// TODO: Rewrite to use inner product
 func DirFromVector(x, y float64) Direction {
 	if x == 0 && y < 0 {
 		return DirUp
@@ -76,6 +77,34 @@ func DirFromVector(x, y float64) Direction {
 	} else {
 		return DirNone
 	}
+}
+
+func DirToVector(dir Direction) (float64, float64) {
+	switch dir {
+	case DirUp:
+		return 0, -1
+	case DirDown:
+		return 0, 1
+	case DirRight:
+		return 1, 0
+	case DirLeft:
+		return -1, 0
+	}
+	return 0, 0
+}
+
+func DirFromString(dir string) Direction {
+	switch strings.ToLower(dir) {
+	case "up":
+		return DirUp
+	case "down":
+		return DirDown
+	case "left":
+		return DirLeft
+	case "right":
+		return DirRight
+	}
+	return DirNone
 }
 
 func DirToRadians(dir Direction) float64 {

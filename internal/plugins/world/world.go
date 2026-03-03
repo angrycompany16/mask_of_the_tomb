@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/errs"
+	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/resources"
 	save "mask_of_the_tomb/internal/libraries/savesystem"
 	"path/filepath"
@@ -92,8 +93,7 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 
 	newLevel.resetX, newLevel.resetY = newLevel.GetDefaultSpawnPoint()
 	if doorIid != "" {
-		doorEntity := errs.Must(newLevel.levelLDTK.GetEntityByIid(doorIid))
-		newLevel.resetX, newLevel.resetY = doorEntity.Px[0], doorEntity.Px[1]
+		newLevel.resetX, newLevel.resetY, newLevel.resetDir = newLevel.ResetInfoFromIid(doorIid)
 		// play biome animation if updated
 		if newLevel.GetBiome() != world.currentBiome {
 			world.ActiveLevel = newLevel
@@ -106,13 +106,14 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 	return "", nil
 }
 
-func (w *World) ResetActiveLevel() (float64, float64) {
-	_resetX, _resetY := w.ActiveLevel.GetResetPoint()
+func (w *World) ResetActiveLevel() (float64, float64, maths.Direction) {
+	resetX, resetY, resetDir := w.ActiveLevel.GetResetInfo()
 
 	// reset slambox positions
 	w.ActiveLevel.reset()
-	// reset player position
-	w.ActiveLevel.resetX = _resetX
-	w.ActiveLevel.resetY = _resetY
-	return _resetX, _resetY
+	// set reset position O_o
+	// w.ActiveLevel.resetX = resetX
+	// w.ActiveLevel.resetY = resetY
+	// w.ActiveLevel.resetDir = resetDir
+	return resetX, resetY, resetDir
 }

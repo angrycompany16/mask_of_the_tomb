@@ -11,7 +11,7 @@
 	"iid": "94589810-c210-11ef-b2e6-99619d5a4f10",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 484725,
-	"nextUid": 376,
+	"nextUid": 378,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "GridVania",
@@ -9157,7 +9157,7 @@
 					"autoChainRef": true,
 					"allowOutOfLevelRef": true,
 					"allowedRefs": "OnlySame",
-					"allowedRefsEntityUid": null,
+					"allowedRefsEntityUid": 372,
 					"allowedRefTags": [],
 					"tilesetUid": null
 				},
@@ -9197,8 +9197,80 @@
 					"allowedRefsEntityUid": null,
 					"allowedRefTags": [],
 					"tilesetUid": null
+				},
+				{
+					"identifier": "InteractRegion",
+					"doc": null,
+					"__type": "EntityRef",
+					"uid": 376,
+					"type": "F_EntityRef",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "RefLinkBetweenCenters",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "CurvedArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": null,
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": false,
+					"allowedRefs": "OnlySpecificEntity",
+					"allowedRefsEntityUid": 377,
+					"allowedRefTags": [],
+					"tilesetUid": null
 				}
 			]
+		},
+		{
+			"identifier": "Region",
+			"uid": 377,
+			"tags": [],
+			"exportToToc": false,
+			"allowOutOfBounds": false,
+			"doc": null,
+			"width": 16,
+			"height": 16,
+			"resizableX": true,
+			"resizableY": true,
+			"minWidth": 8,
+			"maxWidth": null,
+			"minHeight": 8,
+			"maxHeight": null,
+			"keepAspectRatio": false,
+			"tileOpacity": 1,
+			"fillOpacity": 1,
+			"lineOpacity": 1,
+			"hollow": false,
+			"color": "#4D4058",
+			"renderMode": "Rectangle",
+			"showName": true,
+			"tilesetId": null,
+			"tileRenderMode": "FitInside",
+			"tileRect": null,
+			"uiTileRect": null,
+			"nineSliceBorders": [],
+			"maxCount": 0,
+			"limitScope": "PerLevel",
+			"limitBehavior": "MoveLastOne",
+			"pivotX": 0,
+			"pivotY": 0,
+			"fieldDefs": []
 		}
 	], "tilesets": [
 		{
@@ -20675,10 +20747,35 @@
 								{ "__identifier": "Direction", "__type": "LocalEnum.Direction", "__value": "Up", "__tile": { "tilesetUid": 368, "x": 256, "y": 80, "w": 16, "h": 16 }, "defUid": 375, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["Up"]
+								}] },
+								{ "__identifier": "InteractRegion", "__type": "EntityRef", "__value": {
+									"entityIid": "9aa00eb0-fa90-11f0-b65b-1319cc4e5efe",
+									"layerIid": "3d974c91-1030-11f0-9400-650c68d01c21",
+									"levelIid": "3d974c90-1030-11f0-9400-e92418126557",
+									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
+								}, "__tile": null, "defUid": 376, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["9aa00eb0-fa90-11f0-b65b-1319cc4e5efe"]
 								}] }
 							],
 							"__worldX": 1728,
 							"__worldY": 528
+						},
+						{
+							"__identifier": "Region",
+							"__grid": [6,30],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#4D4058",
+							"iid": "9aa00eb0-fa90-11f0-b65b-1319cc4e5efe",
+							"width": 48,
+							"height": 16,
+							"defUid": 377,
+							"px": [48,240],
+							"fieldInstances": [],
+							"__worldX": 1728,
+							"__worldY": 512
 						}
 					]
 				},
@@ -29690,10 +29787,35 @@
 								{ "__identifier": "Direction", "__type": "LocalEnum.Direction", "__value": "Down", "__tile": { "tilesetUid": 368, "x": 272, "y": 80, "w": 16, "h": 16 }, "defUid": 375, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["Down"]
+								}] },
+								{ "__identifier": "InteractRegion", "__type": "EntityRef", "__value": {
+									"entityIid": "d806ed80-fa90-11f0-b65b-ebac39ea3642",
+									"layerIid": "d19c6991-1030-11f0-b12c-6f5b2aaaeffb",
+									"levelIid": "d19c6990-1030-11f0-b12c-9f5692af9d93",
+									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
+								}, "__tile": null, "defUid": 376, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["d806ed80-fa90-11f0-b65b-ebac39ea3642"]
 								}] }
 							],
 							"__worldX": 1728,
 							"__worldY": 544
+						},
+						{
+							"__identifier": "Region",
+							"__grid": [36,2],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#4D4058",
+							"iid": "d806ed80-fa90-11f0-b65b-ebac39ea3642",
+							"width": 48,
+							"height": 16,
+							"defUid": 377,
+							"px": [288,16],
+							"fieldInstances": [],
+							"__worldX": 1728,
+							"__worldY": 560
 						}
 					]
 				},
