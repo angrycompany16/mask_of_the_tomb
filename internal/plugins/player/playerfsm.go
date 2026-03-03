@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/events"
 	"mask_of_the_tomb/internal/core/maths"
@@ -95,16 +94,15 @@ func (p *Player) Update() {
 	p.Light.Y = p.hitbox.Cy()
 }
 
-// TODO: this will be changed back when we add some kind of death (sprite) animation
 func (p *Player) Draw(ctx rendering.Ctx) {
-	p.jumpParticlesBroad.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Playerspace))
-	p.jumpParticlesTight.Draw(rendering.WithLayer(ctx, rendering.ScreenLayers.Playerspace))
+	p.jumpParticlesBroad.Draw(ctx.WithLayer(rendering.ScreenLayers.Playerspace))
+	p.jumpParticlesTight.Draw(ctx.WithLayer(rendering.ScreenLayers.Playerspace))
 
 	if p.State == Dying {
 		p.deathAnim.Draw(ctx)
 	} else {
-		fmt.Println(p.direction)
-		posX, posY := p.movebox.GetPos()
+		// posX, posY := p.movebox.GetPos()
+		posX, posY := p.hitbox.Center()
 		jumpOffsetX, jumpOffsetY := p.calculateJumpOffset()
 		ebitenrenderutil.DrawAtRotated(
 			p.animator.GetSprite(),

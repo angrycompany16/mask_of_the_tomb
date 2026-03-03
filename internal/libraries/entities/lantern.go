@@ -144,8 +144,8 @@ func (l *Lantern) Draw(ctx rendering.Ctx) {
 		)
 	}
 
-	endPointX := l.rope[len(l.rope)-1].x - float64(l.sprite.Bounds().Dx()/2)
-	endPointY := l.rope[len(l.rope)-1].y - float64(l.sprite.Bounds().Dy()/2)
+	endPointX := l.rope[len(l.rope)-1].x
+	endPointY := l.rope[len(l.rope)-1].y
 	angle := l.GetRopeEndAngle()
 	ebitenrenderutil.DrawAtRotated(l.sprite, ctx.Dst, endPointX, endPointY, -angle, 0.5, 0.5)
 }

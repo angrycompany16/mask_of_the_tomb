@@ -91,7 +91,7 @@ func ChangeActiveLevel[T string | int](world *World, id T, doorIid string) (stri
 
 	resources.PreviousLevelName = newLevel.name
 
-	newLevel.resetX, newLevel.resetY = newLevel.GetDefaultSpawnPoint()
+	newLevel.resetX, newLevel.resetY, newLevel.resetDir = newLevel.GetDefaultSpawnInfo()
 	if doorIid != "" {
 		newLevel.resetX, newLevel.resetY, newLevel.resetDir = newLevel.ResetInfoFromIid(doorIid)
 		// play biome animation if updated

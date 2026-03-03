@@ -482,21 +482,25 @@ func (l *Level) GetBounds() (float64, float64) {
 	return l.levelLDTK.PxWid, l.levelLDTK.PxHei
 }
 
-func (l *Level) GetDefaultSpawnPoint() (float64, float64) {
-	entityLayer := errs.Must(l.levelLDTK.GetLayerByName(names.EntityLayer))
-	for _, entity := range entityLayer.Entities {
-		if entity.Name != names.SpawnPosEntity {
-			continue
-		}
-		return entity.Px[0], entity.Px[1]
+func (l *Level) GetDefaultSpawnInfo() (float64, float64, maths.Direction) {
+	// entityLayer := errs.Must(l.levelLDTK.GetLayerByName(names.EntityLayer))
+	// for _, entity := range entityLayer.Entities {
+	// 	if entity.Name != names.SpawnPosEntity {
+	// 		continue
+	// 	}
+	// 	return entity.Px[0], entity.Px[1]
+	// }
+	for _, doorV2 := range l.doorsV2 {
+		x, y := doorV2.GetSpawnPos()
+		return x, y, doorV2.GetDir()
 	}
-	for _, entity := range entityLayer.Entities {
-		if entity.Name != names.DoorEntity {
-			continue
-		}
-		return entity.Px[0], entity.Px[1]
-	}
-	return 0, 0
+	// for _, entity := range entityLayer.Entities {
+	// 	if entity.Name != names.DoorEntity {
+	// 		continue
+	// 	}
+	// 	return entity.Px[0], entity.Px[1]
+	// }
+	return 0, 0, maths.DirNone
 }
 
 func (l *Level) GetResetInfo() (float64, float64, maths.Direction) {

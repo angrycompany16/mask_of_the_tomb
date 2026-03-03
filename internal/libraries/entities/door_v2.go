@@ -1,14 +1,13 @@
 package entities
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/core/assetloader/assettypes"
 	"mask_of_the_tomb/internal/core/ebitenrenderutil"
 	"mask_of_the_tomb/internal/core/errs"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/core/rendering"
 	"mask_of_the_tomb/internal/core/resources"
-
-	// TODO: This needs to be fixed
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -32,21 +31,22 @@ type DoorV2 struct {
 
 func (d *DoorV2) Update(playerX, playerY float64) {
 	d.isReady = d.InteractRegion.Contains(playerX, playerY)
-	// d.ready = true
-	// fmt.Println(d.ready)
 }
 
 func (d *DoorV2) Draw(ctx rendering.Ctx) {
-	// fmt.Println(d.ready)
-	// d.ready = true
 	if d.isReady {
-		x, y := d.Hitbox.TopLeft()
+		cx, cy := d.Hitbox.Center()
+		// x, y := d.Hitbox.TopLeft()
 		rot := maths.DirToRadians(d.direction)
-		ebitenrenderutil.DrawAtRotated(d.sprite, ctx.Dst, x, y, rot, 0.5, 0.5)
+		ebitenrenderutil.DrawAtRotated(d.sprite, ctx.Dst, cx, cy, rot, 0.5, 0.5)
 	} else {
-		x, y := d.Hitbox.TopLeft()
+		// x, y := d.Hitbox.TopLeft()
+		cx, cy := d.Hitbox.Center()
+		fmt.Println(cx, cy)
+
 		rot := maths.DirToRadians(maths.Opposite(d.direction))
-		ebitenrenderutil.DrawAtRotated(d.sprite, ctx.Dst, x, y, rot, 0.5, 0.5)
+		ebitenrenderutil.DrawAtRotated(d.sprite, ctx.Dst, cx, cy, rot, 0.5, 0.5)
+		// ebitenrenderutil.DrawAt(d.sprite, ctx.Dst, cx, cy, rot, 0.5, 0.5)
 	}
 }
 

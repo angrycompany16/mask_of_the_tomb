@@ -18,6 +18,8 @@ Bug list:
 - Some error message keeps occuring in the loading section
 - It seems that resetting the game completely causes the game to freeze on playing
   (not sure if it is the 1st or 2nd time) (This is important so please fix)
+- Exiting to main menu and then playing the game again causes deadlock
+  somewhere
 
 DEMO ROADMAP:
 - Create music for the first area + menu music

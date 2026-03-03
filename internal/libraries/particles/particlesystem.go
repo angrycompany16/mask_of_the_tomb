@@ -122,15 +122,15 @@ func (ps *ParticleSystem) Draw(ctx rendering.Ctx) {
 	}
 
 	// Local-space rendering is very cursed ngl
-	s := ps.surf.Bounds().Size()
+	// s := ps.surf.Bounds().Size()
 	for _, particle := range ps.particles {
 		particle.draw(ps.surf, 0, 0)
 	}
 
 	ebitenrenderutil.DrawAtRotated(
 		ps.surf, ctx.Dst,
-		ps.PosX-ctx.CamX-float64(s.X)/2,
-		ps.PosY-ctx.CamY-float64(s.Y)/2,
+		ps.PosX-ctx.CamX,
+		ps.PosY-ctx.CamY,
 		ps.Angle, 0.5, 0.5)
 
 	ps.surf.Clear()
