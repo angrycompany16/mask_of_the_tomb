@@ -16,7 +16,7 @@ const (
 	Number
 )
 
-type InspectorField struct {
+type Field struct {
 	fieldType FieldType
 	name      string
 	value     reflect.Value
@@ -34,19 +34,26 @@ func RenderComponent(ctx *debugui.Context, actor *Actor) {
 	// Bro
 	// Was i always so pedantic about performance...?
 	v := reflect.ValueOf(actor).Elem().Elem().Elem()
-	ctx.SetGridLayout([]int{-1, -2}, []int{0, 0})
+	fieldLayoutW := []int{-1, -2}
+	fieldLayoutH := []int{0, 0}
 
 	// Need some sort of flattened list to make stuff iterable
 	// Maybe we could also use struct tags for some useful stuff? Yup probably
-	// fields := flattenStruct(&v)
-	names, values := flattenStruct(&v)
-	// Another thing that would be nice: headers
+	fields := flattenStruct(&v)
 
-	ctx.Loop(len(names), func(i int) {
-		// If this field is a "simple" type, just display it as such
-		// otherwise, recurse to render sub-structs as well
-		ctx.Text(names[i])
-		ctx.Text(fmt.Sprintf("%v", values[i].Interface()))
+	// We really need different components to implement their own rendering
+	// method
+	// Although this is quite hard: Not everything here is a simple actor...
+	ctx.Loop(len(fields), func(i int) {
+		switch fields[i].fieldType {
+		case Header:
+			ctx.SetGridLayout(make([]int, 1), make([]int, 1))
+			ctx.Text(fields[i].name)
+		case Number:
+			ctx.SetGridLayout(fieldLayoutW, fieldLayoutH)
+			ctx.Text(fields[i].name)
+			ctx.Text(fmt.Sprintf("%v", fields[i].value.Interface()))
+		}
 	})
 }
 
@@ -55,23 +62,32 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 }
 
 // Converts a struct into a flattened map with values
-func flattenStruct(v *reflect.Value) ([]string, []reflect.Value) {
+func flattenStruct(v *reflect.Value) []Field {
 	k := v.Kind()
 	t := v.Type()
 	if k != reflect.Struct {
-		return []string{t.Name()}, []reflect.Value{extractFieldUnsafe(*v)}
+		return []Field{
+			Field{
+				fieldType: Number, // this will change
+				name:      t.Name(),
+				value:     extractFieldUnsafe(*v),
+			},
+		}
 	}
 
-	names := make([]string, 0)
-	values := make([]reflect.Value, 0)
-	return flattenRecurse(v, names, values)
+	fields := make([]Field, 0)
+	return flattenRecurse(v, fields)
 }
 
-func flattenRecurse(v *reflect.Value, names []string, values []reflect.Value) ([]string, []reflect.Value) {
+func flattenRecurse(v *reflect.Value, fields []Field) []Field {
 	t := v.Type()
 	nFields := t.NumField()
-	newNames := make([]string, 0)
-	newValues := make([]reflect.Value, 0)
+	newFields := make([]Field, 0)
+	newFields = append(newFields, Field{
+		fieldType: Header,
+		name:      t.Name(),
+		value:     *v,
+	})
 	for i := range nFields {
 		fv := v.Field(i)
 		fk := fv.Kind()
@@ -84,14 +100,16 @@ func flattenRecurse(v *reflect.Value, names []string, values []reflect.Value) ([
 		}
 
 		if fk != reflect.Struct {
-			newNames = append(newNames, ft.Name)
-			newValues = append(newValues, extractFieldUnsafe(fv))
+			newFields = append(newFields, Field{
+				fieldType: Number,
+				name:      ft.Name,
+				value:     extractFieldUnsafe(fv),
+			})
 			continue
 		}
 
-		recurseNames, recurseValues := flattenRecurse(&fv, names, values)
-		newNames = slices.Concat(newNames, recurseNames)
-		newValues = slices.Concat(newValues, recurseValues)
+		recurseFields := flattenRecurse(&fv, fields)
+		newFields = slices.Concat(newFields, recurseFields)
 	}
-	return newNames, newValues
+	return newFields
 }
