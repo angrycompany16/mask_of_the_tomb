@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/core/maths"
 	"mask_of_the_tomb/internal/engine"
+
+	"github.com/ebitengine/debugui"
 )
 
 type Transform2D struct {
@@ -31,6 +33,13 @@ func (t *Transform2D) Update(tree *engine.NodeTree) {
 	} else {
 		t.global = t.local
 	}
+}
+
+func (t *Transform2D) DrawInspector(ctx *debugui.Context) {
+	ctx.SetGridLayout(make([]int, 1), make([]int, 1))
+	ctx.Text("Transform")
+	// Write some nice rendering for transforms
+	t.Node.DrawInspector(ctx)
 }
 
 func (t *Transform2D) GetPos(local bool) (float64, float64) {

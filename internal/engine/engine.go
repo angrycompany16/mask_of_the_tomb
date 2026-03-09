@@ -22,7 +22,8 @@ import (
 type Actor interface {
 	Init()
 	Update(*NodeTree)
-	SetID(string) // This will have to do for now
+	SetID(string)
+	DrawInspector(ctx *debugui.Context)
 	// We don't really need an explicit draw method i think?
 
 	// No, we won't - Components will send commands to the rendering server during
@@ -53,7 +54,9 @@ func (s *Scene) Init() {
 }
 
 func (s *Scene) MakeDrawFunc() func(ctx *debugui.Context) error {
-	return ebitenrender.MakeRenderFunc(s.name, s.nodeTree, RenderComponent)
+	return ebitenrender.MakeRenderFunc(s.name, s.nodeTree, func(ctx *debugui.Context, nodeVal *Actor) {
+		(*nodeVal).DrawInspector(ctx)
+	})
 }
 
 func (s *Scene) GetNodeByName(name string) (*Node, bool) {

@@ -1,32 +1,50 @@
-package engine
+package actors
 
 import (
+	"fmt"
+	"mask_of_the_tomb/internal/engine"
 	"reflect"
 	"unsafe"
+
+	"github.com/ebitengine/debugui"
 )
 
-// type FieldType int
+type FieldType int
 
-// const (
-// 	Header FieldType = iota
-// 	Number
-// )
+const (
+	Header FieldType = iota
+	Number
+)
 
-// type Field struct {
-// 	fieldType FieldType
-// 	name      string
-// 	value     reflect.Value
-// }
+type Field struct {
+	fieldType FieldType
+	name      string
+	value     reflect.Value
+}
 
-// // and with that....
-// // all my hard work deprecated...
+func RenderFieldsAuto(ctx *debugui.Context, actor engine.Actor) {
+	v := reflect.ValueOf(actor).Elem()
+	t := v.Type()
 
-// // This is a fairly dangerous piece of code. I'm not sure when it panics,
-// // and it uses a lot of dirty tricks to get stuff working...
-// // It might be nice to cache some stuff here as well lowkey...
+	ctx.Loop(t.NumField(), func(i int) {
+		field := t.Field(i)
+		debugField := field.Tag.Get("debug")
+		if debugField == "auto" {
+			ctx.Text(field.Name)
+			ctx.Text(fmt.Sprintf("%v", (extractFieldUnsafe(v.Field(i)).Interface())))
+		}
+	})
+}
 
-// // TODO: Render inherited fields with recursion? Yes
-// func RenderComponent(ctx *debugui.Context, actor *Actor) {
+// and with that....
+// all my hard work deprecated...
+
+// This is a fairly dangerous piece of code. I'm not sure when it panics,
+// and it uses a lot of dirty tricks to get stuff working...
+// It might be nice to cache some stuff here as well lowkey...
+
+// TODO: Render inherited fields with recursion? Yes
+// func RenderComponent(ctx *debugui.Context, actor *engine.Actor) {
 // 	// Don't even know what to say. This is the worst shit I've seen in my entire life.
 // 	// But now we are working with a pure struct
 // 	// Although: performance concern?
