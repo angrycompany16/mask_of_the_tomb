@@ -393,6 +393,7 @@ func NewRect(x, y, width, height float64) *Rect {
 	return &Rect{x, y, width, height}
 }
 
+// Deprecated: Do this manually instead
 func RectFromImage(x, y float64, image *ebiten.Image) *Rect {
 	size := image.Bounds().Size()
 	return &Rect{

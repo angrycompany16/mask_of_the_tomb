@@ -50,7 +50,6 @@ func DrawAtRotated(src, dst *ebiten.Image, x, y, angle float64, pivot ...float64
 
 	op.GeoM.Translate(-pivotX, -pivotY)
 	op.GeoM.Rotate(angle)
-	// op.GeoM.Translate(pivotX, pivotY)
 
 	op.GeoM.Translate(x, y)
 	dst.DrawImage(src, op)

@@ -24,3 +24,4 @@ Areas:
  - Mr. Portman's library
  - The observatory
  - Stars of the sky
+ - Make something RoR2 inspired? Kinda purple + green vibe

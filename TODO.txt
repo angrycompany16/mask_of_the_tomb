@@ -6,6 +6,8 @@ slamboxes and (2) the ability to connect slamboxes in "any" configuration)
       They can be blocked with boxes and also killed
 // 3. One-way platforms
 // 4. Buttons... I might have to add buttons
+// 5. Rotating slamboxes, sort of like tetris pieces. Requires making a function
+//    for rotating a rect about its center, but not that much more.
 // what else?
 
 

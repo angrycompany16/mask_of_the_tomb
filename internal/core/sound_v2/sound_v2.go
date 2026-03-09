@@ -257,8 +257,6 @@ func (d *DSPChannels) addPlayer(player *resound.Player, channelName string) {
 		fmt.Printf("Channel with name %s does not exist!\n", channelName)
 		return
 	}
-	// fmt.Println(player)
-	// fmt.Println(d.channels[channelName])
 	player.SetDSPChannel(d.channels[channelName])
 }
 
