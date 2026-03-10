@@ -20,7 +20,7 @@ type Game struct {
 
 func (g *Game) Update() error {
 	if _, err := g.debugui.Update(
-		ebitenrender.MakeRenderFunc[object]("test UI", g.nodeTree, func(ctx *debugui.Context, nodeVal *object) {}),
+		ebitenrender.MakeRenderFunc[object]("test UI", 320, 180, g.nodeTree, func(ctx *debugui.Context, nodeVal *object) {}),
 	); err != nil {
 		return err
 	}
@@ -44,8 +44,7 @@ func main() {
 	)
 	root := nodeTree.GetRoot()
 	root.AddChild(object{x: 1, y: 1}, "child")
-	child2Id := root.AddChild(object{x: 1, y: 1}, "child2")
-	child2, _ := root.GetChild(child2Id)
+	child2 := root.AddChild(object{x: 1, y: 1}, "child2")
 	child2.AddChild(object{x: 2, y: 400}, "grandchild")
 
 	game := &Game{

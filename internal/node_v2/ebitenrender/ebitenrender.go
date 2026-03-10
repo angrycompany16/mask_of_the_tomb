@@ -9,12 +9,13 @@ import (
 
 func MakeRenderFunc[T any](
 	title string,
+	w, h int,
 	nodeTree *node_v2.NodeTree[T],
 	nodeFunc func(ctx *debugui.Context, nodeVal *T),
 ) func(ctx *debugui.Context) error {
 	root := nodeTree.GetRoot()
 	return func(ctx *debugui.Context) error {
-		ctx.Window(title, image.Rect(0, 0, 320, 240), func(layout debugui.ContainerLayout) {
+		ctx.Window(title, image.Rect(5, 5, w, h), func(layout debugui.ContainerLayout) {
 			ctx.TreeNode(root.GetName(), makeTreeNodeRecursion(root, ctx, nodeFunc))
 		})
 		return nil

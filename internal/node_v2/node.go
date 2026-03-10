@@ -7,6 +7,13 @@ import (
 	"github.com/google/uuid"
 )
 
+// hmm. We would like to keep things as flexible as possible, so that
+// we for instance can keep a tree of ints (a reasonable thing to do).
+// However, requiring T to be an interface with an OnAdd method
+// (or something like that) would also be very useful because it would
+// mean that we could call that method whenever we add it to the tree...
+
+// This can be implemented with much better performance using map
 type Node[T any] struct {
 	id       string
 	name     string // Non-unique
@@ -15,16 +22,10 @@ type Node[T any] struct {
 	children []*Node[T]
 }
 
-type nodeCtx struct {
-	depth int
-}
-
-func (n *Node[T]) traverseRecursive(ctx nodeCtx, callback func(*Node[T])) {
+func (n *Node[T]) traverseRecursive(callback func(*Node[T])) {
 	callback(n)
 	for _, child := range n.children {
-		child.traverseRecursive(nodeCtx{
-			depth: ctx.depth + 1,
-		}, callback)
+		child.traverseRecursive(callback)
 	}
 }
 
@@ -66,8 +67,6 @@ func (n *Node[T]) GetChildFunc(f func(*Node[T]) bool) (*Node[T], bool) {
 		return f(child)
 	})
 	if i == -1 {
-		// fmt.Println("The node search did not return anything.")
-		// n.Print()
 		return nil, false
 	}
 	return n.children[i], true
@@ -85,11 +84,11 @@ func (n *Node[T]) getChildRecursiveFunc(f func(*Node[T]) bool) (*Node[T], bool) 
 	return nil, false
 }
 
-func (n *Node[T]) AddChild(value T, name string) string {
+func (n *Node[T]) AddChild(value T, name string) *Node[T] {
 	child := NewNode(value, name)
 	child.parent = n
 	n.children = append(n.children, child)
-	return child.id
+	return child
 }
 
 func (n *Node[T]) DeleteChild(id string) {
@@ -132,7 +131,7 @@ type NodeTree[T any] struct {
 }
 
 func (nt *NodeTree[T]) Traverse(callback func(*Node[T])) {
-	nt.root.traverseRecursive(nodeCtx{0}, callback)
+	nt.root.traverseRecursive(callback)
 }
 
 func (nt *NodeTree[T]) GetRoot() *Node[T] {
@@ -157,7 +156,7 @@ func (nt *NodeTree[T]) Print() {
 }
 
 // Returns the new node tree, and the ID of the root node
-func NewNodeTree[T any](rootValue T) (*NodeTree[T], string) {
+func NewNodeTree[T any](rootValue T) (*NodeTree[T], *Node[T]) {
 	rootNode := &Node[T]{
 		id:    uuid.NewString(),
 		name:  "root",
@@ -166,7 +165,7 @@ func NewNodeTree[T any](rootValue T) (*NodeTree[T], string) {
 	newNodeTree := NodeTree[T]{
 		root: rootNode,
 	}
-	return &newNodeTree, rootNode.id
+	return &newNodeTree, rootNode
 }
 
 // Probably make some sort of nice builder syntax

@@ -59,7 +59,7 @@ func PosRot(src *ebiten.Image, x, y, angle float64, pivot ...float64) *ebiten.Dr
 	return op
 }
 
-func PosScaleRot(src, dst *ebiten.Image, x, y, angle, scaleX, scaleY float64, pivot ...float64) *ebiten.DrawImageOptions {
+func PosScaleRot(src *ebiten.Image, x, y, angle, scaleX, scaleY float64, pivot ...float64) *ebiten.DrawImageOptions {
 	pivotX, pivotY := unpackPivot(pivot...)
 	pivotX, pivotY = getPivotPx(src, pivotX, pivotY)
 	op := &ebiten.DrawImageOptions{}

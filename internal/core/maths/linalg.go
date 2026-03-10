@@ -11,12 +11,12 @@ type Mat2x2 struct {
 	a, b, c, d float64
 }
 
-func (A *Mat2x2) TimesMat(B *Mat2x2) Mat2x2 {
+func (A *Mat2x2) TimesMat(B Mat2x2) Mat2x2 {
 	return Mat2x2{
 		a: A.a*B.a + A.b*B.c,
 		b: A.a*B.b + A.b*B.d,
 		c: A.c*B.a + A.d*B.c,
-		d: A.c*B.d + A.d*B.d,
+		d: A.c*B.b + A.d*B.d,
 	}
 }
 
@@ -29,10 +29,10 @@ func (A *Mat2x2) Scale(k float64) Mat2x2 {
 	}
 }
 
-func (A *Mat2x2) TimesVec(V *Vec2) Vec2 {
+func (A *Mat2x2) TimesVec(V Vec2) Vec2 {
 	return Vec2{
 		X: A.a*V.X + A.b*V.Y,
-		Y: A.c*V.X + A.b*V.Y,
+		Y: A.c*V.X + A.d*V.Y,
 	}
 }
 
@@ -69,14 +69,14 @@ type Vec2 struct {
 	X, Y float64
 }
 
-func (v *Vec2) Plus(u *Vec2) Vec2 {
+func (v *Vec2) Plus(u Vec2) Vec2 {
 	return Vec2{
 		X: v.X + u.X,
 		Y: v.Y + u.Y,
 	}
 }
 
-func (v *Vec2) Dot(u *Vec2) float64 {
+func (v *Vec2) Dot(u Vec2) float64 {
 	return v.X*u.X + v.Y*u.Y
 }
 
