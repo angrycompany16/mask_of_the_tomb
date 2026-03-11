@@ -20,7 +20,7 @@ type Game struct {
 
 func (g *Game) Update() error {
 	if _, err := g.debugui.Update(
-		ebitenrender.MakeRenderFunc[object]("test UI", 320, 180, g.nodeTree, func(ctx *debugui.Context, nodeVal *object) {}),
+		ebitenrender.MakeRenderFunc[object]("test UI", 320, 180, g.nodeTree, func(ctx *debugui.Context, nodeVal object) {}),
 	); err != nil {
 		return err
 	}

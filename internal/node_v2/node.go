@@ -7,19 +7,13 @@ import (
 	"github.com/google/uuid"
 )
 
-// hmm. We would like to keep things as flexible as possible, so that
-// we for instance can keep a tree of ints (a reasonable thing to do).
-// However, requiring T to be an interface with an OnAdd method
-// (or something like that) would also be very useful because it would
-// mean that we could call that method whenever we add it to the tree...
-
-// This can be implemented with much better performance using map
+// TODO: Add hash map for fast lookup
 type Node[T any] struct {
-	id       string // Only unique within the tree
+	id       string // Unique within the tree
 	name     string // Non-unique
 	value    T
 	parent   *Node[T]
-	children []*Node[T] // get rid of this. Use indexing to get correct behaviour
+	children []*Node[T]
 }
 
 func (n *Node[T]) traverseRecursive(callback func(*Node[T])) {
@@ -37,8 +31,8 @@ func (n *Node[T]) GetID() string {
 	return n.id
 }
 
-func (n *Node[T]) GetValue() *T { // This doesn't actually need to return a pointer hoenstly
-	return &n.value
+func (n *Node[T]) GetValue() T {
+	return n.value
 }
 
 func (n *Node[T]) GetParent() *Node[T] {
@@ -61,7 +55,7 @@ func (n *Node[T]) getChildRecursive(id string) (*Node[T], bool) {
 	})
 }
 
-// Returns the first node for which the function evaluates to true.
+// Returns the first descendant for which the function evaluates to true.
 func (n *Node[T]) GetChildFunc(f func(*Node[T]) bool) (*Node[T], bool) {
 	i := slices.IndexFunc(n.children, func(child *Node[T]) bool {
 		return f(child)
@@ -125,7 +119,7 @@ func copyNode[T any](n *Node[T], copy func(T) T) *Node[T] {
 	return &Node[T]{
 		id:    n.id,
 		name:  n.name,
-		value: copy(*n.GetValue()),
+		value: copy(n.GetValue()),
 	}
 }
 
@@ -182,9 +176,9 @@ func (nt *NodeTree[T]) DeepCopy(copy func(T) T) *NodeTree[T] {
 		nodeCopy, ok := newNodeTree.GetNode(node.id)
 		if !ok {
 			fmt.Println("Did not find node. Something is wrong")
-			fmt.Println(node.id)
-			newNodeTree.Print()
-			panic(fmt.Errorf("død og pine"))
+			// fmt.Println(node.id)
+			// newNodeTree.Print()
+			// panic(fmt.Errorf("død og pine"))
 			return
 		}
 
@@ -214,6 +208,3 @@ func NewNodeTree[T any](rootValue T) (*NodeTree[T], *Node[T]) {
 	}
 	return &newNodeTree, rootNode
 }
-
-// Probably make some sort of nice builder syntax
-// Also a more advanced query system would be nice

@@ -11,7 +11,7 @@ func MakeRenderFunc[T any](
 	title string,
 	w, h int,
 	nodeTree *node_v2.NodeTree[T],
-	nodeFunc func(ctx *debugui.Context, nodeVal *T),
+	nodeFunc func(ctx *debugui.Context, nodeVal T),
 ) func(ctx *debugui.Context) error {
 	root := nodeTree.GetRoot()
 	return func(ctx *debugui.Context) error {
@@ -22,7 +22,11 @@ func MakeRenderFunc[T any](
 	}
 }
 
-func makeTreeNodeRecursion[T any](node *node_v2.Node[T], ctx *debugui.Context, nodeFunc func(ctx *debugui.Context, nodeVal *T)) func() {
+func makeTreeNodeRecursion[T any](
+	node *node_v2.Node[T],
+	ctx *debugui.Context,
+	nodeFunc func(ctx *debugui.Context, nodeVal T),
+) func() {
 	return func() {
 		children := node.GetChildren()
 		ctx.Loop(len(children), func(i int) {

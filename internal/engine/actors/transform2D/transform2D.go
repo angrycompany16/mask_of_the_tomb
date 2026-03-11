@@ -13,9 +13,17 @@ type Option func(*Transform2D)
 
 type Transform2D struct {
 	node.Node // Actually, should this be a pointer?
-	local     *transform
-	global    *transform
+	local     transform
+	global    transform
 }
+
+// func (t *Transform2D) Instantiate() engine.Actor {
+// 	return &Transform2D{
+// 		Node:   t.Node.Instantiate(),
+// 		local:  t.local,
+// 		global: t.global,
+// 	}
+// }
 
 func (t *Transform2D) Init() {
 	t.Node.Init()
@@ -29,8 +37,8 @@ func (t *Transform2D) Update(servers *servers.Servers) {
 		return
 	}
 
-	if parentTransform, ok := engine.GetActor[*Transform2D](*parentNode.GetValue()); ok {
-		t.global = t.local.times(parentTransform.global)
+	if parentTransform, ok := engine.GetActor[*Transform2D](parentNode.GetValue()); ok {
+		t.global = t.local.times(&parentTransform.global)
 	} else {
 		t.global = t.local
 	}
@@ -106,8 +114,8 @@ func NewTransform2D(node node.Node, options ...Option) *Transform2D {
 func defaultTransform2D(node node.Node) *Transform2D {
 	return &Transform2D{
 		Node:   node,
-		local:  newTransform(0, 0, 0, 1, 1),
-		global: newTransform(0, 0, 0, 1, 1),
+		local:  *newTransform(0, 0, 0, 1, 1),
+		global: *newTransform(0, 0, 0, 1, 1),
 	}
 }
 
@@ -144,8 +152,8 @@ type transform struct {
 	origin         maths.Vec2
 }
 
-func (t *transform) times(other *transform) *transform {
-	return &transform{
+func (t *transform) times(other *transform) transform {
+	return transform{
 		angle:        t.angle + other.angle,
 		scaleX:       t.scaleX * other.scaleX,
 		scaleY:       t.scaleY * other.scaleY,

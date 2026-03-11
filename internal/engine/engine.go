@@ -26,7 +26,7 @@ import (
 type Actor interface {
 	Init()
 	Update(*servers.Servers)
-	// We need to implement LateUpdate
+	// We may need to implement LateUpdate
 	OnTreeAdd(*Node, *servers.Servers)
 	DrawInspector(ctx *debugui.Context)
 }
@@ -34,11 +34,15 @@ type Actor interface {
 type Node = node_v2.Node[Actor]
 type NodeTree = node_v2.NodeTree[Actor]
 
-type SceneBuilder func(*servers.Servers) *Scene
+// Recipe for a scene
+type SceneBuilder interface {
+	Create(*servers.Servers) *Scene
+	Name() string
+}
 
 type Scene struct {
 	name     string
-	nodeTree NodeTree
+	nodeTree *NodeTree
 	servers  *servers.Servers
 }
 
@@ -46,19 +50,19 @@ type Scene struct {
 
 func (s *Scene) Update(servers *servers.Servers) {
 	s.nodeTree.Traverse(func(n *Node) {
-		(*n.GetValue()).Update(servers)
+		n.GetValue().Update(servers)
 	})
 }
 
 func (s *Scene) Init() {
 	s.nodeTree.Traverse(func(n *Node) {
-		(*n.GetValue()).Init()
+		n.GetValue().Init()
 	})
 }
 
 func (s *Scene) MakeDrawFunc(w, h int) func(ctx *debugui.Context) error {
-	return ebitenrender.MakeRenderFunc(s.name, w, h, &s.nodeTree, func(ctx *debugui.Context, nodeVal *Actor) {
-		(*nodeVal).DrawInspector(ctx)
+	return ebitenrender.MakeRenderFunc(s.name, w, h, s.nodeTree, func(ctx *debugui.Context, nodeVal Actor) {
+		nodeVal.DrawInspector(ctx)
 	})
 }
 
@@ -104,14 +108,13 @@ func (s *Scene) Print() {
 	s.nodeTree.Print()
 }
 
-func (s *Scene) Instantiate() Scene {
-	return Scene{
-		name:     s.name,
-		nodeTree: s.nodeTree, // This does not work. Gotta be able
-		// to copy nodeTrees
-		servers: s.servers,
-	}
-}
+// func (s *Scene) Instantiate() Scene {
+// 	return Scene{
+// 		name:     s.name,
+// 		nodeTree: s.nodeTree,
+// 		servers: s.servers,
+// 	}
+// }
 
 // Returns the field T embedded in the actor passed in, i.e.
 //
@@ -156,46 +159,61 @@ func NewScene(name string, root Actor, servers *servers.Servers) *Scene {
 	return &Scene{
 		servers:  servers,
 		name:     name,
-		nodeTree: *nodeTree,
+		nodeTree: nodeTree,
 	}
 }
 
 type Game struct {
 	servers     *servers.Servers
 	editor      *Editor
-	scenes      map[string]*Scene
-	activeScene Scene
+	scenes      map[string]SceneBuilder
+	activeScene *Scene
 }
 
 func NewGame(servers *servers.Servers, editor *Editor) *Game {
 	return &Game{
 		servers: servers,
 		editor:  editor,
-		scenes:  make(map[string]*Scene),
+		scenes:  make(map[string]SceneBuilder),
 	}
 }
 
-func (g *Game) AddScene(scene *Scene) *Game {
-	g.scenes[scene.name] = scene
+func (g *Game) AddScene(sceneBuilder SceneBuilder) *Game {
+	g.scenes[sceneBuilder.Name()] = sceneBuilder
 	return g
-}
-
-func (g *Game) MakeScene(name string, root Actor) *Scene {
-	g.scenes[name] = NewScene(name, root, g.servers)
-	return g.scenes[name]
 }
 
 func (g *Game) SpawnScene(name string) *Game {
 	// Create an instance of the scene's node tree
-	// Load all stages items
+	sceneBuilder := g.scenes[name]
+	sceneInst := sceneBuilder.Create(g.servers)
+
+	// Load any staged assets
 	g.LoadStaged() // This will go into a different thread to avoid freezing
-	g.activeScene = *g.scenes[name]
-	g.activeScene.Init() // Reset values?
+	g.activeScene = sceneInst
+	g.activeScene.Init()
 	return g
 }
 
+// func (g *Game) SpawnScene(name string) *Game {
+// 	// Create an instance of the scene's node tree
+// 	sceneDef := g.scenes[name]
+
+// 	// Extract to function
+// 	sceneInst := Scene{
+// 		name:     name,
+// 		servers:  g.servers,
+// 		nodeTree: sceneDef.nodeTree.DeepCopy(copyActor),
+// 	}
+// 	// Load any staged assets
+// 	g.LoadStaged() // This will go into a different thread to avoid freezing
+// 	g.activeScene = sceneInst
+// 	g.activeScene.Init()
+// 	return g
+// }
+
 func (g *Game) ActiveScene() *Scene {
-	return &g.activeScene
+	return g.activeScene
 }
 
 func (g *Game) Update() error {
@@ -220,6 +238,7 @@ func (g *Game) LoadStaged() {
 	g.servers.AssetLoader().LoadAll()
 }
 
+// Export to new module
 type Editor struct {
 	treeUI      debugui.DebugUI
 	editorImage *ebiten.Image

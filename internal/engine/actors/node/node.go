@@ -13,7 +13,12 @@ type Node struct {
 	node   *engine.Node
 }
 
-func (n *Node) Stage(servers *servers.Servers)  {}
+//	func (n *Node) Instantiate() *Node {
+//		return &Node{
+//			treeID: n.treeID,
+//			// BRUH this is so stupid
+//		}
+//	}
 func (n *Node) Init()                           {}
 func (n *Node) Update(servers *servers.Servers) {}
 func (n *Node) OnTreeAdd(node *engine.Node, servers *servers.Servers) {

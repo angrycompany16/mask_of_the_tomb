@@ -28,9 +28,9 @@ func (a *App) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
 		a.toggle = !a.toggle
 		if a.toggle {
-			a.game.SpawnScene("testScene2")
+			a.game.SpawnScene((&TestScene2{}).Name())
 		} else {
-			a.game.SpawnScene("testScene1")
+			a.game.SpawnScene((&TestScene1{}).Name())
 		}
 	}
 	return a.game.Update()
@@ -58,14 +58,11 @@ func main() {
 		},
 	), engine.NewEditor(gw*ps, gh*ps),
 	)
-	// Essentially scene defs
-	testScene1 := game.MakeScene("testScene1", node.NewNode())
-	testScene2 := game.MakeScene("testScene2", node.NewNode())
-	SpawnTestScene1(testScene1)
-	SpawnTestScene2(testScene2)
+	game.AddScene(&TestScene1{})
+	game.AddScene(&TestScene2{})
 
-	// Would be nice to make this a bit more failsafe
-	game.SpawnScene(testScene1.GetName())
+	// Kinda cursed but this works?
+	game.SpawnScene((&TestScene1{}).Name())
 
 	app := &App{
 		game: game,
@@ -78,64 +75,13 @@ func main() {
 	}
 }
 
-// func TestScene1(servers *servers.Servers) *engine.Scene {
-// 	scene := engine.NewScene("testScene1", node.NewNode(), servers)
-// 	node1 := scene.Spawn("Node1", demo.NewDemo(
-// 		*sprite.NewSprite(
-// 			*transform2D.NewTransform2D(
-// 				*node.NewNode(),
-// 				transform2D.WithPos(gw*ps/2, gh*ps/2),
-// 			),
-// 			"Playerspace",
-// 			"sprites/player/player.png",
-// 			sprite.WithScaling(2.0),
-// 		),
-// 		demo.WithOnlyRotate(true),
-// 	))
+// Create various scenes
+// YES
+type TestScene1 struct{}
 
-// 	node2 := scene.Spawn("Node2", transform2D.NewTransform2D(
-// 		*node.NewNode(),
-// 		transform2D.WithPos(0, 100),
-// 	))
-
-// 	// This may get a little bit impractical for deeply nested stuff...
-// 	// I guess we just have to wait and see
-// 	node3 := scene.Spawn("Node3", demo.NewDemo(
-// 		*sprite.NewSprite(
-// 			*transform2D.NewTransform2D(
-// 				*node.NewNode(),
-// 			),
-// 			"Playerspace",
-// 			"sprites/player/player.png",
-// 			sprite.WithScaling(2.0),
-// 		),
-// 		demo.WithOnlyRotate(false),
-// 	))
-
-// 	scene.SetParent(node2, node1)
-// 	scene.SetParent(node3, node2)
-// 	return scene
-// }
-
-// func TestScene2(servers *servers.Servers) *engine.Scene {
-// 	scene := engine.NewScene("testScene2", node.NewNode(), servers)
-// 	testScene2.Spawn("Node1", demo.NewDemo(
-// 		*sprite.NewSprite(
-// 			*transform2D.NewTransform2D(
-// 				*node.NewNode(),
-// 				transform2D.WithPos(gw*ps/2, gh*ps/3),
-// 			),
-// 			"Playerspace",
-// 			"sprites/player/player.png",
-// 			sprite.WithScaling(2.0),
-// 		),
-// 		demo.WithOnlyRotate(false),
-// 	))
-// }
-
-// In order for scenes to be reinstantiated at each
-func SpawnTestScene1(testScene1 *engine.Scene) {
-	node1 := testScene1.SpawnActor("Node1", demo.NewDemo(
+func (t *TestScene1) Create(servers *servers.Servers) *engine.Scene {
+	scene := engine.NewScene("testScene1", node.NewNode(), servers)
+	node1 := scene.SpawnActor("Node1", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
 				*node.NewNode(),
@@ -148,14 +94,14 @@ func SpawnTestScene1(testScene1 *engine.Scene) {
 		demo.WithOnlyRotate(true),
 	))
 
-	node2 := testScene1.SpawnActor("Node2", transform2D.NewTransform2D(
+	node2 := scene.SpawnActor("Node2", transform2D.NewTransform2D(
 		*node.NewNode(),
 		transform2D.WithPos(0, 100),
 	))
 
 	// This may get a little bit impractical for deeply nested stuff...
 	// I guess we just have to wait and see
-	node3 := testScene1.SpawnActor("Node3", demo.NewDemo(
+	node3 := scene.SpawnActor("Node3", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
 				*node.NewNode(),
@@ -167,12 +113,20 @@ func SpawnTestScene1(testScene1 *engine.Scene) {
 		demo.WithOnlyRotate(false),
 	))
 
-	testScene1.SetParent(node2, node1)
-	testScene1.SetParent(node3, node2)
+	scene.SetParent(node2, node1)
+	scene.SetParent(node3, node2)
+	return scene
 }
 
-func SpawnTestScene2(testScene2 *engine.Scene) {
-	testScene2.SpawnActor("Node1", demo.NewDemo(
+func (t *TestScene1) Name() string {
+	return "TestScene1"
+}
+
+type TestScene2 struct{}
+
+func (t *TestScene2) Create(servers *servers.Servers) *engine.Scene {
+	scene := engine.NewScene("testScene2", node.NewNode(), servers)
+	scene.SpawnActor("Node1", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
 				*node.NewNode(),
@@ -184,4 +138,62 @@ func SpawnTestScene2(testScene2 *engine.Scene) {
 		),
 		demo.WithOnlyRotate(false),
 	))
+	return scene
 }
+
+func (t *TestScene2) Name() string {
+	return "TestScene2"
+}
+
+// In order for scenes to be reinstantiated at each
+// func SpawnTestScene1(testScene1 *engine.Scene) {
+// 	node1 := testScene1.SpawnActor("Node1", demo.NewDemo(
+// 		*sprite.NewSprite(
+// 			*transform2D.NewTransform2D(
+// 				*node.NewNode(),
+// 				transform2D.WithPos(gw*ps/2, gh*ps/2),
+// 			),
+// 			"Playerspace",
+// 			"sprites/player/player.png",
+// 			sprite.WithScaling(2.0),
+// 		),
+// 		demo.WithOnlyRotate(true),
+// 	))
+
+// 	node2 := testScene1.SpawnActor("Node2", transform2D.NewTransform2D(
+// 		*node.NewNode(),
+// 		transform2D.WithPos(0, 100),
+// 	))
+
+// 	// This may get a little bit impractical for deeply nested stuff...
+// 	// I guess we just have to wait and see
+// 	node3 := testScene1.SpawnActor("Node3", demo.NewDemo(
+// 		*sprite.NewSprite(
+// 			*transform2D.NewTransform2D(
+// 				*node.NewNode(),
+// 			),
+// 			"Playerspace",
+// 			"sprites/player/player.png",
+// 			sprite.WithScaling(2.0),
+// 		),
+// 		demo.WithOnlyRotate(false),
+// 	))
+
+// 	testScene1.SetParent(node2, node1)
+// 	testScene1.SetParent(node3, node2)
+// }
+
+// func SpawnTestScene2(testScene2 *engine.Scene) {
+// 	testScene2.SpawnActor("Node1", demo.NewDemo(
+// 		*sprite.NewSprite(
+// 			*transform2D.NewTransform2D(
+// 				*node.NewNode(),
+// 				transform2D.WithPos(gw*ps/2, gh*ps/3),
+// 			),
+// 			"Playerspace",
+// 			"sprites/player/player.png",
+// 			sprite.WithScaling(2.0),
+// 		),
+// 		demo.WithOnlyRotate(false),
+// 	))
+// }
