@@ -48,7 +48,9 @@ func main() {
 	child2.AddChild(object{x: 2, y: 400}, "grandchild")
 
 	game := &Game{
-		nodeTree: nodeTree,
+		nodeTree: nodeTree.DeepCopy(func(o object) object {
+			return o
+		}),
 	}
 
 	if err := ebiten.RunGame(game); err != nil {

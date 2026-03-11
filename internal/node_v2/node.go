@@ -15,11 +15,11 @@ import (
 
 // This can be implemented with much better performance using map
 type Node[T any] struct {
-	id       string
+	id       string // Only unique within the tree
 	name     string // Non-unique
 	value    T
 	parent   *Node[T]
-	children []*Node[T]
+	children []*Node[T] // get rid of this. Use indexing to get correct behaviour
 }
 
 func (n *Node[T]) traverseRecursive(callback func(*Node[T])) {
@@ -37,7 +37,7 @@ func (n *Node[T]) GetID() string {
 	return n.id
 }
 
-func (n *Node[T]) GetValue() *T {
+func (n *Node[T]) GetValue() *T { // This doesn't actually need to return a pointer hoenstly
 	return &n.value
 }
 
@@ -76,7 +76,10 @@ func (n *Node[T]) getChildRecursiveFunc(f func(*Node[T]) bool) (*Node[T], bool) 
 	child, found := n.GetChildFunc(f)
 	if !found {
 		for _, child := range n.children {
-			return child.getChildRecursiveFunc(f)
+			grandchild, found := child.getChildRecursiveFunc(f)
+			if found {
+				return grandchild, true
+			}
 		}
 	} else {
 		return child, true
@@ -118,6 +121,14 @@ func (n *Node[T]) Print() {
 	}
 }
 
+func copyNode[T any](n *Node[T], copy func(T) T) *Node[T] {
+	return &Node[T]{
+		id:    n.id,
+		name:  n.name,
+		value: copy(*n.GetValue()),
+	}
+}
+
 func NewNode[T any](value T, name string) *Node[T] {
 	return &Node[T]{
 		id:    uuid.NewString(),
@@ -139,20 +150,56 @@ func (nt *NodeTree[T]) GetRoot() *Node[T] {
 }
 
 func (n *NodeTree[T]) GetNode(id string) (*Node[T], bool) {
-	return n.GetNodeFunc(func(child *Node[T]) bool {
-		return child.id == id
+	return n.GetNodeFunc(func(node *Node[T]) bool {
+		return node.id == id
 	})
 }
 
 // Returns the first node for which the function evaluates to true.
 func (n *NodeTree[T]) GetNodeFunc(f func(*Node[T]) bool) (*Node[T], bool) {
-	return n.GetRoot().getChildRecursiveFunc(f)
+	if f(n.root) {
+		return n.root, true
+	}
+	return n.root.getChildRecursiveFunc(f)
 }
 
 func (nt *NodeTree[T]) Print() {
 	nt.Traverse(func(n *Node[T]) {
 		n.Print()
 	})
+}
+
+// Creates a copy of the tree, with all nodes also being copies
+// Returns a pointer to the new NodeTree
+// The function copy is only needed in cases where T is a pointer. It should then copy
+// the value pointed to by some T.
+func (nt *NodeTree[T]) DeepCopy(copy func(T) T) *NodeTree[T] {
+	newNodeTree := NodeTree[T]{
+		root: copyNode(nt.root, copy),
+	}
+
+	copyCallback := func(node *Node[T]) {
+		nodeCopy, ok := newNodeTree.GetNode(node.id)
+		if !ok {
+			fmt.Println("Did not find node. Something is wrong")
+			fmt.Println(node.id)
+			newNodeTree.Print()
+			panic(fmt.Errorf("død og pine"))
+			return
+		}
+
+		children := node.children
+		childrenCopy := make([]*Node[T], len(node.children))
+		for i := range node.children {
+			childCopy := copyNode(children[i], copy)
+			childrenCopy[i] = childCopy
+		}
+
+		nodeCopy.children = childrenCopy
+	}
+
+	nt.root.traverseRecursive(copyCallback)
+	return &newNodeTree
 }
 
 // Returns the new node tree, and the ID of the root node

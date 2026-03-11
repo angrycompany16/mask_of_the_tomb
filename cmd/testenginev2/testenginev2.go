@@ -28,9 +28,9 @@ func (a *App) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
 		a.toggle = !a.toggle
 		if a.toggle {
-			a.game.SetActiveScene("testScene2")
+			a.game.SpawnScene("testScene2")
 		} else {
-			a.game.SetActiveScene("testScene1")
+			a.game.SpawnScene("testScene1")
 		}
 	}
 	return a.game.Update()
@@ -65,7 +65,7 @@ func main() {
 	SpawnTestScene2(testScene2)
 
 	// Would be nice to make this a bit more failsafe
-	game.SetActiveScene(testScene1.GetName())
+	game.SpawnScene(testScene1.GetName())
 
 	app := &App{
 		game: game,
@@ -135,7 +135,7 @@ func main() {
 
 // In order for scenes to be reinstantiated at each
 func SpawnTestScene1(testScene1 *engine.Scene) {
-	node1 := testScene1.Spawn("Node1", demo.NewDemo(
+	node1 := testScene1.SpawnActor("Node1", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
 				*node.NewNode(),
@@ -148,14 +148,14 @@ func SpawnTestScene1(testScene1 *engine.Scene) {
 		demo.WithOnlyRotate(true),
 	))
 
-	node2 := testScene1.Spawn("Node2", transform2D.NewTransform2D(
+	node2 := testScene1.SpawnActor("Node2", transform2D.NewTransform2D(
 		*node.NewNode(),
 		transform2D.WithPos(0, 100),
 	))
 
 	// This may get a little bit impractical for deeply nested stuff...
 	// I guess we just have to wait and see
-	node3 := testScene1.Spawn("Node3", demo.NewDemo(
+	node3 := testScene1.SpawnActor("Node3", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
 				*node.NewNode(),
@@ -172,7 +172,7 @@ func SpawnTestScene1(testScene1 *engine.Scene) {
 }
 
 func SpawnTestScene2(testScene2 *engine.Scene) {
-	testScene2.Spawn("Node1", demo.NewDemo(
+	testScene2.SpawnActor("Node1", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
 				*node.NewNode(),

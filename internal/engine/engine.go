@@ -34,11 +34,15 @@ type Actor interface {
 type Node = node_v2.Node[Actor]
 type NodeTree = node_v2.NodeTree[Actor]
 
+type SceneBuilder func(*servers.Servers) *Scene
+
 type Scene struct {
 	name     string
 	nodeTree NodeTree
 	servers  *servers.Servers
 }
+
+// What if we instantiate the objects instead of the whole scene?
 
 func (s *Scene) Update(servers *servers.Servers) {
 	s.nodeTree.Traverse(func(n *Node) {
@@ -76,7 +80,7 @@ func (s *Scene) GetName() string {
 	return s.name
 }
 
-func (s *Scene) Spawn(name string, actor Actor) *Node {
+func (s *Scene) SpawnActor(name string, actor Actor) *Node {
 	node := s.nodeTree.GetRoot().AddChild(actor, name)
 	actor.OnTreeAdd(node, s.servers)
 	return node
@@ -87,7 +91,7 @@ func (s *Scene) Spawn(name string, actor Actor) *Node {
 // chaining methods, hence the Node is the type that should have
 // an addchild method. However, that doesn't really work...
 func (s *Scene) AddChild(actor Actor, name string, parent *Node) *Node {
-	node := s.Spawn(name, actor)
+	node := s.SpawnActor(name, actor)
 	s.SetParent(node, parent)
 	return node
 }
@@ -98,6 +102,15 @@ func (s *Scene) SetParent(node *Node, parent *Node) {
 
 func (s *Scene) Print() {
 	s.nodeTree.Print()
+}
+
+func (s *Scene) Instantiate() Scene {
+	return Scene{
+		name:     s.name,
+		nodeTree: s.nodeTree, // This does not work. Gotta be able
+		// to copy nodeTrees
+		servers: s.servers,
+	}
 }
 
 // Returns the field T embedded in the actor passed in, i.e.
@@ -150,7 +163,7 @@ func NewScene(name string, root Actor, servers *servers.Servers) *Scene {
 type Game struct {
 	servers     *servers.Servers
 	editor      *Editor
-	scenes      map[string]*Scene // Would it be more correct to call these scene templates?
+	scenes      map[string]*Scene
 	activeScene Scene
 }
 
@@ -172,7 +185,9 @@ func (g *Game) MakeScene(name string, root Actor) *Scene {
 	return g.scenes[name]
 }
 
-func (g *Game) SetActiveScene(name string) *Game {
+func (g *Game) SpawnScene(name string) *Game {
+	// Create an instance of the scene's node tree
+	// Load all stages items
 	g.LoadStaged() // This will go into a different thread to avoid freezing
 	g.activeScene = *g.scenes[name]
 	g.activeScene.Init() // Reset values?
