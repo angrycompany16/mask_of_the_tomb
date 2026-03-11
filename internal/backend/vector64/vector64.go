@@ -7,6 +7,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
+type VectorDraw func(*ebiten.Image)
+
 func FillRect(dst *ebiten.Image, x float64, y float64, width float64, height float64, clr color.Color, antialias bool) {
 	vector.FillRect(dst, float32(x), float32(y), float32(width), float32(height), clr, antialias)
 }

@@ -11,13 +11,13 @@ import (
 func LoadingScene(servers *engine.Servers) *engine.Scene {
 	scene := engine.NewScene("loadingScene", nodeactor.NewNode(), servers)
 
-	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400))
+	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400), servers)
 	scene.SpawnActor("LDTKWorld",
 		ldtkworld.NewLDTKLevel(
 			*transform2D.NewTransform2D(
 				*nodeactor.NewNode(),
-			), "pissnballs", "LDTK/world.ldtk",
-		),
+			), "Level_3", "LDTK/world.ldtk",
+		), servers,
 	)
 
 	return scene

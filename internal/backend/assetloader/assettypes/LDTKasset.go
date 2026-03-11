@@ -12,14 +12,14 @@ import (
 )
 
 type LDTKData struct {
-	world    *ebitenLDTK.World
-	tilesets map[string]*ebiten.Image
+	World    *ebitenLDTK.World
+	Tilesets map[string]*ebiten.Image
 }
 
 func NewLDTKData(world *ebitenLDTK.World, tilesets map[string]*ebiten.Image) *LDTKData {
 	return &LDTKData{
-		world:    world,
-		tilesets: tilesets,
+		World:    world,
+		Tilesets: tilesets,
 	}
 }
 
@@ -46,10 +46,10 @@ func (a *LDTKAsset) Load(fs fs.FS) (any, error) {
 	for i := 0; i < len(world.Defs.Tilesets); i++ {
 		tileset := &world.Defs.Tilesets[i]
 		tilesetPath := filepath.Join(LDTKpath, tileset.RelPath)
-		fmt.Println(tileset.RelPath)
+		fmt.Println(tilesetPath)
 
 		if !strings.HasSuffix(tilesetPath, ".png") {
-			fmt.Println("Tileset gen: Skipping non-png file")
+			fmt.Println("Tileset loading: Skipping non-png file")
 			continue
 		}
 

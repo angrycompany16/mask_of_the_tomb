@@ -55,8 +55,7 @@ func main() {
 			GameHeight: gh,
 			PixelScale: ps,
 		},
-	), engine.NewEditor(gw*ps, gh*ps),
-	)
+	))
 	game.RegisterScene("TestScene1", CreateTestScene1)
 	game.RegisterScene("TestScene2", CreateTestScene2)
 
@@ -93,12 +92,12 @@ func CreateTestScene1(servers *engine.Servers) *engine.Scene {
 			sprite.WithScaling(2.0),
 		),
 		demo.WithOnlyRotate(true),
-	))
+	), servers)
 
 	node2 := scene.SpawnActor("Node2", transform2D.NewTransform2D(
 		*nodeactor.NewNode(),
 		transform2D.WithPos(0, 100),
-	))
+	), servers)
 
 	// This may get a little bit impractical for deeply nested stuff...
 	// I guess we just have to wait and see
@@ -112,13 +111,15 @@ func CreateTestScene1(servers *engine.Servers) *engine.Scene {
 			sprite.WithScaling(2.0),
 		),
 		demo.WithOnlyRotate(false),
-	))
+	), servers)
 
 	scene.SetParent(node2, node1)
 	scene.SetParent(node3, node2)
 	return scene
 }
 
+// Seems that servers contains some of the functionality that Commands
+// has in Bevy...
 func CreateTestScene2(servers *engine.Servers) *engine.Scene {
 	scene := engine.NewScene("testScene2", nodeactor.NewNode(), servers)
 	scene.SpawnActor("Node1", demo.NewDemo(
@@ -132,6 +133,6 @@ func CreateTestScene2(servers *engine.Servers) *engine.Scene {
 			sprite.WithScaling(2.0),
 		),
 		demo.WithOnlyRotate(false),
-	))
+	), servers)
 	return scene
 }

@@ -12,7 +12,7 @@ type Node struct {
 	node   *engine.Node
 }
 
-func (n *Node) Init()                          {}
+func (n *Node) Init(servers *engine.Servers)   {}
 func (n *Node) Update(servers *engine.Servers) {}
 func (n *Node) OnTreeAdd(node *engine.Node, servers *engine.Servers) {
 	n.treeID = node.GetID()

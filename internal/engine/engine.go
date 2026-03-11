@@ -24,7 +24,7 @@ import (
 // A pointer to the Node instance corresponding to this actor is passed in
 // The rest of the methods are obvious.
 type Actor interface {
-	Init()
+	Init(*Servers)
 	Update(*Servers) // TODO: Change to handle errors in nodes independently
 	OnTreeAdd(*Node, *Servers)
 	DrawInspector(*debugui.Context)
@@ -38,7 +38,6 @@ type SceneBuilder func(*Servers) *Scene
 type Scene struct {
 	name     string
 	nodeTree *NodeTree
-	servers  *Servers
 }
 
 func (s *Scene) Update(servers *Servers) {
@@ -47,9 +46,9 @@ func (s *Scene) Update(servers *Servers) {
 	})
 }
 
-func (s *Scene) Init() {
+func (s *Scene) Init(servers *Servers) {
 	s.nodeTree.Traverse(func(n *Node) {
-		n.GetValue().Init()
+		n.GetValue().Init(servers)
 	})
 }
 
@@ -77,9 +76,9 @@ func (s *Scene) GetName() string {
 	return s.name
 }
 
-func (s *Scene) SpawnActor(name string, actor Actor) *Node {
+func (s *Scene) SpawnActor(name string, actor Actor, servers *Servers) *Node {
 	node := s.nodeTree.GetRoot().AddChild(actor, name)
-	actor.OnTreeAdd(node, s.servers)
+	actor.OnTreeAdd(node, servers)
 	return node
 }
 
@@ -87,8 +86,8 @@ func (s *Scene) SpawnActor(name string, actor Actor) *Node {
 // This is sort of annoying: We should be able to add children by
 // chaining methods, hence the Node is the type that should have
 // an addchild method. However, that doesn't really work...
-func (s *Scene) AddChild(actor Actor, name string, parent *Node) *Node {
-	node := s.SpawnActor(name, actor)
+func (s *Scene) AddChild(actor Actor, name string, parent *Node, servers *Servers) *Node {
+	node := s.SpawnActor(name, actor, servers)
 	s.SetParent(node, parent)
 	return node
 }
@@ -142,7 +141,6 @@ func NewScene(name string, root Actor, servers *Servers) *Scene {
 	nodeTree, rootNode := node.NewNodeTree(root)
 	root.OnTreeAdd(rootNode, servers)
 	return &Scene{
-		servers:  servers,
 		name:     name,
 		nodeTree: nodeTree,
 	}
@@ -178,7 +176,7 @@ func (g *Game) SpawnScene(name string) *Game {
 	g.servers.scene = sceneInst
 	g.activeScene = sceneInst
 
-	g.activeScene.Init()
+	g.activeScene.Init(g.servers)
 	return g
 }
 
