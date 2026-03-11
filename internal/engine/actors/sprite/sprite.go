@@ -1,13 +1,13 @@
 package sprite
 
 import (
+	"fmt"
 	"image"
+	"mask_of_the_tomb/internal/backend/assetloader"
+	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
+	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
-	"mask_of_the_tomb/internal/engine/servers"
-	"mask_of_the_tomb/internal/engine/servers/assetloader"
-	"mask_of_the_tomb/internal/engine/servers/assetloader/assettypes"
-	"mask_of_the_tomb/internal/engine/servers/renderer"
 	"mask_of_the_tomb/internal/utils"
 	"math"
 
@@ -26,20 +26,19 @@ type Sprite struct {
 	imageAsset *assetloader.AssetRef[ebiten.Image]
 }
 
-func (s *Sprite) OnTreeAdd(node *engine.Node, servers *servers.Servers) {
+func (s *Sprite) OnTreeAdd(node *engine.Node, servers *engine.Servers) {
 	s.Transform2D.OnTreeAdd(node, servers)
 	s.imageAsset = assetloader.StageAsset[ebiten.Image](
 		servers.AssetLoader(),
-		"sprite",
-		assettypes.MakeImageAsset(s.srcPath),
+		"sprite", // this is not a very smart name
+		assettypes.NewImageAsset(s.srcPath),
 	)
 }
 
-func (s *Sprite) Init() {}
-
-func (s *Sprite) Update(servers *servers.Servers) {
+func (s *Sprite) Update(servers *engine.Servers) {
 	s.Transform2D.Update(servers)
 	if s.imageAsset.Status() != assetloader.LOADED {
+		fmt.Println("Error: Sprite image asset not loaded")
 		// This should in theory never happen. But humans make mistakes...
 		return
 	}
@@ -48,7 +47,7 @@ func (s *Sprite) Update(servers *servers.Servers) {
 	gScaleX, gScaleY := s.Transform2D.GetScale(false)
 
 	// Change this so that stuff is centered tbh
-	servers.Renderer().Request(renderer.PosScaleRot(
+	servers.Renderer().Request(opgen.PosScaleRot(
 		s.imageAsset.Value(),
 		gPosX, gPosY,
 		gAngle,
@@ -71,7 +70,7 @@ func (s *Sprite) DrawInspector(ctx *debugui.Context) {
 				scalingFactorX := trueWidth / float64(S.X)
 				scalingFactorY := trueHeight / float64(S.Y)
 				scalingFactor := math.Min(float64(scalingFactorX), float64(scalingFactorY))
-				screen.DrawImage(s.imageAsset.Value(), renderer.PosScale(
+				screen.DrawImage(s.imageAsset.Value(), opgen.PosScale(
 					s.imageAsset.Value(),
 					float64(bounds.Min.X*scale),
 					float64(bounds.Min.Y*scale),

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"mask_of_the_tomb/internal/node_v2"
-	"mask_of_the_tomb/internal/node_v2/ebitenrender"
+	"mask_of_the_tomb/internal/backend/node"
+	"mask_of_the_tomb/internal/backend/node/ebitenrender"
 
 	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,7 +15,7 @@ type object struct {
 
 type Game struct {
 	debugui  debugui.DebugUI
-	nodeTree *node_v2.NodeTree[object]
+	nodeTree *node.NodeTree[object]
 }
 
 func (g *Game) Update() error {
@@ -36,7 +36,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	nodeTree, _ := node_v2.NewNodeTree[object](
+	nodeTree, _ := node.NewNodeTree[object](
 		object{
 			x: 0,
 			y: 0,

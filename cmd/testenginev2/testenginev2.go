@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/demo"
-	"mask_of_the_tomb/internal/engine/actors/node"
+	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
-	"mask_of_the_tomb/internal/engine/servers"
+	"mask_of_the_tomb/internal/game/actors/demo"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -28,9 +27,9 @@ func (a *App) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
 		a.toggle = !a.toggle
 		if a.toggle {
-			a.game.SpawnScene((&TestScene2{}).Name())
+			a.game.SpawnScene("TestScene2")
 		} else {
-			a.game.SpawnScene((&TestScene1{}).Name())
+			a.game.SpawnScene("TestScene1")
 		}
 	}
 	return a.game.Update()
@@ -50,19 +49,19 @@ func (a *App) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight
 func main() {
 	fmt.Println("START")
 
-	game := engine.NewGame(servers.NewServers(
-		servers.ServerArgs{
+	game := engine.NewGame(engine.NewServers(
+		engine.ServerArgs{
 			GameWidth:  gw,
 			GameHeight: gh,
 			PixelScale: ps,
 		},
 	), engine.NewEditor(gw*ps, gh*ps),
 	)
-	game.AddScene(&TestScene1{})
-	game.AddScene(&TestScene2{})
+	game.RegisterScene("TestScene1", CreateTestScene1)
+	game.RegisterScene("TestScene2", CreateTestScene2)
 
 	// Kinda cursed but this works?
-	game.SpawnScene((&TestScene1{}).Name())
+	game.SpawnScene("TestScene1")
 
 	app := &App{
 		game: game,
@@ -77,14 +76,16 @@ func main() {
 
 // Create various scenes
 // YES
-type TestScene1 struct{}
-
-func (t *TestScene1) Create(servers *servers.Servers) *engine.Scene {
-	scene := engine.NewScene("testScene1", node.NewNode(), servers)
+// note: Value receivers instead of pointers!
+// But wait: How do we create scenes from LDtk?
+// Probably want to use the function style anyway actually
+// programmatic becomes too restrictive
+func CreateTestScene1(servers *engine.Servers) *engine.Scene {
+	scene := engine.NewScene("testScene1", nodeactor.NewNode(), servers)
 	node1 := scene.SpawnActor("Node1", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
-				*node.NewNode(),
+				*nodeactor.NewNode(),
 				transform2D.WithPos(gw*ps/2, gh*ps/2),
 			),
 			"Playerspace",
@@ -95,7 +96,7 @@ func (t *TestScene1) Create(servers *servers.Servers) *engine.Scene {
 	))
 
 	node2 := scene.SpawnActor("Node2", transform2D.NewTransform2D(
-		*node.NewNode(),
+		*nodeactor.NewNode(),
 		transform2D.WithPos(0, 100),
 	))
 
@@ -104,7 +105,7 @@ func (t *TestScene1) Create(servers *servers.Servers) *engine.Scene {
 	node3 := scene.SpawnActor("Node3", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
-				*node.NewNode(),
+				*nodeactor.NewNode(),
 			),
 			"Playerspace",
 			"sprites/player/player.png",
@@ -118,18 +119,12 @@ func (t *TestScene1) Create(servers *servers.Servers) *engine.Scene {
 	return scene
 }
 
-func (t *TestScene1) Name() string {
-	return "TestScene1"
-}
-
-type TestScene2 struct{}
-
-func (t *TestScene2) Create(servers *servers.Servers) *engine.Scene {
-	scene := engine.NewScene("testScene2", node.NewNode(), servers)
+func CreateTestScene2(servers *engine.Servers) *engine.Scene {
+	scene := engine.NewScene("testScene2", nodeactor.NewNode(), servers)
 	scene.SpawnActor("Node1", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
-				*node.NewNode(),
+				*nodeactor.NewNode(),
 				transform2D.WithPos(gw*ps/2, gh*ps/3),
 			),
 			"Playerspace",
@@ -140,60 +135,3 @@ func (t *TestScene2) Create(servers *servers.Servers) *engine.Scene {
 	))
 	return scene
 }
-
-func (t *TestScene2) Name() string {
-	return "TestScene2"
-}
-
-// In order for scenes to be reinstantiated at each
-// func SpawnTestScene1(testScene1 *engine.Scene) {
-// 	node1 := testScene1.SpawnActor("Node1", demo.NewDemo(
-// 		*sprite.NewSprite(
-// 			*transform2D.NewTransform2D(
-// 				*node.NewNode(),
-// 				transform2D.WithPos(gw*ps/2, gh*ps/2),
-// 			),
-// 			"Playerspace",
-// 			"sprites/player/player.png",
-// 			sprite.WithScaling(2.0),
-// 		),
-// 		demo.WithOnlyRotate(true),
-// 	))
-
-// 	node2 := testScene1.SpawnActor("Node2", transform2D.NewTransform2D(
-// 		*node.NewNode(),
-// 		transform2D.WithPos(0, 100),
-// 	))
-
-// 	// This may get a little bit impractical for deeply nested stuff...
-// 	// I guess we just have to wait and see
-// 	node3 := testScene1.SpawnActor("Node3", demo.NewDemo(
-// 		*sprite.NewSprite(
-// 			*transform2D.NewTransform2D(
-// 				*node.NewNode(),
-// 			),
-// 			"Playerspace",
-// 			"sprites/player/player.png",
-// 			sprite.WithScaling(2.0),
-// 		),
-// 		demo.WithOnlyRotate(false),
-// 	))
-
-// 	testScene1.SetParent(node2, node1)
-// 	testScene1.SetParent(node3, node2)
-// }
-
-// func SpawnTestScene2(testScene2 *engine.Scene) {
-// 	testScene2.SpawnActor("Node1", demo.NewDemo(
-// 		*sprite.NewSprite(
-// 			*transform2D.NewTransform2D(
-// 				*node.NewNode(),
-// 				transform2D.WithPos(gw*ps/2, gh*ps/3),
-// 			),
-// 			"Playerspace",
-// 			"sprites/player/player.png",
-// 			sprite.WithScaling(2.0),
-// 		),
-// 		demo.WithOnlyRotate(false),
-// 	))
-// }

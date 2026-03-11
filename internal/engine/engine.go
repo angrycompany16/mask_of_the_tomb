@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"mask_of_the_tomb/internal/engine/servers"
-	"mask_of_the_tomb/internal/engine/servers/renderer"
-	"mask_of_the_tomb/internal/node_v2"
-	"mask_of_the_tomb/internal/node_v2/ebitenrender"
+	"errors"
+	"fmt"
+	"mask_of_the_tomb/internal/backend/node"
+	"mask_of_the_tomb/internal/backend/node/ebitenrender"
 	"reflect"
 	"unsafe"
 
@@ -25,30 +25,23 @@ import (
 // The rest of the methods are obvious.
 type Actor interface {
 	Init()
-	Update(*servers.Servers)
-	// We may need to implement LateUpdate
-	OnTreeAdd(*Node, *servers.Servers)
-	DrawInspector(ctx *debugui.Context)
+	Update(*Servers) // TODO: Change to handle errors in nodes independently
+	OnTreeAdd(*Node, *Servers)
+	DrawInspector(*debugui.Context)
 }
 
-type Node = node_v2.Node[Actor]
-type NodeTree = node_v2.NodeTree[Actor]
+type Node = node.Node[Actor]
+type NodeTree = node.NodeTree[Actor]
 
-// Recipe for a scene
-type SceneBuilder interface {
-	Create(*servers.Servers) *Scene
-	Name() string
-}
+type SceneBuilder func(*Servers) *Scene
 
 type Scene struct {
 	name     string
 	nodeTree *NodeTree
-	servers  *servers.Servers
+	servers  *Servers
 }
 
-// What if we instantiate the objects instead of the whole scene?
-
-func (s *Scene) Update(servers *servers.Servers) {
+func (s *Scene) Update(servers *Servers) {
 	s.nodeTree.Traverse(func(n *Node) {
 		n.GetValue().Update(servers)
 	})
@@ -108,14 +101,6 @@ func (s *Scene) Print() {
 	s.nodeTree.Print()
 }
 
-// func (s *Scene) Instantiate() Scene {
-// 	return Scene{
-// 		name:     s.name,
-// 		nodeTree: s.nodeTree,
-// 		servers: s.servers,
-// 	}
-// }
-
 // Returns the field T embedded in the actor passed in, i.e.
 //
 //	GetActor[Node](transform2D)
@@ -153,8 +138,8 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 	return reflect.NewAt(v.Type(), unsafe.Pointer(v.UnsafeAddr())).Elem()
 }
 
-func NewScene(name string, root Actor, servers *servers.Servers) *Scene {
-	nodeTree, rootNode := node_v2.NewNodeTree(root)
+func NewScene(name string, root Actor, servers *Servers) *Scene {
+	nodeTree, rootNode := node.NewNodeTree(root)
 	root.OnTreeAdd(rootNode, servers)
 	return &Scene{
 		servers:  servers,
@@ -163,73 +148,55 @@ func NewScene(name string, root Actor, servers *servers.Servers) *Scene {
 	}
 }
 
+var ErrTerminated = errors.New("Terminatednow")
+
 type Game struct {
-	servers     *servers.Servers
-	editor      *Editor
+	servers     *Servers
 	scenes      map[string]SceneBuilder
 	activeScene *Scene
 }
 
-func NewGame(servers *servers.Servers, editor *Editor) *Game {
+func NewGame(servers *Servers) *Game {
 	return &Game{
 		servers: servers,
-		editor:  editor,
 		scenes:  make(map[string]SceneBuilder),
 	}
 }
 
-func (g *Game) AddScene(sceneBuilder SceneBuilder) *Game {
-	g.scenes[sceneBuilder.Name()] = sceneBuilder
+func (g *Game) RegisterScene(name string, sceneBuilder SceneBuilder) *Game {
+	g.scenes[name] = sceneBuilder
 	return g
 }
 
 func (g *Game) SpawnScene(name string) *Game {
 	// Create an instance of the scene's node tree
 	sceneBuilder := g.scenes[name]
-	sceneInst := sceneBuilder.Create(g.servers)
+	sceneInst := sceneBuilder(g.servers)
 
 	// Load any staged assets
 	g.LoadStaged() // This will go into a different thread to avoid freezing
+	g.servers.scene = sceneInst
 	g.activeScene = sceneInst
+
 	g.activeScene.Init()
 	return g
 }
-
-// func (g *Game) SpawnScene(name string) *Game {
-// 	// Create an instance of the scene's node tree
-// 	sceneDef := g.scenes[name]
-
-// 	// Extract to function
-// 	sceneInst := Scene{
-// 		name:     name,
-// 		servers:  g.servers,
-// 		nodeTree: sceneDef.nodeTree.DeepCopy(copyActor),
-// 	}
-// 	// Load any staged assets
-// 	g.LoadStaged() // This will go into a different thread to avoid freezing
-// 	g.activeScene = sceneInst
-// 	g.activeScene.Init()
-// 	return g
-// }
 
 func (g *Game) ActiveScene() *Scene {
 	return g.activeScene
 }
 
 func (g *Game) Update() error {
-	if _, err := g.editor.treeUI.Update(
-		g.ActiveScene().MakeDrawFunc(int(300), int(500)),
-	); err != nil {
-		return err
+	if g.activeScene == nil {
+		fmt.Println("Warning: Running game without active scene")
+		return nil
 	}
 
 	g.activeScene.Update(g.servers) // consider returning this instead?
-	g.editor.Update(g.servers)
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.editor.Draw()
 	g.servers.Renderer().Draw(screen)
 }
 
@@ -238,23 +205,6 @@ func (g *Game) LoadStaged() {
 	g.servers.AssetLoader().LoadAll()
 }
 
-// Export to new module
-type Editor struct {
-	treeUI      debugui.DebugUI
-	editorImage *ebiten.Image
-}
-
-func (e *Editor) Update(servers *servers.Servers) {
-	servers.Renderer().Request(renderer.Pos(e.editorImage, 0, 0), e.editorImage, "EditorUI", 0)
-}
-
-func (e *Editor) Draw() {
-	e.editorImage.Clear()
-	e.treeUI.Draw(e.editorImage)
-}
-
-func NewEditor(w, h int) *Editor {
-	return &Editor{
-		editorImage: ebiten.NewImage(w, h),
-	}
+func (g *Game) GetServers() *Servers {
+	return g.servers
 }

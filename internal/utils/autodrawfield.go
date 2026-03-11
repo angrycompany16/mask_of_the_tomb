@@ -9,7 +9,6 @@ import (
 	"github.com/ebitengine/debugui"
 )
 
-// This goes somewhere else
 func RenderFieldsAuto(ctx *debugui.Context, actor engine.Actor) {
 	ctx.SetGridLayout([]int{-1, -2}, []int{0, 0})
 

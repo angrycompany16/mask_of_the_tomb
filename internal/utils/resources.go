@@ -1,0 +1,69 @@
+package utils
+
+var (
+	Time              float64
+	GrassWindSeed     int64
+	PreviousLevelName string
+	Settings          SettingsConfig
+	DebugMode         bool
+)
+
+type SettingsConfig struct {
+	MasterVolume float64
+	SoundVolume  float64
+	MusicVolume  float64
+}
+
+func (sc *SettingsConfig) GetTotalSfxVolume() float64 {
+	return sc.MasterVolume * sc.SoundVolume / 10000
+}
+
+func (sc *SettingsConfig) GetTotalMusicVolume() float64 {
+	return sc.MasterVolume * sc.MusicVolume / 10000
+}
+
+type ldtkNames struct {
+	EntityLayer             string
+	PlayerSpaceLayer        string
+	SpawnPosEntity          string
+	DoorEntity              string
+	DoorV2Entity            string
+	SpawnPointEntity        string
+	SlamboxEntity           string
+	SpikeIntGrid            string
+	GameEntryPos            string
+	GrassEntity             string
+	HazardEntity            string
+	TurretEntity            string
+	CatcherEntity           string
+	PlatformEntity          string
+	LanternEntity           string
+	ChainNodeEntity         string
+	SlamboxChainEntity      string
+	TestSpeechBubbleEntity  string
+	LevelTitleField         string
+	DoorInteractRegionField string
+}
+
+var LDTKNames = ldtkNames{
+	EntityLayer:             "Entities",
+	PlayerSpaceLayer:        "Playerspace",
+	SpawnPosEntity:          "DefaultSpawnPos",
+	DoorEntity:              "Door",
+	DoorV2Entity:            "DoorV2",
+	SpawnPointEntity:        "SpawnPoint",
+	SlamboxEntity:           "Slambox",
+	SpikeIntGrid:            "Spikes",
+	GameEntryPos:            "GameEntryPos",
+	GrassEntity:             "Grass",
+	HazardEntity:            "Hazard",
+	TurretEntity:            "TurretEnemy",
+	CatcherEntity:           "Catcher",
+	PlatformEntity:          "OneWayPlatform",
+	LanternEntity:           "Lantern",
+	ChainNodeEntity:         "SlamboxChainNode",
+	SlamboxChainEntity:      "SlamboxChain",
+	TestSpeechBubbleEntity:  "TestSpeechBubble",
+	LevelTitleField:         "Title",
+	DoorInteractRegionField: "InteractRegion",
+}
