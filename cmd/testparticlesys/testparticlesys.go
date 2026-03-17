@@ -99,7 +99,7 @@ func CreateScene1(cmd *engine.Commands) *engine.Scene {
 	scene.SpawnActor("particleSystem",
 		particles.NewParticleSystem(
 			transform2D.NewTransform2D(
-				*nodeactor.NewNode(),
+				nodeactor.NewNode(),
 				transform2D.WithPos(0, 0),
 			),
 			[]*particles.Burst{
@@ -132,7 +132,7 @@ func CreateScene1(cmd *engine.Commands) *engine.Scene {
 	gw, gh := cmd.Renderer().GetGameSize()
 	scene.SpawnActor("Camera", camera.NewCamera(
 		transform2D.NewTransform2D(
-			*nodeactor.NewNode(),
+			nodeactor.NewNode(),
 		),
 		gw, gh, 0, 0, 0, 0,
 	), cmd)

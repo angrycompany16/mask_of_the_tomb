@@ -11,9 +11,9 @@ import (
 type Option func(*Transform2D)
 
 type Transform2D struct {
-	nodeactor.Node // Actually, should this be a pointer?
-	local          transform
-	global         transform
+	*nodeactor.Node // Actually, should this be a pointer?
+	local           transform
+	global          transform
 }
 
 func (t *Transform2D) Update(cmd *engine.Commands) {
@@ -91,7 +91,7 @@ func (t *Transform2D) SetScale(scaleX, scaleY float64) {
 // Right now we are instantiating the node as a zero object, which
 // is fine-ish (we don't get any nil references), but not great
 // (this could break if we change node, and is not very clean)
-func NewTransform2D(node nodeactor.Node, options ...Option) *Transform2D {
+func NewTransform2D(node *nodeactor.Node, options ...Option) *Transform2D {
 	t := defaultTransform2D(node)
 
 	for _, option := range options {
@@ -101,7 +101,7 @@ func NewTransform2D(node nodeactor.Node, options ...Option) *Transform2D {
 	return t
 }
 
-func defaultTransform2D(node nodeactor.Node) *Transform2D {
+func defaultTransform2D(node *nodeactor.Node) *Transform2D {
 	return &Transform2D{
 		Node:   node,
 		local:  *newTransform(0, 0, 0, 1, 1),

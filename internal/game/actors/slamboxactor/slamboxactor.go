@@ -64,6 +64,7 @@ func (s *Slambox) IsCenter() bool {
 	return s.isCenter
 }
 
+// TODO: Replace rect with width, height
 func NewSlambox(tracker *tracker.Tracker, rect *maths.Rect) *Slambox {
 	return &Slambox{
 		Tracker:      tracker,

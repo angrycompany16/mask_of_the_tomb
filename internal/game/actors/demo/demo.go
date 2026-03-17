@@ -11,7 +11,7 @@ import (
 type Option func(*Demo)
 
 type Demo struct {
-	sprite.Sprite
+	*sprite.Sprite
 	t              float64
 	onlyRotate     bool
 	scaleX, scaleY float64
@@ -38,7 +38,7 @@ func (d *Demo) DrawInspector(ctx *debugui.Context) {
 	d.Sprite.DrawInspector(ctx)
 }
 
-func NewDemo(sprite sprite.Sprite, options ...Option) *Demo {
+func NewDemo(sprite *sprite.Sprite, options ...Option) *Demo {
 	d := defaultDemo(sprite)
 
 	for _, option := range options {
@@ -48,7 +48,7 @@ func NewDemo(sprite sprite.Sprite, options ...Option) *Demo {
 	return d
 }
 
-func defaultDemo(sprite sprite.Sprite) *Demo {
+func defaultDemo(sprite *sprite.Sprite) *Demo {
 	return &Demo{
 		Sprite:     sprite,
 		onlyRotate: false,

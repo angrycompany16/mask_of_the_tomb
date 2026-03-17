@@ -69,9 +69,9 @@ func main() {
 func CreateTestScene1(cmd *engine.Commands) *engine.Scene {
 	scene := engine.NewScene("testScene1", nodeactor.NewNode(), cmd)
 	node1 := scene.SpawnActor("Node1", demo.NewDemo(
-		*sprite.NewSprite(
-			*transform2D.NewTransform2D(
-				*nodeactor.NewNode(),
+		sprite.NewSprite(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
 				transform2D.WithPos(gw*ps/2, gh*ps/2),
 			),
 			"Playerspace",
@@ -82,16 +82,16 @@ func CreateTestScene1(cmd *engine.Commands) *engine.Scene {
 	), cmd)
 
 	node2 := scene.SpawnActor("Node2", transform2D.NewTransform2D(
-		*nodeactor.NewNode(),
+		nodeactor.NewNode(),
 		transform2D.WithPos(0, 100),
 	), cmd)
 
 	// This may get a little bit impractical for deeply nested stuff...
 	// I guess we just have to wait and see
 	node3 := scene.SpawnActor("Node3", demo.NewDemo(
-		*sprite.NewSprite(
-			*transform2D.NewTransform2D(
-				*nodeactor.NewNode(),
+		sprite.NewSprite(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
 			),
 			"Playerspace",
 			"sprites/player/player.png",
@@ -105,7 +105,7 @@ func CreateTestScene1(cmd *engine.Commands) *engine.Scene {
 	gw, gh := cmd.Renderer().GetGameSize()
 	scene.SpawnActor("Camera", camera.NewCamera(
 		transform2D.NewTransform2D(
-			*nodeactor.NewNode(),
+			nodeactor.NewNode(),
 		),
 		gw, gh, 0, 0, 0, 0,
 	), cmd)
@@ -126,9 +126,9 @@ func CreateTestScene1(cmd *engine.Commands) *engine.Scene {
 func CreateTestScene2(cmd *engine.Commands) *engine.Scene {
 	scene := engine.NewScene("testScene2", nodeactor.NewNode(), cmd)
 	scene.SpawnActor("Node1", demo.NewDemo(
-		*sprite.NewSprite(
-			*transform2D.NewTransform2D(
-				*nodeactor.NewNode(),
+		sprite.NewSprite(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
 				transform2D.WithPos(gw*ps/2, gh*ps/3),
 			),
 			"Playerspace",

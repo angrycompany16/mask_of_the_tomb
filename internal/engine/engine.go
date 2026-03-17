@@ -36,6 +36,7 @@ type Node = node.Node[Actor]
 type NodeTree = node.NodeTree[Actor]
 
 type SceneBuilder func(*Commands) *Scene
+type Bundle func(*Commands, *Scene)
 
 type Scene struct {
 	name       string
@@ -108,10 +109,14 @@ func (s *Scene) SpawnActor(name string, actor Actor, cmd *Commands) *Node {
 // This is sort of annoying: We should be able to add children by
 // chaining methods, hence the Node is the type that should have
 // an addchild method. However, that doesn't really work...
-func (s *Scene) AddChild(actor Actor, name string, parent *Node, cmd *Commands) *Node {
+func (s *Scene) AddChild(name string, actor Actor, parent *Node, cmd *Commands) *Node {
 	node := s.SpawnActor(name, actor, cmd)
 	s.SetParent(node, parent)
 	return node
+}
+
+func (s *Scene) SpawnBundle(cmd *Commands, bundle Bundle) {
+	bundle(cmd, s)
 }
 
 func (s *Scene) SetParent(node *Node, parent *Node) {
@@ -148,7 +153,8 @@ func GetActor[T Actor](actor Actor) (T, bool) {
 			return val, true
 		}
 
-		recurseVal, ok := GetActor[T](vf.Addr().Interface().(Actor))
+		// recurseVal, ok := GetActor[T](vf.Addr().Interface().(Actor))
+		recurseVal, ok := GetActor[T](vf.Interface().(Actor))
 		if ok {
 			return recurseVal, true
 		}
@@ -160,6 +166,10 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 	return reflect.NewAt(v.Type(), unsafe.Pointer(v.UnsafeAddr())).Elem()
 }
 
+// TODO: It's sort of unclear why this needs Commands, this should
+// be fixed
+// The only reason it exists is so that we can pass it on to
+// OnTreeAdd, which might not even be necessary at all
 func NewScene(name string, root Actor, servers *Commands) *Scene {
 	nodeTree, rootNode := node.NewNodeTree(root)
 	root.OnTreeAdd(rootNode, servers)

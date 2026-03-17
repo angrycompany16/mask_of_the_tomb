@@ -29,8 +29,8 @@ func (ib *InputBuffer) Clear() {
 	ib.direction = maths.DirNone
 }
 
-func NewInputBuffer(duration float64) InputBuffer {
-	return InputBuffer{
+func NewInputBuffer(duration float64) *InputBuffer {
+	return &InputBuffer{
 		direction: maths.DirNone,
 		t:         0,
 		duration:  duration,

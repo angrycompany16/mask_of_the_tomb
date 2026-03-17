@@ -46,16 +46,11 @@ func (c *Camera) Update(cmd *engine.Commands) {
 
 // returns the position of the camera
 func (c *Camera) WorldToCam(x, y float64, includeShake bool) (float64, float64) {
-	// Special adjustment for LDtk levels... probably not that great
-	if c.height == 272 {
-		y += 1
-	}
-
 	camX, camY := c.Transform2D.GetPos(false)
 	if includeShake {
-		return x - (camX + c.shakeOffsetX), y - (camY + c.shakeOffsetY)
+		return x - (camX + c.shakeOffsetX - c.offsetX), y - (camY + c.shakeOffsetY - c.offsetY)
 	}
-	return x - camX, y - camY
+	return x - (camX - c.offsetX), y - (camY - c.offsetY)
 }
 
 func (c *Camera) GetShake() (float64, float64) {
@@ -81,15 +76,49 @@ func (c *Camera) Shake(duration, strength, damping float64) {
 	c.damping = damping
 }
 
-// 20, 20 are good default value for shake padding
-func NewCamera(transform2D *transform2D.Transform2D, width, height, offsetX, offsetY, screenPaddingX, screenPaddingY float64) *Camera {
+type Option func(*Camera)
+
+func newDefaultCamera() *Camera {
 	return &Camera{
-		Transform2D:   transform2D,
-		width:         width,
-		height:        height,
-		offsetX:       offsetX,
-		offsetY:       offsetY,
-		screenMarginX: screenPaddingX,
-		screenMarginY: screenPaddingY,
+		width:         480,
+		height:        270,
+		offsetX:       240,
+		offsetY:       135,
+		screenMarginX: 0,
+		screenMarginY: 0,
+	}
+}
+
+// 20, 20 are good default value for shake padding
+func NewCamera(transform2D *transform2D.Transform2D, options ...Option) *Camera {
+	camera := &Camera{
+		Transform2D: transform2D,
+	}
+
+	for _, option := range options {
+		option(camera)
+	}
+
+	return camera
+}
+
+func WithSize(width, height float64) Option {
+	return func(c *Camera) {
+		c.width = width
+		c.height = height
+	}
+}
+
+func WithOffset(offsetX, offsetY float64) Option {
+	return func(c *Camera) {
+		c.offsetX = offsetX
+		c.offsetY = offsetY
+	}
+}
+
+func WithMargins(marginX, marginY float64) Option {
+	return func(c *Camera) {
+		c.screenMarginX = marginX
+		c.screenMarginY = marginY
 	}
 }

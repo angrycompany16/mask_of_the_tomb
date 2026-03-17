@@ -2,23 +2,18 @@ package scenes
 
 import (
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/inspector"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
-	"mask_of_the_tomb/internal/engine/actors/transform2D"
-	ldtkworld "mask_of_the_tomb/internal/game/actors/LDTKworld"
+	"mask_of_the_tomb/internal/engine/enginebundles"
+	"mask_of_the_tomb/internal/game/bundles"
 )
 
-func LoadingScene(servers *engine.Commands) *engine.Scene {
-	scene := engine.NewScene("loadingScene", nodeactor.NewNode(), servers)
+func LoadingScene(cmd *engine.Commands) *engine.Scene {
+	scene := engine.NewScene("loadingScene", nodeactor.NewNode(), cmd)
 
-	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400), servers)
-	scene.SpawnActor("LDTKWorld",
-		ldtkworld.NewLDTKLevel(
-			*transform2D.NewTransform2D(
-				*nodeactor.NewNode(),
-			), "Level_3", "LDTK/world.ldtk",
-		), servers,
-	)
-
+	gameWidth, gameHeigth := cmd.Renderer().GetGameSize()
+	pixelScale := cmd.Renderer().GetPixelScale()
+	scene.SpawnBundle(cmd, enginebundles.MakeDefaultBundle(gameWidth, gameHeigth, pixelScale))
+	scene.SpawnBundle(cmd, bundles.MakeLDTKWorldBundle())
+	scene.SpawnBundle(cmd, bundles.MakePlayerBundle())
 	return scene
 }

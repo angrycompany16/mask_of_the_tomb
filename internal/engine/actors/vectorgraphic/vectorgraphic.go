@@ -3,13 +3,13 @@ package vectorgraphic
 import (
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type VectorGraphic struct {
-	*transform2D.Transform2D
+	*graphic.Graphic
 	drawFunc  func(*ebiten.Image)
 	image     *ebiten.Image
 	layer     string `debug:"auto"`
@@ -18,18 +18,19 @@ type VectorGraphic struct {
 
 // Note: In some cases this can be optimized by rendering only in init
 func (v *VectorGraphic) Update(cmd *engine.Commands) {
-	v.Transform2D.Update(cmd)
+	v.Graphic.Update(cmd)
 	v.image.Clear()
 	v.drawFunc(v.image)
 
 	gPosX, gPosY := v.Transform2D.GetPos(false)
+	camX, camY := v.GetCamera().WorldToCam(gPosX, gPosY, true)
 	gAngle := v.Transform2D.GetAngle(false)
 	gScaleX, gScaleY := v.Transform2D.GetScale(false)
 
 	// Change this so that stuff is centered tbh
 	cmd.Renderer().Request(opgen.PosScaleRot(
 		v.image,
-		gPosX, gPosY,
+		camX, camY,
 		gAngle,
 		gScaleX, gScaleY,
 		0.5, 0.5,
@@ -37,17 +38,17 @@ func (v *VectorGraphic) Update(cmd *engine.Commands) {
 }
 
 func NewVectorGraphic(
-	transform2d *transform2D.Transform2D,
+	graphic *graphic.Graphic,
 	drawFunc func(*ebiten.Image),
 	layer string,
 	drawOrder int,
 	width, height int, // not so great, but we need it
 ) *VectorGraphic {
 	return &VectorGraphic{
-		Transform2D: transform2d,
-		drawFunc:    drawFunc,
-		image:       ebiten.NewImage(width, height),
-		layer:       layer,
-		drawOrder:   drawOrder,
+		Graphic:   graphic,
+		drawFunc:  drawFunc,
+		image:     ebiten.NewImage(width, height),
+		layer:     layer,
+		drawOrder: drawOrder,
 	}
 }

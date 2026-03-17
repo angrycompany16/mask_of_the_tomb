@@ -7,9 +7,7 @@ import (
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/camera"
-	"mask_of_the_tomb/internal/engine/actors/nodeactor"
-	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/utils"
 	"math"
 
@@ -20,17 +18,16 @@ import (
 type Option func(*Sprite)
 
 type Sprite struct {
-	transform2D.Transform2D
-	layer      string         `debug:"auto"`
-	drawOrder  int            `debug:"auto"`
-	scaling    float64        `debug:"auto"`
-	srcPath    string         `debug:"auto"`
-	camera     *camera.Camera `debug:"auto"` // TODO: Add debug option for node references
+	*graphic.Graphic
+	layer      string  `debug:"auto"`
+	drawOrder  int     `debug:"auto"`
+	scaling    float64 `debug:"auto"`
+	srcPath    string  `debug:"auto"`
 	imageAsset *assetloader.AssetRef[ebiten.Image]
 }
 
 func (s *Sprite) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
-	s.Transform2D.OnTreeAdd(node, cmd)
+	s.Graphic.OnTreeAdd(node, cmd)
 	s.imageAsset = assetloader.StageAsset[ebiten.Image](
 		cmd.AssetLoader(),
 		s.srcPath,
@@ -39,24 +36,11 @@ func (s *Sprite) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
 }
 
 func (s *Sprite) Init(cmd *engine.Commands) {
-	s.Transform2D.Init(cmd)
-	camNode, ok := engine.GetNodeByType[*camera.Camera](cmd.Scene())
-	if !ok {
-		fmt.Println("No camera was found! Instantiating default camera")
-		camNode = cmd.Scene().SpawnActor("Camera", camera.NewCamera(
-			transform2D.NewTransform2D(
-				*nodeactor.NewNode(),
-			), 0, 0, 0, 0, 0, 0,
-		), cmd)
-		// I'm not entirely sure if this is the best solution.
-		// But it should work for now...
-	}
-	camActor, ok := engine.GetActor[*camera.Camera](camNode.GetValue())
-	s.camera = camActor
+	s.Graphic.Init(cmd)
 }
 
 func (s *Sprite) Update(cmd *engine.Commands) {
-	s.Transform2D.Update(cmd)
+	s.Graphic.Update(cmd)
 	if s.imageAsset.Status() != assetloader.LOADED {
 		fmt.Println("Error: Sprite image asset not loaded")
 		// This should in theory never happen. But humans make mistakes...
@@ -65,7 +49,7 @@ func (s *Sprite) Update(cmd *engine.Commands) {
 	gPosX, gPosY := s.Transform2D.GetPos(false)
 	gAngle := s.Transform2D.GetAngle(false)
 	gScaleX, gScaleY := s.Transform2D.GetScale(false)
-	camX, camY := s.camera.WorldToCam(gPosX, gPosY, true)
+	camX, camY := s.GetCamera().WorldToCam(gPosX, gPosY, true)
 
 	// Change this so that stuff is centered tbh
 	cmd.Renderer().Request(opgen.PosScaleRot(
@@ -102,7 +86,7 @@ func (s *Sprite) DrawInspector(ctx *debugui.Context) {
 		})
 		utils.RenderFieldsAuto(ctx, s)
 	})
-	s.Transform2D.DrawInspector(ctx)
+	s.Graphic.DrawInspector(ctx)
 }
 
 func (s *Sprite) GetLayer() string {
@@ -110,8 +94,8 @@ func (s *Sprite) GetLayer() string {
 }
 
 // We can remove layer and src as required args
-func NewSprite(transform2D transform2D.Transform2D, layer string, srcPath string, options ...Option) *Sprite {
-	s := defaultSprite(transform2D)
+func NewSprite(graphic *graphic.Graphic, layer string, srcPath string, options ...Option) *Sprite {
+	s := defaultSprite(graphic)
 	s.layer = layer
 	s.srcPath = srcPath
 
@@ -122,12 +106,12 @@ func NewSprite(transform2D transform2D.Transform2D, layer string, srcPath string
 	return s
 }
 
-func defaultSprite(transform2D transform2D.Transform2D) *Sprite {
+func defaultSprite(graphic *graphic.Graphic) *Sprite {
 	return &Sprite{
-		layer:       "Playerspace",
-		drawOrder:   0,
-		scaling:     1.0,
-		Transform2D: transform2D,
+		layer:     "Playerspace",
+		drawOrder: 0,
+		scaling:   1.0,
+		Graphic:   graphic,
 	}
 }
 

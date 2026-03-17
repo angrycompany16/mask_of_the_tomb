@@ -140,7 +140,7 @@ func CreateTestScene(cmd *engine.Commands) *engine.Scene {
 				Slambox: slamboxactor.NewSlambox(
 					tracker.NewTracker(
 						transform2D.NewTransform2D(
-							*nodeactor.NewNode(),
+							nodeactor.NewNode(),
 						),
 						5.0,
 						slambox.Left(), slambox.Top(),
@@ -153,7 +153,7 @@ func CreateTestScene(cmd *engine.Commands) *engine.Scene {
 
 	scene.SpawnActor("SlamboxTilemap", slamboxtilemap.NewSlamboxTilemap(
 		transform2D.NewTransform2D(
-			*nodeactor.NewNode(),
+			nodeactor.NewNode(),
 		),
 		gridTiles,
 		16,

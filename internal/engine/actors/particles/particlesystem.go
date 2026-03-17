@@ -1,16 +1,13 @@
 package particles
 
 import (
-	"fmt"
 	"image/color"
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/camera"
-	"mask_of_the_tomb/internal/engine/actors/nodeactor"
-	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/utils"
 	"math"
 	"time"
@@ -33,7 +30,7 @@ import (
 // TODO: Convert angles to degrees
 
 type ParticleSystem struct {
-	*transform2D.Transform2D
+	*graphic.Graphic
 	particles       []*Particle
 	Bursts          []*Burst
 	GlobalSpace     bool                `debug:"auto"`
@@ -62,7 +59,6 @@ type ParticleSystem struct {
 	imageAsset  *assetloader.AssetRef[ebiten.Image] // The sprite for the particles
 	// layer       *ebiten.Image
 	gizmosImage *ebiten.Image
-	camera      *camera.Camera
 	burstTimers []*time.Timer
 	isPlaying   bool   `debug:"auto"`
 	layer       string `debug:"auto"`
@@ -71,7 +67,7 @@ type ParticleSystem struct {
 
 // This could maybe just be part of the constructor
 func (ps *ParticleSystem) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
-	ps.Transform2D.OnTreeAdd(node, cmd)
+	ps.Graphic.OnTreeAdd(node, cmd)
 	ps.imageAsset = assetloader.StageAsset[ebiten.Image](
 		cmd.AssetLoader(),
 		ps.SpritePath,
@@ -80,37 +76,21 @@ func (ps *ParticleSystem) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
 }
 
 func (ps *ParticleSystem) Init(cmd *engine.Commands) {
-	ps.Transform2D.Init(cmd)
-	// TODO: This copypaste looks a bit ugly. Does this mean that we need
-	// another actor between sprite and transform2D just to do this?
-	// This would be something like a 'Graphic' actor
-	camNode, ok := engine.GetNodeByType[*camera.Camera](cmd.Scene())
-	if !ok {
-		fmt.Println("No camera was found! Instantiating default camera")
-		camNode = cmd.Scene().SpawnActor("Camera", camera.NewCamera(
-			transform2D.NewTransform2D(
-				*nodeactor.NewNode(),
-			), 0, 0, 0, 0, 0, 0,
-		), cmd)
-	}
-	camActor, ok := engine.GetActor[*camera.Camera](camNode.GetValue())
-	ps.camera = camActor
-
+	ps.Graphic.Init(cmd)
 	ps.gizmosImage.Fill(color.RGBA{12, 123, 222, 123})
-
 	ps.Play()
 }
 
 func (ps *ParticleSystem) DrawGizmo(cmd *engine.Commands) {
-	ps.Transform2D.DrawGizmo(cmd)
+	ps.Graphic.DrawGizmo(cmd)
 
 	worldX, worldY := ps.Transform2D.GetPos(false)
-	camX, camY := ps.camera.WorldToCam(worldX, worldY, false)
+	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, false)
 	cmd.Renderer().Request(opgen.Pos(ps.gizmosImage, camX, camY, 0.5, 0.5), ps.gizmosImage, "Overlay", ps.drawOrder+1)
 }
 
 func (ps *ParticleSystem) Update(cmd *engine.Commands) {
-	ps.Transform2D.Update(cmd)
+	ps.Graphic.Update(cmd)
 	ps.t += 0.016666666667
 	ps.surf.Clear()
 
@@ -147,7 +127,7 @@ func (ps *ParticleSystem) Update(cmd *engine.Commands) {
 
 	if ps.GlobalSpace {
 		for _, particle := range ps.particles {
-			camX, camY := ps.camera.WorldToCam(particle.posX, particle.posY, true)
+			camX, camY := ps.GetCamera().WorldToCam(particle.posX, particle.posY, true)
 			c, op := particle.makeOp(camX, camY)
 			cmd.Renderer().RequestColorM(c, op, particle.sprite, ps.layer, ps.drawOrder)
 		}
@@ -163,12 +143,12 @@ func (ps *ParticleSystem) Update(cmd *engine.Commands) {
 	worldX, worldY := ps.Transform2D.GetPos(false)
 	angle := ps.Transform2D.GetAngle(false)
 	scaleX, scaleY := ps.Transform2D.GetScale(false)
-	camX, camY := ps.camera.WorldToCam(worldX, worldY, true)
+	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, true)
 	cmd.Renderer().Request(opgen.PosScaleRot(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, ps.layer, ps.drawOrder)
 }
 
 func (ps *ParticleSystem) DrawInspector(ctx *debugui.Context) {
-	ps.Transform2D.DrawInspector(ctx)
+	ps.Graphic.DrawInspector(ctx)
 	utils.RenderFieldsAuto(ctx, ps)
 }
 
@@ -226,7 +206,7 @@ func (ps *ParticleSystem) newParticle() *Particle {
 }
 
 func NewParticleSystem(
-	transform2D *transform2D.Transform2D,
+	graphic *graphic.Graphic,
 	Bursts []*Burst,
 	GlobalSpace bool,
 	Emission float64,
@@ -252,7 +232,7 @@ func NewParticleSystem(
 	drawOrder int,
 ) *ParticleSystem {
 	return &ParticleSystem{
-		Transform2D:     transform2D,
+		Graphic:         graphic,
 		particles:       make([]*Particle, 0),
 		Bursts:          Bursts,
 		GlobalSpace:     GlobalSpace,
