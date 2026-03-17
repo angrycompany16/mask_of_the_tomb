@@ -20,14 +20,14 @@ type Inspector struct {
 	editorImage   *ebiten.Image
 }
 
-func (e *Inspector) Update(servers *engine.Servers) {
+func (e *Inspector) Update(cmd *engine.Commands) {
 	if _, err := e.UI.Update(
-		servers.Scene().MakeDrawFunc(e.width, e.height),
+		cmd.Scene().MakeDrawFunc(e.width, e.height),
 	); err != nil {
 		fmt.Println("Error in Editor!")
 	}
 
-	if servers.InputHandler().PollAction("toggleInspector") {
+	if cmd.InputHandler().PollAction("toggleInspector") {
 		e.visible = !e.visible
 		if e.visible {
 			ebiten.SetCursorMode(ebiten.CursorModeVisible)
@@ -37,7 +37,7 @@ func (e *Inspector) Update(servers *engine.Servers) {
 	}
 
 	if e.visible {
-		servers.Renderer().Request(opgen.Pos(e.editorImage, e.x, e.y), e.editorImage, "EditorUI", 0)
+		cmd.Renderer().Request(opgen.Pos(e.editorImage, e.x, e.y), e.editorImage, "EditorUI", 0)
 		e.editorImage.Clear()
 		e.UI.Draw(e.editorImage)
 	}

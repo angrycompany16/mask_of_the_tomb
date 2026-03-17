@@ -8,8 +8,10 @@ slamboxes and (2) the ability to connect slamboxes in "any" configuration)
 // 4. Buttons... I might have to add buttons
 // 5. Rotating slamboxes, sort of like tetris pieces. Requires making a function
 //    for rotating a rect about its center, but not that much more.
+// 6. A mode where the (unnamed) main character controls all of the 
+//    slamboxes simultaneously, see testslamboxenv.go for an example
+//    of how this could work! This is a very cool idea.
 // what else?
-
 
 Bug list:
 - Sometimes spamming pause/play while respawning causes the player to not appear

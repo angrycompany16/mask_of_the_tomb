@@ -8,7 +8,7 @@ import (
 	ldtkworld "mask_of_the_tomb/internal/game/actors/LDTKworld"
 )
 
-func LoadingScene(servers *engine.Servers) *engine.Scene {
+func LoadingScene(servers *engine.Commands) *engine.Scene {
 	scene := engine.NewScene("loadingScene", nodeactor.NewNode(), servers)
 
 	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400), servers)

@@ -1,6 +1,6 @@
 package utils
 
-func Poll[T any](out <-chan T) (T, bool) {
+func PollThread[T any](out <-chan T) (T, bool) {
 	select {
 	case a := <-out:
 		return a, true

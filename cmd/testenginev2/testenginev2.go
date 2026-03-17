@@ -1,8 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"mask_of_the_tomb/internal/backend/input"
 	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/engine/actors/assetviewer"
+	"mask_of_the_tomb/internal/engine/actors/camera"
+	"mask_of_the_tomb/internal/engine/actors/inspector"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
@@ -22,7 +25,6 @@ type App struct {
 	toggle bool
 }
 
-// We can quite honestly get started at this point
 func (a *App) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
 		a.toggle = !a.toggle
@@ -43,21 +45,14 @@ func (a *App) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight
 	return outsideWidth, outsideHeight
 }
 
-// TODO: Rewrite the scene system so that we operate with definitions
-// + instances instead of how it is now, since at the current moment
-// scenes "pick up where they left off" whenever they are reinstantiated
 func main() {
-	fmt.Println("START")
-
-	game := engine.NewGame(engine.NewServers(
-		engine.ServerArgs{
-			GameWidth:  gw,
-			GameHeight: gh,
-			PixelScale: ps,
-		},
+	game := engine.NewGame(engine.NewCommands(
+		engine.WithRenderer(gw, gh, ps, false, false),
 	))
 	game.RegisterScene("TestScene1", CreateTestScene1)
 	game.RegisterScene("TestScene2", CreateTestScene2)
+
+	game.GetCmd().InputHandler().RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
 
 	// Kinda cursed but this works?
 	game.SpawnScene("TestScene1")
@@ -66,21 +61,13 @@ func main() {
 		game: game,
 	}
 
-	ebiten.SetWindowSize(gw, gh)
-
 	if err := ebiten.RunGame(app); err != nil {
 		panic(err)
 	}
 }
 
-// Create various scenes
-// YES
-// note: Value receivers instead of pointers!
-// But wait: How do we create scenes from LDtk?
-// Probably want to use the function style anyway actually
-// programmatic becomes too restrictive
-func CreateTestScene1(servers *engine.Servers) *engine.Scene {
-	scene := engine.NewScene("testScene1", nodeactor.NewNode(), servers)
+func CreateTestScene1(cmd *engine.Commands) *engine.Scene {
+	scene := engine.NewScene("testScene1", nodeactor.NewNode(), cmd)
 	node1 := scene.SpawnActor("Node1", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
@@ -92,12 +79,12 @@ func CreateTestScene1(servers *engine.Servers) *engine.Scene {
 			sprite.WithScaling(2.0),
 		),
 		demo.WithOnlyRotate(true),
-	), servers)
+	), cmd)
 
 	node2 := scene.SpawnActor("Node2", transform2D.NewTransform2D(
 		*nodeactor.NewNode(),
 		transform2D.WithPos(0, 100),
-	), servers)
+	), cmd)
 
 	// This may get a little bit impractical for deeply nested stuff...
 	// I guess we just have to wait and see
@@ -111,17 +98,33 @@ func CreateTestScene1(servers *engine.Servers) *engine.Scene {
 			sprite.WithScaling(2.0),
 		),
 		demo.WithOnlyRotate(false),
-	), servers)
+	), cmd)
+
+	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400), cmd)
+
+	gw, gh := cmd.Renderer().GetGameSize()
+	scene.SpawnActor("Camera", camera.NewCamera(
+		transform2D.NewTransform2D(
+			*nodeactor.NewNode(),
+		),
+		gw, gh, 0, 0, 0, 0,
+	), cmd)
+
+	scene.SpawnActor("AssetViewer", assetviewer.NewAssetViewer(
+		nodeactor.NewNode(),
+	), cmd)
+
+	scene.SpawnActor("AssetViewer", assetviewer.NewAssetViewer(
+		nodeactor.NewNode(),
+	), cmd)
 
 	scene.SetParent(node2, node1)
 	scene.SetParent(node3, node2)
 	return scene
 }
 
-// Seems that servers contains some of the functionality that Commands
-// has in Bevy...
-func CreateTestScene2(servers *engine.Servers) *engine.Scene {
-	scene := engine.NewScene("testScene2", nodeactor.NewNode(), servers)
+func CreateTestScene2(cmd *engine.Commands) *engine.Scene {
+	scene := engine.NewScene("testScene2", nodeactor.NewNode(), cmd)
 	scene.SpawnActor("Node1", demo.NewDemo(
 		*sprite.NewSprite(
 			*transform2D.NewTransform2D(
@@ -133,6 +136,8 @@ func CreateTestScene2(servers *engine.Servers) *engine.Scene {
 			sprite.WithScaling(2.0),
 		),
 		demo.WithOnlyRotate(false),
-	), servers)
+	), cmd)
+
+	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400), cmd)
 	return scene
 }

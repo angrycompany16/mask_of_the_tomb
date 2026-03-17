@@ -16,8 +16,8 @@ type Transform2D struct {
 	global         transform
 }
 
-func (t *Transform2D) Update(servers *engine.Servers) {
-	t.Node.Update(servers) // best practice
+func (t *Transform2D) Update(cmd *engine.Commands) {
+	t.Node.Update(cmd) // best practice
 
 	parentNode := t.Node.GetNode().GetParent()
 	if parentNode == nil {
@@ -50,6 +50,9 @@ func (t *Transform2D) DrawInspector(ctx *debugui.Context) {
 	})
 
 	t.Node.DrawInspector(ctx)
+}
+
+func (t *Transform2D) DrawGizmo(cmd *engine.Commands) {
 }
 
 func (t *Transform2D) GetPos(local bool) (float64, float64) {

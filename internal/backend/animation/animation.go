@@ -45,7 +45,7 @@ func (a *Animation) Update() {
 		return
 	}
 
-	if _, tick := utils.Poll(a.ticker.C); tick {
+	if _, tick := utils.PollThread(a.ticker.C); tick {
 		a.switchFrame()
 	}
 }

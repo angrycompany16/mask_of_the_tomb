@@ -17,8 +17,8 @@ type VectorGraphic struct {
 }
 
 // Note: In some cases this can be optimized by rendering only in init
-func (v *VectorGraphic) Update(servers *engine.Servers) {
-	v.Transform2D.Update(servers)
+func (v *VectorGraphic) Update(cmd *engine.Commands) {
+	v.Transform2D.Update(cmd)
 	v.image.Clear()
 	v.drawFunc(v.image)
 
@@ -27,7 +27,7 @@ func (v *VectorGraphic) Update(servers *engine.Servers) {
 	gScaleX, gScaleY := v.Transform2D.GetScale(false)
 
 	// Change this so that stuff is centered tbh
-	servers.Renderer().Request(opgen.PosScaleRot(
+	cmd.Renderer().Request(opgen.PosScaleRot(
 		v.image,
 		gPosX, gPosY,
 		gAngle,

@@ -3,11 +3,14 @@ package assetloader
 import (
 	"fmt"
 	"io/fs"
+
+	om "github.com/wk8/go-ordered-map/v2"
 )
 
 // HOLY SHIT.
 // There's a reason why I'm known as the pointer God...
 
+//go:generate stringer -type=AssetStatus
 type AssetStatus int
 
 const (
@@ -41,14 +44,18 @@ type Asset struct {
 	status   AssetStatus
 }
 
+func (a *Asset) GetStatusString() string {
+	return a.status.String()
+}
+
 type AssetLoader struct {
-	assetpool map[string]*Asset
+	assetpool *om.OrderedMap[string, *Asset]
 	fs        fs.FS
 }
 
 func StageAsset[T any](a *AssetLoader, name string, loadable Loadable) *AssetRef[T] {
 	assetRef := AssetRef[T]{}
-	if asset, ok := a.assetpool[name]; ok {
+	if asset, ok := a.assetpool.Get(name); ok {
 		assetRef.value = &asset.value
 		assetRef.status = &asset.status
 		return &assetRef
@@ -61,29 +68,33 @@ func StageAsset[T any](a *AssetLoader, name string, loadable Loadable) *AssetRef
 
 	assetRef.value = &asset.value
 	assetRef.status = &asset.status
-	a.assetpool[name] = &asset
+	a.assetpool.Set(name, &asset)
 	return &assetRef
 }
 
 func (a *AssetLoader) LoadAll() {
-	for _, asset := range a.assetpool {
-		if asset.status == LOADED || asset.status == FAILED {
+	for pair := a.assetpool.Oldest(); pair != nil; pair = pair.Next() {
+		if pair.Value.status == LOADED || pair.Value.status == FAILED {
 			continue
 		}
-		val, err := asset.loadable.Load(a.fs)
+		val, err := pair.Value.loadable.Load(a.fs)
 		if err != nil {
 			fmt.Printf("Asset failed with error %s\n", err.Error())
-			asset.status = FAILED
+			pair.Value.status = FAILED
 			continue
 		}
-		asset.status = LOADED
-		asset.value = val
+		pair.Value.status = LOADED
+		pair.Value.value = val
 	}
+}
+
+func (a *AssetLoader) GetAssetPool() *om.OrderedMap[string, *Asset] {
+	return a.assetpool
 }
 
 func NewAssetLoader(fs fs.FS) *AssetLoader {
 	return &AssetLoader{
-		assetpool: make(map[string]*Asset),
+		assetpool: om.New[string, *Asset](),
 		fs:        fs,
 	}
 }

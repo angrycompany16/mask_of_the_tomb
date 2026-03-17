@@ -2,14 +2,9 @@ package opgen
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/colorm"
 )
 
 // Contains functions for drawing images rotated and scaled around arbitrary pivots.
-func OpConvert(op *ebiten.DrawImageOptions) *colorm.DrawImageOptions {
-	return &colorm.DrawImageOptions{GeoM: op.GeoM, Blend: op.Blend, Filter: op.Filter}
-}
-
 func getPivotPx(src *ebiten.Image, pivotX, pivotY float64) (float64, float64) {
 	s := src.Bounds().Size()
 	return float64(s.X) * pivotX, float64(s.Y) * pivotY
@@ -40,6 +35,7 @@ func PosScale(src *ebiten.Image, x, y, scaleX, scaleY float64, pivot ...float64)
 	pivotX, pivotY = getPivotPx(src, pivotX, pivotY)
 	op := &ebiten.DrawImageOptions{}
 
+	op.GeoM.Translate(-pivotX, -pivotY)
 	op.GeoM.Scale(scaleX, scaleY)
 	op.GeoM.Translate(pivotX*(1-scaleX), pivotY*(1-scaleY))
 
@@ -69,7 +65,6 @@ func PosScaleRot(src *ebiten.Image, x, y, angle, scaleX, scaleY float64, pivot .
 
 	op.GeoM.Translate(-pivotX, -pivotY)
 	op.GeoM.Rotate(angle)
-	op.GeoM.Translate(pivotX, pivotY)
 
 	op.GeoM.Translate(x, y)
 	return op

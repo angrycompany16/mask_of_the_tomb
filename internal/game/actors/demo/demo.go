@@ -19,7 +19,7 @@ type Demo struct {
 	angle          float64
 }
 
-func (d *Demo) Update(servers *engine.Servers) {
+func (d *Demo) Update(servers *engine.Commands) {
 	d.t += 0.016666
 	d.angle = 0.5 * d.t
 	d.Sprite.SetAngle(d.angle)

@@ -7,6 +7,7 @@ import (
 	"slices"
 )
 
+// We want to convert this into an actor... but how?
 const nodeRectSize = 2
 
 type SlamCtx struct {
@@ -32,107 +33,11 @@ func (cn *ChainNode) GetRect() *maths.Rect {
 // A chain that can connect multiple slamboxes / slambox groups.
 type SlamboxChain struct {
 	nodes         []*ChainNode
-	slamboxes     []*Slambox
+	slamboxes     []*maths.Rect
 	slamboxGroups []*SlamboxGroup
 }
 
-func (sc *SlamboxChain) GetNodes() []*ChainNode {
-	return sc.nodes
-}
-
-func (sc *SlamboxChain) GetSlamboxes() []*Slambox {
-	return sc.slamboxes
-}
-
-func (sc *SlamboxChain) GetSlamboxGroups() []*SlamboxGroup {
-	return sc.slamboxGroups
-}
-
-func (sc *SlamboxChain) Update() {
-	for _, slambox := range sc.slamboxes {
-		slambox.Update()
-	}
-	for _, slamboxGroup := range sc.slamboxGroups {
-		slamboxGroup.Update()
-	}
-}
-
-func (sc *SlamboxChain) GetAllSlamboxRects() []*maths.Rect {
-	rects := make([]*maths.Rect, 0)
-	for _, slambox := range sc.slamboxes {
-		rects = append(rects, slambox.GetRect())
-	}
-	for _, slamboxGroup := range sc.slamboxGroups {
-		rects = slices.Concat(slamboxGroup.GetSlamboxRects())
-	}
-	return rects
-}
-
-func (sc *SlamboxChain) GetNextDir(i int) maths.Direction {
-	if i < 0 || i >= len(sc.nodes)-1 {
-		fmt.Println("Invalid index")
-		return maths.DirNone
-	}
-
-	return sc.nodes[i].nextNodeDir
-}
-
-func (sc *SlamboxChain) GetPrevDir(i int) maths.Direction {
-	if i < 1 || i >= len(sc.nodes) {
-		fmt.Println("Invalid index")
-		return maths.DirNone
-	}
-
-	return sc.nodes[i].prevNodeDir
-}
-
-func (sc *SlamboxChain) DistFromNode(x, y float64, i int) float64 {
-	cX, cY := sc.nodes[i].GetRect().Center()
-	return maths.Norm(1, x-cX, y-cY)
-}
-
-// Check whether (x, y) is in the bounding box spanned out by the i,j nodes.
-func (sc *SlamboxChain) IsBetween(i, j int, x, y float64) bool {
-	BB := maths.BB([]*maths.Rect{
-		sc.nodes[i].GetRect(),
-		sc.nodes[j].GetRect(),
-	})
-	return BB.Contains(x, y)
-}
-
-func (sc *SlamboxChain) SortNodesByDist(x, y float64) ([]int, []float64) {
-	indices := make([]int, len(sc.nodes))
-	dists := make([]float64, len(sc.nodes))
-	for i, node := range sc.nodes {
-		cX, cY := node.GetRect().Center()
-		dists[i] = maths.Norm(1, cX-x, cY-y)
-		indices[i] = i
-	}
-
-	// MM my favourite insertion sort
-	i := 1
-	for i < len(sc.nodes) {
-		j := i
-		for j > 0 && dists[j-1] > dists[j] {
-			var tmp float64
-			tmp = dists[j]
-			dists[j] = dists[j-1]
-			dists[j-1] = tmp
-
-			var _tmp int
-			_tmp = indices[j]
-			indices[j] = indices[j-1]
-			indices[j-1] = _tmp
-
-			j--
-		}
-		i++
-	}
-	return indices, dists
-}
-
 func (sc *SlamboxChain) FindClosestNode(x, y float64) (int, float64) {
-
 	dist := math.Inf(1)
 	var closestNodeID int
 	for i, node := range sc.nodes {
@@ -229,7 +134,78 @@ func (sc *SlamboxChain) GetSlamDirection(rect maths.Rect, dir maths.Direction) (
 	return true, againstChain
 }
 
-func NewSlamboxChain(positionsX, positionsY []float64, slamboxes []*Slambox, slamboxGroups []*SlamboxGroup) *SlamboxChain {
+func (sc *SlamboxChain) SortNodesByDist(x, y float64) ([]int, []float64) {
+	indices := make([]int, len(sc.nodes))
+	dists := make([]float64, len(sc.nodes))
+	for i, node := range sc.nodes {
+		cX, cY := node.GetRect().Center()
+		dists[i] = maths.Norm(1, cX-x, cY-y)
+		indices[i] = i
+	}
+
+	// MM my favourite insertion sort
+	i := 1
+	for i < len(sc.nodes) {
+		j := i
+		for j > 0 && dists[j-1] > dists[j] {
+			var tmp float64
+			tmp = dists[j]
+			dists[j] = dists[j-1]
+			dists[j-1] = tmp
+
+			var _tmp int
+			_tmp = indices[j]
+			indices[j] = indices[j-1]
+			indices[j-1] = _tmp
+
+			j--
+		}
+		i++
+	}
+	return indices, dists
+}
+
+// Check whether (x, y) is in the bounding box spanned out by the i,j nodes.
+func (sc *SlamboxChain) IsBetween(i, j int, x, y float64) bool {
+	BB := maths.BB([]*maths.Rect{
+		sc.nodes[i].GetRect(),
+		sc.nodes[j].GetRect(),
+	})
+	return BB.Contains(x, y)
+}
+
+func (sc *SlamboxChain) GetNextDir(i int) maths.Direction {
+	if i < 0 || i >= len(sc.nodes)-1 {
+		fmt.Println("Invalid index")
+		return maths.DirNone
+	}
+
+	return sc.nodes[i].nextNodeDir
+}
+
+func (sc *SlamboxChain) GetPrevDir(i int) maths.Direction {
+	if i < 1 || i >= len(sc.nodes) {
+		fmt.Println("Invalid index")
+		return maths.DirNone
+	}
+
+	return sc.nodes[i].prevNodeDir
+}
+
+func (sc *SlamboxChain) DistFromNode(x, y float64, i int) float64 {
+	cX, cY := sc.nodes[i].GetRect().Center()
+	return maths.Norm(1, x-cX, y-cY)
+}
+
+func (sc *SlamboxChain) GetAllSlamboxRects() []*maths.Rect {
+	rects := sc.slamboxes
+	for _, slamboxGroup := range sc.slamboxGroups {
+		rects = slices.Concat(slamboxGroup.slamboxes)
+	}
+	return rects
+}
+
+func NewSlamboxChain(positionsX, positionsY []float64, slamboxes []*maths.Rect, slamboxGroups []*SlamboxGroup) *SlamboxChain {
 	newSlamboxChain := SlamboxChain{}
 	nodes := make([]*ChainNode, len(positionsX))
 	for i := range positionsX {

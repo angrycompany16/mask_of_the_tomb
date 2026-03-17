@@ -20,7 +20,7 @@ type LDTKTilemapLayer struct {
 	tileSize     float64
 }
 
-func (t *LDTKTilemapLayer) Init(servers *engine.Servers) {
+func (t *LDTKTilemapLayer) Init(servers *engine.Commands) {
 	// Pre-render all tiles
 	var tiles []ebitenLDTK.Tile
 	if t.LDTKlayer.Type == ebitenLDTK.LayerTypeTiles {
@@ -28,10 +28,6 @@ func (t *LDTKTilemapLayer) Init(servers *engine.Servers) {
 	} else if t.LDTKlayer.Type == ebitenLDTK.LayerTypeIntGrid {
 		tiles = t.LDTKlayer.AutoLayerTiles
 	}
-
-	gPosX, gPosY := t.Transform2D.GetPos(false)
-	// gAngle := t.Transform2D.GetAngle(false)
-	// gScaleX, gScaleY := t.Transform2D.GetScale(false)
 
 	for _, tile := range tiles {
 		scaleX, scaleY := 1.0, 1.0
@@ -53,14 +49,20 @@ func (t *LDTKTilemapLayer) Init(servers *engine.Servers) {
 			),
 		).(*ebiten.Image)
 
-		op := opgen.PosScale(tileImage, tile.Px[0]+gPosX, tile.Px[1]+gPosY, scaleX, scaleY, 0.5, 0.5)
+		op := opgen.PosScale(tileImage, tile.Px[0], tile.Px[1], scaleX, scaleY, 0.5, 0.5)
 		t.layerImage.DrawImage(tileImage, op)
 	}
 }
 
-func (t *LDTKTilemapLayer) Update(servers *engine.Servers) {
+func (t *LDTKTilemapLayer) Update(servers *engine.Commands) {
+	gPosX, gPosY := t.Transform2D.GetPos(false)
+	gScaleX, gScaleY := t.Transform2D.GetScale(false)
+	gAngle := t.Transform2D.GetAngle(false)
+
 	t.Transform2D.Update(servers)
-	servers.Renderer().Request(&ebiten.DrawImageOptions{}, t.layerImage, t.layer, t.drawOrder)
+	servers.Renderer().Request(opgen.PosScaleRot(
+		t.layerImage, gPosX, gPosY, gAngle, gScaleX, gScaleY,
+	), t.layerImage, t.layer, t.drawOrder)
 }
 
 func NewLDTKTilemapLayer(

@@ -33,7 +33,7 @@ type LDTKLevel struct {
 	LDTKData     *assetloader.AssetRef[assettypes.LDTKData]
 }
 
-func (l *LDTKLevel) OnTreeAdd(node *engine.Node, servers *engine.Servers) {
+func (l *LDTKLevel) OnTreeAdd(node *engine.Node, servers *engine.Commands) {
 	l.Transform2D.OnTreeAdd(node, servers)
 	l.LDTKData = assetloader.StageAsset[assettypes.LDTKData](
 		servers.AssetLoader(),
@@ -42,7 +42,7 @@ func (l *LDTKLevel) OnTreeAdd(node *engine.Node, servers *engine.Servers) {
 	)
 }
 
-func (l *LDTKLevel) Init(servers *engine.Servers) {
+func (l *LDTKLevel) Init(servers *engine.Commands) {
 	// Add some sub-elements
 	// servers.Scene().AddChild()
 	world := l.LDTKData.Value().World
@@ -92,7 +92,7 @@ func (l *LDTKLevel) Init(servers *engine.Servers) {
 	), "BackgroundColor", l.GetNode(), servers)
 }
 
-func (l *LDTKLevel) Update(servers *engine.Servers) {
+func (l *LDTKLevel) Update(servers *engine.Commands) {
 
 }
 

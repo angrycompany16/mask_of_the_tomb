@@ -2,35 +2,30 @@ package camera
 
 import (
 	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 )
 
-var (
-	shakePaddingX, shakePaddingY = 20.0, 20
-)
-
-// Control renderer.camera during update. This means that multiple cameras will
-// break the game, but that's alright for now.
-
 type Camera struct {
-	transform2D.Transform2D
-	width, height                  float64
-	offsetX, offsetY               float64
-	screenPaddingY, screenPaddingX float64
-	shakeOffsetX, shakeOffsetY     float64
-	shaking                        bool
-	shakeDuration                  float64
-	shakeStrength                  float64
-	shakeTime                      float64
-	damping                        float64
+	*transform2D.Transform2D
+	width, height float64
+	// Represents the offset for the camera tracking.
+	// For instance, this is used to center the camera on the player
+	offsetX, offsetY float64
+	// This is used to apply margins to the camera position
+	screenMarginY, screenMarginX float64
+
+	// For camera shake
+	shakeOffsetX, shakeOffsetY float64
+	shaking                    bool
+	shakeDuration              float64
+	shakeStrength              float64
+	shakeTime                  float64
+	damping                    float64
 }
 
-func (c *Camera) Init(width, height, offsetX, offsetY float64) {
-	c.SetBorders(width, height)
-	c.offsetX, c.offsetY = offsetX, offsetY
-}
-
-func (c *Camera) Update() {
+func (c *Camera) Update(cmd *engine.Commands) {
+	c.Transform2D.Update(cmd)
 	if !c.shaking {
 		return
 	}
@@ -50,43 +45,33 @@ func (c *Camera) Update() {
 }
 
 // returns the position of the camera
-func (c *Camera) GetPos(includeShake bool) (float64, float64) {
-	transformX, transformY := c.Transform2D.GetPos(false)
+func (c *Camera) WorldToCam(x, y float64, includeShake bool) (float64, float64) {
 	// Special adjustment for LDtk levels... probably not that great
 	if c.height == 272 {
-		transformY += 1
+		y += 1
 	}
 
+	camX, camY := c.Transform2D.GetPos(false)
 	if includeShake {
-		return transformX + c.shakeOffsetX, transformY + c.shakeOffsetY
+		return x - (camX + c.shakeOffsetX), y - (camY + c.shakeOffsetY)
 	}
-	return transformX, transformY
+	return x - camX, y - camY
 }
 
 func (c *Camera) GetShake() (float64, float64) {
 	return c.shakeOffsetX, c.shakeOffsetY
 }
 
-func (c *Camera) SetPos(x, y float64) {
-	if c.height == 272 {
-		c.screenPaddingY = 2
-	} else {
-		c.screenPaddingY = 0
-	}
-	// Need to fix
-	// c.posX = maths.Clamp(x-c.offsetX, c.screenPaddingX/2, c.width-rendering.GAME_WIDTH-c.screenPaddingX/2)
-	// c.posY = maths.Clamp(y-c.offsetY, c.screenPaddingY/2, c.height-rendering.GAME_HEIGHT-c.screenPaddingY/2)
-}
+// func (c *Camera) SetPos(x, y, gameWidth, gameHeight float64) {
+// 	if c.height == 272 {
+// 		c.screenMarginY = 2
+// 	} else {
+// 		c.screenMarginY = 0
+// 	}
 
-func (c *Camera) SetPadding(paddingX, paddingY float64) {
-	c.screenPaddingX = paddingX
-	c.screenPaddingY = paddingY
-}
-
-func (c *Camera) SetBorders(width, height float64) {
-	c.width = width
-	c.height = height
-}
+// 	c.x = maths.Clamp(x-c.offsetX, c.screenMarginX/2, c.width-gameWidth-c.screenMarginX/2)
+// 	c.y = maths.Clamp(y-c.offsetY, c.screenMarginY/2, c.height-gameHeight-c.screenMarginY/2)
+// }
 
 func (c *Camera) Shake(duration, strength, damping float64) {
 	c.shakeTime = 0
@@ -94,4 +79,17 @@ func (c *Camera) Shake(duration, strength, damping float64) {
 	c.shakeStrength = strength
 	c.shaking = true
 	c.damping = damping
+}
+
+// 20, 20 are good default value for shake padding
+func NewCamera(transform2D *transform2D.Transform2D, width, height, offsetX, offsetY, screenPaddingX, screenPaddingY float64) *Camera {
+	return &Camera{
+		Transform2D:   transform2D,
+		width:         width,
+		height:        height,
+		offsetX:       offsetX,
+		offsetY:       offsetY,
+		screenMarginX: screenPaddingX,
+		screenMarginY: screenPaddingY,
+	}
 }

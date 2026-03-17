@@ -6,6 +6,7 @@ var (
 	_eventManager = eventManager{}
 )
 
+// Turn this into a map
 type eventManager struct {
 	events []*Event
 }

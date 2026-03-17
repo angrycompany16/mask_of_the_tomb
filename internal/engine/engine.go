@@ -10,6 +10,7 @@ import (
 
 	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 // I'm pretty sure this is massively slow right now. Performance
@@ -24,29 +25,41 @@ import (
 // A pointer to the Node instance corresponding to this actor is passed in
 // The rest of the methods are obvious.
 type Actor interface {
-	Init(*Servers)
-	Update(*Servers) // TODO: Change to handle errors in nodes independently
-	OnTreeAdd(*Node, *Servers)
+	Init(*Commands)
+	Update(*Commands) // TODO: Change to handle errors in nodes independently
+	OnTreeAdd(*Node, *Commands)
 	DrawInspector(*debugui.Context)
+	DrawGizmo(*Commands)
 }
 
 type Node = node.Node[Actor]
 type NodeTree = node.NodeTree[Actor]
 
-type SceneBuilder func(*Servers) *Scene
+type SceneBuilder func(*Commands) *Scene
 
 type Scene struct {
-	name     string
-	nodeTree *NodeTree
+	name       string
+	nodeTree   *NodeTree
+	drawGizmos bool
 }
 
-func (s *Scene) Update(servers *Servers) {
+func (s *Scene) Update(cmd *Commands) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		s.drawGizmos = !s.drawGizmos
+	}
+
 	s.nodeTree.Traverse(func(n *Node) {
-		n.GetValue().Update(servers)
+		n.GetValue().Update(cmd)
 	})
+
+	if s.drawGizmos {
+		s.nodeTree.Traverse(func(n *Node) {
+			n.GetValue().DrawGizmo(cmd)
+		})
+	}
 }
 
-func (s *Scene) Init(servers *Servers) {
+func (s *Scene) Init(servers *Commands) {
 	s.nodeTree.Traverse(func(n *Node) {
 		n.GetValue().Init(servers)
 	})
@@ -68,6 +81,15 @@ func (s *Scene) GetNodeByID(id string) (*Node, bool) {
 	return s.nodeTree.GetNode(id)
 }
 
+// Returns the first actor of type T, or false if none is found
+func GetNodeByType[T Actor](s *Scene) (*Node, bool) {
+	f := func(n *Node) bool {
+		_, ok := n.GetValue().(T)
+		return ok
+	}
+	return s.nodeTree.GetNodeFunc(f)
+}
+
 func (s *Scene) GetRoot() *Node {
 	return s.nodeTree.GetRoot()
 }
@@ -76,9 +98,9 @@ func (s *Scene) GetName() string {
 	return s.name
 }
 
-func (s *Scene) SpawnActor(name string, actor Actor, servers *Servers) *Node {
+func (s *Scene) SpawnActor(name string, actor Actor, cmd *Commands) *Node {
 	node := s.nodeTree.GetRoot().AddChild(actor, name)
-	actor.OnTreeAdd(node, servers)
+	actor.OnTreeAdd(node, cmd)
 	return node
 }
 
@@ -86,8 +108,8 @@ func (s *Scene) SpawnActor(name string, actor Actor, servers *Servers) *Node {
 // This is sort of annoying: We should be able to add children by
 // chaining methods, hence the Node is the type that should have
 // an addchild method. However, that doesn't really work...
-func (s *Scene) AddChild(actor Actor, name string, parent *Node, servers *Servers) *Node {
-	node := s.SpawnActor(name, actor, servers)
+func (s *Scene) AddChild(actor Actor, name string, parent *Node, cmd *Commands) *Node {
+	node := s.SpawnActor(name, actor, cmd)
 	s.SetParent(node, parent)
 	return node
 }
@@ -100,9 +122,10 @@ func (s *Scene) Print() {
 	s.nodeTree.Print()
 }
 
+// TODO: Make it so that we don't have to use a pointer as type argument
 // Returns the field T embedded in the actor passed in, i.e.
 //
-//	GetActor[Node](transform2D)
+//	GetActor[*Node](transform2D)
 //
 // returns the Node actor embedded in the Transform2D passed in.
 func GetActor[T Actor](actor Actor) (T, bool) {
@@ -137,7 +160,7 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 	return reflect.NewAt(v.Type(), unsafe.Pointer(v.UnsafeAddr())).Elem()
 }
 
-func NewScene(name string, root Actor, servers *Servers) *Scene {
+func NewScene(name string, root Actor, servers *Commands) *Scene {
 	nodeTree, rootNode := node.NewNodeTree(root)
 	root.OnTreeAdd(rootNode, servers)
 	return &Scene{
@@ -149,15 +172,15 @@ func NewScene(name string, root Actor, servers *Servers) *Scene {
 var ErrTerminated = errors.New("Terminatednow")
 
 type Game struct {
-	servers     *Servers
+	cmd         *Commands
 	scenes      map[string]SceneBuilder
 	activeScene *Scene
 }
 
-func NewGame(servers *Servers) *Game {
+func NewGame(cmd *Commands) *Game {
 	return &Game{
-		servers: servers,
-		scenes:  make(map[string]SceneBuilder),
+		cmd:    cmd,
+		scenes: make(map[string]SceneBuilder),
 	}
 }
 
@@ -169,14 +192,14 @@ func (g *Game) RegisterScene(name string, sceneBuilder SceneBuilder) *Game {
 func (g *Game) SpawnScene(name string) *Game {
 	// Create an instance of the scene's node tree
 	sceneBuilder := g.scenes[name]
-	sceneInst := sceneBuilder(g.servers)
+	sceneInst := sceneBuilder(g.cmd)
 
 	// Load any staged assets
 	g.LoadStaged() // This will go into a different thread to avoid freezing
-	g.servers.scene = sceneInst
+	g.cmd.scene = sceneInst
 	g.activeScene = sceneInst
 
-	g.activeScene.Init(g.servers)
+	g.activeScene.Init(g.cmd)
 	return g
 }
 
@@ -190,19 +213,19 @@ func (g *Game) Update() error {
 		return nil
 	}
 
-	g.activeScene.Update(g.servers) // consider returning this instead?
+	g.activeScene.Update(g.cmd) // consider returning this instead?
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.servers.Renderer().Draw(screen)
+	g.cmd.Renderer().Draw(screen)
 }
 
 // Loads all staged assets
 func (g *Game) LoadStaged() {
-	g.servers.AssetLoader().LoadAll()
+	g.cmd.AssetLoader().LoadAll()
 }
 
-func (g *Game) GetServers() *Servers {
-	return g.servers
+func (g *Game) GetCmd() *Commands {
+	return g.cmd
 }

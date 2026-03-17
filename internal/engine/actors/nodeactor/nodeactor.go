@@ -12,9 +12,10 @@ type Node struct {
 	node   *engine.Node
 }
 
-func (n *Node) Init(servers *engine.Servers)   {}
-func (n *Node) Update(servers *engine.Servers) {}
-func (n *Node) OnTreeAdd(node *engine.Node, servers *engine.Servers) {
+func (n *Node) Init(cmd *engine.Commands)      {}
+func (n *Node) Update(cmd *engine.Commands)    {}
+func (n *Node) DrawGizmo(cmd *engine.Commands) {}
+func (n *Node) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
 	n.treeID = node.GetID()
 	n.node = node
 }

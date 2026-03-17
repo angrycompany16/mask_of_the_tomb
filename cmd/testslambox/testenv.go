@@ -2,17 +2,23 @@ package main
 
 import (
 	"errors"
-	"image/color"
+	"fmt"
 	"log"
+	"mask_of_the_tomb/internal/backend/input"
 	"mask_of_the_tomb/internal/backend/maths"
-	"mask_of_the_tomb/internal/backend/opgen"
-	"mask_of_the_tomb/internal/backend/slambox"
+	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/engine/actors/inspector"
+	"mask_of_the_tomb/internal/engine/actors/nodeactor"
+	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/game/actors/slamboxactor"
+	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
+	"mask_of_the_tomb/internal/game/actors/tracker"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-var testSlamboxChains = make([]*slambox.SlamboxChain, 0)
+// var testSlamboxChains = make([]*slambox.SlamboxChain, 0)
 
 // var testSlamboxChains = []*SlamboxChain{
 // 	NewSlamboxChain(
@@ -32,7 +38,7 @@ var testSlamboxChains = make([]*slambox.SlamboxChain, 0)
 // 	),
 // }
 
-var testSlamboxGroups = make([]*slambox.SlamboxGroup, 0)
+// var testSlamboxGroups = make([]*slambox.SlamboxGroup, 0)
 
 // var testSlamboxGroups = []*SlamboxGroup{
 // 	NewSlamboxGroup(
@@ -48,10 +54,27 @@ var testSlamboxGroups = make([]*slambox.SlamboxGroup, 0)
 // 	),
 // }
 
-var testSlamboxes = []*slambox.Slambox{
-	slambox.NewSlambox(maths.NewRect(64, 16, 16, 16), 5),
-	slambox.NewSlambox(maths.NewRect(24, 16, 16, 8), 5),
-	slambox.NewSlambox(maths.NewRect(16, 24, 32, 16), 5),
+type SlamboxController struct {
+	*slamboxactor.Slambox
+}
+
+func (sc *SlamboxController) Update(cmd *engine.Commands) {
+	sc.Slambox.Update(cmd)
+	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
+		sc.RequestSlam(maths.DirLeft)
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
+		sc.RequestSlam(maths.DirRight)
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
+		sc.RequestSlam(maths.DirUp)
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
+		sc.RequestSlam(maths.DirDown)
+	}
+}
+
+var testSlamboxes = []*maths.Rect{
+	maths.NewRect(64, 16, 16, 16),
+	maths.NewRect(24, 16, 16, 8),
+	maths.NewRect(16, 24, 32, 16),
 }
 
 const (
@@ -59,83 +82,39 @@ const (
 	PIXEL_SCALE             = 4.0
 )
 
-type testApp struct {
-	SlamboxEnvironment *slambox.SlamboxEnvironment
-	environmentRects   []*maths.Rect
-	surf               *ebiten.Image
+type App struct {
+	game *engine.Game
+	surf *ebiten.Image
 }
 
-func (t *testApp) Update() error {
-	t.SlamboxEnvironment.Update()
-	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
-		t.SlamboxEnvironment.SlamSlambox(0, maths.DirLeft)
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
-		t.SlamboxEnvironment.SlamSlambox(0, maths.DirRight)
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-		t.SlamboxEnvironment.SlamSlambox(0, maths.DirUp)
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-		t.SlamboxEnvironment.SlamSlambox(0, maths.DirDown)
-	}
-
-	return nil
+func (a *App) Update() error {
+	return a.game.Update()
 }
 
-func (t *testApp) Draw(screen *ebiten.Image) {
-	t.surf.Fill(color.RGBA{0, 0, 0, 255})
-	for _, rect := range t.environmentRects {
-		slambox.DrawRect(t.surf, rect, color.RGBA{255, 0, 0, 255}, color.RGBA{0, 200, 0, 255})
-	}
-	slamboxes := t.SlamboxEnvironment.GetSlamboxes()
-	for _, slambox_ := range slamboxes {
-		slambox.DrawRect(t.surf, slambox_.GetRect(), color.RGBA{255, 255, 255, 255}, color.RGBA{0, 200, 255, 255})
-	}
-
-	slamboxGroups := t.SlamboxEnvironment.GetSlamboxGroups()
-	for _, slamboxGroup := range slamboxGroups {
-		for _, slambox_ := range slamboxGroup.GetSlamboxes() {
-			slambox.DrawRect(t.surf, slambox_.GetRect(), color.RGBA{255, 255, 255, 255}, color.RGBA{0, 200, 255, 255})
-		}
-	}
-
-	slamboxChains := t.SlamboxEnvironment.GetSlamboxChains()
-	for _, slamboxChain := range slamboxChains {
-		for _, chainNode := range slamboxChain.GetNodes() {
-			slambox.DrawRect(t.surf, chainNode.GetRect(), color.RGBA{255, 0, 255, 255}, color.RGBA{100, 0, 255, 255})
-		}
-		for _, slambox_ := range slamboxChain.GetSlamboxes() {
-			slambox.DrawRect(t.surf, slambox_.GetRect(), color.RGBA{255, 255, 255, 255}, color.RGBA{0, 200, 255, 255})
-		}
-		for _, slamboxGroup := range slamboxChain.GetSlamboxGroups() {
-			for _, slambox_ := range slamboxGroup.GetSlamboxes() {
-				slambox.DrawRect(t.surf, slambox_.GetRect(), color.RGBA{255, 255, 255, 255}, color.RGBA{0, 200, 255, 255})
-			}
-		}
-	}
-	op := opgen.PosScale(t.surf, 16, 16, 8, 8)
-	screen.DrawImage(t.surf, op)
+func (a *App) Draw(screen *ebiten.Image) {
+	a.game.Draw(screen)
 }
 
-func (t *testApp) Layout(outsideHeight, outsideWidth int) (int, int) {
+func (a *App) Layout(outsideHeight, outsideWidth int) (int, int) {
 	return GAME_WIDTH * PIXEL_SCALE, GAME_HEIGHT * PIXEL_SCALE
 }
 
 // Sets up a simple game loop for testing this package.
 func main() {
-	gridTiles := make([][]bool, 0)
-	gridTiles = append(gridTiles, []bool{true, true, true, true, true, true})
-	gridTiles = append(gridTiles, []bool{true, false, false, false, false, true})
-	gridTiles = append(gridTiles, []bool{true, false, false, false, false, true})
-	gridTiles = append(gridTiles, []bool{true, false, false, false, false, true})
-	gridTiles = append(gridTiles, []bool{true, true, true, false, false, true})
-	gridTiles = append(gridTiles, []bool{true, true, true, true, true, true})
+	game := engine.NewGame(engine.NewCommands(
+		engine.WithRenderer(GAME_WIDTH, GAME_HEIGHT, PIXEL_SCALE, true, true),
+		engine.WithSlamboxEnvironment(16),
+	))
 
-	a := &testApp{
-		SlamboxEnvironment: slambox.NewSlamboxEnvironment(16, gridTiles, testSlamboxes, testSlamboxGroups, testSlamboxChains),
-		surf:               ebiten.NewImage(480, 270),
+	game.RegisterScene("testScene", CreateTestScene)
+
+	game.SpawnScene("testScene")
+
+	game.GetCmd().InputHandler().RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
+
+	a := &App{
+		game: game,
 	}
-	ebiten.SetWindowSize(480*2, 270*2)
-
-	a.environmentRects = a.SlamboxEnvironment.Rectify()
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, errors.ErrUnsupported) {
@@ -143,4 +122,55 @@ func main() {
 		}
 		log.Fatal(err)
 	}
+}
+
+func CreateTestScene(cmd *engine.Commands) *engine.Scene {
+	gridTiles := make([][]int, 0)
+	gridTiles = append(gridTiles, []int{1, 1, 1, 1, 1, 1})
+	gridTiles = append(gridTiles, []int{1, 0, 0, 0, 0, 1})
+	gridTiles = append(gridTiles, []int{1, 0, 0, 0, 0, 1})
+	gridTiles = append(gridTiles, []int{1, 0, 0, 0, 0, 1})
+	gridTiles = append(gridTiles, []int{1, 1, 1, 0, 0, 1})
+	gridTiles = append(gridTiles, []int{1, 1, 1, 1, 1, 1})
+
+	scene := engine.NewScene("testScene", nodeactor.NewNode(), cmd)
+	for i, slambox := range testSlamboxes {
+		scene.SpawnActor(fmt.Sprintf("slambox %d", i),
+			&SlamboxController{
+				Slambox: slamboxactor.NewSlambox(
+					tracker.NewTracker(
+						transform2D.NewTransform2D(
+							*nodeactor.NewNode(),
+						),
+						5.0,
+						slambox.Left(), slambox.Top(),
+					),
+					slambox,
+				),
+			},
+			cmd)
+	}
+
+	scene.SpawnActor("SlamboxTilemap", slamboxtilemap.NewSlamboxTilemap(
+		transform2D.NewTransform2D(
+			*nodeactor.NewNode(),
+		),
+		gridTiles,
+		16,
+	), cmd)
+
+	// gw, gh := cmd.Renderer().GetGameSize()
+	// scene.SpawnActor("MainCamera", camera.NewCamera(
+	// 	transform2D.NewTransform2D(
+	// 		*nodeactor.NewNode(),
+	// 	),
+	// 	0, 0, gw, gh,
+	// ),
+	// 	gridTiles,
+	// 	16,
+	// ), cmd)
+
+	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400), cmd)
+
+	return scene
 }

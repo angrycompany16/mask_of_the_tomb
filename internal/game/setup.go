@@ -9,15 +9,11 @@ import (
 )
 
 func CreateGame(gw, gh, ps int) *engine.Game {
-	game := engine.NewGame(engine.NewServers(
-		engine.ServerArgs{
-			GameWidth:  gw,
-			GameHeight: gh,
-			PixelScale: ps,
-		},
+	game := engine.NewGame(engine.NewCommands(
+		engine.WithRenderer(gw, gh, ps, true, true),
 	))
 
-	inputServer := game.GetServers().InputHandler()
+	inputServer := game.GetCmd().InputHandler()
 	inputServer.RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
 	game.RegisterScene("loading", scenes.LoadingScene)
 
