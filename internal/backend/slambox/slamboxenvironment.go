@@ -461,6 +461,11 @@ outer:
 	return overlaps
 }
 
+func (se *SlamboxEnvironment) CenteredToSlambox(x, y float64) (float64, float64) {
+	return x - float64(len(se.gridTiles[0]))*se.TileSize/2,
+		y - float64(len(se.gridTiles[0]))*se.TileSize/2
+}
+
 // ----- GETTERS -----
 // Returns the maths.Rect belonging to each slambox.
 func (se *SlamboxEnvironment) GetSlamboxRects(except int) []*maths.Rect {

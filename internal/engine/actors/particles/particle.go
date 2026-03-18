@@ -50,7 +50,7 @@ func (p *Particle) update() bool {
 func (p *Particle) makeOp(x, y float64) (colorm.ColorM, *colorm.DrawImageOptions) {
 	c := colorm.ColorM{}
 	c.ScaleWithColor(p.color)
-	op := opgen.PosScaleRot(p.sprite, x, y, p.angle, p.scale, p.scale, 0.5, 0.5)
+	op := opgen.PosRotScale(p.sprite, x, y, p.angle, p.scale, p.scale, 0.5, 0.5)
 
 	return c, utils.OpConvert(op)
 }

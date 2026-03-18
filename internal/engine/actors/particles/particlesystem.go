@@ -144,7 +144,7 @@ func (ps *ParticleSystem) Update(cmd *engine.Commands) {
 	angle := ps.Transform2D.GetAngle(false)
 	scaleX, scaleY := ps.Transform2D.GetScale(false)
 	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, true)
-	cmd.Renderer().Request(opgen.PosScaleRot(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, ps.layer, ps.drawOrder)
+	cmd.Renderer().Request(opgen.PosRotScale(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, ps.layer, ps.drawOrder)
 }
 
 func (ps *ParticleSystem) DrawInspector(ctx *debugui.Context) {

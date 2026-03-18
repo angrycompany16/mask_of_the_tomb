@@ -1,16 +1,20 @@
 package tracker
 
 import (
-	"mask_of_the_tomb/internal/backend/events"
+	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"math"
 )
 
+type EventData struct {
+	dir maths.Direction
+}
+
 type Tracker struct {
-	*transform2D.Transform2D
-	OnMoveFinished         *events.Event
+	*graphic.Graphic
+	OnMoveFinishEv         *eventsv2.Event
 	isMoving               bool
 	posX, posY             float64
 	targetPosX, targetPosY float64
@@ -19,7 +23,7 @@ type Tracker struct {
 }
 
 func (t *Tracker) Update(cmd *engine.Commands) {
-	t.Transform2D.Update(cmd)
+	t.Graphic.Update(cmd)
 	t.posX += t.moveSpeed * t.moveDirX
 	t.posY += t.moveSpeed * t.moveDirY
 
@@ -35,9 +39,7 @@ func (t *Tracker) Update(cmd *engine.Commands) {
 	}
 
 	if t.posX == t.targetPosX && t.posY == t.targetPosY && t.isMoving {
-		t.OnMoveFinished.Raise(events.EventInfo{
-			Data: maths.DirFromVector(t.moveDirX, t.moveDirY),
-		})
+		t.OnMoveFinishEv.Raise().WithData("dir", maths.DirFromVector(t.moveDirX, t.moveDirY))
 		t.isMoving = false
 	}
 
@@ -47,7 +49,6 @@ func (t *Tracker) Update(cmd *engine.Commands) {
 	if t.posY == t.targetPosY {
 		t.moveDirY = 0
 	}
-
 }
 
 func (t *Tracker) SetTarget(x, y float64) {
@@ -75,11 +76,13 @@ func (t *Tracker) GetMovedir() (float64, float64) {
 	return t.moveDirX, t.moveDirY
 }
 
-func NewTracker(transform2D *transform2D.Transform2D, moveSpeed, x, y float64) *Tracker {
+func NewTracker(graphic *graphic.Graphic, moveSpeed, x, y float64) *Tracker {
 	_movebox := &Tracker{
-		Transform2D:    transform2D,
-		isMoving:       false,
-		OnMoveFinished: events.NewEvent(),
+		Graphic:  graphic,
+		isMoving: false,
+		// I feel like this is kinda dumb
+		// Event listeners should store events, not the other way around
+		OnMoveFinishEv: eventsv2.NewEvent(),
 		moveSpeed:      moveSpeed,
 		posX:           x,
 		posY:           y,

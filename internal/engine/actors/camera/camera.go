@@ -53,6 +53,14 @@ func (c *Camera) WorldToCam(x, y float64, includeShake bool) (float64, float64) 
 	return x - (camX - c.offsetX), y - (camY - c.offsetY)
 }
 
+func (c *Camera) WorldToCamCustomOffset(x, y float64, offsetX, offsetY float64, includeShake bool) (float64, float64) {
+	camX, camY := c.Transform2D.GetPos(false)
+	if includeShake {
+		return x - (camX + c.shakeOffsetX - offsetX), y - (camY + c.shakeOffsetY - offsetY)
+	}
+	return x - (camX - offsetX), y - (camY - offsetY)
+}
+
 func (c *Camera) GetShake() (float64, float64) {
 	return c.shakeOffsetX, c.shakeOffsetY
 }

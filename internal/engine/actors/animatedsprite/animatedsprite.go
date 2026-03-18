@@ -1,7 +1,12 @@
-package animation
+package animatedsprite
 
 import (
+	"fmt"
 	"image"
+	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/utils"
 	"time"
 
@@ -129,5 +134,71 @@ func NewSpritesheetAuto(img *ebiten.Image) *Spritesheet {
 		width:  tileSize,
 		height: tileSize,
 		frames: int(numTiles),
+	}
+}
+
+// Inherit from sprite. Control Image during update. Will need asset loading
+type AnimatedSprite struct {
+	*graphic.Graphic
+	Clips          map[int]*Animation
+	ActiveClip     int
+	OnClipFinished *eventsv2.Event
+	layer          string `debug:"auto"`
+	drawOrder      int    `debug:"auto"`
+}
+
+func (a *AnimatedSprite) Update(cmd *engine.Commands) {
+	a.Graphic.Update(cmd)
+	activeClip := a.Clips[a.ActiveClip]
+
+	activeClip.Update()
+	if activeClip.IsFinished() {
+		if activeClip.GetNext() != -1 {
+			a.OnClipFinished.Raise()
+			a.ActiveClip = activeClip.GetNext()
+		}
+	}
+
+	gPosX, gPosY := a.GetPos(false)
+	camX, camY := a.GetCamera().WorldToCam(gPosX, gPosY, true)
+	angle := a.GetAngle(false)
+	scaleX, scaleY := a.GetScale(false)
+
+	// Create draw call
+	cmd.Renderer().Request(
+		opgen.PosRotScale(activeClip.GetSprite(), camX, camY, angle, scaleX, scaleY, 0.5, 0.5),
+		activeClip.GetSprite(),
+		a.layer,
+		a.drawOrder,
+	)
+}
+
+func (a *AnimatedSprite) SwitchClip(newClip int) {
+	if newClip == a.ActiveClip {
+		return
+	}
+
+	a.ActiveClip = newClip
+	activeClip, ok := a.Clips[a.ActiveClip]
+	if !ok {
+		fmt.Println("Tried to set animator to invalid clip", newClip)
+		return
+	}
+
+	activeClip.Reset()
+	activeClip.Play()
+}
+
+func (a *AnimatedSprite) AddAnimation(anim *Animation, id int) {
+	a.Clips[id] = anim
+}
+
+func NewAnimator(graphic *graphic.Graphic, clips map[int]*Animation, layer string, drawOrder int) *AnimatedSprite {
+	return &AnimatedSprite{
+		Graphic:        graphic,
+		Clips:          clips,
+		OnClipFinished: eventsv2.NewEvent(),
+		layer:          layer,
+		drawOrder:      drawOrder,
 	}
 }

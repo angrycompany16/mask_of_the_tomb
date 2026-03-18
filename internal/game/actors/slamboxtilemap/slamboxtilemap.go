@@ -3,9 +3,10 @@ package slamboxtilemap
 import (
 	"fmt"
 	"image/color"
+	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/utils"
 
 	"github.com/ebitengine/debugui"
@@ -13,13 +14,14 @@ import (
 )
 
 type SlamboxTilemap struct {
-	*transform2D.Transform2D
+	*graphic.Graphic
 	tiles       [][]int // TODO: Change to tilemap interface
 	tileSize    int     `debug:"auto"`
 	gizmosImage *ebiten.Image
 }
 
 func (st *SlamboxTilemap) Init(cmd *engine.Commands) {
+	st.Graphic.Init(cmd)
 	if cmd.SlamboxEnv().TileSize != float64(st.tileSize) {
 		fmt.Println("Warning: Backend tilemap has a different tilesize than this actor!")
 	}
@@ -39,23 +41,24 @@ func (st *SlamboxTilemap) Init(cmd *engine.Commands) {
 }
 
 func (st *SlamboxTilemap) DrawInspector(ctx *debugui.Context) {
-	st.Transform2D.DrawInspector(ctx)
+	st.Graphic.DrawInspector(ctx)
 	utils.RenderFieldsAuto(ctx, st)
 }
 
 // TODO: Make it so that gizmos are only drawn when selected in the
 // inspector. But how? Haven't got the slightest idea.
 func (st *SlamboxTilemap) DrawGizmo(cmd *engine.Commands) {
-	// st.gizmosImage.Clear()
-
-	cmd.Renderer().Request(&ebiten.DrawImageOptions{}, st.gizmosImage, "Overlay", 1)
+	st.Graphic.DrawGizmo(cmd)
+	gPosX, gPosY := st.GetPos(false)
+	camX, camY := st.GetCamera().WorldToCam(gPosX, gPosY, false)
+	cmd.Renderer().Request(opgen.Pos(st.gizmosImage, camX, camY, 0.5, 0.5), st.gizmosImage, "Overlay", 1)
 }
 
-func NewSlamboxTilemap(transform2D *transform2D.Transform2D, tiles [][]int, tileSize int) *SlamboxTilemap {
+func NewSlamboxTilemap(graphic *graphic.Graphic, tiles [][]int, tileSize int) *SlamboxTilemap {
 	return &SlamboxTilemap{
-		Transform2D: transform2D,
+		Graphic:     graphic,
 		tiles:       tiles,
 		tileSize:    tileSize,
-		gizmosImage: ebiten.NewImage(len(tiles)*tileSize, len(tiles[0])*tileSize),
+		gizmosImage: ebiten.NewImage(len(tiles[0])*tileSize, len(tiles)*tileSize),
 	}
 }

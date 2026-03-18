@@ -6,6 +6,8 @@ var (
 	_eventManager = eventManager{}
 )
 
+// Aha. This is not running
+
 // Turn this into a map
 type eventManager struct {
 	events []*Event

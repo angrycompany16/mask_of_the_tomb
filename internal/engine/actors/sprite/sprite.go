@@ -15,8 +15,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Option func(*Sprite)
-
 type Sprite struct {
 	*graphic.Graphic
 	layer      string  `debug:"auto"`
@@ -52,7 +50,7 @@ func (s *Sprite) Update(cmd *engine.Commands) {
 	camX, camY := s.GetCamera().WorldToCam(gPosX, gPosY, true)
 
 	// Change this so that stuff is centered tbh
-	cmd.Renderer().Request(opgen.PosScaleRot(
+	cmd.Renderer().Request(opgen.PosRotScale(
 		s.imageAsset.Value(),
 		camX, camY,
 		gAngle,
@@ -94,7 +92,7 @@ func (s *Sprite) GetLayer() string {
 }
 
 // We can remove layer and src as required args
-func NewSprite(graphic *graphic.Graphic, layer string, srcPath string, options ...Option) *Sprite {
+func NewSprite(graphic *graphic.Graphic, layer string, srcPath string, options ...utils.Option[Sprite]) *Sprite {
 	s := defaultSprite(graphic)
 	s.layer = layer
 	s.srcPath = srcPath
@@ -115,13 +113,13 @@ func defaultSprite(graphic *graphic.Graphic) *Sprite {
 	}
 }
 
-func WithDrawOrder(drawOrder int) Option {
+func WithDrawOrder(drawOrder int) utils.Option[Sprite] {
 	return func(s *Sprite) {
 		s.drawOrder = drawOrder
 	}
 }
 
-func WithScaling(scaling float64) Option {
+func WithScaling(scaling float64) utils.Option[Sprite] {
 	return func(s *Sprite) {
 		s.scaling = scaling
 	}

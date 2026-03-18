@@ -91,6 +91,12 @@ func GetNodeByType[T Actor](s *Scene) (*Node, bool) {
 	return s.nodeTree.GetNodeFunc(f)
 }
 
+func (s *Scene) GetChildByName(node *Node, name string) (*Node, bool) {
+	return node.GetChildFunc(func(n *Node) bool {
+		return n.GetName() == name
+	})
+}
+
 func (s *Scene) GetRoot() *Node {
 	return s.nodeTree.GetRoot()
 }

@@ -62,7 +62,7 @@ func (t *LDTKTilemapLayer) Update(servers *engine.Commands) {
 	gAngle := t.Transform2D.GetAngle(false)
 
 	t.Transform2D.Update(servers)
-	servers.Renderer().Request(opgen.PosScaleRot(
+	servers.Renderer().Request(opgen.PosRotScale(
 		t.layerImage, camX, camY, gAngle, gScaleX, gScaleY, 0.5, 0.5,
 	), t.layerImage, t.layer, t.drawOrder)
 }

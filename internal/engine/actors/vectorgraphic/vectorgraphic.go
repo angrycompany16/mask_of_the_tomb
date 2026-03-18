@@ -27,8 +27,7 @@ func (v *VectorGraphic) Update(cmd *engine.Commands) {
 	gAngle := v.Transform2D.GetAngle(false)
 	gScaleX, gScaleY := v.Transform2D.GetScale(false)
 
-	// Change this so that stuff is centered tbh
-	cmd.Renderer().Request(opgen.PosScaleRot(
+	cmd.Renderer().Request(opgen.PosRotScale(
 		v.image,
 		camX, camY,
 		gAngle,

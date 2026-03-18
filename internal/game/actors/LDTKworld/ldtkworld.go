@@ -12,6 +12,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/actors/vectorgraphic"
 	ldtktilelayer "mask_of_the_tomb/internal/game/actors/LDTKTileLayer"
+	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -65,7 +66,16 @@ func (l *LDTKLevel) Init(cmd *engine.Commands) {
 	}
 
 	intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
-	cmd.SlamboxEnv().SetTiles(intGridCSV)
+	cmd.Scene().AddChild("SlamboxTilemap", slamboxtilemap.NewSlamboxTilemap(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+			),
+		),
+		intGridCSV,
+		int(playerspace.GridSize),
+	), l.GetNode(), cmd)
+	// cmd.SlamboxEnv().SetTiles(intGridCSV)
 
 	for i := range level.Layers {
 		layer := level.Layers[i]
@@ -106,7 +116,7 @@ func (l *LDTKLevel) Init(cmd *engine.Commands) {
 			)
 		},
 		"Background",
-		-len(level.Layers),
+		-len(level.Layers)-1,
 		int(level.PxWid),
 		int(level.PxHei),
 	), l.GetNode(), cmd)

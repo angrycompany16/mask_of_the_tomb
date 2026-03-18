@@ -14,6 +14,6 @@ func LoadingScene(cmd *engine.Commands) *engine.Scene {
 	pixelScale := cmd.Renderer().GetPixelScale()
 	scene.SpawnBundle(cmd, enginebundles.MakeDefaultBundle(gameWidth, gameHeigth, pixelScale))
 	scene.SpawnBundle(cmd, bundles.MakeLDTKWorldBundle())
-	scene.SpawnBundle(cmd, bundles.MakePlayerBundle())
+	scene.SpawnBundle(cmd, bundles.MakePlayerBundle(0, 0, 16, 16))
 	return scene
 }
