@@ -30,6 +30,10 @@ type QueryResult struct {
 	Index   int
 }
 
+type QueryFilter struct {
+	IgnoreSlamboxIndex int
+}
+
 // Note: So far we have kept the grid tiles as simply integers
 // HOWEVER this presents a huge opportunity for adding interactivity
 // with the environment. If the data type is not bool, we can
@@ -461,6 +465,41 @@ outer:
 	return overlaps
 }
 
+func (se *SlamboxEnvironment) QuerySlamboxes(rect *maths.Rect, filter QueryFilter) QueryResult {
+	for i, slamboxRect := range se.GetSlamboxRects(-1) {
+		if i == filter.IgnoreSlamboxIndex {
+			continue
+		}
+		if slamboxRect.Overlapping(rect) {
+			return QueryResult{HitKind: SLAMBOX, Index: i}
+		}
+	}
+	for i, slamboxGroup := range se.GetSlamboxGroups() {
+		for _, slamboxGroupRect := range slamboxGroup.slamboxes {
+			if slamboxGroupRect.Overlapping(rect) {
+				return QueryResult{HitKind: SLAMBOX_GROUP, Index: i}
+			}
+		}
+	}
+	for i, slamboxChain := range se.GetSlamboxChains() {
+		for _, slamboxChainRect := range slamboxChain.GetAllSlamboxRects() {
+			if slamboxChainRect.Overlapping(rect) {
+				return QueryResult{HitKind: SLAMBOX_CHAIN, Index: i}
+			}
+		}
+	}
+	return QueryResult{}
+}
+
+func (se *SlamboxEnvironment) CheckTileOverlap(rect *maths.Rect) bool {
+	for _, envrect := range se.Rectify() {
+		if envrect.Overlapping(rect) {
+			return true
+		}
+	}
+	return false
+}
+
 func (se *SlamboxEnvironment) CenteredToSlambox(x, y float64) (float64, float64) {
 	return x - float64(len(se.gridTiles[0]))*se.TileSize/2,
 		y - float64(len(se.gridTiles[0]))*se.TileSize/2
@@ -540,29 +579,6 @@ func (se *SlamboxEnvironment) AddSlamboxGroup(slamboxGroup *SlamboxGroup) int {
 
 func (se *SlamboxEnvironment) AddSlamboxChain(slamboxChain *SlamboxChain) {
 	se.slamboxChains = append(se.slamboxChains, slamboxChain)
-}
-
-func (se *SlamboxEnvironment) QuerySlamboxes(rect *maths.Rect) QueryResult {
-	for i, slamboxRect := range se.GetSlamboxRects(-1) {
-		if slamboxRect.Overlapping(rect) {
-			return QueryResult{HitKind: SLAMBOX, Index: i}
-		}
-	}
-	for i, slamboxGroup := range se.GetSlamboxGroups() {
-		for _, slamboxGroupRect := range slamboxGroup.slamboxes {
-			if slamboxGroupRect.Overlapping(rect) {
-				return QueryResult{HitKind: SLAMBOX_GROUP, Index: i}
-			}
-		}
-	}
-	for i, slamboxChain := range se.GetSlamboxChains() {
-		for _, slamboxChainRect := range slamboxChain.GetAllSlamboxRects() {
-			if slamboxChainRect.Overlapping(rect) {
-				return QueryResult{HitKind: SLAMBOX_CHAIN, Index: i}
-			}
-		}
-	}
-	return QueryResult{}
 }
 
 func NewSlamboxEnvironment(tileSize int) *SlamboxEnvironment {

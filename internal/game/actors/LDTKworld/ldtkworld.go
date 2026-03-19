@@ -12,7 +12,9 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/actors/vectorgraphic"
 	ldtktilelayer "mask_of_the_tomb/internal/game/actors/LDTKTileLayer"
+	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
+	"mask_of_the_tomb/internal/game/actors/tracker"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -75,7 +77,6 @@ func (l *LDTKLevel) Init(cmd *engine.Commands) {
 		intGridCSV,
 		int(playerspace.GridSize),
 	), l.GetNode(), cmd)
-	// cmd.SlamboxEnv().SetTiles(intGridCSV)
 
 	for i := range level.Layers {
 		layer := level.Layers[i]
@@ -121,6 +122,62 @@ func (l *LDTKLevel) Init(cmd *engine.Commands) {
 		int(level.PxHei),
 	), l.GetNode(), cmd)
 
+	// Spawn in any slamboxes
+	// What we should do:
+	// For each slambox, spawn a bundle containing the slambox entity,
+	// with sprites, particlesys and other stuff as children of the
+	// main entity
+
+	entityLayer := utils.Must(level.GetLayerByName("Entities"))
+	for _, entity := range entityLayer.Entities {
+		switch entity.Name {
+		// case names.HazardEntity:
+		// 	newLevel.hazards = append(newLevel.hazards, entities.NewHazard(&entity))
+		// case names.DoorEntity:
+		// 	newLevel.doors = append(newLevel.doors, entities.NewDoor(&entity))
+		case "Slambox":
+			// Spawn slambox bundle
+			slamboxNode := cmd.Scene().SpawnActor("Slambox",
+				slamboxactor.NewSlambox(
+					tracker.NewTracker(
+						graphic.NewGraphic(
+							transform2D.NewTransform2D(
+								nodeactor.NewNode(),
+							),
+						), 7.5, entity.Px[0], entity.Px[1],
+					),
+					slamboxactor.WithPos(entity.Px[0], entity.Px[1]),
+					slamboxactor.WithSize(entity.Width, entity.Height),
+				),
+				cmd,
+			)
+			// This really is just horrible...
+			// The quickest solution i could possibly find
+			slamboxNode.GetValue().Init(cmd)
+			// cmd.Scene().AddChild()
+			// newLevel.slamboxEntities = append(newLevel.slamboxEntities, NewSlamboxEntity(&entity, newLevel.slamboxEnvironment, levelLDTK))
+			// case names.GrassEntity:
+			// 	newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
+			// case names.TurretEntity:
+			// 	newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
+			// case names.CatcherEntity:
+			// 	newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
+			// case names.PlatformEntity:
+			// 	newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
+			// case names.LanternEntity:
+			// 	newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
+			// case names.DoorV2Entity:
+			// 	newLevel.doorsV2 = append(newLevel.doorsV2, entities.NewDoorV2(&entity, levelLDTK))
+			// 	// case chainNodeEntityName:
+			// // 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
+			// case names.TestSpeechBubbleEntity:
+			// 	fmt.Println(entity.Px[0], entity.Px[1])
+			// 	newLevel.testSpeechBubble = speechbubble.NewSpeechBubble(
+			// 		entity.Px[0], entity.Px[1], entity.Width, entity.Height, false,
+			// 	)
+			// }
+		}
+	}
 }
 
 func (l *LDTKLevel) DrawInspector(ctx *debugui.Context) {

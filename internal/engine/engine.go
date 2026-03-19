@@ -159,7 +159,6 @@ func GetActor[T Actor](actor Actor) (T, bool) {
 			return val, true
 		}
 
-		// recurseVal, ok := GetActor[T](vf.Addr().Interface().(Actor))
 		recurseVal, ok := GetActor[T](vf.Interface().(Actor))
 		if ok {
 			return recurseVal, true
@@ -176,9 +175,9 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 // be fixed
 // The only reason it exists is so that we can pass it on to
 // OnTreeAdd, which might not even be necessary at all
-func NewScene(name string, root Actor, servers *Commands) *Scene {
+func NewScene(name string, root Actor, cmd *Commands) *Scene {
 	nodeTree, rootNode := node.NewNodeTree(root)
-	root.OnTreeAdd(rootNode, servers)
+	root.OnTreeAdd(rootNode, cmd)
 	return &Scene{
 		name:     name,
 		nodeTree: nodeTree,

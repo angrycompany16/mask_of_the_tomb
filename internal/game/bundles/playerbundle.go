@@ -23,7 +23,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 							nodeactor.NewNode(),
 							transform2D.WithPos(playerX, playerY),
 						),
-					), 5.0, tlX, tlY,
+					), 10.0, tlX, tlY,
 				),
 				slamboxactor.WithPos(tlX, tlY),
 				slamboxactor.WithSize(playerWidth, playerHeight),
@@ -31,11 +31,15 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			0.1,
 		), cmd)
 
+		pivotNode := scene.AddChild("PlayerPivot", transform2D.NewTransform2D(
+			nodeactor.NewNode(),
+			transform2D.WithPos(playerWidth/2, playerHeight/2),
+		), playerNode, cmd)
+
 		scene.AddChild("PlayerSprite", animatedsprite.NewAnimator(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),
-					transform2D.WithPos(playerWidth/2, playerHeight/2),
 				),
 			),
 			map[int]*animatedsprite.Animation{
@@ -76,7 +80,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 					},
 				),
 			}, "Playerspace", 6,
-		), playerNode, cmd)
+		), pivotNode, cmd)
 
 		// scene.AddChild("PlayerSprite", sprite.NewSprite(
 		// 	graphic.NewGraphic(

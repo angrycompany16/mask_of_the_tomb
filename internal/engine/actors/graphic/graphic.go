@@ -13,6 +13,22 @@ type Graphic struct {
 	camera *camera.Camera
 }
 
+// A pretty big safety issue discovered: cmd.Scene() can be nil
+// in OnTreeAdd...
+
+// func (g *Graphic) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
+// 	g.Transform2D.OnTreeAdd(node, cmd)
+// 	camNode, ok := engine.GetNodeByType[*camera.Camera](cmd.Scene())
+// 	if !ok {
+// 		return
+// 		// fmt.Println("Død og jøde")
+// 	}
+// 	fmt.Println(camNode)
+// 	camActor, ok := engine.GetActor[*camera.Camera](camNode.GetValue())
+// 	g.camera = camActor
+// }
+
+// This doesn't get called in Spawn()
 func (g *Graphic) Init(cmd *engine.Commands) {
 	g.Transform2D.Init(cmd)
 	camNode, ok := engine.GetNodeByType[*camera.Camera](cmd.Scene())

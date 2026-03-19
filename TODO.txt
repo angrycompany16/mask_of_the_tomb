@@ -1,53 +1,59 @@
-// Game mechanic ideas (how to make unique mechanics?)
-// 0. Spikes
-// 1. SLAM BOX (These should be improved. Add (1) the ability to add spikes to 
-slamboxes and (2) the ability to connect slamboxes in "any" configuration)
-// 9. Hold up hear me out. What about turrets / traps that insta-kill you if they get line of sight?
-      They can be blocked with boxes and also killed
-// 3. One-way platforms
-// 4. Buttons... I might have to add buttons
-// 5. Rotating slamboxes, sort of like tetris pieces. Requires making a function
-//    for rotating a rect about its center, but not that much more.
-// 6. A mode where the (unnamed) main character controls all of the 
-//    slamboxes simultaneously, see testslamboxenv.go for an example
-//    of how this could work! This is a very cool idea.
-// what else?
+New game mechanic ideas:
+- Buttons... I might have to add buttons
+- Rotating slamboxes, sort of like tetris pieces. Requires making a 
+  function for rotating a rect about its center, but not that much more.
+- A mode where the (unnamed) main character controls all of the 
+  slamboxes simultaneously, see testslamboxenv.go for an example
+  of how this could work! This is a very cool idea.
 
 Bug list:
-- Sometimes spamming pause/play while respawning causes the player to not appear
-  at all (SEVERITY: LOW)
 - 44100 Hz audio does not work on arch, which is quite a huge problem
+- Sometimes spamming pause/play while respawning causes the player to not appear at all
 - Opening the game and then exiting from the main menu deletes the current save
 - Random crash can occur when loading audio???
-- Some error message keeps occuring in the loading section
 - It seems that resetting the game completely causes the game to freeze on playing
   (not sure if it is the 1st or 2nd time) (This is important so please fix)
 - Exiting to main menu and then playing the game again causes deadlock
   somewhere
 
-DEMO ROADMAP:
-- Create music for the first area + menu music
-- Revamp & touch up sound effects
-- Add credits/shoutout page (is for me) 
-- Create levels (at least 20!)
-- Create website + web build
+Engine improvements:
+- Spawning children should ideally not need to go through the scene object,
+  it would be way cleaner if we could just do that as a function of the node
+  I believe the problem is that Init and OnTreeAdd would not be called in 
+  this case. Example:
+			
+      cmd.Scene().AddChild()
 
-// Revamped roadmap because I want to create a demo
-// - ABSOLUTELY need performance improvements
-// - Create a system (a kind of spectator mode) for placing 
-//   hand-painted assets into the world?
-// - Make slambox particle effect work with chained, as well as 
-//   multibox slamboxes.
+- The deep nesting of constructors really needs to be fixed... Example:
+		
+    scene.SpawnActor("Slambox",
+			slamboxactor.NewSlambox(
+				tracker.NewTracker(
+					graphic.NewGraphic(
+						transform2D.NewTransform2D(
+							nodeactor.NewNode(),
+						),
+					), moveSpeed, posX, posY,
+				),
+				slamboxactor.WithPos(posX, posY),
+				slamboxactor.WithSize(width, height),
+			),
+			cmd,
+		)
 
-// Modularization rework. The following should be fleshed out as proper modules:
-// - NodeTree module. Includes a system for creating nodes, 
-//   a tree structure, and a visualization tool for the node tree.
-// - Music/sound module? Includes better mixing controls and 
-//   stuff
+- It would be very nice if we did not need to call child methods
+  each time we inherit from a different class. for example:
 
-// Post-demo: The design/code quality revamp:
-// - Rewrite the overlay system from scratch because it's just so terrible and can't do what i want it to do
-// - Remove the singletons. These should not exist
-// - Use the race condition checker...
-// - Implement generalized input handler
-// - Create animation/sprite asset files
+  func (t *Transform2D) Update(cmd *engine.Commands) {
+	t.Node.Update(cmd)
+	...
+
+  It would ideally be automatic to call update on the embedded 
+  Node member
+- Init is not called when we spawn an actor after the scene has 
+  already been initialized. It is only called once a scene is 
+  spawned, which means that for newly spawned objects the Camera
+  becomes a nil pointer unless we call Init manually...
+- Rectify() in SlamboxEnv is currently being called on demand.
+  I guess it's fine, but we really shouldn't be doing that kind
+  of stuff.

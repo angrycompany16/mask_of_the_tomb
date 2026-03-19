@@ -35,7 +35,7 @@ func (st *SlamboxTilemap) Init(cmd *engine.Commands) {
 			}
 			x := j * st.tileSize
 			y := i * st.tileSize
-			vector64.FillRect(st.gizmosImage, float64(x), float64(y), float64(st.tileSize), float64(st.tileSize), color.RGBA{232, 128, 9, 173}, false)
+			vector64.FillRect(st.gizmosImage, float64(x), float64(y), float64(st.tileSize), float64(st.tileSize), color.RGBA{32, 23, 9, 110}, false)
 		}
 	}
 }

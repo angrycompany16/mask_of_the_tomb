@@ -2,6 +2,9 @@ package slamboxactor
 
 import (
 	"image/color"
+	"mask_of_the_tomb/internal/backend/assetloader"
+	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
+	"mask_of_the_tomb/internal/backend/autotile"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/vector64"
@@ -12,20 +15,36 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// The right way to do this is to have a bundle where the slambox
+// sprite (autotile) is a child...
+// Because this is NOT good
 type Slambox struct {
 	*tracker.Tracker
-	rect         *maths.Rect
-	backendIndex int
-	slamRequest  maths.Direction
-	inChain      bool
-	inGroup      bool
-	isCenter     bool
-	gizmosImage  *ebiten.Image
+	sprite            *ebiten.Image
+	rect              *maths.Rect
+	backendIndex      int
+	slamRequest       maths.Direction
+	slamboxTilemapSrc string
+	slamboxTilemap    *assetloader.AssetRef[ebiten.Image]
+	inChain           bool
+	inGroup           bool
+	isCenter          bool
+	gizmosImage       *ebiten.Image
+}
+
+func (s *Slambox) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
+	s.Tracker.OnTreeAdd(node, cmd)
+	s.slamboxTilemap = assetloader.StageAsset[ebiten.Image](
+		cmd.AssetLoader(),
+		s.slamboxTilemapSrc,
+		assettypes.NewImageAsset(s.slamboxTilemapSrc),
+	)
 }
 
 func (s *Slambox) Init(cmd *engine.Commands) {
 	s.Tracker.Init(cmd)
 	s.backendIndex = cmd.SlamboxEnv().AddSlambox(s.rect)
+	s.createSprite(s.slamboxTilemap.Value())
 }
 
 func (s *Slambox) Update(cmd *engine.Commands) {
@@ -36,6 +55,10 @@ func (s *Slambox) Update(cmd *engine.Commands) {
 	gw, gh := cmd.Renderer().GetGameSize()
 	s.Transform2D.SetPos(x-gw/2, y-gh/2)
 
+	gPosX, gPosY := s.GetPos()
+	camX, camY := s.GetCamera().WorldToCamCustomOffset(gPosX, gPosY, 0, 0, true)
+	cmd.Renderer().Request(opgen.Pos(s.sprite, camX, camY, 0, 0), s.sprite, "Playerspace", 20)
+
 	if s.slamRequest == maths.DirNone && !s.inChain && !s.inGroup {
 		return
 	}
@@ -43,6 +66,7 @@ func (s *Slambox) Update(cmd *engine.Commands) {
 	targetX, targetY := cmd.SlamboxEnv().SlamSlambox(s.backendIndex, s.slamRequest)
 	s.Tracker.SetTarget(targetX, targetY)
 	s.slamRequest = maths.DirNone
+
 }
 
 func (s *Slambox) DrawGizmo(cmd *engine.Commands) {
@@ -53,6 +77,22 @@ func (s *Slambox) DrawGizmo(cmd *engine.Commands) {
 	camX, camY := s.GetCamera().WorldToCamCustomOffset(s.rect.Left(), s.rect.Top(), 0, 0, false)
 
 	cmd.Renderer().Request(opgen.Pos(s.gizmosImage, camX, camY), s.gizmosImage, "Overlay", 0)
+}
+
+func (s *Slambox) createSprite(slamboxTilemap *ebiten.Image) {
+	autotile.CreateSprite(
+		slamboxTilemap,
+		s.sprite,
+		autotile.GetDefaultTileRectData(0, 0, 8),
+		autotile.GetDefaultTileRuleset(),
+		8,
+		s.rect,
+		autotile.WALL,
+		autotile.RectList{
+			List: make([]*maths.Rect, 0),
+			Kind: autotile.WALL,
+		},
+	)
 }
 
 func (s *Slambox) RequestSlam(dir maths.Direction) {
@@ -67,6 +107,10 @@ func (s *Slambox) GetRect() *maths.Rect {
 	return s.rect
 }
 
+func (s *Slambox) GetBackendID() int {
+	return s.backendIndex
+}
+
 func (s *Slambox) IsCenter() bool {
 	return s.isCenter
 }
@@ -74,10 +118,11 @@ func (s *Slambox) IsCenter() bool {
 func defaultSlambox(tracker *tracker.Tracker) *Slambox {
 	x, y := tracker.GetPos()
 	return &Slambox{
-		Tracker:     tracker,
-		rect:        maths.NewRect(x, y, 8, 8),
-		slamRequest: maths.DirNone,
-		gizmosImage: ebiten.NewImage(8, 8),
+		Tracker:           tracker,
+		rect:              maths.NewRect(x, y, 8, 8),
+		slamRequest:       maths.DirNone,
+		gizmosImage:       ebiten.NewImage(8, 8),
+		slamboxTilemapSrc: "sprites/environment/slambox_tilemap.png",
 	}
 }
 
@@ -103,5 +148,12 @@ func WithSize(width, height float64) utils.Option[Slambox] {
 	return func(s *Slambox) {
 		s.rect.SetSize(width, height)
 		s.gizmosImage = ebiten.NewImage(int(width), int(height))
+		s.sprite = ebiten.NewImage(int(width), int(height))
+	}
+}
+
+func WithTilemap(path string) utils.Option[Slambox] {
+	return func(s *Slambox) {
+		s.slamboxTilemapSrc = path
 	}
 }
