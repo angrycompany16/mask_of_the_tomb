@@ -28,6 +28,7 @@ const (
 )
 
 type AnimationInfo struct {
+	Name              string
 	SpriteSheetPath   string            `yaml:"SpriteSheetPath"`
 	SpriteSheetFormat SpritesheetFormat `yaml:"SpriteSheetFormat"`
 	LoopMode          AnimationLoopMode `yaml:"LoopMode"`
@@ -77,6 +78,7 @@ func (a *Animation) switchFrame() {
 			a.xindex %= a.spritesheet.frames
 		} else if a.info.LoopMode == Once && a.xindex == a.spritesheet.frames {
 			a.finished = true
+			a.xindex--
 
 			if a.info.NextAnimationId == -1 {
 				a.Pause()
@@ -107,19 +109,40 @@ func (a *Animation) GetSprite() *ebiten.Image {
 	return a.spritesheet.src
 }
 
-func NewAnimation(info AnimationInfo) *Animation {
+func NewAnimation(info AnimationInfo, width, height float64) *Animation {
+	src := utils.MustNewImageFromFile(info.SpriteSheetPath)
 	return &Animation{
-		info:        info,
-		finished:    false,
-		paused:      false,
-		ticker:      time.NewTicker(time.Duration(info.FrameDelay * int(time.Millisecond))),
-		xindex:      0,
-		yindex:      0,
+		info:     info,
+		finished: false,
+		paused:   false,
+		ticker:   time.NewTicker(time.Duration(info.FrameDelay * int(time.Millisecond))),
+		xindex:   0,
+		yindex:   0,
+		// no no NO
+		spritesheet: &Spritesheet{
+			src:    src,
+			width:  width,
+			height: height,
+			frames: src.Bounds().Dx() / int(width),
+		},
+	}
+}
+
+func NewAnimationAuto(info AnimationInfo) *Animation {
+	return &Animation{
+		info:     info,
+		finished: false,
+		paused:   false,
+		ticker:   time.NewTicker(time.Duration(info.FrameDelay * int(time.Millisecond))),
+		xindex:   0,
+		yindex:   0,
+		// no no NO
 		spritesheet: NewSpritesheetAuto(utils.MustNewImageFromFile(info.SpriteSheetPath)),
 	}
 }
 
 type Spritesheet struct {
+	// TODO: Turn this into an AssetRef
 	src           *ebiten.Image
 	width, height float64
 	frames        int
@@ -154,7 +177,7 @@ func (a *AnimatedSprite) Update(cmd *engine.Commands) {
 	activeClip.Update()
 	if activeClip.IsFinished() {
 		if activeClip.GetNext() != -1 {
-			a.OnClipFinished.Raise()
+			a.OnClipFinished.WithData("clip", activeClip.info.Name).Raise()
 			a.ActiveClip = activeClip.GetNext()
 		}
 	}

@@ -31,6 +31,9 @@ type AssetRef[T any] struct {
 }
 
 func (a *AssetRef[T]) Value() *T {
+	if *a.status == STAGED {
+		fmt.Println("Asset hasn't been loaded yet. Call LoadAll to load it (and also everything else).")
+	}
 	return (*a.value.(*any)).(*T)
 }
 
@@ -53,6 +56,10 @@ type AssetLoader struct {
 	fs        fs.FS
 }
 
+// func GetAssetInstant[T any](a *AssetLoader, name string, loadable Loadable) *AssetRef[T] {
+
+// }
+
 func StageAsset[T any](a *AssetLoader, name string, loadable Loadable) *AssetRef[T] {
 	assetRef := AssetRef[T]{}
 	if asset, ok := a.assetpool.Get(name); ok {
@@ -72,7 +79,9 @@ func StageAsset[T any](a *AssetLoader, name string, loadable Loadable) *AssetRef
 	return &assetRef
 }
 
+// Probably should incorporate a simple mutex here
 func (a *AssetLoader) LoadAll() {
+	fmt.Println("Loading all assets...")
 	for pair := a.assetpool.Oldest(); pair != nil; pair = pair.Next() {
 		if pair.Value.status == LOADED || pair.Value.status == FAILED {
 			continue
@@ -86,6 +95,8 @@ func (a *AssetLoader) LoadAll() {
 		pair.Value.status = LOADED
 		pair.Value.value = val
 	}
+	fmt.Println("Done!")
+	// Print asset registry
 }
 
 func (a *AssetLoader) GetAssetPool() *om.OrderedMap[string, *Asset] {

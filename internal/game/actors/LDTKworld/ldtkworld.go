@@ -7,11 +7,15 @@ import (
 	"mask_of_the_tomb/internal/backend/colors"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/actors/trigger"
 	"mask_of_the_tomb/internal/engine/actors/vectorgraphic"
 	ldtktilelayer "mask_of_the_tomb/internal/game/actors/LDTKTileLayer"
+	"mask_of_the_tomb/internal/game/actors/autotilesprite"
+	"mask_of_the_tomb/internal/game/actors/doorv2"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/game/actors/tracker"
@@ -32,23 +36,37 @@ var layerMap = map[string]string{
 }
 
 type LDTKLevel struct {
-	*transform2D.Transform2D
+	*graphic.Graphic
 	worldSrcPath string `debug:"auto"`
 	levelName    string `debug:"auto"`
 	LDTKData     *assetloader.AssetRef[assettypes.LDTKData]
 }
 
 func (l *LDTKLevel) OnTreeAdd(node *engine.Node, servers *engine.Commands) {
-	l.Transform2D.OnTreeAdd(node, servers)
+	l.Graphic.OnTreeAdd(node, servers)
 	l.LDTKData = assetloader.StageAsset[assettypes.LDTKData](
 		servers.AssetLoader(),
 		l.worldSrcPath,
 		assettypes.NewLDTKAsset(l.worldSrcPath),
 	)
+
+	// Pre-load this
+	assetloader.StageAsset[assettypes.ImageAsset](
+		servers.AssetLoader(),
+		"sprites/environment/slambox_tilemap.png",
+		assettypes.NewImageAsset("sprites/environment/slambox_tilemap.png"),
+	)
+
+	// Also pre-load this
+	assetloader.StageAsset[assettypes.ImageAsset](
+		servers.AssetLoader(),
+		"sprites/environment/door_v2.png",
+		assettypes.NewImageAsset("sprites/environment/door_v2.png"),
+	)
 }
 
 func (l *LDTKLevel) Init(cmd *engine.Commands) {
-	l.Transform2D.Update(cmd)
+	l.Graphic.Update(cmd)
 	world := l.LDTKData.Value().World
 	tilesetMap := l.LDTKData.Value().Tilesets
 	defs := world.Defs
@@ -122,12 +140,6 @@ func (l *LDTKLevel) Init(cmd *engine.Commands) {
 		int(level.PxHei),
 	), l.GetNode(), cmd)
 
-	// Spawn in any slamboxes
-	// What we should do:
-	// For each slambox, spawn a bundle containing the slambox entity,
-	// with sprites, particlesys and other stuff as children of the
-	// main entity
-
 	entityLayer := utils.Must(level.GetLayerByName("Entities"))
 	for _, entity := range entityLayer.Entities {
 		switch entity.Name {
@@ -151,23 +163,98 @@ func (l *LDTKLevel) Init(cmd *engine.Commands) {
 				),
 				cmd,
 			)
+
+			autotilesprite := cmd.Scene().AddChild("Sprite", autotilesprite.NewAutoTileSprite(
+				graphic.NewGraphic(
+					transform2D.NewTransform2D(
+						nodeactor.NewNode(),
+					),
+				),
+				autotilesprite.WithSize(entity.Width, entity.Height),
+				autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
+			), slamboxNode, cmd)
+
 			// This really is just horrible...
 			// The quickest solution i could possibly find
 			slamboxNode.GetValue().Init(cmd)
-			// cmd.Scene().AddChild()
-			// newLevel.slamboxEntities = append(newLevel.slamboxEntities, NewSlamboxEntity(&entity, newLevel.slamboxEnvironment, levelLDTK))
-			// case names.GrassEntity:
-			// 	newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
-			// case names.TurretEntity:
-			// 	newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
-			// case names.CatcherEntity:
-			// 	newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
-			// case names.PlatformEntity:
-			// 	newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
-			// case names.LanternEntity:
-			// 	newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
-			// case names.DoorV2Entity:
-			// 	newLevel.doorsV2 = append(newLevel.doorsV2, entities.NewDoorV2(&entity, levelLDTK))
+			autotilesprite.GetValue().Init(cmd)
+		// newLevel.slamboxEntities = append(newLevel.slamboxEntities, NewSlamboxEntity(&entity, newLevel.slamboxEnvironment, levelLDTK))
+		// case names.GrassEntity:
+		// 	newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
+		// case names.TurretEntity:
+		// 	newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
+		// case names.CatcherEntity:
+		// 	newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
+		// case names.PlatformEntity:
+		// 	newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
+		// case names.LanternEntity:
+		// 	newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
+		case "DoorV2":
+			// Spawn door bundle
+			// Door actor - Just connects child logic, contains other side IDs
+			// Children:
+			// animatedsprite
+			// triggerZone
+
+			doorNode := cmd.Scene().SpawnActor("Door", doorv2.NewDoorV2(
+				graphic.NewGraphic(
+					transform2D.NewTransform2D(
+						nodeactor.NewNode(),
+						transform2D.WithPos(entity.Px[0], entity.Px[1]),
+					),
+				), &entity, &level,
+			), cmd)
+
+			doorSprite := cmd.Scene().AddChild("Sprite", animatedsprite.NewAnimator(
+				graphic.NewGraphic(
+					transform2D.NewTransform2D(
+						nodeactor.NewNode(),
+					),
+				), map[int]*animatedsprite.Animation{
+					0: animatedsprite.NewAnimation(
+						animatedsprite.AnimationInfo{
+							Name:              "Idle",
+							SpriteSheetPath:   "assets/sprites/environment/door_v2-idle-Sheet.png",
+							SpriteSheetFormat: animatedsprite.Strip,
+							LoopMode:          animatedsprite.Loop,
+							FrameDelay:        100,
+							NextAnimationId:   -1,
+						}, 48, 16,
+					),
+					1: animatedsprite.NewAnimation(
+						animatedsprite.AnimationInfo{
+							Name:              "Open",
+							SpriteSheetPath:   "assets/sprites/environment/door_v2-open-Sheet.png",
+							SpriteSheetFormat: animatedsprite.Strip,
+							LoopMode:          animatedsprite.Once,
+							FrameDelay:        100,
+							NextAnimationId:   -1,
+						}, 48, 16,
+					),
+					2: animatedsprite.NewAnimation(
+						animatedsprite.AnimationInfo{
+							Name:              "Close",
+							SpriteSheetPath:   "assets/sprites/environment/door_v2-close-Sheet.png",
+							SpriteSheetFormat: animatedsprite.Strip,
+							LoopMode:          animatedsprite.Once,
+							FrameDelay:        100,
+							NextAnimationId:   -1,
+						}, 48, 16,
+					),
+				}, "Playerspace", 5,
+			), doorNode, cmd)
+
+			doorTrigger := cmd.Scene().AddChild("Trigger", trigger.NewTrigger(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+				),
+			), doorNode, cmd)
+
+			doorNode.GetValue().Init(cmd)
+			doorSprite.GetValue().Init(cmd)
+			doorTrigger.GetValue().Init(cmd)
+
+			// newLevel.doorsV2 = append(newLevel.doorsV2, entities.NewDoorV2(&entity, levelLDTK))
 			// 	// case chainNodeEntityName:
 			// // 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 			// case names.TestSpeechBubbleEntity:
@@ -185,9 +272,9 @@ func (l *LDTKLevel) DrawInspector(ctx *debugui.Context) {
 	utils.RenderFieldsAuto(ctx, l)
 }
 
-func NewLDTKLevel(transform2d *transform2D.Transform2D, levelName, worldSrcPath string) *LDTKLevel {
+func NewLDTKLevel(graphic *graphic.Graphic, levelName, worldSrcPath string) *LDTKLevel {
 	return &LDTKLevel{
-		Transform2D:  transform2d,
+		Graphic:      graphic,
 		levelName:    levelName,
 		worldSrcPath: worldSrcPath,
 	}

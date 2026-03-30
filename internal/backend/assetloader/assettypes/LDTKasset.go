@@ -46,7 +46,7 @@ func (a *LDTKAsset) Load(fs fs.FS) (any, error) {
 	for i := 0; i < len(world.Defs.Tilesets); i++ {
 		tileset := &world.Defs.Tilesets[i]
 		tilesetPath := filepath.Join(LDTKpath, tileset.RelPath)
-		fmt.Println(tilesetPath)
+		// fmt.Println(tilesetPath)
 
 		if !strings.HasSuffix(tilesetPath, ".png") {
 			fmt.Println("Tileset loading: Skipping non-png file")

@@ -23,10 +23,6 @@ const (
 	SLAM_ANIM
 )
 
-// TODO: An important:
-// Load slamboxes from LDTK and make player interact with
-// them
-// Then we're in business again...
 type playerState int
 
 const (
@@ -73,8 +69,8 @@ func (p *Player) Update(cmd *engine.Commands) {
 
 	switch p.State {
 	case Slamming:
-		_, finished := p.OnClipFinish.Poll()
-		if finished {
+		info, finished := p.OnClipFinish.Poll()
+		if finished && info["clip"] == "Slam" {
 			p.State = Idle
 			p.jumpOffset = 0
 			p.jumpOffsetvel = 0
@@ -134,8 +130,6 @@ func (p *Player) Update(cmd *engine.Commands) {
 		// p.deathAnim.Update()
 	}
 
-	// here we'll need to check for slambox collisions
-	//
 	direction := p.readMoveInput(cmd)
 	if direction != maths.DirNone {
 		p.inputbuffer.Set(direction)
@@ -143,9 +137,6 @@ func (p *Player) Update(cmd *engine.Commands) {
 
 	moveDir := p.inputbuffer.Read()
 
-	// TODO: If we can slam or are already locked to a wall, we
-	// don't
-	// want to do this
 	p.pivotTransform.SetAngle(maths.DirToRadians(p.direction))
 
 	p.inputbuffer.Update()

@@ -21,6 +21,8 @@ type Sprite struct {
 	drawOrder  int     `debug:"auto"`
 	scaling    float64 `debug:"auto"`
 	srcPath    string  `debug:"auto"`
+	pivotX     float64 `debug:"auto"`
+	pivotY     float64 `debug:"auto"`
 	imageAsset *assetloader.AssetRef[ebiten.Image]
 }
 
@@ -55,7 +57,7 @@ func (s *Sprite) Update(cmd *engine.Commands) {
 		camX, camY,
 		gAngle,
 		gScaleX*s.scaling, gScaleY*s.scaling,
-		0.5, 0.5,
+		s.pivotX, s.pivotY,
 	), s.imageAsset.Value(), s.layer, s.drawOrder)
 }
 
@@ -110,6 +112,8 @@ func defaultSprite(graphic *graphic.Graphic) *Sprite {
 		drawOrder: 0,
 		scaling:   1.0,
 		Graphic:   graphic,
+		pivotX:    0.5,
+		pivotY:    0.5,
 	}
 }
 
@@ -122,5 +126,12 @@ func WithDrawOrder(drawOrder int) utils.Option[Sprite] {
 func WithScaling(scaling float64) utils.Option[Sprite] {
 	return func(s *Sprite) {
 		s.scaling = scaling
+	}
+}
+
+func WithPivot(x, y float64) utils.Option[Sprite] {
+	return func(s *Sprite) {
+		s.pivotX = x
+		s.pivotY = y
 	}
 }

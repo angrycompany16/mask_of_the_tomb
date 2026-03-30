@@ -43,8 +43,9 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 				),
 			),
 			map[int]*animatedsprite.Animation{
-				player.IDLE_ANIM: animatedsprite.NewAnimation(
+				player.IDLE_ANIM: animatedsprite.NewAnimationAuto(
 					animatedsprite.AnimationInfo{
+						Name:              "Idle",
 						SpriteSheetPath:   "assets/sprites/player/player-idle-Sheet.png",
 						SpriteSheetFormat: animatedsprite.Strip,
 						LoopMode:          animatedsprite.Loop,
@@ -52,8 +53,9 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 						NextAnimationId:   -1,
 					},
 				),
-				player.DASH_INIT_ANIM: animatedsprite.NewAnimation(
+				player.DASH_INIT_ANIM: animatedsprite.NewAnimationAuto(
 					animatedsprite.AnimationInfo{
+						Name:              "Init-jump",
 						SpriteSheetPath:   "assets/sprites/player/player-init-jump-Sheet.png",
 						SpriteSheetFormat: animatedsprite.Strip,
 						LoopMode:          animatedsprite.Once,
@@ -61,8 +63,9 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 						NextAnimationId:   player.DASH_LOOP_ANIM,
 					},
 				),
-				player.DASH_LOOP_ANIM: animatedsprite.NewAnimation(
+				player.DASH_LOOP_ANIM: animatedsprite.NewAnimationAuto(
 					animatedsprite.AnimationInfo{
+						Name:              "Loop-jump",
 						SpriteSheetPath:   "assets/sprites/player/player-loop-jump-Sheet.png",
 						SpriteSheetFormat: animatedsprite.Strip,
 						LoopMode:          animatedsprite.Loop,
@@ -70,8 +73,9 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 						NextAnimationId:   -1,
 					},
 				),
-				player.SLAM_ANIM: animatedsprite.NewAnimation(
+				player.SLAM_ANIM: animatedsprite.NewAnimationAuto(
 					animatedsprite.AnimationInfo{
+						Name:              "Slam",
 						SpriteSheetPath:   "assets/sprites/player/player-slam-Sheet.png",
 						SpriteSheetFormat: animatedsprite.Strip,
 						LoopMode:          animatedsprite.Once,

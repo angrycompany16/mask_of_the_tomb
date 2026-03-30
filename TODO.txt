@@ -57,3 +57,8 @@ Engine improvements:
 - Rectify() in SlamboxEnv is currently being called on demand.
   I guess it's fine, but we really shouldn't be doing that kind
   of stuff.
+- Another constructor problem: If we forget to spawn some parent
+  actor with an instance of its child, everything panics. It
+  would be nice if we could create component A inheriting from B,
+  and then somehow make a constructor for B which makes it impossible
+  to forget to add an A.

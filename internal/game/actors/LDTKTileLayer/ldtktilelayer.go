@@ -12,12 +12,13 @@ import (
 
 type LDTKTilemapLayer struct {
 	*graphic.Graphic
-	LDTKlayer    *ebitenLDTK.Layer
-	tilesetImage *ebiten.Image
-	layerImage   *ebiten.Image
-	layer        string
-	drawOrder    int
-	tileSize     float64
+	LDTKlayer     *ebitenLDTK.Layer
+	tilesetImage  *ebiten.Image
+	layerImage    *ebiten.Image
+	layer         string
+	drawOrder     int
+	tileSize      float64
+	specialOffset float64
 }
 
 func (t *LDTKTilemapLayer) Init(cmd *engine.Commands) {
@@ -28,6 +29,16 @@ func (t *LDTKTilemapLayer) Init(cmd *engine.Commands) {
 		tiles = t.LDTKlayer.GridTiles
 	} else if t.LDTKlayer.Type == ebitenLDTK.LayerTypeIntGrid {
 		tiles = t.LDTKlayer.AutoLayerTiles
+	}
+
+	// This is not very beautiful. Can probably
+	// be generalized to something that gets the
+	// central point of a level, or something like
+	// that.
+	if t.LDTKlayer.GridSize*float64(t.LDTKlayer.Height) == 272 {
+		t.specialOffset = 1
+	} else {
+		t.specialOffset = 0
 	}
 
 	for _, tile := range tiles {
@@ -63,7 +74,7 @@ func (t *LDTKTilemapLayer) Update(servers *engine.Commands) {
 
 	t.Transform2D.Update(servers)
 	servers.Renderer().Request(opgen.PosRotScale(
-		t.layerImage, camX, camY, gAngle, gScaleX, gScaleY, 0.5, 0.5,
+		t.layerImage, camX, camY+t.specialOffset, gAngle, gScaleX, gScaleY, 0.5, 0.5,
 	), t.layerImage, t.layer, t.drawOrder)
 }
 

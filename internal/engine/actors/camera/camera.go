@@ -44,9 +44,15 @@ func (c *Camera) Update(cmd *engine.Commands) {
 	c.shakeOffsetY = maths.RandomRange(-c.shakeStrength, c.shakeStrength)
 }
 
+func (c *Camera) SetOffset(x, y float64) {
+	c.offsetX = x
+	c.offsetY = y
+}
+
 // returns the position of the camera
 func (c *Camera) WorldToCam(x, y float64, includeShake bool) (float64, float64) {
 	camX, camY := c.Transform2D.GetPos(false)
+
 	if includeShake {
 		return x - (camX + c.shakeOffsetX - c.offsetX), y - (camY + c.shakeOffsetY - c.offsetY)
 	}

@@ -4,11 +4,12 @@ import (
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
+	"mask_of_the_tomb/internal/utils"
 
 	"github.com/ebitengine/debugui"
 )
 
-type Option func(*Transform2D)
+// type Option func(*Transform2D)
 
 type Transform2D struct {
 	*nodeactor.Node // Actually, should this be a pointer?
@@ -91,7 +92,7 @@ func (t *Transform2D) SetScale(scaleX, scaleY float64) {
 // Right now we are instantiating the node as a zero object, which
 // is fine-ish (we don't get any nil references), but not great
 // (this could break if we change node, and is not very clean)
-func NewTransform2D(node *nodeactor.Node, options ...Option) *Transform2D {
+func NewTransform2D(node *nodeactor.Node, options ...utils.Option[Transform2D]) *Transform2D {
 	t := defaultTransform2D(node)
 
 	for _, option := range options {
@@ -109,7 +110,7 @@ func defaultTransform2D(node *nodeactor.Node) *Transform2D {
 	}
 }
 
-func WithPos(x, y float64) Option {
+func WithPos(x, y float64) utils.Option[Transform2D] {
 	return func(t *Transform2D) {
 		t.local.origin.X = x
 		t.local.origin.Y = y
@@ -118,14 +119,14 @@ func WithPos(x, y float64) Option {
 	}
 }
 
-func WithAngle(angle float64) Option {
+func WithAngle(angle float64) utils.Option[Transform2D] {
 	return func(t *Transform2D) {
 		t.local.angle = angle
 		t.global.angle = angle
 	}
 }
 
-func WithScale(scaleX, scaleY float64) Option {
+func WithScale(scaleX, scaleY float64) utils.Option[Transform2D] {
 	return func(t *Transform2D) {
 		t.local.scaleX = scaleX
 		t.global.scaleY = scaleY
