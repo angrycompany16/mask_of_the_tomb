@@ -44,11 +44,12 @@ type QueryFilter struct {
 
 // Represents an environment which can contain moving and static boxes.
 type SlamboxEnvironment struct {
-	TileSize      float64 // Should only ever be a whole float. Data type for convenience
-	gridTiles     [][]bool
-	slamboxes     []*maths.Rect
-	slamboxGroups []*SlamboxGroup
-	slamboxChains []*SlamboxChain
+	TileSize         float64 // Should only ever be a whole float. Data type for convenience
+	gridTiles        [][]bool
+	environmentRects []*maths.Rect
+	slamboxes        []*maths.Rect
+	slamboxGroups    []*SlamboxGroup
+	slamboxChains    []*SlamboxChain
 }
 
 // Constructs a list representing the tiles in the SlamboxEnvironment, using a 2D voxel meshing algorithm.
@@ -93,9 +94,6 @@ func (se *SlamboxEnvironment) Rectify() []*maths.Rect {
 				if cornerX == 0 && cornerY == 0 {
 					done = true
 				}
-				// What
-				if !done && len(rectList) != 0 {
-				}
 				maximal = true
 			case EXTEND_X:
 				newRect = extendedX
@@ -107,7 +105,7 @@ func (se *SlamboxEnvironment) Rectify() []*maths.Rect {
 		}
 	}
 
-	return rectList
+	return slices.Concat(rectList, se.environmentRects)
 }
 
 // Tests whether the rect passed in overlaps with:
@@ -567,6 +565,14 @@ func (se *SlamboxEnvironment) SetTiles(tilemap [][]int) {
 	}
 }
 
+func (se *SlamboxEnvironment) AddEnvironmentRect(rect *maths.Rect) {
+	se.environmentRects = append(se.environmentRects, rect)
+}
+
+func (se *SlamboxEnvironment) ClearEnvironmentRects(rect *maths.Rect) {
+	se.environmentRects = make([]*maths.Rect, 0)
+}
+
 func (se *SlamboxEnvironment) AddSlambox(slambox *maths.Rect) int {
 	se.slamboxes = append(se.slamboxes, slambox)
 	return len(se.slamboxes) - 1
@@ -583,10 +589,11 @@ func (se *SlamboxEnvironment) AddSlamboxChain(slamboxChain *SlamboxChain) {
 
 func NewSlamboxEnvironment(tileSize int) *SlamboxEnvironment {
 	return &SlamboxEnvironment{
-		TileSize:      float64(tileSize),
-		gridTiles:     make([][]bool, 0),
-		slamboxes:     make([]*maths.Rect, 0),
-		slamboxGroups: make([]*SlamboxGroup, 0),
-		slamboxChains: make([]*SlamboxChain, 0),
+		TileSize:         float64(tileSize),
+		gridTiles:        make([][]bool, 0),
+		environmentRects: make([]*maths.Rect, 0),
+		slamboxes:        make([]*maths.Rect, 0),
+		slamboxGroups:    make([]*SlamboxGroup, 0),
+		slamboxChains:    make([]*SlamboxChain, 0),
 	}
 }

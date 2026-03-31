@@ -39,6 +39,5 @@ StartColor: [255, 253, 240, 255]
 EndColor: [125, 242, 207, 255]
 ImageWidth: 15
 ImageHeight: 15
-# TODO: Make smaller scale sprites for small particles
 SpritePath: "assets/sprites/icons/circle-15x15.png"
 ...

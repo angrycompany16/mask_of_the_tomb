@@ -64,19 +64,32 @@ func RotateCCW(dir Direction) Direction {
 	return DirNone
 }
 
-// TODO: Rewrite to use inner product
 func DirFromVector(x, y float64) Direction {
-	if x == 0 && y < 0 {
-		return DirUp
-	} else if x == 0 && y > 0 {
-		return DirDown
-	} else if x > 0 && y == 0 {
+	rot := Mat2x2FromRot(math.Pi / 4)
+	rotated := rot.TimesVec(Vec2{x, y})
+
+	if rotated.X > 0 && rotated.Y > 0 {
 		return DirRight
-	} else if x < 0 && y == 0 {
+	} else if rotated.X < 0 && rotated.Y > 0 {
+		return DirDown
+	} else if rotated.X > 0 && rotated.Y < 0 {
 		return DirLeft
-	} else {
-		return DirNone
+	} else if rotated.X < 0 && rotated.Y < 0 {
+		return DirUp
 	}
+	return DirNone
+
+	// if x == 0 && y < 0 {
+	// 	return DirUp
+	// } else if x == 0 && y > 0 {
+	// 	return DirDown
+	// } else if x > 0 && y == 0 {
+	// 	return DirRight
+	// } else if x < 0 && y == 0 {
+	// 	return DirLeft
+	// } else {
+	// 	return DirNone
+	// }
 }
 
 func DirToVector(dir Direction) (float64, float64) {

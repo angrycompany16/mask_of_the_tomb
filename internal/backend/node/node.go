@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// TODO: Add hash map for fast lookup
+// BETTER: Add hash map for fast lookup
 type Node[T any] struct {
 	id       string // Unique within the tree
 	name     string // Non-unique

@@ -213,26 +213,23 @@ func (r *Rect) GetHalved(dir Direction) *Rect {
 
 // Checks if a ray starting in posX, posY and travelling in the given direction will
 // intersect the rect.
-// TODO: I think this should return the intersection point
-// rather than the top left corner of the rect (how in the world
-// was i able to use this successfully?)
-func (r *Rect) RaycastDirectional(posX, posY float64, direction Direction) (bool, float64, float64) {
+func (r *Rect) RaycastDirectional(posX, posY float64, direction Direction) bool {
 	if r.Contains(posX, posY) {
 		// Should be true?
-		return false, 0, 0
+		return false
 	}
 
 	switch direction {
 	case DirUp:
-		return posX >= r.Left() && posX <= r.Right() && posY >= r.Top(), r.Left(), r.Top()
+		return posX >= r.Left() && posX <= r.Right() && posY >= r.Top()
 	case DirDown:
-		return posX >= r.Left() && posX <= r.Right() && posY <= r.Bottom(), r.Left(), r.Top()
+		return posX >= r.Left() && posX <= r.Right() && posY <= r.Bottom()
 	case DirLeft:
-		return posY >= r.Top() && posY <= r.Bottom() && posX >= r.Left(), r.Left(), r.Top()
+		return posY >= r.Top() && posY <= r.Bottom() && posX >= r.Left()
 	case DirRight:
-		return posY >= r.Top() && posY <= r.Bottom() && posX <= r.Right(), r.Left(), r.Top()
+		return posY >= r.Top() && posY <= r.Bottom() && posX <= r.Right()
 	}
-	return false, 0, 0
+	return false
 }
 
 // Returns whether the point (x, y) lies directly above/below/left/right to

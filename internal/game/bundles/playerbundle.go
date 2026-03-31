@@ -36,63 +36,46 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			transform2D.WithPos(playerWidth/2, playerHeight/2),
 		), playerNode, cmd)
 
-		scene.AddChild("PlayerSprite", animatedsprite.NewAnimator(
+		scene.AddChild("PlayerSprite", animatedsprite.NewAnimatedSprite(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),
 				),
 			),
-			map[int]*animatedsprite.Animation{
-				player.IDLE_ANIM: animatedsprite.NewAnimationAuto(
-					animatedsprite.AnimationInfo{
-						Name:              "Idle",
-						SpriteSheetPath:   "assets/sprites/player/player-idle-Sheet.png",
-						SpriteSheetFormat: animatedsprite.Strip,
-						LoopMode:          animatedsprite.Loop,
-						FrameDelay:        140,
-						NextAnimationId:   -1,
-					},
+			map[string]*animatedsprite.Clip{
+				player.IDLE_ANIM: animatedsprite.NewClip(
+					"sprites/player/player-idle-Sheet.png",
+					16,
+					16,
+					animatedsprite.Loop,
+					140,
+					"",
 				),
-				player.DASH_INIT_ANIM: animatedsprite.NewAnimationAuto(
-					animatedsprite.AnimationInfo{
-						Name:              "Init-jump",
-						SpriteSheetPath:   "assets/sprites/player/player-init-jump-Sheet.png",
-						SpriteSheetFormat: animatedsprite.Strip,
-						LoopMode:          animatedsprite.Once,
-						FrameDelay:        80,
-						NextAnimationId:   player.DASH_LOOP_ANIM,
-					},
+				player.DASH_INIT_ANIM: animatedsprite.NewClip(
+					"sprites/player/player-init-jump-Sheet.png",
+					16,
+					16,
+					animatedsprite.Once,
+					80,
+					player.DASH_LOOP_ANIM,
 				),
-				player.DASH_LOOP_ANIM: animatedsprite.NewAnimationAuto(
-					animatedsprite.AnimationInfo{
-						Name:              "Loop-jump",
-						SpriteSheetPath:   "assets/sprites/player/player-loop-jump-Sheet.png",
-						SpriteSheetFormat: animatedsprite.Strip,
-						LoopMode:          animatedsprite.Loop,
-						FrameDelay:        80,
-						NextAnimationId:   -1,
-					},
+				player.DASH_LOOP_ANIM: animatedsprite.NewClip(
+					"sprites/player/player-loop-jump-Sheet.png",
+					16,
+					16,
+					animatedsprite.Loop,
+					80,
+					"",
 				),
-				player.SLAM_ANIM: animatedsprite.NewAnimationAuto(
-					animatedsprite.AnimationInfo{
-						Name:              "Slam",
-						SpriteSheetPath:   "assets/sprites/player/player-slam-Sheet.png",
-						SpriteSheetFormat: animatedsprite.Strip,
-						LoopMode:          animatedsprite.Once,
-						FrameDelay:        80,
-						NextAnimationId:   player.IDLE_ANIM,
-					},
+				player.SLAM_ANIM: animatedsprite.NewClip(
+					"sprites/player/player-slam-Sheet.png",
+					16,
+					16,
+					animatedsprite.Once,
+					80,
+					player.IDLE_ANIM,
 				),
-			}, "Playerspace", 6,
+			}, "Playerspace", 6, 0.5, 0.5, player.IDLE_ANIM,
 		), pivotNode, cmd)
-
-		// scene.AddChild("PlayerSprite", sprite.NewSprite(
-		// 	graphic.NewGraphic(
-		// 		transform2D.NewTransform2D(
-		// 			nodeactor.NewNode(),
-		// 			transform2D.WithPos(playerWidth/2, playerHeight/2),
-		// 		),
-		// 	), "Playerspace", "sprites/player/player.png",
-		// ), playerNode, cmd)
 	}
 }

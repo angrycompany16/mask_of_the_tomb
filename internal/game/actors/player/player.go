@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	IDLE_ANIM = iota
-	DASH_INIT_ANIM
-	DASH_LOOP_ANIM
-	SLAM_ANIM
+	IDLE_ANIM      = "Idle"
+	DASH_INIT_ANIM = "Dash_init"
+	DASH_LOOP_ANIM = "Dash_loop"
+	SLAM_ANIM      = "Slam"
 )
 
 type playerState int

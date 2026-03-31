@@ -69,12 +69,12 @@ func (sc *SlamboxChain) GetSlamDirection(rect maths.Rect, dir maths.Direction) (
 			dist = dists[i]
 			break
 		}
-		if hit, _, _ := sc.nodes[index].GetRect().RaycastDirectional(cX, cY, dir); hit {
+		if sc.nodes[index].GetRect().RaycastDirectional(cX, cY, dir) {
 			closestNodeID = index
 			dist = dists[i]
 			break
 		}
-		if hit, _, _ := sc.nodes[index].GetRect().RaycastDirectional(cX, cY, maths.Opposite(dir)); hit {
+		if sc.nodes[index].GetRect().RaycastDirectional(cX, cY, maths.Opposite(dir)) {
 			closestNodeID = index
 			dist = dists[i]
 			break

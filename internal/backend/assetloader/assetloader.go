@@ -56,9 +56,16 @@ type AssetLoader struct {
 	fs        fs.FS
 }
 
-// func GetAssetInstant[T any](a *AssetLoader, name string, loadable Loadable) *AssetRef[T] {
-
-// }
+func GetAsset[T any](a *AssetLoader, name string) (*AssetRef[T], bool) {
+	assetRef := AssetRef[T]{}
+	if asset, ok := a.assetpool.Get(name); ok {
+		assetRef.value = &asset.value
+		assetRef.status = &asset.status
+		return &assetRef, true
+	} else {
+		return nil, false
+	}
+}
 
 func StageAsset[T any](a *AssetLoader, name string, loadable Loadable) *AssetRef[T] {
 	assetRef := AssetRef[T]{}

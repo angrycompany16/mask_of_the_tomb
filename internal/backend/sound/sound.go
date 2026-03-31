@@ -76,7 +76,7 @@ func PlaySound(name string, DSPChannel string, pitchRandomization float64) {
 	playRequestChan <- playRequest{name, DSPChannel, pitchRandomization}
 }
 
-// TODO: Add a small fadeout when stopping a sound
+// BETTER: Add a small fadeout when stopping a sound
 func StopSound(name string) {
 	stopRequestChan <- name
 }

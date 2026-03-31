@@ -1,12 +1,16 @@
 package doorv2
 
 import (
+	"image/color"
 	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
@@ -23,8 +27,14 @@ type DoorV2 struct {
 	Hitbox             *maths.Rect
 	// InteractRegion     *maths.Rect
 	// sprite             *ebiten.Image
-	direction maths.Direction
-	isReady   bool
+	gizmosImage *ebiten.Image
+	direction   maths.Direction
+	isReady     bool
+}
+
+func (d *DoorV2) Init(cmd *engine.Commands) {
+	d.Graphic.Init(cmd)
+	cmd.SlamboxEnv().AddEnvironmentRect(d.Hitbox)
 }
 
 func (d *DoorV2) Update(cmd *engine.Commands) {
@@ -40,6 +50,16 @@ func (d *DoorV2) Update(cmd *engine.Commands) {
 	} else {
 		// Upside up
 	}
+}
+
+func (d *DoorV2) DrawGizmo(cmd *engine.Commands) {
+	d.Graphic.DrawGizmo(cmd)
+	d.gizmosImage.Clear()
+	vector64.StrokeRect(d.gizmosImage, 0, 0, d.Hitbox.Width()-1, d.Hitbox.Height()-1, 1, color.RGBA{255, 0, 0, 255}, false)
+
+	camX, camY := d.GetCamera().WorldToCamCustomOffset(d.Hitbox.Left(), d.Hitbox.Top(), 0, 0, false)
+
+	cmd.Renderer().Request(opgen.Pos(d.gizmosImage, camX, camY), d.gizmosImage, "Overlay", 0)
 }
 
 // func (d *DoorV2) Update(playerX, playerY float64) {
@@ -110,6 +130,8 @@ func NewDoorV2(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *e
 
 	newDoor.OtherSideLevelIid = doorOtherSide.LevelIid
 	newDoor.OtherSideEntityIid = doorOtherSide.EntityIid
+
+	newDoor.gizmosImage = ebiten.NewImage(int(entity.Width), int(entity.Height))
 
 	// interactRegionField := errs.Must(entity.GetFieldByName(resources.LDTKNames.DoorInteractRegionField))
 	// interactRegion := errs.Must(levelLDTK.GetEntityByIid(ebitenLDTK.As[ebitenLDTK.EntityRef](interactRegionField).EntityIid))

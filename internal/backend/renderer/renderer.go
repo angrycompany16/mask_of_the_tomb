@@ -58,7 +58,7 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 	// Sort the slice before rendering. Nodes with the same draw order will be
 	// drawn randomly
 	// Stable sort would lowkey be nice as it stops Z-fighting. But at the same time idk
-	// TODO: It's most likely a lot more performant to sort the
+	// BETTER: It's most likely a lot more performant to sort the
 	// list as it is being made, rather than every time we call draw!
 	slices.SortFunc(r.drawRequests, func(a *DrawRequest, b *DrawRequest) int {
 		return a.drawOrder - b.drawOrder

@@ -65,6 +65,11 @@ func NewMatrix(a, b, c, d float64) Mat2x2 {
 	}
 }
 
+var (
+	V2LEFT = Vec2{X: 1, Y: 0}
+	V2UP   = Vec2{X: 0, Y: -1}
+)
+
 type Vec2 struct {
 	X, Y float64
 }

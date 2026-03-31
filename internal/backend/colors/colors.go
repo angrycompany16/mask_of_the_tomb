@@ -70,7 +70,7 @@ func (c *YAMLColor) UnmarshalYAML(node *yaml.Node) error {
 
 // Takes an input string of the form #RRGGBB and converts it into an RGBA value
 func HexToRGB(hexInput string) (color.RGBA, error) {
-	// TODO: Regex to check that the string is correct
+	// BETTER: Regex to check that the string is correct
 
 	R, err := strconv.ParseInt(hexInput[1:3], 16, 8)
 	G, err := strconv.ParseInt(hexInput[3:5], 16, 8)
