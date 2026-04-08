@@ -67,6 +67,11 @@ type Player struct {
 func (p *Player) Update(cmd *engine.Commands) {
 	p.Slambox.Update(cmd)
 
+	// gx, gy := p.Transform2D.GetPos(false)
+	// fmt.Println("player pos:", gx, gy)
+
+	// Set position of trigger accordingly
+
 	switch p.State {
 	case Slamming:
 		info, finished := p.OnClipFinish.Poll()

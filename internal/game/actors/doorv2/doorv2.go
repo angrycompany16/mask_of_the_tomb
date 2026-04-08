@@ -1,12 +1,16 @@
 package doorv2
 
 import (
+	"fmt"
 	"image/color"
+	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/actors/trigger"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -20,21 +24,26 @@ const (
 
 type DoorV2 struct {
 	*graphic.Graphic
+	Trigger         *trigger.Trigger         // an entity ref, not inheriting anything
+	SpriteTransform *transform2D.Transform2D // an entity ref, not inheriting anything
 	//
 	// EntityIid          string
 	OtherSideLevelIid  string
 	OtherSideEntityIid string
 	Hitbox             *maths.Rect
+	// The trigger child
 	// InteractRegion     *maths.Rect
 	// sprite             *ebiten.Image
 	gizmosImage *ebiten.Image
 	direction   maths.Direction
 	isReady     bool
+	OnCollision *eventsv2.EventBus
 }
 
 func (d *DoorV2) Init(cmd *engine.Commands) {
 	d.Graphic.Init(cmd)
 	cmd.SlamboxEnv().AddEnvironmentRect(d.Hitbox)
+	d.OnCollision = eventsv2.NewEventBus(d.Trigger.OnCollision)
 }
 
 func (d *DoorV2) Update(cmd *engine.Commands) {
@@ -44,6 +53,14 @@ func (d *DoorV2) Update(cmd *engine.Commands) {
 	// manual centering... why? this is so horrible...
 	// TODO: I think I want to move the origin back to the top left corner tbh
 	d.Transform2D.SetPos(d.Hitbox.Left()-gw/2, d.Hitbox.Top()-gh/2)
+	fmt.Println(d.Trigger.GetRectPos())
+
+	if value, raised := d.OnCollision.Poll(); raised && value["otherName"] == "Player" {
+		fmt.Println("Triggerted")
+		d.SpriteTransform.SetAngle(maths.DirToRadians(maths.Opposite(d.direction)))
+	} else {
+		d.SpriteTransform.SetAngle(maths.DirToRadians(d.direction))
+	}
 
 	if d.isReady {
 		// Upside down

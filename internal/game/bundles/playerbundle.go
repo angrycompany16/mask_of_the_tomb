@@ -1,11 +1,13 @@
 package bundles
 
 import (
+	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/actors/trigger"
 	"mask_of_the_tomb/internal/game/actors/player"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/tracker"
@@ -76,6 +78,14 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 					player.IDLE_ANIM,
 				),
 			}, "Playerspace", 6, 0.5, 0.5, player.IDLE_ANIM,
+		), pivotNode, cmd)
+
+		scene.AddChild("PlayerTrigger", trigger.NewTrigger(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+			),
+			trigger.WithRect(maths.NewRect(playerX, playerY, playerWidth, playerHeight)),
+			trigger.WithName("Player"),
 		), pivotNode, cmd)
 	}
 }

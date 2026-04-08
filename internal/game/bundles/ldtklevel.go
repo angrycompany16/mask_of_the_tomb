@@ -148,11 +148,6 @@ func MakeLDTKLevelBundle(levelName string) engine.Bundle {
 					autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
 				), slamboxNode, cmd)
 
-				// This really is just horrible...
-				// The quickest solution i could possibly find
-				// cmd.AssetLoader().LoadAll()
-				// slamboxNode.GetValue().Init(cmd)
-				// autotilesprite.GetValue().Init(cmd)
 			// case names.GrassEntity:
 			// 	newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
 			// case names.TurretEntity:
@@ -175,6 +170,8 @@ func MakeLDTKLevelBundle(levelName string) engine.Bundle {
 						),
 					), &entity, &level,
 				), cmd)
+
+				doorV2Actor, ok := engine.GetActor[*doorv2.DoorV2](doorNode.GetValue())
 
 				doorSprite := scene.AddChild("Sprite", animatedsprite.NewAnimatedSprite(
 					graphic.NewGraphic(
@@ -212,13 +209,22 @@ func MakeLDTKLevelBundle(levelName string) engine.Bundle {
 				transform, ok := engine.GetActor[*transform2D.Transform2D](doorSprite.GetValue())
 				if ok {
 					transform.SetAngle(maths.DirToRadians(direction))
+					// engine.GetActor[*doorv2.DoorV2](doorNode.GetValue())
+					doorV2Actor.SpriteTransform = transform
 				}
 
-				scene.AddChild("Trigger", trigger.NewTrigger(
+				triggerField := utils.Must(entity.GetFieldByName("InteractRegion"))
+				triggerEntityIid := ebitenLDTK.As[ebitenLDTK.EntityRef](triggerField).EntityIid
+				triggerEntity := utils.Must(level.GetEntityByIid(triggerEntityIid))
+
+				triggerNode := scene.AddChild("Trigger", trigger.NewTrigger(
 					transform2D.NewTransform2D(
 						nodeactor.NewNode(),
 					),
+					trigger.WithRect(maths.NewRect(triggerEntity.Px[0], triggerEntity.Px[1], triggerEntity.Width, triggerEntity.Height)),
 				), doorNode, cmd)
+
+				doorV2Actor.Trigger, ok = engine.GetActor[*trigger.Trigger](triggerNode.GetValue())
 
 				// cmd.AssetLoader().LoadAll()
 				// doorNode.GetValue().Init(cmd)

@@ -111,6 +111,12 @@ func (s *Scene) SpawnActor(name string, actor Actor, cmd *Commands) *Node {
 	return node
 }
 
+func (s *Scene) SpawnActorAlt(name string, actor Actor, cmd *Commands) Actor {
+	node := s.nodeTree.GetRoot().AddChild(actor, name)
+	actor.OnTreeAdd(node, cmd)
+	return actor
+}
+
 // Spawn a child of type node with the specified parent
 // This is sort of annoying: We should be able to add children by
 // chaining methods, hence the Node is the type that should have

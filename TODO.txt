@@ -62,3 +62,6 @@ Engine improvements:
   would be nice if we could create component A inheriting from B,
   and then somehow make a constructor for B which makes it impossible
   to forget to add an A.
+- We need to go back from the centered positioning system... 0, 0 should
+  be top-left in order to make things at least a little bit compatible
+  with LDtk!!!!
