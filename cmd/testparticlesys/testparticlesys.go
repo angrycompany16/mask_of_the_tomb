@@ -10,6 +10,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/particles"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/commands"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -64,7 +65,7 @@ func main() {
 	}
 }
 
-func CreateScene1(cmd *engine.Commands) *engine.Scene {
+func CreateScene1(cmd *commands.Commands) *engine.Scene {
 	// Scene names aren't very useful atm
 	scene := engine.NewScene("testScene1", nodeactor.NewNode(), cmd)
 

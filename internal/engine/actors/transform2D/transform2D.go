@@ -4,12 +4,11 @@ import (
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 
 	"github.com/ebitengine/debugui"
 )
-
-// type Option func(*Transform2D)
 
 type Transform2D struct {
 	*nodeactor.Node // Actually, should this be a pointer?
@@ -17,8 +16,8 @@ type Transform2D struct {
 	global          transform
 }
 
-func (t *Transform2D) Update(cmd *engine.Commands) {
-	t.Node.Update(cmd) // best practice
+func (t *Transform2D) Update(cmd *commands.Commands) {
+	t.Node.Update(cmd)
 
 	parentNode := t.Node.GetNode().GetParent()
 	if parentNode == nil {
@@ -33,6 +32,7 @@ func (t *Transform2D) Update(cmd *engine.Commands) {
 }
 
 func (t *Transform2D) DrawInspector(ctx *debugui.Context) {
+	t.Node.DrawInspector(ctx)
 	ctx.SetGridLayout([]int{0}, []int{0})
 
 	ctx.Header("Transform", false, func() {
@@ -50,10 +50,6 @@ func (t *Transform2D) DrawInspector(ctx *debugui.Context) {
 		ctx.NumberFieldF(&t.local.angle, 0.01, 2).On(t.local.recompute)
 	})
 
-	t.Node.DrawInspector(ctx)
-}
-
-func (t *Transform2D) DrawGizmo(cmd *engine.Commands) {
 }
 
 func (t *Transform2D) GetPos(local bool) (float64, float64) {

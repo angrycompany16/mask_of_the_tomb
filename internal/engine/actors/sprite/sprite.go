@@ -8,6 +8,7 @@ import (
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 	"math"
 
@@ -26,20 +27,20 @@ type Sprite struct {
 	imageAsset *assetloader.AssetRef[ebiten.Image]
 }
 
-func (s *Sprite) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
+func (s *Sprite) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	s.Graphic.OnTreeAdd(node, cmd)
 	s.imageAsset = assetloader.StageAsset[ebiten.Image](
-		cmd.AssetLoader(),
+		cmd.AssetLoader,
 		s.srcPath,
 		assettypes.NewImageAsset(s.srcPath),
 	)
 }
 
-func (s *Sprite) Init(cmd *engine.Commands) {
+func (s *Sprite) Init(cmd *commands.Commands) {
 	s.Graphic.Init(cmd)
 }
 
-func (s *Sprite) Update(cmd *engine.Commands) {
+func (s *Sprite) Update(cmd *commands.Commands) {
 	s.Graphic.Update(cmd)
 	if s.imageAsset.Status() != assetloader.LOADED {
 		fmt.Println("Error: Sprite image asset not loaded")
@@ -52,7 +53,7 @@ func (s *Sprite) Update(cmd *engine.Commands) {
 	camX, camY := s.GetCamera().WorldToCam(gPosX, gPosY, true)
 
 	// Change this so that stuff is centered tbh
-	cmd.Renderer().Request(opgen.PosRotScale(
+	cmd.Renderer.Request(opgen.PosRotScale(
 		s.imageAsset.Value(),
 		camX, camY,
 		gAngle,

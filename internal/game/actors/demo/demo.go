@@ -1,8 +1,8 @@
 package demo
 
 import (
-	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
+	"mask_of_the_tomb/internal/engine/commands"
 	"math"
 
 	"github.com/ebitengine/debugui"
@@ -19,7 +19,7 @@ type Demo struct {
 	angle          float64
 }
 
-func (d *Demo) Update(servers *engine.Commands) {
+func (d *Demo) Update(servers *commands.Commands) {
 	d.t += 0.016666
 	d.angle = 0.5 * d.t
 	d.Sprite.SetAngle(d.angle)

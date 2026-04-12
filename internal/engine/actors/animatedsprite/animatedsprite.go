@@ -9,6 +9,7 @@ import (
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 	"time"
 
@@ -26,26 +27,26 @@ type AnimatedSprite struct {
 	pivotY         float64 `debug:"auto"`
 }
 
-func (a *AnimatedSprite) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
+func (a *AnimatedSprite) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	a.Graphic.OnTreeAdd(node, cmd)
 
 	for _, clip := range a.Clips {
 		clip.spritesheetImgAsset = assetloader.StageAsset[ebiten.Image](
-			cmd.AssetLoader(),
+			cmd.AssetLoader,
 			clip.spritesheetPath,
 			assettypes.NewImageAsset(clip.spritesheetPath),
 		)
 	}
 }
 
-func (a *AnimatedSprite) Init(cmd *engine.Commands) {
+func (a *AnimatedSprite) Init(cmd *commands.Commands) {
 	a.Graphic.Init(cmd)
 	for _, clip := range a.Clips {
 		clip.nFrames = clip.spritesheetImgAsset.Value().Bounds().Dx() / int(clip.frameWidth)
 	}
 }
 
-func (a *AnimatedSprite) Update(cmd *engine.Commands) {
+func (a *AnimatedSprite) Update(cmd *commands.Commands) {
 	a.Graphic.Update(cmd)
 	activeClip := a.Clips[a.ActiveClipName]
 
@@ -63,7 +64,7 @@ func (a *AnimatedSprite) Update(cmd *engine.Commands) {
 	scaleX, scaleY := a.GetScale(false)
 
 	// Create draw call
-	cmd.Renderer().Request(
+	cmd.Renderer.Request(
 		opgen.PosRotScale(activeClip.GetSprite(), camX, camY, angle, scaleX, scaleY, a.pivotX, a.pivotY),
 		activeClip.GetSprite(),
 		a.layer,

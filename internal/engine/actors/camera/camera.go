@@ -2,8 +2,8 @@ package camera
 
 import (
 	"mask_of_the_tomb/internal/backend/maths"
-	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/commands"
 )
 
 type Camera struct {
@@ -24,7 +24,7 @@ type Camera struct {
 	damping                    float64
 }
 
-func (c *Camera) Update(cmd *engine.Commands) {
+func (c *Camera) Update(cmd *commands.Commands) {
 	c.Transform2D.Update(cmd)
 	if !c.shaking {
 		return
@@ -44,10 +44,10 @@ func (c *Camera) Update(cmd *engine.Commands) {
 	c.shakeOffsetY = maths.RandomRange(-c.shakeStrength, c.shakeStrength)
 }
 
-func (c *Camera) SetOffset(x, y float64) {
-	c.offsetX = x
-	c.offsetY = y
-}
+// func (c *Camera) SetOffset(x, y float64) {
+// 	c.offsetX = x
+// 	c.offsetY = y
+// }
 
 // returns the position of the camera
 func (c *Camera) WorldToCam(x, y float64, includeShake bool) (float64, float64) {
@@ -94,10 +94,12 @@ type Option func(*Camera)
 
 func newDefaultCamera() *Camera {
 	return &Camera{
-		width:         480,
-		height:        270,
-		offsetX:       240,
-		offsetY:       135,
+		width:   480,
+		height:  270,
+		offsetX: 0,
+		offsetY: 0,
+		// offsetX:       240,
+		// offsetY:       135,
 		screenMarginX: 0,
 		screenMarginY: 0,
 	}

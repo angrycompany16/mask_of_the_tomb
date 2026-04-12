@@ -1,23 +1,27 @@
 package vectorgraphic
 
 import (
+	"image/color"
 	"mask_of_the_tomb/internal/backend/opgen"
-	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type VectorGraphic struct {
 	*graphic.Graphic
-	drawFunc  func(*ebiten.Image)
-	image     *ebiten.Image
-	layer     string `debug:"auto"`
-	drawOrder int    `debug:"auto"`
+	drawFunc       func(*ebiten.Image)
+	image          *ebiten.Image
+	pivotX, pivotY float64 `debug:"auto"`
+	layer          string  `debug:"auto"`
+	drawOrder      int     `debug:"auto"`
 }
 
 // Note: In some cases this can be optimized by rendering only in init
-func (v *VectorGraphic) Update(cmd *engine.Commands) {
+func (v *VectorGraphic) Update(cmd *commands.Commands) {
 	v.Graphic.Update(cmd)
 	v.image.Clear()
 	v.drawFunc(v.image)
@@ -27,27 +31,65 @@ func (v *VectorGraphic) Update(cmd *engine.Commands) {
 	gAngle := v.Transform2D.GetAngle(false)
 	gScaleX, gScaleY := v.Transform2D.GetScale(false)
 
-	cmd.Renderer().Request(opgen.PosRotScale(
+	cmd.Renderer.Request(opgen.PosRotScale(
 		v.image,
 		camX, camY,
 		gAngle,
 		gScaleX, gScaleY,
-		0.5, 0.5,
+		v.pivotX, v.pivotY,
 	), v.image, v.layer, v.drawOrder)
+}
+
+func NewDefaultVectorGraphic(graphic *graphic.Graphic) *VectorGraphic {
+	return &VectorGraphic{
+		Graphic:   graphic,
+		drawFunc:  func(i *ebiten.Image) { vector64.FillRect(i, 0, 0, 16, 16, color.RGBA{255, 0, 0, 255}, false) },
+		image:     ebiten.NewImage(16, 16),
+		layer:     "Playerspace",
+		drawOrder: 0,
+	}
 }
 
 func NewVectorGraphic(
 	graphic *graphic.Graphic,
-	drawFunc func(*ebiten.Image),
-	layer string,
-	drawOrder int,
-	width, height int, // not so great, but we need it
+	options ...utils.Option[VectorGraphic],
 ) *VectorGraphic {
-	return &VectorGraphic{
-		Graphic:   graphic,
-		drawFunc:  drawFunc,
-		image:     ebiten.NewImage(width, height),
-		layer:     layer,
-		drawOrder: drawOrder,
+	vectorGraphic := NewDefaultVectorGraphic(graphic)
+
+	for _, option := range options {
+		option(vectorGraphic)
+	}
+
+	return vectorGraphic
+}
+
+func WithDrawFunc(drawFunc func(*ebiten.Image)) utils.Option[VectorGraphic] {
+	return func(vg *VectorGraphic) {
+		vg.drawFunc = drawFunc
+	}
+}
+
+func WithImage(width, height int) utils.Option[VectorGraphic] {
+	return func(vg *VectorGraphic) {
+		vg.image = ebiten.NewImage(width, height)
+	}
+}
+
+func WithDrawOrder(drawOrder int) utils.Option[VectorGraphic] {
+	return func(vg *VectorGraphic) {
+		vg.drawOrder = drawOrder
+	}
+}
+
+func WithLayer(layer string) utils.Option[VectorGraphic] {
+	return func(vg *VectorGraphic) {
+		vg.layer = layer
+	}
+}
+
+func WithPivot(x, y float64) utils.Option[VectorGraphic] {
+	return func(vg *VectorGraphic) {
+		vg.pivotX = x
+		vg.pivotY = y
 	}
 }

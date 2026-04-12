@@ -10,6 +10,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/inspector"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/game/actors/tracker"
@@ -58,7 +59,7 @@ type SlamboxController struct {
 	*slamboxactor.Slambox
 }
 
-func (sc *SlamboxController) Update(cmd *engine.Commands) {
+func (sc *SlamboxController) Update(cmd *commands.Commands) {
 	sc.Slambox.Update(cmd)
 	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
 		sc.RequestSlam(maths.DirLeft)
@@ -124,7 +125,7 @@ func main() {
 	}
 }
 
-func CreateTestScene(cmd *engine.Commands) *engine.Scene {
+func CreateTestScene(cmd *commands.Commands) *engine.Scene {
 	gridTiles := make([][]int, 0)
 	gridTiles = append(gridTiles, []int{1, 1, 1, 1, 1, 1})
 	gridTiles = append(gridTiles, []int{1, 0, 0, 0, 0, 1})

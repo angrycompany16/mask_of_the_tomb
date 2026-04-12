@@ -8,6 +8,7 @@ import (
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 	"math"
 	"time"
@@ -66,30 +67,30 @@ type ParticleSystem struct {
 }
 
 // This could maybe just be part of the constructor
-func (ps *ParticleSystem) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
+func (ps *ParticleSystem) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	ps.Graphic.OnTreeAdd(node, cmd)
 	ps.imageAsset = assetloader.StageAsset[ebiten.Image](
-		cmd.AssetLoader(),
+		cmd.AssetLoader,
 		ps.SpritePath,
 		assettypes.NewImageAsset(ps.SpritePath),
 	)
 }
 
-func (ps *ParticleSystem) Init(cmd *engine.Commands) {
+func (ps *ParticleSystem) Init(cmd *commands.Commands) {
 	ps.Graphic.Init(cmd)
 	ps.gizmosImage.Fill(color.RGBA{12, 123, 222, 123})
 	ps.Play()
 }
 
-func (ps *ParticleSystem) DrawGizmo(cmd *engine.Commands) {
+func (ps *ParticleSystem) DrawGizmo(cmd *commands.Commands) {
 	ps.Graphic.DrawGizmo(cmd)
 
 	worldX, worldY := ps.Transform2D.GetPos(false)
 	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, false)
-	cmd.Renderer().Request(opgen.Pos(ps.gizmosImage, camX, camY, 0.5, 0.5), ps.gizmosImage, "Overlay", ps.drawOrder+1)
+	cmd.Renderer.Request(opgen.Pos(ps.gizmosImage, camX, camY, 0.5, 0.5), ps.gizmosImage, "Overlay", ps.drawOrder+1)
 }
 
-func (ps *ParticleSystem) Update(cmd *engine.Commands) {
+func (ps *ParticleSystem) Update(cmd *commands.Commands) {
 	ps.Graphic.Update(cmd)
 	ps.t += 0.016666666667
 	ps.surf.Clear()
@@ -129,7 +130,7 @@ func (ps *ParticleSystem) Update(cmd *engine.Commands) {
 		for _, particle := range ps.particles {
 			camX, camY := ps.GetCamera().WorldToCam(particle.posX, particle.posY, true)
 			c, op := particle.makeOp(camX, camY)
-			cmd.Renderer().RequestColorM(c, op, particle.sprite, ps.layer, ps.drawOrder)
+			cmd.Renderer.RequestColorM(c, op, particle.sprite, ps.layer, ps.drawOrder)
 		}
 		return
 	}
@@ -144,7 +145,7 @@ func (ps *ParticleSystem) Update(cmd *engine.Commands) {
 	angle := ps.Transform2D.GetAngle(false)
 	scaleX, scaleY := ps.Transform2D.GetScale(false)
 	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, true)
-	cmd.Renderer().Request(opgen.PosRotScale(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, ps.layer, ps.drawOrder)
+	cmd.Renderer.Request(opgen.PosRotScale(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, ps.layer, ps.drawOrder)
 }
 
 func (ps *ParticleSystem) DrawInspector(ctx *debugui.Context) {

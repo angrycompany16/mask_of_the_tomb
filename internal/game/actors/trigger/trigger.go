@@ -1,13 +1,17 @@
 package trigger
 
 import (
-	"fmt"
+	"image/color"
 	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
 	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/triggerenv"
-	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/backend/vector64"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type TriggerState int
@@ -20,74 +24,74 @@ const (
 // Represents an object that raises an event whenever another object
 // intersects with this one. Can add masks and stuff as well
 type Trigger struct {
-	*transform2D.Transform2D
+	*graphic.Graphic
 	trigger           *triggerenv.Trigger
 	OnCollision       *eventsv2.Event
 	OnCollisionEnter  *eventsv2.Event
 	OnCollisionExit   *eventsv2.Event
 	otherColliderName string
 	state             TriggerState
+	gizmosImage       *ebiten.Image
 }
 
-func (t *Trigger) Init(cmd *engine.Commands) {
-	t.Transform2D.Init(cmd)
-	cmd.TriggerEnv().AddTrigger(t.trigger)
+func (t *Trigger) Init(cmd *commands.Commands) {
+	t.Graphic.Init(cmd)
+	triggerenv, ok := commands.Get[triggerenv.TriggerEnv](cmd)
+	if !ok {
+		panic("Missing triggerenv (Trigger)")
+	}
+	triggerenv.AddTrigger(t.trigger)
 
-	// gX, gY := t.Transform2D.GetPos(false)
-	// t.trigger.Rect.SetPos(gX, gY)
-
-	if ok, info := cmd.TriggerEnv().CheckCollision(t.trigger); ok {
+	if ok, info := triggerenv.CheckCollision(t.trigger); ok {
 		switch t.state {
 		case DISJOINT:
 			t.state = COLLIDING
 			t.otherColliderName = info.OtherName
 		}
 	}
-	fmt.Println(t.state, t.trigger.Name)
+	vector64.FillRect(t.gizmosImage, 0, 0, t.trigger.Rect.Width(), t.trigger.Rect.Height(), color.RGBA{40, 100, 100, 50}, false)
 }
 
-func (t *Trigger) Update(cmd *engine.Commands) {
-	t.Transform2D.Update(cmd)
-	if ok, info := cmd.TriggerEnv().CheckCollision(t.trigger); ok {
+func (t *Trigger) Update(cmd *commands.Commands) {
+	t.Graphic.Update(cmd)
+
+	t.trigger.Rect.SetPos(t.Transform2D.GetPos(false))
+
+	triggerenv, ok := commands.Get[triggerenv.TriggerEnv](cmd)
+	if !ok {
+		panic("Missing triggerenv (Trigger)")
+	}
+
+	if ok, info := triggerenv.CheckCollision(t.trigger); ok {
 		switch t.state {
 		case DISJOINT:
-			// fmt.Println("Enter:", t.trigger.Name, t.otherColliderName)
 			t.OnCollision.WithData("otherName", info.OtherName).Raise()
 			t.OnCollisionEnter.WithData("otherName", info.OtherName).Raise()
 			t.state = COLLIDING
 			t.otherColliderName = info.OtherName
 		case COLLIDING:
-			// fmt.Println("Currently colliding")
 			t.OnCollision.WithData("otherName", info.OtherName).Raise()
 		}
 	} else {
 		switch t.state {
 		case COLLIDING:
-			// fmt.Println("Exit:", t.trigger.Name, t.otherColliderName)
 			t.OnCollisionExit.WithData("otherName", t.otherColliderName).Raise()
 			t.otherColliderName = ""
 			t.state = DISJOINT
 		}
 	}
-
-	// gX, gY := t.Transform2D.GetPos(false)
-	// t.trigger.Rect.SetPos(gX, gY)
 }
 
-// Automatically set the rect's position to the global position
-// of our object
-func (t *Trigger) SetPos(x, y float64) {
-	// gX, gY := t.Transform2D.GetPos(false)
-	// t.trigger.Rect.SetPos(gX, gY)
+func (t *Trigger) DrawGizmo(cmd *commands.Commands) {
+	t.Graphic.DrawGizmo(cmd)
+	gPosX, gPosY := t.GetPos(false)
+	camX, camY := t.GetCamera().WorldToCam(gPosX, gPosY, false)
+	cmd.Renderer.Request(opgen.Pos(t.gizmosImage, camX, camY, 0, 0), t.gizmosImage, "Overlay", 1)
 }
 
-func (t *Trigger) GetRectPos() (float64, float64) {
-	return t.trigger.Rect.Left(), t.trigger.Rect.Top()
-}
-
-func defaultTrigger(transform2D *transform2D.Transform2D) *Trigger {
+func defaultTrigger(graphic *graphic.Graphic) *Trigger {
 	return &Trigger{
-		Transform2D:      transform2D,
+		Graphic:          graphic,
 		trigger:          triggerenv.NewTrigger(maths.NewRect(0, 0, 8, 8), ""),
 		OnCollision:      eventsv2.NewEvent(),
 		OnCollisionEnter: eventsv2.NewEvent(),
@@ -95,8 +99,8 @@ func defaultTrigger(transform2D *transform2D.Transform2D) *Trigger {
 	}
 }
 
-func NewTrigger(transform2D *transform2D.Transform2D, options ...utils.Option[Trigger]) *Trigger {
-	newTrigger := defaultTrigger(transform2D)
+func NewTrigger(graphic *graphic.Graphic, options ...utils.Option[Trigger]) *Trigger {
+	newTrigger := defaultTrigger(graphic)
 
 	for _, option := range options {
 		option(newTrigger)
@@ -108,6 +112,7 @@ func NewTrigger(transform2D *transform2D.Transform2D, options ...utils.Option[Tr
 func WithRect(rect *maths.Rect) utils.Option[Trigger] {
 	return func(t *Trigger) {
 		t.trigger.Rect = rect
+		t.gizmosImage = ebiten.NewImage(int(rect.Width()), int(rect.Height()))
 	}
 }
 

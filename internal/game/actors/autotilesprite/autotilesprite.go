@@ -8,6 +8,7 @@ import (
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -21,26 +22,26 @@ type AutoTileSprite struct {
 	tilemap    *assetloader.AssetRef[ebiten.Image]
 }
 
-func (a *AutoTileSprite) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
+func (a *AutoTileSprite) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	a.Graphic.OnTreeAdd(node, cmd)
 	a.tilemap = assetloader.StageAsset[ebiten.Image](
-		cmd.AssetLoader(),
+		cmd.AssetLoader,
 		a.tilemapSrc,
 		assettypes.NewImageAsset(a.tilemapSrc),
 	)
 }
 
-func (a *AutoTileSprite) Init(cmd *engine.Commands) {
+func (a *AutoTileSprite) Init(cmd *commands.Commands) {
 	a.Graphic.Init(cmd)
 	a.createSprite(a.tilemap.Value())
 }
 
-func (a *AutoTileSprite) Update(cmd *engine.Commands) {
+func (a *AutoTileSprite) Update(cmd *commands.Commands) {
 	a.Graphic.Update(cmd)
 
 	gPosX, gPosY := a.GetPos(false)
 	camX, camY := a.GetCamera().WorldToCam(gPosX, gPosY, true)
-	cmd.Renderer().Request(opgen.Pos(a.sprite, camX, camY, 0, 0), a.sprite, "Playerspace", 20)
+	cmd.Renderer.Request(opgen.Pos(a.sprite, camX, camY, 0, 0), a.sprite, "Playerspace", 20)
 }
 
 func (a *AutoTileSprite) createSprite(slamboxTilemap *ebiten.Image) {

@@ -9,19 +9,19 @@ import (
 
 type ActionBinding func() bool
 
-type InputServer struct {
+type InputHandler struct {
 	inputMap map[string][]ActionBinding
 }
 
-func (i *InputServer) RegisterAction(name string, binding ActionBinding) {
+func (i *InputHandler) RegisterAction(name string, binding ActionBinding) {
 	i.inputMap[name] = []ActionBinding{binding}
 }
 
-func (i *InputServer) AddBinding(name string, binding ActionBinding) {
+func (i *InputHandler) AddBinding(name string, binding ActionBinding) {
 	i.inputMap[name] = append(i.inputMap[name], binding)
 }
 
-func (i *InputServer) PollAction(name string) bool {
+func (i *InputHandler) PollAction(name string) bool {
 	if actionBindings, ok := i.inputMap[name]; ok {
 		for _, actionBinding := range actionBindings {
 			if actionBinding() {
@@ -41,8 +41,8 @@ func KeyJustPressedAction(key ebiten.Key) ActionBinding {
 	}
 }
 
-func NewInputServer() *InputServer {
-	return &InputServer{
+func NewInputHandler() *InputHandler {
+	return &InputHandler{
 		inputMap: make(map[string][]ActionBinding),
 	}
 }

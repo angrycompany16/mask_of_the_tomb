@@ -4,95 +4,71 @@ import (
 	"image/color"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/tracker"
 	"mask_of_the_tomb/internal/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// The right way to do this is to have a bundle where the slambox
-// sprite (autotile) is a child...
-// Because this is NOT good
 type Slambox struct {
 	*tracker.Tracker
-	// sprite            *ebiten.Image
 	rect         *maths.Rect
 	backendIndex int
 	slamRequest  maths.Direction
-	// slamboxTilemapSrc string
-	// slamboxTilemap    *assetloader.AssetRef[ebiten.Image]
-	inChain     bool
-	inGroup     bool
-	isCenter    bool
-	gizmosImage *ebiten.Image
+	inChain      bool
+	inGroup      bool
+	isCenter     bool
+	gizmosImage  *ebiten.Image
 }
 
-func (s *Slambox) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
+func (s *Slambox) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	s.Tracker.OnTreeAdd(node, cmd)
-	// s.slamboxTilemap = assetloader.StageAsset[ebiten.Image](
-	// 	cmd.AssetLoader(),
-	// 	s.slamboxTilemapSrc,
-	// 	assettypes.NewImageAsset(s.slamboxTilemapSrc),
-	// )
 }
 
-func (s *Slambox) Init(cmd *engine.Commands) {
+func (s *Slambox) Init(cmd *commands.Commands) {
 	s.Tracker.Init(cmd)
-	s.backendIndex = cmd.SlamboxEnv().AddSlambox(s.rect)
-	// s.createSprite(s.slamboxTilemap.Value())
+	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
+	if !ok {
+		panic("Missing slambox env (Slambox)")
+	}
+	s.backendIndex = slamboxenv.AddSlambox(s.rect)
 }
 
-func (s *Slambox) Update(cmd *engine.Commands) {
+func (s *Slambox) Update(cmd *commands.Commands) {
 	s.Tracker.Update(cmd)
+
+	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
+	if !ok {
+		panic("Missing slambox env (Slambox)")
+	}
 
 	x, y := s.Tracker.GetPos()
 	s.rect.SetPos(x, y)
-	gw, gh := cmd.Renderer().GetGameSize()
-	// manual centering... why? this is so horrible...
-	// TODO: I think I want to move the origin back to the top left corner tbh
-	s.Transform2D.SetPos(x-gw/2, y-gh/2)
-
-	// gPosX, gPosY := s.GetPos()
-	// camX, camY := s.GetCamera().WorldToCamCustomOffset(gPosX, gPosY, 0, 0, true)
-	// cmd.Renderer().Request(opgen.Pos(s.sprite, camX, camY, 0, 0), s.sprite, "Playerspace", 20)
+	s.Transform2D.SetPos(x, y)
 
 	if s.slamRequest == maths.DirNone && !s.inChain && !s.inGroup {
 		return
 	}
 
-	targetX, targetY := cmd.SlamboxEnv().SlamSlambox(s.backendIndex, s.slamRequest)
+	targetX, targetY := slamboxenv.SlamSlambox(s.backendIndex, s.slamRequest)
 	s.Tracker.SetTarget(targetX, targetY)
 	s.slamRequest = maths.DirNone
 
 }
 
-func (s *Slambox) DrawGizmo(cmd *engine.Commands) {
+func (s *Slambox) DrawGizmo(cmd *commands.Commands) {
 	s.Tracker.DrawGizmo(cmd)
 	s.gizmosImage.Clear()
 	vector64.StrokeRect(s.gizmosImage, 0, 0, s.rect.Width()-1, s.rect.Height()-1, 1, color.RGBA{255, 0, 0, 255}, false)
 
-	camX, camY := s.GetCamera().WorldToCamCustomOffset(s.rect.Left(), s.rect.Top(), 0, 0, false)
+	camX, camY := s.GetCamera().WorldToCam(s.rect.Left(), s.rect.Top(), false)
 
-	cmd.Renderer().Request(opgen.Pos(s.gizmosImage, camX, camY), s.gizmosImage, "Overlay", 0)
+	cmd.Renderer.Request(opgen.Pos(s.gizmosImage, camX, camY), s.gizmosImage, "Overlay", 0)
 }
-
-// func (s *Slambox) createSprite(slamboxTilemap *ebiten.Image) {
-// 	autotile.CreateSprite(
-// 		slamboxTilemap,
-// 		s.sprite,
-// 		autotile.GetDefaultTileRectData(0, 0, 8),
-// 		autotile.GetDefaultTileRuleset(),
-// 		8,
-// 		s.rect,
-// 		autotile.WALL,
-// 		autotile.RectList{
-// 			List: make([]*maths.Rect, 0),
-// 			Kind: autotile.WALL,
-// 		},
-// 	)
-// }
 
 func (s *Slambox) RequestSlam(dir maths.Direction) {
 	s.slamRequest = dir
@@ -121,7 +97,6 @@ func defaultSlambox(tracker *tracker.Tracker) *Slambox {
 		rect:        maths.NewRect(x, y, 8, 8),
 		slamRequest: maths.DirNone,
 		gizmosImage: ebiten.NewImage(8, 8),
-		// slamboxTilemapSrc: "sprites/environment/slambox_tilemap.png",
 	}
 }
 
@@ -147,12 +122,5 @@ func WithSize(width, height float64) utils.Option[Slambox] {
 	return func(s *Slambox) {
 		s.rect.SetSize(width, height)
 		s.gizmosImage = ebiten.NewImage(int(width), int(height))
-		// s.sprite = ebiten.NewImage(int(width), int(height))
 	}
 }
-
-// func WithTilemap(path string) utils.Option[Slambox] {
-// 	return func(s *Slambox) {
-// 		s.slamboxTilemapSrc = path
-// 	}
-// }

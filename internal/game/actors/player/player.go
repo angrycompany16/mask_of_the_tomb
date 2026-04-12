@@ -10,6 +10,7 @@ import (
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"math"
 
@@ -64,13 +65,18 @@ type Player struct {
 // jumpParticlesTight *particles.ParticleSystem
 // sprite                    *ebiten.Image
 
-func (p *Player) Update(cmd *engine.Commands) {
+func (p *Player) Update(cmd *commands.Commands) {
 	p.Slambox.Update(cmd)
 
-	// gx, gy := p.Transform2D.GetPos(false)
-	// fmt.Println("player pos:", gx, gy)
+	scene, ok := commands.Get[engine.Scene](cmd)
+	if !ok {
+		panic("Missing scene (Player)")
+	}
 
-	// Set position of trigger accordingly
+	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
+	if !ok {
+		panic("Missing slambox env (Player)")
+	}
 
 	switch p.State {
 	case Slamming:
@@ -91,7 +97,7 @@ func (p *Player) Update(cmd *engine.Commands) {
 		p.jumpOffset += p.jumpOffsetvel
 		p.jumpOffset = math.Max(p.jumpOffset, 0)
 		if p.jumpOffset == 0 && !p.hasSlammedBox {
-			theOther, ok := cmd.Scene().GetRoot().GetChildFunc(
+			theOther, ok := scene.GetRoot().GetChildFunc(
 				func(n *engine.Node) bool {
 					slambox_, ok := n.GetValue().(*slamboxactor.Slambox)
 					if !ok {
@@ -151,8 +157,8 @@ func (p *Player) Update(cmd *engine.Commands) {
 	}
 
 	// Check whether we should slam, do nothing or dash
-	slamboxQuery := cmd.SlamboxEnv().QuerySlamboxes(p.GetRect().Extended(moveDir, 1.0), slambox.QueryFilter{p.Slambox.GetBackendID()})
-	tilemapCollision := cmd.SlamboxEnv().CheckTileOverlap(p.GetRect().Extended(moveDir, 1.0))
+	slamboxQuery := slamboxenv.QuerySlamboxes(p.GetRect().Extended(moveDir, 1.0), slambox.QueryFilter{p.Slambox.GetBackendID()})
+	tilemapCollision := slamboxenv.CheckTileOverlap(p.GetRect().Extended(moveDir, 1.0))
 
 	if slamboxQuery.HitKind == slambox.NONE && !tilemapCollision {
 		p.Dash(moveDir)
@@ -169,29 +175,41 @@ func (p *Player) Update(cmd *engine.Commands) {
 	}
 }
 
-func (p *Player) Init(cmd *engine.Commands) {
+func (p *Player) Init(cmd *commands.Commands) {
 	p.Slambox.Init(cmd)
 
-	cmd.InputHandler().RegisterAction("moveLeft", input.KeyJustPressedAction(ebiten.KeyA))
-	cmd.InputHandler().AddBinding("moveLeft", input.KeyJustPressedAction(ebiten.KeyLeft))
-	cmd.InputHandler().RegisterAction("moveRight", input.KeyJustPressedAction(ebiten.KeyD))
-	cmd.InputHandler().AddBinding("moveRight", input.KeyJustPressedAction(ebiten.KeyRight))
-	cmd.InputHandler().RegisterAction("moveUp", input.KeyJustPressedAction(ebiten.KeyW))
-	cmd.InputHandler().AddBinding("moveUp", input.KeyJustPressedAction(ebiten.KeyUp))
-	cmd.InputHandler().RegisterAction("moveDown", input.KeyJustPressedAction(ebiten.KeyS))
-	cmd.InputHandler().AddBinding("moveDown", input.KeyJustPressedAction(ebiten.KeyDown))
+	scene, ok := commands.Get[engine.Scene](cmd)
+	if !ok {
+		panic("Missing scene (Player)")
+	}
+
+	// sceneswitch, ok := commands.Get[engine.Scene](cmd)
+	// if !ok {
+	// 	panic("Missing sceneswitch (Player)")
+	// }
+
+	cmd.InputHandler.RegisterAction("moveLeft", input.KeyJustPressedAction(ebiten.KeyA))
+	cmd.InputHandler.AddBinding("moveLeft", input.KeyJustPressedAction(ebiten.KeyLeft))
+	cmd.InputHandler.RegisterAction("moveRight", input.KeyJustPressedAction(ebiten.KeyD))
+	cmd.InputHandler.AddBinding("moveRight", input.KeyJustPressedAction(ebiten.KeyRight))
+	cmd.InputHandler.RegisterAction("moveUp", input.KeyJustPressedAction(ebiten.KeyW))
+	cmd.InputHandler.AddBinding("moveUp", input.KeyJustPressedAction(ebiten.KeyUp))
+	cmd.InputHandler.RegisterAction("moveDown", input.KeyJustPressedAction(ebiten.KeyS))
+	cmd.InputHandler.AddBinding("moveDown", input.KeyJustPressedAction(ebiten.KeyDown))
 
 	// Would be very nice to set up a reference like this in another
 	// way
 	// But how? I guess we would have to link them together somehow
 	// in the bundle
-	childNode, ok := cmd.Scene().GetNodeByName("PlayerSprite")
+	childNode, ok := scene.GetNodeByName("PlayerSprite")
 	p.spriteTransform, ok = engine.GetActor[*transform2D.Transform2D](childNode.GetValue())
 	p.animatedSprite, ok = engine.GetActor[*animatedsprite.AnimatedSprite](childNode.GetValue())
 	p.OnClipFinish = eventsv2.NewEventBus(p.animatedSprite.OnClipFinished)
 
-	pivotNode, ok := cmd.Scene().GetNodeByName("PlayerPivot")
+	pivotNode, ok := scene.GetNodeByName("PlayerPivot")
 	p.pivotTransform, ok = engine.GetActor[*transform2D.Transform2D](pivotNode.GetValue())
+
+	// If relevant, spawn in a different position
 
 	if !ok {
 		fmt.Println("død og jøde, markens grøde")
@@ -217,14 +235,14 @@ func (p *Player) StartSlamming(direction maths.Direction) {
 	p.jumpOffsetvel = 4
 }
 
-func (p *Player) readMoveInput(cmd *engine.Commands) maths.Direction {
-	if cmd.InputHandler().PollAction("moveLeft") {
+func (p *Player) readMoveInput(cmd *commands.Commands) maths.Direction {
+	if cmd.InputHandler.PollAction("moveLeft") {
 		return maths.DirLeft
-	} else if cmd.InputHandler().PollAction("moveRight") {
+	} else if cmd.InputHandler.PollAction("moveRight") {
 		return maths.DirRight
-	} else if cmd.InputHandler().PollAction("moveUp") {
+	} else if cmd.InputHandler.PollAction("moveUp") {
 		return maths.DirUp
-	} else if cmd.InputHandler().PollAction("moveDown") {
+	} else if cmd.InputHandler.PollAction("moveDown") {
 		return maths.DirDown
 	}
 	return maths.DirNone

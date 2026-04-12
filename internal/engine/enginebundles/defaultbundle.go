@@ -7,16 +7,16 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/inspector"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/commands"
 )
 
 func MakeDefaultBundle(gameWidth, gameHeight, pixelScale float64) engine.Bundle {
-	return func(cmd *engine.Commands, scene *engine.Scene) {
+	return func(cmd *commands.Commands, scene *engine.Scene) {
 		scene.SpawnActor("Camera", camera.NewCamera(
 			transform2D.NewTransform2D(
 				nodeactor.NewNode(),
 			),
 			camera.WithSize(gameWidth, gameHeight),
-			camera.WithOffset(gameWidth/2, gameHeight/2),
 		), cmd)
 
 		scene.SpawnActor("Inspector", inspector.NewInspector(

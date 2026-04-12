@@ -9,6 +9,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/demo"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -52,7 +53,7 @@ func main() {
 	game.RegisterScene("TestScene1", CreateTestScene1)
 	game.RegisterScene("TestScene2", CreateTestScene2)
 
-	game.GetCmd().InputHandler().RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
+	game.GetCmd().InputHandler.RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
 
 	// Kinda cursed but this works?
 	game.SpawnScene("TestScene1")
@@ -66,7 +67,7 @@ func main() {
 	}
 }
 
-func CreateTestScene1(cmd *engine.Commands) *engine.Scene {
+func CreateTestScene1(cmd *commands.Commands) *engine.Scene {
 	scene := engine.NewScene("testScene1", nodeactor.NewNode(), cmd)
 	node1 := scene.SpawnActor("Node1", demo.NewDemo(
 		sprite.NewSprite(
@@ -123,7 +124,7 @@ func CreateTestScene1(cmd *engine.Commands) *engine.Scene {
 	return scene
 }
 
-func CreateTestScene2(cmd *engine.Commands) *engine.Scene {
+func CreateTestScene2(cmd *commands.Commands) *engine.Scene {
 	scene := engine.NewScene("testScene2", nodeactor.NewNode(), cmd)
 	scene.SpawnActor("Node1", demo.NewDemo(
 		sprite.NewSprite(

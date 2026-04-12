@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 
 	"github.com/ebitengine/debugui"
@@ -21,19 +22,24 @@ type Inspector struct {
 	editorImage   *ebiten.Image
 }
 
-func (i *Inspector) Init(cmd *engine.Commands) {
+func (i *Inspector) Init(cmd *commands.Commands) {
 	i.Node.Init(cmd)
-	cmd.InputHandler().RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
+	cmd.InputHandler.RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
 }
 
-func (i *Inspector) Update(cmd *engine.Commands) {
+func (i *Inspector) Update(cmd *commands.Commands) {
+	i.Node.Update(cmd)
+	scene, ok := commands.Get[engine.Scene](cmd)
+	if !ok {
+		panic("Scene missing from commands (inspector)")
+	}
 	if _, err := i.UI.Update(
-		cmd.Scene().MakeDrawFunc(i.width, i.height),
+		scene.MakeDrawFunc(i.width, i.height),
 	); err != nil {
 		fmt.Println("Error in Editor!")
 	}
 
-	if cmd.InputHandler().PollAction("toggleInspector") {
+	if cmd.InputHandler.PollAction("toggleInspector") {
 		i.visible = !i.visible
 		if i.visible {
 			ebiten.SetCursorMode(ebiten.CursorModeVisible)
@@ -45,7 +51,7 @@ func (i *Inspector) Update(cmd *engine.Commands) {
 	if i.visible {
 		i.editorImage.Clear()
 		i.UI.Draw(i.editorImage)
-		cmd.Renderer().Request(opgen.Pos(i.editorImage, i.x, i.y), i.editorImage, "EditorUI", 0)
+		cmd.Renderer.Request(opgen.Pos(i.editorImage, i.x, i.y), i.editorImage, "EditorUI", 0)
 	}
 }
 

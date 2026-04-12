@@ -2,6 +2,7 @@ package nodeactor
 
 import (
 	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 
 	"github.com/ebitengine/debugui"
@@ -12,10 +13,10 @@ type Node struct {
 	node   *engine.Node
 }
 
-func (n *Node) Init(cmd *engine.Commands)      {}
-func (n *Node) Update(cmd *engine.Commands)    {}
-func (n *Node) DrawGizmo(cmd *engine.Commands) {}
-func (n *Node) OnTreeAdd(node *engine.Node, cmd *engine.Commands) {
+func (n *Node) Init(cmd *commands.Commands)      {}
+func (n *Node) Update(cmd *commands.Commands)    {}
+func (n *Node) DrawGizmo(cmd *commands.Commands) {}
+func (n *Node) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	n.treeID = node.GetID()
 	n.node = node
 }

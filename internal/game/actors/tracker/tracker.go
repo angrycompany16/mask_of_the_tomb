@@ -3,8 +3,8 @@ package tracker
 import (
 	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
 	"mask_of_the_tomb/internal/backend/maths"
-	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	"math"
 )
 
@@ -22,7 +22,7 @@ type Tracker struct {
 	moveSpeed              float64
 }
 
-func (t *Tracker) Update(cmd *engine.Commands) {
+func (t *Tracker) Update(cmd *commands.Commands) {
 	t.Graphic.Update(cmd)
 	t.posX += t.moveSpeed * t.moveDirX
 	t.posY += t.moveSpeed * t.moveDirY

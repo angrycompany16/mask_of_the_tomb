@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/camera"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
+	"mask_of_the_tomb/internal/engine/commands"
 )
 
 type Graphic struct {
@@ -29,12 +30,17 @@ type Graphic struct {
 // }
 
 // This doesn't get called in Spawn()
-func (g *Graphic) Init(cmd *engine.Commands) {
+func (g *Graphic) Init(cmd *commands.Commands) {
 	g.Transform2D.Init(cmd)
-	camNode, ok := engine.GetNodeByType[*camera.Camera](cmd.Scene())
+	scene, ok := commands.Get[engine.Scene](cmd)
+	if !ok {
+		panic("Scene is missing from commands")
+	}
+	camNode, ok := engine.GetNodeByType[*camera.Camera](scene)
 	if !ok {
 		fmt.Println("No camera was found! Instantiating default camera")
-		camNode = cmd.Scene().SpawnActor("Camera", camera.NewCamera(
+
+		camNode = scene.SpawnActor("Camera", camera.NewCamera(
 			transform2D.NewTransform2D(
 				nodeactor.NewNode(),
 			),

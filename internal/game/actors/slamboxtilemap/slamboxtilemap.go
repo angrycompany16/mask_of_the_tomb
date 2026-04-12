@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"image/color"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/backend/vector64"
-	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 
 	"github.com/ebitengine/debugui"
@@ -20,13 +21,17 @@ type SlamboxTilemap struct {
 	gizmosImage *ebiten.Image
 }
 
-func (st *SlamboxTilemap) Init(cmd *engine.Commands) {
+func (st *SlamboxTilemap) Init(cmd *commands.Commands) {
 	st.Graphic.Init(cmd)
-	if cmd.SlamboxEnv().TileSize != float64(st.tileSize) {
+	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
+	if !ok {
+		panic("Missing slambox env (SlamboxTilemap)")
+	}
+	if slamboxenv.TileSize != float64(st.tileSize) {
 		fmt.Println("Warning: Backend tilemap has a different tilesize than this actor!")
 	}
 
-	cmd.SlamboxEnv().SetTiles(st.tiles)
+	slamboxenv.SetTiles(st.tiles)
 
 	for i := range st.tiles {
 		for j := range st.tiles[i] {
@@ -47,11 +52,11 @@ func (st *SlamboxTilemap) DrawInspector(ctx *debugui.Context) {
 
 // TODO: Make it so that gizmos are only drawn when selected in the
 // inspector. But how? Haven't got the slightest idea.
-func (st *SlamboxTilemap) DrawGizmo(cmd *engine.Commands) {
+func (st *SlamboxTilemap) DrawGizmo(cmd *commands.Commands) {
 	st.Graphic.DrawGizmo(cmd)
 	gPosX, gPosY := st.GetPos(false)
 	camX, camY := st.GetCamera().WorldToCam(gPosX, gPosY, false)
-	cmd.Renderer().Request(opgen.Pos(st.gizmosImage, camX, camY, 0.5, 0.5), st.gizmosImage, "Overlay", 1)
+	cmd.Renderer.Request(opgen.Pos(st.gizmosImage, camX, camY, 0, 0), st.gizmosImage, "Overlay", 1)
 }
 
 func NewSlamboxTilemap(graphic *graphic.Graphic, tiles [][]int, tileSize int) *SlamboxTilemap {

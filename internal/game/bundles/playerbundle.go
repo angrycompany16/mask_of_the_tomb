@@ -7,15 +7,16 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
-	"mask_of_the_tomb/internal/engine/actors/trigger"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/player"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/tracker"
+	"mask_of_the_tomb/internal/game/actors/trigger"
 )
 
 func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engine.Bundle {
-	return func(cmd *engine.Commands, scene *engine.Scene) {
-		gw, gh := cmd.Renderer().GetGameSize()
+	return func(cmd *commands.Commands, scene *engine.Scene) {
+		gw, gh := cmd.Renderer.GetGameSize()
 		tlX, tlY := playerX+gw/2, playerY+gh/2
 		playerNode := scene.SpawnActor("Player", player.NewPlayer(
 			slamboxactor.NewSlambox(
@@ -81,11 +82,13 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		), pivotNode, cmd)
 
 		scene.AddChild("PlayerTrigger", trigger.NewTrigger(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
+			graphic.NewGraphic(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+				),
 			),
 			trigger.WithRect(maths.NewRect(playerX, playerY, playerWidth, playerHeight)),
 			trigger.WithName("Player"),
-		), pivotNode, cmd)
+		), playerNode, cmd)
 	}
 }

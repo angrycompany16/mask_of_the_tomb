@@ -12,14 +12,15 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
-	"mask_of_the_tomb/internal/engine/actors/trigger"
 	"mask_of_the_tomb/internal/engine/actors/vectorgraphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	ldtktilelayer "mask_of_the_tomb/internal/game/actors/LDTKTileLayer"
 	"mask_of_the_tomb/internal/game/actors/autotilesprite"
 	"mask_of_the_tomb/internal/game/actors/doorv2"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/game/actors/tracker"
+	"mask_of_the_tomb/internal/game/actors/trigger"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -35,9 +36,9 @@ var layerMap = map[string]string{
 	"BackgroundTiles":  "Background",
 }
 
-func MakeLDTKLevelBundle(levelName string) engine.Bundle {
-	return func(cmd *engine.Commands, scene *engine.Scene) {
-		LDTKData, ok := assetloader.GetAsset[assettypes.LDTKData](cmd.AssetLoader(), "LDTK/world.ldtk")
+func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
+	return func(cmd *commands.Commands, scene *engine.Scene) {
+		LDTKData, ok := assetloader.GetAsset[assettypes.LDTKData](cmd.AssetLoader, "LDTK/world.ldtk")
 		if !ok {
 			panic("Grusom død")
 		}
@@ -45,7 +46,7 @@ func MakeLDTKLevelBundle(levelName string) engine.Bundle {
 		world := LDTKData.Value().World
 		tilesetMap := LDTKData.Value().Tilesets
 		defs := world.Defs
-		level := utils.Must(world.GetLevelByName(levelName))
+		level := utils.Must(world.GetLevelByIid(levelIid))
 
 		playerspace, err := level.GetLayerByName("Playerspace")
 		if err != nil {
@@ -61,7 +62,6 @@ func MakeLDTKLevelBundle(levelName string) engine.Bundle {
 		}
 
 		intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
-		// fmt.Println(cmd.Scene())
 		scene.SpawnActor("SlamboxTilemap", slamboxtilemap.NewSlamboxTilemap(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
@@ -103,17 +103,19 @@ func MakeLDTKLevelBundle(levelName string) engine.Bundle {
 					nodeactor.NewNode(),
 				),
 			),
-			func(img *ebiten.Image) {
-				vector64.FillRect(
-					img,
-					0, 0, level.PxWid, level.PxHei,
-					utils.Must(colors.HexToRGB(level.BgColorHex)), false,
-				)
-			},
-			"Background",
-			-len(level.Layers)-1,
-			int(level.PxWid),
-			int(level.PxHei),
+			vectorgraphic.WithDrawFunc(
+				func(img *ebiten.Image) {
+					vector64.FillRect(
+						img,
+						0, 0, level.PxWid, level.PxHei,
+						utils.Must(colors.HexToRGB(level.BgColorHex)), false,
+					)
+				},
+			),
+			vectorgraphic.WithLayer("Background"),
+			vectorgraphic.WithDrawOrder(-len(level.Layers)-1),
+			vectorgraphic.WithImage(int(level.PxWid), int(level.PxHei)),
+			vectorgraphic.WithPivot(0, 0),
 		), cmd)
 
 		entityLayer := utils.Must(level.GetLayerByName("Entities"))
@@ -217,9 +219,14 @@ func MakeLDTKLevelBundle(levelName string) engine.Bundle {
 				triggerEntityIid := ebitenLDTK.As[ebitenLDTK.EntityRef](triggerField).EntityIid
 				triggerEntity := utils.Must(level.GetEntityByIid(triggerEntityIid))
 
+				relPosX := triggerEntity.Px[0] - entity.Px[0]
+				relPosY := triggerEntity.Px[1] - entity.Px[1]
 				triggerNode := scene.AddChild("Trigger", trigger.NewTrigger(
-					transform2D.NewTransform2D(
-						nodeactor.NewNode(),
+					graphic.NewGraphic(
+						transform2D.NewTransform2D(
+							nodeactor.NewNode(),
+							transform2D.WithPos(relPosX, relPosY),
+						),
 					),
 					trigger.WithRect(maths.NewRect(triggerEntity.Px[0], triggerEntity.Px[1], triggerEntity.Width, triggerEntity.Height)),
 				), doorNode, cmd)

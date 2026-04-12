@@ -2,8 +2,8 @@ package assetviewer
 
 import (
 	"mask_of_the_tomb/internal/backend/assetloader"
-	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
+	"mask_of_the_tomb/internal/engine/commands"
 
 	"github.com/ebitengine/debugui"
 	om "github.com/wk8/go-ordered-map/v2"
@@ -14,9 +14,9 @@ type AssetViewer struct {
 	assetpool *om.OrderedMap[string, *assetloader.Asset]
 }
 
-func (a *AssetViewer) Init(cmd *engine.Commands) {
+func (a *AssetViewer) Init(cmd *commands.Commands) {
 	a.Node.Init(cmd)
-	a.assetpool = cmd.AssetLoader().GetAssetPool()
+	a.assetpool = cmd.AssetLoader.GetAssetPool()
 }
 
 func (a *AssetViewer) DrawInspector(ctx *debugui.Context) {

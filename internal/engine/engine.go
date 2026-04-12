@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/backend/node"
 	"mask_of_the_tomb/internal/backend/node/ebitenrender"
+	"mask_of_the_tomb/internal/engine/commands"
 	"reflect"
 	"unsafe"
 
@@ -25,18 +26,18 @@ import (
 // A pointer to the Node instance corresponding to this actor is passed in
 // The rest of the methods are obvious.
 type Actor interface {
-	Init(*Commands)
-	Update(*Commands) // TODO: Change to handle errors in nodes independently
-	OnTreeAdd(*Node, *Commands)
+	Init(*commands.Commands)
+	Update(*commands.Commands) // TODO: Change to handle errors in nodes independently
+	OnTreeAdd(*Node, *commands.Commands)
 	DrawInspector(*debugui.Context)
-	DrawGizmo(*Commands)
+	DrawGizmo(*commands.Commands)
 }
 
 type Node = node.Node[Actor]
 type NodeTree = node.NodeTree[Actor]
 
-type SceneBuilder func(*Commands) *Scene
-type Bundle func(*Commands, *Scene)
+type SceneBuilder func(*commands.Commands) *Scene
+type Bundle func(*commands.Commands, *Scene)
 
 type Scene struct {
 	name       string
@@ -44,7 +45,7 @@ type Scene struct {
 	drawGizmos bool
 }
 
-func (s *Scene) Update(cmd *Commands) {
+func (s *Scene) Update(cmd *commands.Commands) {
 	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
 		s.drawGizmos = !s.drawGizmos
 	}
@@ -60,7 +61,7 @@ func (s *Scene) Update(cmd *Commands) {
 	}
 }
 
-func (s *Scene) Init(servers *Commands) {
+func (s *Scene) Init(servers *commands.Commands) {
 	s.nodeTree.Traverse(func(n *Node) {
 		n.GetValue().Init(servers)
 	})
@@ -105,13 +106,13 @@ func (s *Scene) GetName() string {
 	return s.name
 }
 
-func (s *Scene) SpawnActor(name string, actor Actor, cmd *Commands) *Node {
+func (s *Scene) SpawnActor(name string, actor Actor, cmd *commands.Commands) *Node {
 	node := s.nodeTree.GetRoot().AddChild(actor, name)
 	actor.OnTreeAdd(node, cmd)
 	return node
 }
 
-func (s *Scene) SpawnActorAlt(name string, actor Actor, cmd *Commands) Actor {
+func (s *Scene) SpawnActorAlt(name string, actor Actor, cmd *commands.Commands) Actor {
 	node := s.nodeTree.GetRoot().AddChild(actor, name)
 	actor.OnTreeAdd(node, cmd)
 	return actor
@@ -121,13 +122,13 @@ func (s *Scene) SpawnActorAlt(name string, actor Actor, cmd *Commands) Actor {
 // This is sort of annoying: We should be able to add children by
 // chaining methods, hence the Node is the type that should have
 // an addchild method. However, that doesn't really work...
-func (s *Scene) AddChild(name string, actor Actor, parent *Node, cmd *Commands) *Node {
+func (s *Scene) AddChild(name string, actor Actor, parent *Node, cmd *commands.Commands) *Node {
 	node := s.SpawnActor(name, actor, cmd)
 	s.SetParent(node, parent)
 	return node
 }
 
-func (s *Scene) SpawnBundle(cmd *Commands, bundle Bundle) {
+func (s *Scene) SpawnBundle(cmd *commands.Commands, bundle Bundle) {
 	bundle(cmd, s)
 }
 
@@ -181,7 +182,7 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 // be fixed
 // The only reason it exists is so that we can pass it on to
 // OnTreeAdd, which might not even be necessary at all
-func NewScene(name string, root Actor, cmd *Commands) *Scene {
+func NewScene(name string, root Actor, cmd *commands.Commands) *Scene {
 	nodeTree, rootNode := node.NewNodeTree(root)
 	root.OnTreeAdd(rootNode, cmd)
 	return &Scene{
@@ -193,60 +194,85 @@ func NewScene(name string, root Actor, cmd *Commands) *Scene {
 var ErrTerminated = errors.New("Terminatednow")
 
 type Game struct {
-	cmd         *Commands
-	scenes      map[string]SceneBuilder
-	activeScene *Scene
+	cmd          *commands.Commands
+	sceneManager *SceneManager
 }
 
-func NewGame(cmd *Commands) *Game {
-	return &Game{
-		cmd:    cmd,
-		scenes: make(map[string]SceneBuilder),
+func NewGame(cmd *commands.Commands) *Game {
+	g := &Game{
+		cmd:          cmd,
+		sceneManager: NewSceneManager(),
 	}
-}
 
-func (g *Game) RegisterScene(name string, sceneBuilder SceneBuilder) *Game {
-	g.scenes[name] = sceneBuilder
+	commands.Set[SceneManager](g.cmd, g.sceneManager)
+
 	return g
-}
-
-func (g *Game) SpawnScene(name string) *Game {
-	// Create an instance of the scene's node tree
-	sceneBuilder := g.scenes[name]
-	sceneInst := sceneBuilder(g.cmd)
-
-	// Load any staged assets
-	g.LoadStaged() // This will go into a different thread to avoid freezing
-	g.cmd.scene = sceneInst
-	g.activeScene = sceneInst
-
-	g.activeScene.Init(g.cmd)
-	return g
-}
-
-func (g *Game) ActiveScene() *Scene {
-	return g.activeScene
 }
 
 func (g *Game) Update() error {
-	if g.activeScene == nil {
+	if g.sceneManager.activeScene == nil {
 		fmt.Println("Warning: Running game without active scene")
 		return nil
 	}
 
-	g.activeScene.Update(g.cmd) // consider returning this instead?
+	g.sceneManager.activeScene.Update(g.cmd) // consider returning this instead?
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.cmd.Renderer().Draw(screen)
+	g.cmd.Renderer.Draw(screen)
 }
 
 // Loads all staged assets
-func (g *Game) LoadStaged() {
-	g.cmd.AssetLoader().LoadAll()
+// func (g *Game) LoadStaged() {
+// 	g.cmd.AssetLoader.LoadAll()
+// }
+
+func (g *Game) GetCmd() *commands.Commands {
+	return g.cmd
 }
 
-func (g *Game) GetCmd() *Commands {
-	return g.cmd
+type SceneManager struct {
+	scenes      map[string]SceneBuilder
+	activeScene *Scene
+}
+
+func (s *SceneManager) RegisterScene(name string, sceneBuilder SceneBuilder) *SceneManager {
+	s.scenes[name] = sceneBuilder
+	return s
+}
+
+func (s *SceneManager) SpawnScene(name string, cmd *commands.Commands) *SceneManager {
+	// Create an instance of the scene's node tree
+	sceneBuilder := s.scenes[name]
+	sceneInst := sceneBuilder(cmd)
+
+	// Load any staged assets
+	cmd.AssetLoader.LoadAll() // This will go into a different thread to avoid freezing
+	commands.Set[Scene](cmd, sceneInst)
+	s.activeScene = sceneInst
+
+	s.activeScene.Init(cmd)
+	return s
+}
+
+func (s *SceneManager) SpawnSceneImmediate(cmd *commands.Commands, sceneBuilder SceneBuilder) *SceneManager {
+	sceneInst := sceneBuilder(cmd)
+
+	cmd.AssetLoader.LoadAll()
+	commands.Set[Scene](cmd, sceneInst)
+	s.activeScene = sceneInst
+
+	s.activeScene.Init(cmd)
+	return s
+}
+
+func (g *SceneManager) ActiveScene() *Scene {
+	return g.activeScene
+}
+
+func NewSceneManager() *SceneManager {
+	return &SceneManager{
+		scenes: make(map[string]SceneBuilder, 0),
+	}
 }
