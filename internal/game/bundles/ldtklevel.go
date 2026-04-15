@@ -11,6 +11,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
+	"mask_of_the_tomb/internal/engine/actors/particles"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/actors/vectorgraphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -83,6 +84,8 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			tileSize := tileset.TileGridSize
 			tilesetImg := tilesetMap[tileset.Name]
 
+			// TODO: Find a way to render the tile layers to texture instead
+			// of to screen. Then process them with shaders.
 			scene.SpawnActor(layer.Name, ldtktilelayer.NewLDTKTilemapLayer(
 				graphic.NewGraphic(
 					transform2D.NewTransform2D(
@@ -94,7 +97,19 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 				int(tileSize),
 				int(level.PxWid),
 				int(level.PxHei),
+				false,
 			), cmd)
+
+			// // Spawn the shader as a child
+			// scene.AddChild("Shader",
+			// 	shaderactor.NewShaderEffect(
+			// 		graphic.NewGraphic(
+			// 			transform2D.NewTransform2D(
+			// 				nodeactor.NewNode(),
+			// 			),
+			// 		),
+			// 	),
+			// 	node, cmd)
 		}
 
 		scene.SpawnActor("BackgroundColor", vectorgraphic.NewVectorGraphic(
@@ -124,32 +139,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			// case names.HazardEntity:
 			// 	newLevel.hazards = append(newLevel.hazards, entities.NewHazard(&entity))
 			case "Slambox":
-				// Spawn slambox bundle
-				slamboxNode := scene.SpawnActor("Slambox",
-					slamboxactor.NewSlambox(
-						tracker.NewTracker(
-							graphic.NewGraphic(
-								transform2D.NewTransform2D(
-									nodeactor.NewNode(),
-								),
-							), 7.5, entity.Px[0], entity.Px[1],
-						),
-						slamboxactor.WithPos(entity.Px[0], entity.Px[1]),
-						slamboxactor.WithSize(entity.Width, entity.Height),
-					),
-					cmd,
-				)
-
-				scene.AddChild("Sprite", autotilesprite.NewAutoTileSprite(
-					graphic.NewGraphic(
-						transform2D.NewTransform2D(
-							nodeactor.NewNode(),
-						),
-					),
-					autotilesprite.WithSize(entity.Width, entity.Height),
-					autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
-				), slamboxNode, cmd)
-
+				SpawnSlambox(cmd, scene, &entity)
 			// case names.GrassEntity:
 			// 	newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
 			// case names.TurretEntity:
@@ -161,83 +151,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			// case names.LanternEntity:
 			// 	newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
 			case "DoorV2":
-				directionField := utils.Must(entity.GetFieldByName("Direction"))
-				direction := maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)
-
-				doorNode := scene.SpawnActor("Door", doorv2.NewDoorV2(
-					graphic.NewGraphic(
-						transform2D.NewTransform2D(
-							nodeactor.NewNode(),
-							transform2D.WithPos(entity.Px[0], entity.Px[1]),
-						),
-					), &entity, &level,
-				), cmd)
-
-				doorV2Actor, ok := engine.As[*doorv2.DoorV2](doorNode.GetValue())
-
-				doorSprite := scene.AddChild("Sprite", animatedsprite.NewAnimatedSprite(
-					graphic.NewGraphic(
-						transform2D.NewTransform2D(
-							nodeactor.NewNode(),
-							transform2D.WithPos(entity.Width/2, entity.Height/2),
-						),
-					),
-					map[string]*animatedsprite.Clip{
-						"Idle": animatedsprite.NewClip(
-							"sprites/environment/door_v2-idle-Sheet.png",
-							48,
-							16,
-							animatedsprite.Loop,
-							100,
-							"",
-						),
-						"Open": animatedsprite.NewClip(
-							"sprites/environment/door_v2-open-Sheet.png",
-							48,
-							16,
-							animatedsprite.Once,
-							100,
-							"",
-						),
-						"Close": animatedsprite.NewClip(
-							"sprites/environment/door_v2-close-Sheet.png", 48, 16,
-							animatedsprite.Once,
-							100,
-							"",
-						),
-					}, "Playerspace", 5, 0.5, 0.5, "Idle",
-				), doorNode, cmd)
-
-				transform, ok := engine.As[*transform2D.Transform2D](doorSprite.GetValue())
-				if ok {
-					transform.SetAngle(maths.DirToRadians(direction))
-					// engine.GetActor[*doorv2.DoorV2](doorNode.GetValue())
-					doorV2Actor.SpriteTransform = transform
-				}
-
-				triggerField := utils.Must(entity.GetFieldByName("InteractRegion"))
-				triggerEntityIid := ebitenLDTK.As[ebitenLDTK.EntityRef](triggerField).EntityIid
-				triggerEntity := utils.Must(level.GetEntityByIid(triggerEntityIid))
-
-				relPosX := triggerEntity.Px[0] - entity.Px[0]
-				relPosY := triggerEntity.Px[1] - entity.Px[1]
-				triggerNode := scene.AddChild("Trigger", trigger.NewTrigger(
-					graphic.NewGraphic(
-						transform2D.NewTransform2D(
-							nodeactor.NewNode(),
-							transform2D.WithPos(relPosX, relPosY),
-						),
-					),
-					trigger.WithRect(maths.NewRect(triggerEntity.Px[0], triggerEntity.Px[1], triggerEntity.Width, triggerEntity.Height)),
-					trigger.WithName(fmt.Sprintf("Door-%s", triggerEntityIid)),
-				), doorNode, cmd)
-
-				doorV2Actor.Trigger, ok = engine.As[*trigger.Trigger](triggerNode.GetValue())
-
-				// cmd.AssetLoader().LoadAll()
-				// doorNode.GetValue().Init(cmd)
-				// doorSprite.GetValue().Init(cmd)
-				// doorTrigger.GetValue().Init(cmd)
+				SpawnDoor(cmd, scene, &entity, &level)
 				// case chainNodeEntityName:
 				// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 				// case names.TestSpeechBubbleEntity:
@@ -249,14 +163,115 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			}
 		}
 
-		// scene.SpawnActor("LDTKWorld",
-		// 	ldtkworld.NewLDTKLevel(
-		// 		graphic.NewGraphic(
-		// 			transform2D.NewTransform2D(
-		// 				nodeactor.NewNode(),
-		// 			),
-		// 		), "Level_3", "LDTK/world.ldtk",
-		// 	), cmd,
-		// )
+		// Spawn the appropriate particle system
+		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystem(
+			graphic.NewGraphic(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+				),
+			), make([]*particles.Burst, 0), true, 0.5, 0, maths.RandomFloat64{0, 480}, maths.RandomFloat64{0, 270}, maths.RandomFloat64{0, 0}, maths.RandomFloat64{-5, 0}, maths.RandomFloat64{0, 4}, maths.RandomFloat64{0, 0.5}, maths.RandomFloat64{0, 0.01}, maths.RandomFloat64{0.7, 1.5}, maths.RandomFloat64{0.0, 0.0}, maths.RandomFloat64{3.0, 5.0}, maths.RandomFloat64{0.0, 2.0}, maths.RandomFloat64{0.0, 1.0}, [4]uint8{255, 255, 255, 255}, [4]uint8{255, 255, 255, 255}, 13, 13, "sprites/environment/star.png", "Background", 0,
+		), cmd)
 	}
+}
+
+func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity) {
+	// Spawn slambox bundle
+	slamboxNode := scene.SpawnActor("Slambox",
+		slamboxactor.NewSlambox(
+			tracker.NewTracker(
+				graphic.NewGraphic(
+					transform2D.NewTransform2D(
+						nodeactor.NewNode(),
+					),
+				), 7.5, entity.Px[0], entity.Px[1],
+			),
+			slamboxactor.WithPos(entity.Px[0], entity.Px[1]),
+			slamboxactor.WithSize(entity.Width, entity.Height),
+		),
+		cmd,
+	)
+
+	scene.AddChild("Sprite", autotilesprite.NewAutoTileSprite(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+			),
+		),
+		autotilesprite.WithSize(entity.Width, entity.Height),
+		autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
+	), slamboxNode, cmd)
+}
+
+func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level) {
+	directionField := utils.Must(entity.GetFieldByName("Direction"))
+	direction := maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)
+
+	doorNode := scene.SpawnActor("Door", doorv2.NewDoorV2(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+				transform2D.WithPos(entity.Px[0], entity.Px[1]),
+			),
+		), entity, level,
+	), cmd)
+
+	doorV2Actor, ok := engine.As[*doorv2.DoorV2](doorNode.GetValue())
+
+	doorSprite := scene.AddChild("Sprite", animatedsprite.NewAnimatedSprite(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+				transform2D.WithPos(entity.Width/2, entity.Height/2),
+			),
+		),
+		map[string]*animatedsprite.Clip{
+			"Idle": animatedsprite.NewClip(
+				"sprites/environment/door_v2-idle-Sheet.png",
+				48,
+				16,
+				animatedsprite.Loop,
+				100,
+				"",
+			),
+			"Open": animatedsprite.NewClip(
+				"sprites/environment/door_v2-open-Sheet.png",
+				48,
+				16,
+				animatedsprite.Once,
+				100,
+				"",
+			),
+			"Close": animatedsprite.NewClip(
+				"sprites/environment/door_v2-close-Sheet.png", 48, 16,
+				animatedsprite.Once,
+				100,
+				"",
+			),
+		}, "Playerspace", 5, 0.5, 0.5, "Idle",
+	), doorNode, cmd)
+
+	transform, ok := engine.As[*transform2D.Transform2D](doorSprite.GetValue())
+	if ok {
+		transform.SetAngle(maths.DirToRadians(direction))
+		doorV2Actor.SpriteTransform = transform
+	}
+
+	triggerField := utils.Must(entity.GetFieldByName("InteractRegion"))
+	triggerEntityIid := ebitenLDTK.As[ebitenLDTK.EntityRef](triggerField).EntityIid
+	triggerEntity := utils.Must(level.GetEntityByIid(triggerEntityIid))
+
+	relPosX := triggerEntity.Px[0] - entity.Px[0]
+	relPosY := triggerEntity.Px[1] - entity.Px[1]
+	triggerNode := scene.AddChild("Trigger", trigger.NewTrigger(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+				transform2D.WithPos(relPosX, relPosY),
+			),
+		),
+		trigger.WithRect(maths.NewRect(triggerEntity.Px[0], triggerEntity.Px[1], triggerEntity.Width, triggerEntity.Height)),
+		trigger.WithName(fmt.Sprintf("Door-%s", triggerEntityIid)),
+	), doorNode, cmd)
+
+	doorV2Actor.Trigger, ok = engine.As[*trigger.Trigger](triggerNode.GetValue())
 }

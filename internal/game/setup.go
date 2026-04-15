@@ -13,6 +13,8 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/scenes"
 	"mask_of_the_tomb/internal/game/sceneswitch"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 func CreateGame(gw, gh, ps int) *engine.Game {
@@ -25,6 +27,10 @@ func CreateGame(gw, gh, ps int) *engine.Game {
 	commands.Set[triggerenv.TriggerEnv](cmd, triggerenv.NewTriggerEnv())
 	commands.Set[slambox.SlamboxEnvironment](cmd, slambox.NewSlamboxEnvironment(8))
 	commands.Set[sceneswitch.SceneSwitch](cmd, &sceneswitch.SceneSwitch{"", maths.DirUp})
+
+	cmd.Renderer.Textures["LevelTextureRaw"] = ebiten.NewImage(1, 1)
+	cmd.Renderer.Textures["LevelBackgroundRaw"] = ebiten.NewImage(1, 1)
+	cmd.Renderer.Textures["LevelForegroundRaw"] = ebiten.NewImage(1, 1)
 
 	game := engine.NewGame(cmd)
 

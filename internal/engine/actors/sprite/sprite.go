@@ -18,18 +18,18 @@ import (
 
 type Sprite struct {
 	*graphic.Graphic
-	layer      string  `debug:"auto"`
-	drawOrder  int     `debug:"auto"`
-	scaling    float64 `debug:"auto"`
-	srcPath    string  `debug:"auto"`
-	pivotX     float64 `debug:"auto"`
-	pivotY     float64 `debug:"auto"`
-	imageAsset *assetloader.AssetRef[ebiten.Image]
+	layer     string  `debug:"auto"`
+	drawOrder int     `debug:"auto"`
+	scaling   float64 `debug:"auto"`
+	srcPath   string  `debug:"auto"`
+	pivotX    float64 `debug:"auto"`
+	pivotY    float64 `debug:"auto"`
+	imageRef  *assetloader.AssetRef[ebiten.Image]
 }
 
 func (s *Sprite) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	s.Graphic.OnTreeAdd(node, cmd)
-	s.imageAsset = assetloader.StageAsset[ebiten.Image](
+	s.imageRef = assetloader.StageAsset[ebiten.Image](
 		cmd.AssetLoader,
 		s.srcPath,
 		assettypes.NewImageAsset(s.srcPath),
@@ -42,7 +42,7 @@ func (s *Sprite) Init(cmd *commands.Commands) {
 
 func (s *Sprite) Update(cmd *commands.Commands) {
 	s.Graphic.Update(cmd)
-	if s.imageAsset.Status() != assetloader.LOADED {
+	if s.imageRef.Status() != assetloader.LOADED {
 		fmt.Println("Error: Sprite image asset not loaded")
 		// This should in theory never happen. But humans make mistakes...
 		return
@@ -54,12 +54,12 @@ func (s *Sprite) Update(cmd *commands.Commands) {
 
 	// Change this so that stuff is centered tbh
 	cmd.Renderer.Request(opgen.PosRotScale(
-		s.imageAsset.Value(),
+		s.imageRef.Value(),
 		camX, camY,
 		gAngle,
 		gScaleX*s.scaling, gScaleY*s.scaling,
 		s.pivotX, s.pivotY,
-	), s.imageAsset.Value(), s.layer, s.drawOrder)
+	), s.imageRef.Value(), s.layer, s.drawOrder)
 }
 
 // TODO: Implement DrawInspector for some more stuff
@@ -71,14 +71,14 @@ func (s *Sprite) DrawInspector(ctx *debugui.Context) {
 		ctx.GridCell(func(bounds image.Rectangle) {
 			ctx.DrawOnlyWidget(func(screen *ebiten.Image) {
 				scale := ctx.Scale()
-				S := s.imageAsset.Value().Bounds().Size()
+				S := s.imageRef.Value().Bounds().Size()
 				trueWidth := float64(bounds.Dx() * scale)
 				trueHeight := float64(bounds.Dy() * scale)
 				scalingFactorX := trueWidth / float64(S.X)
 				scalingFactorY := trueHeight / float64(S.Y)
 				scalingFactor := math.Min(float64(scalingFactorX), float64(scalingFactorY))
-				screen.DrawImage(s.imageAsset.Value(), opgen.PosScale(
-					s.imageAsset.Value(),
+				screen.DrawImage(s.imageRef.Value(), opgen.PosScale(
+					s.imageRef.Value(),
 					float64(bounds.Min.X*scale),
 					float64(bounds.Min.Y*scale),
 					scalingFactor,

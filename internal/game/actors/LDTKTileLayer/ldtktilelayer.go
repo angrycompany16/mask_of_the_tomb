@@ -5,8 +5,10 @@ import (
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
+	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -14,10 +16,11 @@ type LDTKTilemapLayer struct {
 	*graphic.Graphic
 	LDTKlayer    *ebitenLDTK.Layer
 	tilesetImage *ebiten.Image
-	layerImage   *ebiten.Image
-	layer        string
-	drawOrder    int
-	tileSize     float64
+	Image        *ebiten.Image
+	layer        string  `debug:"auto"`
+	drawOrder    int     `debug:"auto"`
+	tileSize     float64 `debug:"auto"`
+	drawToScreen bool    `debug:"auto"`
 }
 
 func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
@@ -52,20 +55,28 @@ func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
 		).(*ebiten.Image)
 
 		op := opgen.PosScale(tileImage, tile.Px[0], tile.Px[1], scaleX, scaleY, 0.5, 0.5)
-		t.layerImage.DrawImage(tileImage, op)
+		t.Image.DrawImage(tileImage, op)
 	}
 }
 
-func (t *LDTKTilemapLayer) Update(servers *commands.Commands) {
+func (t *LDTKTilemapLayer) Update(cmd *commands.Commands) {
+	t.Graphic.Update(cmd)
+	if !t.drawToScreen {
+		return
+	}
 	gPosX, gPosY := t.Transform2D.GetPos(false)
 	camX, camY := t.GetCamera().WorldToCam(gPosX, gPosY, true)
 	gScaleX, gScaleY := t.Transform2D.GetScale(false)
 	gAngle := t.Transform2D.GetAngle(false)
 
-	t.Transform2D.Update(servers)
-	servers.Renderer.Request(opgen.PosRotScale(
-		t.layerImage, camX, camY, gAngle, gScaleX, gScaleY, 0.0, 0.0,
-	), t.layerImage, t.layer, t.drawOrder)
+	cmd.Renderer.Request(opgen.PosRotScale(
+		t.Image, camX, camY, gAngle, gScaleX, gScaleY, 0.0, 0.0,
+	), t.Image, t.layer, t.drawOrder)
+}
+
+func (t *LDTKTilemapLayer) DrawInspector(ctx *debugui.Context) {
+	utils.RenderFieldsAuto(ctx, t)
+	t.Graphic.DrawInspector(ctx)
 }
 
 func NewLDTKTilemapLayer(
@@ -76,14 +87,16 @@ func NewLDTKTilemapLayer(
 	drawOrder int,
 	tileSize int,
 	pxWidth, pxHeight int,
+	drawToScreen bool,
 ) *LDTKTilemapLayer {
 	return &LDTKTilemapLayer{
 		LDTKlayer:    LDTKLayer,
 		Graphic:      graphic,
 		tilesetImage: tilesetImg,
-		layerImage:   ebiten.NewImage(pxWidth, pxHeight),
+		Image:        ebiten.NewImage(pxWidth, pxHeight),
 		layer:        layer,
 		drawOrder:    drawOrder,
 		tileSize:     float64(tileSize),
+		drawToScreen: drawToScreen,
 	}
 }

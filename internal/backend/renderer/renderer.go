@@ -31,6 +31,7 @@ type Renderer struct {
 	pixelScale            float64
 	drawRequests          []*DrawRequest
 	layers                *om.OrderedMap[string, *ebiten.Image]
+	Textures              map[string]*ebiten.Image // Images that aren't rendered to the screen
 }
 
 func (r *Renderer) Request(op *ebiten.DrawImageOptions, src *ebiten.Image, layer string, drawOrder int) {

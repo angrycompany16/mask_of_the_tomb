@@ -95,7 +95,7 @@ func (a *AssetLoader) LoadAll() {
 		}
 		val, err := pair.Value.loadable.Load(a.fs)
 		if err != nil {
-			fmt.Printf("Asset failed with error %s\n", err.Error())
+			fmt.Printf("WARNING: Asset failed with error %s\n", err.Error())
 			pair.Value.status = FAILED
 			continue
 		}
