@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/slambox"
+	"mask_of_the_tomb/internal/backend/triggerenv"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
@@ -31,7 +32,7 @@ type DoorV2 struct {
 	Trigger         *trigger.Trigger         // an entity ref, not inheriting anything
 	SpriteTransform *transform2D.Transform2D // an entity ref, not inheriting anything
 	//
-	// EntityIid          string
+	EntityIid          string
 	OtherSideLevelIid  string
 	OtherSideEntityIid string
 	Hitbox             *maths.Rect
@@ -72,10 +73,6 @@ func (d *DoorV2) Update(cmd *commands.Commands) {
 
 	if cmd.InputHandler.PollAction("DoorInteract") && d.isReady {
 		fmt.Println("Switch scene!")
-		// Get the scene switch
-		// Set the data
-		// Load next scene
-		// game.RegisterScene("gameplay", scenes.MakeGamePlayeScene("Level_3"))
 		scenemanager, _ := commands.Get[engine.SceneManager](cmd)
 
 		sceneswitch, ok := commands.Get[sceneswitch.SceneSwitch](cmd)
@@ -83,8 +80,15 @@ func (d *DoorV2) Update(cmd *commands.Commands) {
 			panic("Missing scene switch (DoorV2)")
 		}
 		sceneswitch.SpawnEntityIid = d.OtherSideEntityIid
+		sceneswitch.SpawnDirection = maths.Opposite(d.direction)
+		// TODO: There is a much better way to do this - Include an OnDestroy method that gets called whenever a scene gets destroyed.
+		slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
+		slamboxenv.Reset()
+
+		triggerenv, _ := commands.Get[triggerenv.TriggerEnv](cmd)
+		triggerenv.Reset()
+
 		scenemanager.SpawnScene(d.OtherSideLevelIid, cmd)
-		// sceneswitch.SpawnEntityIid
 	}
 }
 
@@ -116,7 +120,8 @@ func (d *DoorV2) GetSpawnPos() (float64, float64) {
 
 func NewDoorV2(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *ebitenLDTK.Level) *DoorV2 {
 	newDoor := DoorV2{
-		Graphic: graphic,
+		Graphic:   graphic,
+		EntityIid: entity.Iid,
 	}
 
 	newDoor.Hitbox = maths.NewRect(

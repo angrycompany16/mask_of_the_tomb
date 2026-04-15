@@ -62,6 +62,7 @@ func (s *Sprite) Update(cmd *commands.Commands) {
 	), s.imageAsset.Value(), s.layer, s.drawOrder)
 }
 
+// TODO: Implement DrawInspector for some more stuff
 func (s *Sprite) DrawInspector(ctx *debugui.Context) {
 	ctx.SetGridLayout([]int{0}, []int{0})
 	ctx.Header("Sprite", false, func() {

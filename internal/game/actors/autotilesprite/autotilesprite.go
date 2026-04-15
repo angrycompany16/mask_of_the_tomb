@@ -11,6 +11,7 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 
+	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -42,6 +43,13 @@ func (a *AutoTileSprite) Update(cmd *commands.Commands) {
 	gPosX, gPosY := a.GetPos(false)
 	camX, camY := a.GetCamera().WorldToCam(gPosX, gPosY, true)
 	cmd.Renderer.Request(opgen.Pos(a.sprite, camX, camY, 0, 0), a.sprite, "Playerspace", 20)
+}
+
+func (a *AutoTileSprite) DrawInspector(ctx *debugui.Context) {
+	ctx.Header("AutoTileSprite", false, func() {
+		utils.RenderFieldsAuto(ctx, a)
+	})
+	a.Graphic.DrawInspector(ctx)
 }
 
 func (a *AutoTileSprite) createSprite(slamboxTilemap *ebiten.Image) {

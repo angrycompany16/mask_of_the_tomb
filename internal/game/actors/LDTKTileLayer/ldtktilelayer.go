@@ -30,6 +30,7 @@ func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
 		tiles = t.LDTKlayer.AutoLayerTiles
 	}
 
+	// fmt.Println(t.LDTKlayer.Name, t.tileSize)
 	for _, tile := range tiles {
 		scaleX, scaleY := 1.0, 1.0
 		switch tile.TileOrientation {
@@ -50,7 +51,7 @@ func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
 			),
 		).(*ebiten.Image)
 
-		op := opgen.PosScale(tileImage, tile.Px[0], tile.Px[1], scaleX, scaleY)
+		op := opgen.PosScale(tileImage, tile.Px[0], tile.Px[1], scaleX, scaleY, 0.5, 0.5)
 		t.layerImage.DrawImage(tileImage, op)
 	}
 }

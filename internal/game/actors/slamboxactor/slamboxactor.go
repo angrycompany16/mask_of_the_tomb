@@ -57,7 +57,6 @@ func (s *Slambox) Update(cmd *commands.Commands) {
 	targetX, targetY := slamboxenv.SlamSlambox(s.backendIndex, s.slamRequest)
 	s.Tracker.SetTarget(targetX, targetY)
 	s.slamRequest = maths.DirNone
-
 }
 
 func (s *Slambox) DrawGizmo(cmd *commands.Commands) {

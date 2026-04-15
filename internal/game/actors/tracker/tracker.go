@@ -22,6 +22,12 @@ type Tracker struct {
 	moveSpeed              float64
 }
 
+func (t *Tracker) Init(cmd *commands.Commands) {
+	t.Graphic.Init(cmd)
+	t.SetPos(t.posX, t.posY)
+	t.Transform2D.SetPos(t.posX, t.posY)
+}
+
 func (t *Tracker) Update(cmd *commands.Commands) {
 	t.Graphic.Update(cmd)
 	t.posX += t.moveSpeed * t.moveDirX

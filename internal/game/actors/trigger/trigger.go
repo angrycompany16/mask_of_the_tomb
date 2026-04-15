@@ -34,17 +34,24 @@ type Trigger struct {
 	gizmosImage       *ebiten.Image
 }
 
+// func (t *Trigger) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
+// 	t.Graphic.OnTreeAdd(node, cmd)
+// 	triggerenv, _ := commands.Get[triggerenv.TriggerEnv](cmd)
+// }
+
 func (t *Trigger) Init(cmd *commands.Commands) {
 	t.Graphic.Init(cmd)
 	triggerenv, ok := commands.Get[triggerenv.TriggerEnv](cmd)
 	if !ok {
 		panic("Missing triggerenv (Trigger)")
 	}
-	triggerenv.AddTrigger(t.trigger)
 
+	triggerenv.AddTrigger(t.trigger)
 	if ok, info := triggerenv.CheckCollision(t.trigger); ok {
 		switch t.state {
 		case DISJOINT:
+			// fmt.Println("Start in COLLIDING state")
+			// fmt.Println("OTherName:", info.OtherName)
 			t.state = COLLIDING
 			t.otherColliderName = info.OtherName
 		}
@@ -62,6 +69,7 @@ func (t *Trigger) Update(cmd *commands.Commands) {
 		panic("Missing triggerenv (Trigger)")
 	}
 
+	// fmt.Println("Checking collisions:", t.trigger.Name)
 	if ok, info := triggerenv.CheckCollision(t.trigger); ok {
 		switch t.state {
 		case DISJOINT:
@@ -70,6 +78,7 @@ func (t *Trigger) Update(cmd *commands.Commands) {
 			t.state = COLLIDING
 			t.otherColliderName = info.OtherName
 		case COLLIDING:
+			// fmt.Println("Colliding", t.trigger.Name)
 			t.OnCollision.WithData("otherName", info.OtherName).Raise()
 		}
 	} else {

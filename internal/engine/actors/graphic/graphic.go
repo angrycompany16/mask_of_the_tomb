@@ -46,7 +46,7 @@ func (g *Graphic) Init(cmd *commands.Commands) {
 			),
 		), cmd)
 	}
-	camActor, ok := engine.GetActor[*camera.Camera](camNode.GetValue())
+	camActor, ok := engine.As[*camera.Camera](camNode.GetValue())
 	g.camera = camActor
 }
 

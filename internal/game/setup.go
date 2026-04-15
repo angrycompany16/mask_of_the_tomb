@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/input"
+	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/backend/triggerenv"
@@ -23,7 +24,7 @@ func CreateGame(gw, gh, ps int) *engine.Game {
 
 	commands.Set[triggerenv.TriggerEnv](cmd, triggerenv.NewTriggerEnv())
 	commands.Set[slambox.SlamboxEnvironment](cmd, slambox.NewSlamboxEnvironment(8))
-	commands.Set[sceneswitch.SceneSwitch](cmd, &sceneswitch.SceneSwitch{""})
+	commands.Set[sceneswitch.SceneSwitch](cmd, &sceneswitch.SceneSwitch{"", maths.DirUp})
 
 	game := engine.NewGame(cmd)
 

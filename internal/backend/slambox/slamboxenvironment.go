@@ -569,8 +569,20 @@ func (se *SlamboxEnvironment) AddEnvironmentRect(rect *maths.Rect) {
 	se.environmentRects = append(se.environmentRects, rect)
 }
 
-func (se *SlamboxEnvironment) ClearEnvironmentRects(rect *maths.Rect) {
+func (se *SlamboxEnvironment) ClearEnvironmentRects() {
 	se.environmentRects = make([]*maths.Rect, 0)
+}
+
+func (se *SlamboxEnvironment) ClearSlamboxes() {
+	se.slamboxes = make([]*maths.Rect, 0)
+}
+
+func (se *SlamboxEnvironment) Reset() {
+	se.environmentRects = make([]*maths.Rect, 0)
+	se.slamboxes = make([]*maths.Rect, 0)
+	se.gridTiles = make([][]bool, 0)
+	se.slamboxGroups = make([]*SlamboxGroup, 0)
+	se.slamboxChains = make([]*SlamboxChain, 0)
 }
 
 func (se *SlamboxEnvironment) AddSlambox(slambox *maths.Rect) int {

@@ -35,7 +35,10 @@ func PosScale(src *ebiten.Image, x, y, scaleX, scaleY float64, pivot ...float64)
 	pivotX, pivotY = getPivotPx(src, pivotX, pivotY)
 	op := &ebiten.DrawImageOptions{}
 
-	op.GeoM.Translate(-pivotX, -pivotY)
+	// I'm totally not sure about this lol. On one hand it somehow breaks
+	// spikes, but at the same time it seems like it should be necessary...
+	// Like, we use it for PosRot and Pos but not PosScale? Makes no sense
+	// op.GeoM.Translate(-pivotX, -pivotY)
 	op.GeoM.Scale(scaleX, scaleY)
 	op.GeoM.Translate(pivotX*(1-scaleX), pivotY*(1-scaleY))
 

@@ -29,12 +29,19 @@ type TriggerEnv struct {
 }
 
 func (t *TriggerEnv) CheckCollision(trigger *Trigger) (bool, CollisionInfo) {
+	// fmt.Println("--- TRIGGER LIST ---")
+	// for _, trigger := range t.triggers {
+	// 	fmt.Println(trigger.Name)
+	// }
+	// fmt.Println("--------------------")
 	for _, otherTrigger := range t.triggers {
 		if otherTrigger == trigger {
+			// fmt.Println("Skip:", otherTrigger.Name)
 			continue
 		}
 
 		if otherTrigger.Rect.Overlapping(trigger.Rect) {
+			// fmt.Println("Found collision with", trigger.Name)
 			return true, CollisionInfo{
 				OtherRect: otherTrigger.Rect,
 				OtherName: otherTrigger.Name,
@@ -46,6 +53,10 @@ func (t *TriggerEnv) CheckCollision(trigger *Trigger) (bool, CollisionInfo) {
 
 func (t *TriggerEnv) AddTrigger(trigger *Trigger) {
 	t.triggers = append(t.triggers, trigger)
+}
+
+func (t *TriggerEnv) Reset() {
+	t.triggers = make([]*Trigger, 0)
 }
 
 func NewTriggerEnv() *TriggerEnv {

@@ -83,6 +83,10 @@ func (s *Scene) GetNodeByID(id string) (*Node, bool) {
 	return s.nodeTree.GetNode(id)
 }
 
+func (s *Scene) GetNodeFunc(f func(*Node) bool) (*Node, bool) {
+	return s.nodeTree.GetNodeFunc(f)
+}
+
 // Returns the first actor of type T, or false if none is found
 func GetNodeByType[T Actor](s *Scene) (*Node, bool) {
 	f := func(n *Node) bool {
@@ -143,10 +147,10 @@ func (s *Scene) Print() {
 // TODO: Make it so that we don't have to use a pointer as type argument
 // Returns the field T embedded in the actor passed in, i.e.
 //
-//	GetActor[*Node](transform2D)
+//	As[*Node](transform2D)
 //
 // returns the Node actor embedded in the Transform2D passed in.
-func GetActor[T Actor](actor Actor) (T, bool) {
+func As[T Actor](actor Actor) (T, bool) {
 	if val, ok := actor.(T); ok {
 		return val, true
 	}
@@ -166,7 +170,7 @@ func GetActor[T Actor](actor Actor) (T, bool) {
 			return val, true
 		}
 
-		recurseVal, ok := GetActor[T](vf.Interface().(Actor))
+		recurseVal, ok := As[T](vf.Interface().(Actor))
 		if ok {
 			return recurseVal, true
 		}

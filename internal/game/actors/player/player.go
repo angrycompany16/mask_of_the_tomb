@@ -6,12 +6,15 @@ import (
 	"mask_of_the_tomb/internal/backend/input"
 	"mask_of_the_tomb/internal/backend/inputbuffer"
 	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/backend/node"
 	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/game/actors/doorv2"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
+	"mask_of_the_tomb/internal/game/sceneswitch"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -64,6 +67,68 @@ type Player struct {
 // jumpParticlesBroad *particles.ParticleSystem
 // jumpParticlesTight *particles.ParticleSystem
 // sprite                    *ebiten.Image
+
+func (p *Player) Init(cmd *commands.Commands) {
+	p.Slambox.Init(cmd)
+
+	scene, ok := commands.Get[engine.Scene](cmd)
+	if !ok {
+		panic("Missing scene (Player)")
+	}
+
+	sceneswitch, ok := commands.Get[sceneswitch.SceneSwitch](cmd)
+	if !ok {
+		panic("Missing sceneswitch (Player)")
+	}
+	spawnDoorIid := sceneswitch.SpawnEntityIid
+	spawnDoorNode, ok := scene.GetNodeFunc(
+		func(n *node.Node[engine.Actor]) bool {
+			doorActor, ok := engine.As[*doorv2.DoorV2](n.GetValue())
+			if !ok {
+				return false
+			}
+			return doorActor.EntityIid == spawnDoorIid
+		},
+	)
+	if !ok {
+		fmt.Println("Problem: Could not find door to spawn at...")
+	} else {
+		doorActor, ok := engine.As[*doorv2.DoorV2](spawnDoorNode.GetValue())
+		if !ok {
+			fmt.Println("Spawn door node could not convert to Door actor")
+		}
+		p.SetPos(doorActor.GetSpawnPos())
+	}
+
+	p.direction = sceneswitch.SpawnDirection
+
+	cmd.InputHandler.RegisterAction("moveLeft", input.KeyJustPressedAction(ebiten.KeyA))
+	cmd.InputHandler.AddBinding("moveLeft", input.KeyJustPressedAction(ebiten.KeyLeft))
+	cmd.InputHandler.RegisterAction("moveRight", input.KeyJustPressedAction(ebiten.KeyD))
+	cmd.InputHandler.AddBinding("moveRight", input.KeyJustPressedAction(ebiten.KeyRight))
+	cmd.InputHandler.RegisterAction("moveUp", input.KeyJustPressedAction(ebiten.KeyW))
+	cmd.InputHandler.AddBinding("moveUp", input.KeyJustPressedAction(ebiten.KeyUp))
+	cmd.InputHandler.RegisterAction("moveDown", input.KeyJustPressedAction(ebiten.KeyS))
+	cmd.InputHandler.AddBinding("moveDown", input.KeyJustPressedAction(ebiten.KeyDown))
+
+	// Would be very nice to set up a reference like this in another
+	// way
+	// But how? I guess we would have to link them together somehow
+	// in the bundle
+	childNode, ok := scene.GetNodeByName("PlayerSprite")
+	p.spriteTransform, ok = engine.As[*transform2D.Transform2D](childNode.GetValue())
+	p.animatedSprite, ok = engine.As[*animatedsprite.AnimatedSprite](childNode.GetValue())
+	p.OnClipFinish = eventsv2.NewEventBus(p.animatedSprite.OnClipFinished)
+
+	pivotNode, ok := scene.GetNodeByName("PlayerPivot")
+	p.pivotTransform, ok = engine.As[*transform2D.Transform2D](pivotNode.GetValue())
+
+	// If relevant, spawn in a different position
+
+	if !ok {
+		fmt.Println("død og jøde, markens grøde")
+	}
+}
 
 func (p *Player) Update(cmd *commands.Commands) {
 	p.Slambox.Update(cmd)
@@ -172,47 +237,6 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.slamDirBuffer = moveDir
 		p.inputbuffer.Clear()
 		p.StartSlamming(moveDir)
-	}
-}
-
-func (p *Player) Init(cmd *commands.Commands) {
-	p.Slambox.Init(cmd)
-
-	scene, ok := commands.Get[engine.Scene](cmd)
-	if !ok {
-		panic("Missing scene (Player)")
-	}
-
-	// sceneswitch, ok := commands.Get[engine.Scene](cmd)
-	// if !ok {
-	// 	panic("Missing sceneswitch (Player)")
-	// }
-
-	cmd.InputHandler.RegisterAction("moveLeft", input.KeyJustPressedAction(ebiten.KeyA))
-	cmd.InputHandler.AddBinding("moveLeft", input.KeyJustPressedAction(ebiten.KeyLeft))
-	cmd.InputHandler.RegisterAction("moveRight", input.KeyJustPressedAction(ebiten.KeyD))
-	cmd.InputHandler.AddBinding("moveRight", input.KeyJustPressedAction(ebiten.KeyRight))
-	cmd.InputHandler.RegisterAction("moveUp", input.KeyJustPressedAction(ebiten.KeyW))
-	cmd.InputHandler.AddBinding("moveUp", input.KeyJustPressedAction(ebiten.KeyUp))
-	cmd.InputHandler.RegisterAction("moveDown", input.KeyJustPressedAction(ebiten.KeyS))
-	cmd.InputHandler.AddBinding("moveDown", input.KeyJustPressedAction(ebiten.KeyDown))
-
-	// Would be very nice to set up a reference like this in another
-	// way
-	// But how? I guess we would have to link them together somehow
-	// in the bundle
-	childNode, ok := scene.GetNodeByName("PlayerSprite")
-	p.spriteTransform, ok = engine.GetActor[*transform2D.Transform2D](childNode.GetValue())
-	p.animatedSprite, ok = engine.GetActor[*animatedsprite.AnimatedSprite](childNode.GetValue())
-	p.OnClipFinish = eventsv2.NewEventBus(p.animatedSprite.OnClipFinished)
-
-	pivotNode, ok := scene.GetNodeByName("PlayerPivot")
-	p.pivotTransform, ok = engine.GetActor[*transform2D.Transform2D](pivotNode.GetValue())
-
-	// If relevant, spawn in a different position
-
-	if !ok {
-		fmt.Println("død og jøde, markens grøde")
 	}
 }
 

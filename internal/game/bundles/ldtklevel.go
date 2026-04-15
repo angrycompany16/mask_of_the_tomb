@@ -173,7 +173,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 					), &entity, &level,
 				), cmd)
 
-				doorV2Actor, ok := engine.GetActor[*doorv2.DoorV2](doorNode.GetValue())
+				doorV2Actor, ok := engine.As[*doorv2.DoorV2](doorNode.GetValue())
 
 				doorSprite := scene.AddChild("Sprite", animatedsprite.NewAnimatedSprite(
 					graphic.NewGraphic(
@@ -208,7 +208,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 					}, "Playerspace", 5, 0.5, 0.5, "Idle",
 				), doorNode, cmd)
 
-				transform, ok := engine.GetActor[*transform2D.Transform2D](doorSprite.GetValue())
+				transform, ok := engine.As[*transform2D.Transform2D](doorSprite.GetValue())
 				if ok {
 					transform.SetAngle(maths.DirToRadians(direction))
 					// engine.GetActor[*doorv2.DoorV2](doorNode.GetValue())
@@ -229,9 +229,10 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 						),
 					),
 					trigger.WithRect(maths.NewRect(triggerEntity.Px[0], triggerEntity.Px[1], triggerEntity.Width, triggerEntity.Height)),
+					trigger.WithName(fmt.Sprintf("Door-%s", triggerEntityIid)),
 				), doorNode, cmd)
 
-				doorV2Actor.Trigger, ok = engine.GetActor[*trigger.Trigger](triggerNode.GetValue())
+				doorV2Actor.Trigger, ok = engine.As[*trigger.Trigger](triggerNode.GetValue())
 
 				// cmd.AssetLoader().LoadAll()
 				// doorNode.GetValue().Init(cmd)

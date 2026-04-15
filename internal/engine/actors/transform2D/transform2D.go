@@ -24,7 +24,7 @@ func (t *Transform2D) Update(cmd *commands.Commands) {
 		return
 	}
 
-	if parentTransform, ok := engine.GetActor[*Transform2D](parentNode.GetValue()); ok {
+	if parentTransform, ok := engine.As[*Transform2D](parentNode.GetValue()); ok {
 		t.global = t.local.times(&parentTransform.global)
 	} else {
 		t.global = t.local
