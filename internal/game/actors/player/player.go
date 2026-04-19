@@ -221,11 +221,6 @@ func (p *Player) Update(cmd *commands.Commands) {
 
 	direction := p.readMoveInput(cmd)
 	if direction != maths.DirNone {
-		// Also include platforms
-
-		// 1 - Get all platforms
-		// 2 - Add to slambox env
-		p.OnMove.WithData("Direction", direction).Raise()
 		p.inputbuffer.Set(direction)
 	}
 
@@ -244,6 +239,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 	tilemapCollision := slamboxenv.CheckTileOverlap(p.GetRect().Extended(moveDir, 1.0))
 
 	if slamboxQuery.HitKind == slambox.NONE && !tilemapCollision {
+		p.OnMove.WithData("Direction", moveDir).Raise()
 		p.Dash(moveDir)
 		p.inputbuffer.Clear()
 		return

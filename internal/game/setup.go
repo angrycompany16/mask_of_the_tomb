@@ -50,7 +50,7 @@ func CreateGame(gw, gh, ps int) *engine.Game {
 		sceneManager.RegisterScene(level.Iid, scenes.MakeGamePlayeScene(level.Iid))
 	}
 
-	spawnScene, _ := LDTKWorld.GetLevelByName("Level_3")
+	spawnScene, _ := LDTKWorld.GetLevelByName("Level_8")
 	sceneManager.SpawnScene(spawnScene.Iid, cmd)
 	return game
 }

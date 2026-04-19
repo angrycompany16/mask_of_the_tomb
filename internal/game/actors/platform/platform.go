@@ -15,20 +15,15 @@ import (
 
 type Platform struct {
 	*graphic.Graphic
-	Hitbox       *maths.Rect
-	direction    maths.Direction
-	OnPlayerMove *eventsv2.EventBus
-	active       bool
+	Hitbox             *maths.Rect
+	direction          maths.Direction
+	OnPlayerMove       *eventsv2.EventBus
+	OnPlayerMoveFinish *eventsv2.EventBus
+	active             bool
 }
 
 func (p *Platform) Init(cmd *commands.Commands) {
 	p.Graphic.Init(cmd)
-	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
-	if !ok {
-		panic("Missing slambox env (Platform)")
-	}
-
-	slamboxenv.AddEnvironmentRect(p.Hitbox)
 
 	scene, _ := commands.Get[engine.Scene](cmd)
 	playerNode, ok := engine.GetNodeByType[*player.Player](scene)
@@ -38,19 +33,26 @@ func (p *Platform) Init(cmd *commands.Commands) {
 
 	playerActor, _ := engine.As[*player.Player](playerNode.GetValue())
 	p.OnPlayerMove = eventsv2.NewEventBus(playerActor.OnMove)
+	p.OnPlayerMoveFinish = eventsv2.NewEventBus(playerActor.OnMoveFinishEv)
 }
 
 func (p *Platform) Update(cmd *commands.Commands) {
 	p.Graphic.Update(cmd)
+	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
 	if data, raised := p.OnPlayerMove.Poll(); raised {
 		direction := data["Direction"]
-		slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
-		if direction == p.direction {
-			p.active = false
-			slamboxenv.RemoveEnvironmentRect(p.Hitbox)
-		} else if p.active == false {
+		if direction == maths.Opposite(p.direction) {
 			p.active = true
 			slamboxenv.AddEnvironmentRect(p.Hitbox)
+		} else if p.active == true {
+			p.active = false
+			slamboxenv.RemoveEnvironmentRect(p.Hitbox)
+		}
+	}
+
+	if _, raised := p.OnPlayerMoveFinish.Poll(); raised {
+		if p.active == true {
+			slamboxenv.RemoveEnvironmentRect(p.Hitbox)
 		}
 	}
 }
@@ -61,7 +63,7 @@ func NewPlatform(
 ) *Platform {
 	newPlatform := &Platform{
 		Graphic: graphic,
-		active:  true,
+		active:  false,
 	}
 	newPlatform.Hitbox = maths.NewRect(
 		entity.Px[0],
