@@ -13,6 +13,8 @@ import (
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
 )
 
+// TODO: Consider using an autotile-setup for the graphics
+
 type Platform struct {
 	*graphic.Graphic
 	Hitbox             *maths.Rect
@@ -36,6 +38,10 @@ func (p *Platform) Init(cmd *commands.Commands) {
 	p.OnPlayerMoveFinish = eventsv2.NewEventBus(playerActor.OnMoveFinishEv)
 }
 
+// TODO: Bug: When the player uses a buffered input, OnPlayerMove
+// is actually called *before* OnPlayerMoveFinish, which leads to
+// a bug where the player can go through more platforms than he is
+// supposed to.
 func (p *Platform) Update(cmd *commands.Commands) {
 	p.Graphic.Update(cmd)
 	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)

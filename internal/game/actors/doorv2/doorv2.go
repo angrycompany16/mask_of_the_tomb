@@ -96,7 +96,7 @@ func (d *DoorV2) Update(cmd *commands.Commands) {
 func (d *DoorV2) DrawGizmo(cmd *commands.Commands) {
 	d.Graphic.DrawGizmo(cmd)
 	d.gizmosImage.Clear()
-	vector64.StrokeRect(d.gizmosImage, 0, 0, d.Hitbox.Width()-1, d.Hitbox.Height()-1, 1, color.RGBA{255, 0, 0, 255}, false)
+	vector64.StrokeRect(d.gizmosImage, 0, 0, d.Hitbox.Width-1, d.Hitbox.Height-1, 1, color.RGBA{255, 0, 0, 255}, false)
 
 	camX, camY := d.GetCamera().WorldToCam(d.Hitbox.Left(), d.Hitbox.Top(), false)
 

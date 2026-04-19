@@ -10,6 +10,7 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 )
 
+// Bundle that spawns a camera, an inspector and an asset viewer.
 func MakeDefaultBundle(gameWidth, gameHeight, pixelScale float64) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
 		scene.SpawnActor("Camera", camera.NewCamera(

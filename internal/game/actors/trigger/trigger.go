@@ -57,7 +57,7 @@ func (t *Trigger) Init(cmd *commands.Commands) {
 			t.otherColliderName = info.OtherName
 		}
 	}
-	vector64.FillRect(t.gizmosImage, 0, 0, t.trigger.Rect.Width(), t.trigger.Rect.Height(), color.RGBA{40, 100, 100, 50}, false)
+	vector64.FillRect(t.gizmosImage, 0, 0, t.trigger.Rect.Width, t.trigger.Rect.Height, color.RGBA{40, 100, 100, 50}, false)
 }
 
 func (t *Trigger) Update(cmd *commands.Commands) {
@@ -125,7 +125,7 @@ func NewTrigger(graphic *graphic.Graphic, options ...utils.Option[Trigger]) *Tri
 func WithRect(rect *maths.Rect) utils.Option[Trigger] {
 	return func(t *Trigger) {
 		t.trigger.Rect = rect
-		t.gizmosImage = ebiten.NewImage(int(rect.Width()), int(rect.Height()))
+		t.gizmosImage = ebiten.NewImage(int(rect.Width), int(rect.Height))
 	}
 }
 

@@ -32,35 +32,35 @@ const (
 )
 
 type Rect struct {
-	x      float64
-	y      float64
-	width  float64
-	height float64
+	X      float64
+	Y      float64
+	Width  float64
+	Height float64
 }
 
 func (r *Rect) Left() float64 {
-	return r.x
+	return r.X
 }
 
 func (r *Rect) Right() float64 {
-	return r.x + r.width
+	return r.X + r.Width
 }
 
 func (r *Rect) Top() float64 {
-	return r.y
+	return r.Y
 }
 
 func (r *Rect) Bottom() float64 {
-	return r.y + r.height
+	return r.Y + r.Height
 }
 
 // Pixel perfect version. Should replace the usual right?
 func (r *Rect) PPBottom() float64 {
-	return r.y + r.height - 1
+	return r.Y + r.Height - 1
 }
 
 func (r *Rect) Center() (float64, float64) {
-	return r.x + r.width/2, r.y + r.height/2
+	return r.X + r.Width/2, r.Y + r.Height/2
 }
 
 func (r *Rect) Cx() float64 {
@@ -77,63 +77,63 @@ func (r *Rect) TopLeft() (float64, float64) {
 	return r.Left(), r.Top()
 }
 
-func (r *Rect) Width() float64 {
-	return r.width
-}
+// func (r *Rect) Width() float64 {
+// 	return r.width
+// }
 
-func (r *Rect) Height() float64 {
-	return r.height
-}
+// func (r *Rect) Height() float64 {
+// 	return r.height
+// }
 
 func (r *Rect) Size() (float64, float64) {
-	return r.width, r.height
+	return r.Width, r.Height
 }
 
 func (r *Rect) HalfSize() (float64, float64) {
-	return r.width / 2, r.height / 2
+	return r.Width / 2, r.Height / 2
 }
 
 func (r *Rect) Extended(dir Direction, length float64) *Rect {
 	newRect := *r
 	switch dir {
 	case DirUp:
-		newRect.y -= length
-		newRect.height += length
+		newRect.Y -= length
+		newRect.Height += length
 	case DirDown:
-		newRect.height += length
+		newRect.Height += length
 	case DirRight:
-		newRect.width += length
+		newRect.Width += length
 	case DirLeft:
-		newRect.x -= length
-		newRect.width += length
+		newRect.X -= length
+		newRect.Width += length
 	}
 	return &newRect
 }
 
 func (r *Rect) SetSize(w, h float64) {
-	r.width = w
-	r.height = h
+	r.Width = w
+	r.Height = h
 }
 
 func (r *Rect) SetPos(x, y float64) {
-	r.x, r.y = x, y
+	r.X, r.Y = x, y
 }
 
 func (r *Rect) Translate(x, y float64) {
-	r.x += x
-	r.y += y
+	r.X += x
+	r.Y += y
 }
 
 func (r *Rect) Translated(x, y float64) Rect {
 	newRect := *r
-	newRect.x += x
-	newRect.y += y
+	newRect.X += x
+	newRect.Y += y
 	return newRect
 }
 
 func (r *Rect) Extend(x, y float64) {
-	r.width += x
-	r.height += y
+	r.Width += x
+	r.Height += y
 }
 
 func (r *Rect) Overlapping(other *Rect) bool {
@@ -157,10 +157,10 @@ func (r *Rect) RandomPointInside() (float64, float64) {
 
 func (r *Rect) Lerp(other *Rect, t float64) Rect {
 	return Rect{
-		x:      Lerp(r.x, other.x, t),
-		y:      Lerp(r.y, other.y, t),
-		width:  Lerp(r.width, other.width, t),
-		height: Lerp(r.height, other.height, t),
+		X:      Lerp(r.X, other.X, t),
+		Y:      Lerp(r.Y, other.Y, t),
+		Width:  Lerp(r.Width, other.Width, t),
+		Height: Lerp(r.Height, other.Height, t),
 	}
 }
 
@@ -170,13 +170,13 @@ func BB(rects []*Rect) *Rect {
 	minX := math.Inf(1)
 	minY := math.Inf(1)
 	for _, rect := range rects {
-		if rect.x < minX {
-			minX = rect.x
-			BBrect.x = rect.x
+		if rect.X < minX {
+			minX = rect.X
+			BBrect.X = rect.X
 		}
-		if rect.y < minY {
-			minY = rect.y
-			BBrect.y = rect.y
+		if rect.Y < minY {
+			minY = rect.Y
+			BBrect.Y = rect.Y
 		}
 	}
 	maxWidth := math.Inf(-1)
@@ -184,12 +184,12 @@ func BB(rects []*Rect) *Rect {
 	for _, rect := range rects {
 		if rect.Right()-minX > maxWidth {
 			maxWidth = rect.Right() - minX
-			BBrect.width = rect.Right() - minX
+			BBrect.Width = rect.Right() - minX
 		}
 
 		if rect.Bottom()-minY > maxHeight {
 			maxHeight = rect.Bottom() - minY
-			BBrect.height = rect.Bottom() - minY
+			BBrect.Height = rect.Bottom() - minY
 		}
 	}
 	return BBrect
@@ -200,13 +200,13 @@ func BB(rects []*Rect) *Rect {
 func (r *Rect) GetHalved(dir Direction) *Rect {
 	switch dir {
 	case DirUp:
-		return NewRect(r.x, r.y, r.width, r.height/2)
+		return NewRect(r.X, r.Y, r.Width, r.Height/2)
 	case DirDown:
-		return NewRect(r.x, r.y+r.height/2, r.width, r.height/2)
+		return NewRect(r.X, r.Y+r.Height/2, r.Width, r.Height/2)
 	case DirLeft:
-		return NewRect(r.x, r.y, r.width/2, r.height)
+		return NewRect(r.X, r.Y, r.Width/2, r.Height)
 	case DirRight:
-		return NewRect(r.x+r.width/2, r.y, r.width/2, r.height)
+		return NewRect(r.X+r.Width/2, r.Y, r.Width/2, r.Height)
 	}
 	return NewRect(0, 0, 0, 0)
 }
@@ -253,33 +253,33 @@ func (r *Rect) Reach(x, y float64) Rect {
 	if r.Contains(x, y) {
 		switch r.GetInteriorSection(x, y) {
 		case TOP:
-			return Rect{r.x, y, r.width, r.height}
+			return Rect{r.X, y, r.Width, r.Height}
 		case LEFT:
-			return Rect{x, r.y, r.width, r.height}
+			return Rect{x, r.Y, r.Width, r.Height}
 		case RIGHT:
-			return Rect{x - r.width, r.y, r.width, r.height}
+			return Rect{x - r.Width, r.Y, r.Width, r.Height}
 		case BOTTOM:
-			return Rect{r.x, y - r.height, r.width, r.height}
+			return Rect{r.X, y - r.Height, r.Width, r.Height}
 		}
 	}
 
 	switch r.GetExteriorSection(x, y) {
 	case TOP_LEFT:
-		return Rect{x, y, r.width, r.height}
+		return Rect{x, y, r.Width, r.Height}
 	case TOP_MIDDLE:
-		return Rect{r.x, y, r.width, r.height}
+		return Rect{r.X, y, r.Width, r.Height}
 	case TOP_RIGHT:
-		return Rect{x - r.width, y, r.width, r.height}
+		return Rect{x - r.Width, y, r.Width, r.Height}
 	case MIDDLE_LEFT:
-		return Rect{x, r.y, r.width, r.height}
+		return Rect{x, r.Y, r.Width, r.Height}
 	case MIDDLE_RIGHT:
-		return Rect{x - r.width, r.y, r.width, r.height}
+		return Rect{x - r.Width, r.Y, r.Width, r.Height}
 	case BOTTOM_LEFT:
-		return Rect{x, y - r.height, r.width, r.height}
+		return Rect{x, y - r.Height, r.Width, r.Height}
 	case BOTTOM_MIDDLE:
-		return Rect{r.x, y - r.height, r.width, r.height}
+		return Rect{r.X, y - r.Height, r.Width, r.Height}
 	case BOTTOM_RIGHT:
-		return Rect{x - r.width, y - r.height, r.width, r.height}
+		return Rect{x - r.Width, y - r.Height, r.Width, r.Height}
 	}
 	return *r
 }
@@ -394,9 +394,9 @@ func NewRect(x, y, width, height float64) *Rect {
 func RectFromImage(x, y float64, image *ebiten.Image) *Rect {
 	size := image.Bounds().Size()
 	return &Rect{
-		x:      x,
-		y:      y,
-		width:  float64(size.X),
-		height: float64(size.Y),
+		X:      x,
+		Y:      y,
+		Width:  float64(size.X),
+		Height: float64(size.Y),
 	}
 }

@@ -63,7 +63,7 @@ func (s *Slambox) Update(cmd *commands.Commands) {
 func (s *Slambox) DrawGizmo(cmd *commands.Commands) {
 	s.Tracker.DrawGizmo(cmd)
 	s.gizmosImage.Clear()
-	vector64.StrokeRect(s.gizmosImage, 0, 0, s.rect.Width()-1, s.rect.Height()-1, 1, color.RGBA{255, 0, 0, 255}, false)
+	vector64.StrokeRect(s.gizmosImage, 0, 0, s.rect.Width-1, s.rect.Height-1, 1, color.RGBA{255, 0, 0, 255}, false)
 
 	camX, camY := s.GetCamera().WorldToCam(s.rect.Left(), s.rect.Top(), false)
 

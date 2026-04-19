@@ -100,6 +100,7 @@ func (s *Sprite) GetLayer() string {
 func NewSprite(graphic *graphic.Graphic, target renderer.RenderTarget, srcPath string, options ...utils.Option[Sprite]) *Sprite {
 	s := defaultSprite(graphic)
 	s.target = target
+
 	s.srcPath = srcPath
 
 	for _, option := range options {

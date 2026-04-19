@@ -125,19 +125,19 @@ func CreateSprite(
 		dst.DrawImage(tile, opgen.Pos(tile, localX, localY))
 	}
 
-	for i := 0; i < int(rect.Width()/tileSize); i++ {
+	for i := 0; i < int(rect.Width/tileSize); i++ {
 		drawTile(i, 0)
-		drawTile(i, int(rect.Height()/tileSize-1))
+		drawTile(i, int(rect.Height/tileSize-1))
 	}
 
-	for i := 0; i < int(rect.Height()/tileSize); i++ {
+	for i := 0; i < int(rect.Height/tileSize); i++ {
 		drawTile(0, i)
-		drawTile(int(rect.Width()/tileSize-1), i)
+		drawTile(int(rect.Width/tileSize-1), i)
 	}
 
 	centerTile := srcTilemap.SubImage(tilemapSrcData[CENTER]).(*ebiten.Image)
-	for i := 1; i < int(rect.Width()/tileSize-1); i++ {
-		for j := 1; j < int(rect.Height()/tileSize-1); j++ {
+	for i := 1; i < int(rect.Width/tileSize-1); i++ {
+		for j := 1; j < int(rect.Height/tileSize-1); j++ {
 			localX, localY := float64(i)*tileSize, float64(j)*tileSize
 			dst.DrawImage(centerTile, opgen.Pos(centerTile, localX, localY))
 		}
