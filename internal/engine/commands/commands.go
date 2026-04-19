@@ -2,6 +2,7 @@ package commands
 
 import (
 	"mask_of_the_tomb/internal/backend/assetloader"
+	"mask_of_the_tomb/internal/backend/gameinfo"
 	"mask_of_the_tomb/internal/backend/input"
 	"mask_of_the_tomb/internal/backend/renderer"
 	"reflect"
@@ -11,6 +12,7 @@ type Commands struct {
 	Renderer     *renderer.Renderer
 	AssetLoader  *assetloader.AssetLoader
 	InputHandler *input.InputHandler
+	GameInfo     *gameinfo.GameInfo
 
 	Globals map[reflect.Type]interface{}
 }
@@ -31,6 +33,7 @@ func NewCommands(renderer *renderer.Renderer, assetloader *assetloader.AssetLoad
 		Renderer:     renderer,
 		AssetLoader:  assetloader,
 		InputHandler: inputhandler,
+		GameInfo:     gameinfo.NewGameInfo(),
 		Globals:      make(map[reflect.Type]interface{}),
 	}
 }

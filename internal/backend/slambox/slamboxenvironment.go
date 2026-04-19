@@ -569,6 +569,21 @@ func (se *SlamboxEnvironment) AddEnvironmentRect(rect *maths.Rect) {
 	se.environmentRects = append(se.environmentRects, rect)
 }
 
+func (se *SlamboxEnvironment) RemoveEnvironmentRect(rect *maths.Rect) {
+	index := -1
+	for i, other := range se.environmentRects {
+		if *other == *rect {
+			index = i
+		}
+	}
+	if index == -1 {
+		return
+	}
+
+	se.environmentRects[index] = se.environmentRects[len(se.environmentRects)-1]
+	se.environmentRects = se.environmentRects[:len(se.environmentRects)-1]
+}
+
 func (se *SlamboxEnvironment) ClearEnvironmentRects() {
 	se.environmentRects = make([]*maths.Rect, 0)
 }

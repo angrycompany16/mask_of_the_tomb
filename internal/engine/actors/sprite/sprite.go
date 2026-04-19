@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -18,12 +19,12 @@ import (
 
 type Sprite struct {
 	*graphic.Graphic
-	layer     string  `debug:"auto"`
 	drawOrder int     `debug:"auto"`
 	scaling   float64 `debug:"auto"`
 	srcPath   string  `debug:"auto"`
 	pivotX    float64 `debug:"auto"`
 	pivotY    float64 `debug:"auto"`
+	target    renderer.RenderTarget
 	imageRef  *assetloader.AssetRef[ebiten.Image]
 }
 
@@ -59,7 +60,7 @@ func (s *Sprite) Update(cmd *commands.Commands) {
 		gAngle,
 		gScaleX*s.scaling, gScaleY*s.scaling,
 		s.pivotX, s.pivotY,
-	), s.imageRef.Value(), s.layer, s.drawOrder)
+	), s.imageRef.Value(), s.target, s.drawOrder)
 }
 
 // TODO: Implement DrawInspector for some more stuff
@@ -92,13 +93,13 @@ func (s *Sprite) DrawInspector(ctx *debugui.Context) {
 }
 
 func (s *Sprite) GetLayer() string {
-	return s.layer
+	return s.target.Name
 }
 
 // We can remove layer and src as required args
-func NewSprite(graphic *graphic.Graphic, layer string, srcPath string, options ...utils.Option[Sprite]) *Sprite {
+func NewSprite(graphic *graphic.Graphic, target renderer.RenderTarget, srcPath string, options ...utils.Option[Sprite]) *Sprite {
 	s := defaultSprite(graphic)
-	s.layer = layer
+	s.target = target
 	s.srcPath = srcPath
 
 	for _, option := range options {
@@ -110,7 +111,10 @@ func NewSprite(graphic *graphic.Graphic, layer string, srcPath string, options .
 
 func defaultSprite(graphic *graphic.Graphic) *Sprite {
 	return &Sprite{
-		layer:     "Playerspace",
+		target: renderer.RenderTarget{
+			Type: renderer.SCREEN,
+			Name: "Playerspace",
+		},
 		drawOrder: 0,
 		scaling:   1.0,
 		Graphic:   graphic,

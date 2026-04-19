@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/backend/autotile"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -21,6 +22,7 @@ type AutoTileSprite struct {
 	sprite     *ebiten.Image
 	tilemapSrc string
 	tilemap    *assetloader.AssetRef[ebiten.Image]
+	target     renderer.RenderTarget
 }
 
 func (a *AutoTileSprite) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
@@ -42,7 +44,7 @@ func (a *AutoTileSprite) Update(cmd *commands.Commands) {
 
 	gPosX, gPosY := a.GetPos(false)
 	camX, camY := a.GetCamera().WorldToCam(gPosX, gPosY, true)
-	cmd.Renderer.Request(opgen.Pos(a.sprite, camX, camY, 0, 0), a.sprite, "Playerspace", 20)
+	cmd.Renderer.Request(opgen.Pos(a.sprite, camX, camY, 0, 0), a.sprite, a.target, 20)
 }
 
 func (a *AutoTileSprite) DrawInspector(ctx *debugui.Context) {
@@ -76,8 +78,9 @@ func defaultAutoTileSprite(graphic *graphic.Graphic) *AutoTileSprite {
 	}
 }
 
-func NewAutoTileSprite(graphic *graphic.Graphic, options ...utils.Option[AutoTileSprite]) *AutoTileSprite {
+func NewAutoTileSprite(graphic *graphic.Graphic, target renderer.RenderTarget, options ...utils.Option[AutoTileSprite]) *AutoTileSprite {
 	newAutoTileSprite := defaultAutoTileSprite(graphic)
+	newAutoTileSprite.target = target
 
 	for _, option := range options {
 		option(newAutoTileSprite)

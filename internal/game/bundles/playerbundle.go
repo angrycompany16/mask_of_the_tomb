@@ -2,6 +2,7 @@ package bundles
 
 import (
 	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
@@ -78,7 +79,10 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 					80,
 					player.IDLE_ANIM,
 				),
-			}, "Playerspace", 6, 0.5, 0.5, player.IDLE_ANIM,
+			}, renderer.RenderTarget{
+				Type: renderer.TEXTURE,
+				Name: "LevelTextureRaw",
+			}, 6, 0.5, 0.5, player.IDLE_ANIM,
 		), pivotNode, cmd)
 
 		scene.AddChild("PlayerTrigger", trigger.NewTrigger(

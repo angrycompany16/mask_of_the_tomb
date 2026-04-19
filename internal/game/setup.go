@@ -28,9 +28,9 @@ func CreateGame(gw, gh, ps int) *engine.Game {
 	commands.Set[slambox.SlamboxEnvironment](cmd, slambox.NewSlamboxEnvironment(8))
 	commands.Set[sceneswitch.SceneSwitch](cmd, &sceneswitch.SceneSwitch{"", maths.DirUp})
 
-	cmd.Renderer.Textures["LevelTextureRaw"] = ebiten.NewImage(1, 1)
-	cmd.Renderer.Textures["LevelBackgroundRaw"] = ebiten.NewImage(1, 1)
-	cmd.Renderer.Textures["LevelForegroundRaw"] = ebiten.NewImage(1, 1)
+	cmd.Renderer.Textures["ForegroundRaw"] = ebiten.NewImage(gw, gh)
+	cmd.Renderer.Textures["LevelTextureRaw"] = ebiten.NewImage(gw, gh)
+	cmd.Renderer.Textures["BackgroundRaw"] = ebiten.NewImage(gw, gh)
 
 	game := engine.NewGame(cmd)
 

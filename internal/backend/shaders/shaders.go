@@ -35,12 +35,12 @@ type lightParameters struct {
 // time should be resources.time / 5
 func MakeShaderOp(
 	lights []*Light,
-	resX, resY, camX, camY, camShakeX, camShakeY float64,
+	camX, camY, camShakeX, camShakeY float64,
 	ambientR, ambientG, ambientB float64,
 	time float64,
 	game_width, game_height float64,
 	src *ebiten.Image,
-) ebiten.DrawRectShaderOptions {
+) *ebiten.DrawRectShaderOptions {
 	shaderOp := ebiten.DrawRectShaderOptions{}
 
 	shaderOp.Images = [4]*ebiten.Image{
@@ -71,7 +71,7 @@ func MakeShaderOp(
 	}
 
 	shaderOp.Uniforms = map[string]any{
-		"Resolution":   [2]float64{resX, resY},
+		"Resolution":   [2]float64{game_width, game_height},
 		"CamShake":     [2]float64{camShakeX, camShakeY},
 		"Time":         time,
 		"PositionsX":   lightParameters.PositionsX,
@@ -86,7 +86,7 @@ func MakeShaderOp(
 		"AmbientLight": [3]float64{ambientR, ambientG, ambientB},
 	}
 
-	return shaderOp
+	return &shaderOp
 }
 
 // camX, camY should be camera.GetStablePos(). Src should be the image to sample

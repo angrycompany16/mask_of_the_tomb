@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/backend/inputbuffer"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/node"
+	"mask_of_the_tomb/internal/backend/shaders"
 	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
@@ -52,10 +53,18 @@ type Player struct {
 	inputbuffer               *inputbuffer.InputBuffer
 	OnMoveFinish              *eventsv2.EventBus
 	OnClipFinish              *eventsv2.EventBus
+	OnMove                    *eventsv2.Event
 	jumpOffset, jumpOffsetvel float64
 	slamboxIDBuffer           int
 	slamDirBuffer             maths.Direction
 	hasSlammedBox             bool
+	Light                     *shaders.Light
+
+	// Turn engine.bundle into some kind of generic thing (probably
+	// just a function), then pass it in explicitly. Hopefully we can
+	// then spawn the bundle after we've started playing the game, with
+	// no import problems :D
+	// jumpParticleSys engine.bundle
 
 	// moveSpeed   float64 // 5.0
 	// defaultPlayerHealth   = 5.0
@@ -133,6 +142,10 @@ func (p *Player) Init(cmd *commands.Commands) {
 func (p *Player) Update(cmd *commands.Commands) {
 	p.Slambox.Update(cmd)
 
+	x, y := p.pivotTransform.GetPos(false)
+	p.Light.X = x
+	p.Light.Y = y
+
 	scene, ok := commands.Get[engine.Scene](cmd)
 	if !ok {
 		panic("Missing scene (Player)")
@@ -208,6 +221,11 @@ func (p *Player) Update(cmd *commands.Commands) {
 
 	direction := p.readMoveInput(cmd)
 	if direction != maths.DirNone {
+		// Also include platforms
+
+		// 1 - Get all platforms
+		// 2 - Add to slambox env
+		p.OnMove.WithData("Direction", direction).Raise()
 		p.inputbuffer.Set(direction)
 	}
 
@@ -277,6 +295,19 @@ func NewPlayer(slambox *slamboxactor.Slambox, inputBufferDuration float64) *Play
 		Slambox:      slambox,
 		inputbuffer:  inputbuffer.NewInputBuffer(inputBufferDuration),
 		OnMoveFinish: eventsv2.NewEventBus(slambox.OnMoveFinishEv),
+		OnMove:       eventsv2.NewEvent(),
+
+		// TODO: Change so that the parameters are more intuitive
+		// noise factor should not be hard-coded
+		Light: &shaders.Light{
+			InnerRadius: 0,
+			OuterRadius: 200,
+			ZOffset:     0.2,
+			Intensity:   0.6,
+			R:           1.0,
+			G:           1.0,
+			B:           1.0,
+		},
 	}
 
 	return player

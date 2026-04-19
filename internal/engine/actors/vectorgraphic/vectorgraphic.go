@@ -3,6 +3,7 @@ package vectorgraphic
 import (
 	"image/color"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -16,8 +17,8 @@ type VectorGraphic struct {
 	drawFunc       func(*ebiten.Image)
 	image          *ebiten.Image
 	pivotX, pivotY float64 `debug:"auto"`
-	layer          string  `debug:"auto"`
 	drawOrder      int     `debug:"auto"`
+	target         renderer.RenderTarget
 }
 
 // Note: In some cases this can be optimized by rendering only in init
@@ -37,15 +38,18 @@ func (v *VectorGraphic) Update(cmd *commands.Commands) {
 		gAngle,
 		gScaleX, gScaleY,
 		v.pivotX, v.pivotY,
-	), v.image, v.layer, v.drawOrder)
+	), v.image, v.target, v.drawOrder)
 }
 
 func NewDefaultVectorGraphic(graphic *graphic.Graphic) *VectorGraphic {
 	return &VectorGraphic{
-		Graphic:   graphic,
-		drawFunc:  func(i *ebiten.Image) { vector64.FillRect(i, 0, 0, 16, 16, color.RGBA{255, 0, 0, 255}, false) },
-		image:     ebiten.NewImage(16, 16),
-		layer:     "Playerspace",
+		Graphic:  graphic,
+		drawFunc: func(i *ebiten.Image) { vector64.FillRect(i, 0, 0, 16, 16, color.RGBA{255, 0, 0, 255}, false) },
+		image:    ebiten.NewImage(16, 16),
+		target: renderer.RenderTarget{
+			renderer.SCREEN,
+			"Playerspace",
+		},
 		drawOrder: 0,
 	}
 }
@@ -81,9 +85,9 @@ func WithDrawOrder(drawOrder int) utils.Option[VectorGraphic] {
 	}
 }
 
-func WithLayer(layer string) utils.Option[VectorGraphic] {
+func WithTarget(target renderer.RenderTarget) utils.Option[VectorGraphic] {
 	return func(vg *VectorGraphic) {
-		vg.layer = layer
+		vg.target = target
 	}
 }
 

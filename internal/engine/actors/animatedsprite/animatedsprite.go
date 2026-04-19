@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -21,7 +22,7 @@ type AnimatedSprite struct {
 	Clips          map[string]*Clip
 	ActiveClipName string
 	OnClipFinished *eventsv2.Event
-	layer          string  `debug:"auto"`
+	target         renderer.RenderTarget
 	drawOrder      int     `debug:"auto"`
 	pivotX         float64 `debug:"auto"`
 	pivotY         float64 `debug:"auto"`
@@ -67,7 +68,7 @@ func (a *AnimatedSprite) Update(cmd *commands.Commands) {
 	cmd.Renderer.Request(
 		opgen.PosRotScale(activeClip.GetSprite(), camX, camY, angle, scaleX, scaleY, a.pivotX, a.pivotY),
 		activeClip.GetSprite(),
-		a.layer,
+		a.target,
 		a.drawOrder,
 	)
 }
@@ -95,7 +96,7 @@ func (a *AnimatedSprite) AddAnimation(clip *Clip, name string) {
 func NewAnimatedSprite(
 	graphic *graphic.Graphic,
 	clips map[string]*Clip,
-	layer string,
+	target renderer.RenderTarget,
 	drawOrder int,
 	pivotX, pivotY float64,
 	startClip string,
@@ -104,7 +105,7 @@ func NewAnimatedSprite(
 		Graphic:        graphic,
 		Clips:          clips,
 		OnClipFinished: eventsv2.NewEvent(),
-		layer:          layer,
+		target:         target,
 		drawOrder:      drawOrder,
 		pivotX:         pivotX,
 		pivotY:         pivotY,

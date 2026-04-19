@@ -3,6 +3,7 @@ package ldtktilelayer
 import (
 	"image"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
@@ -17,10 +18,11 @@ type LDTKTilemapLayer struct {
 	LDTKlayer    *ebitenLDTK.Layer
 	tilesetImage *ebiten.Image
 	Image        *ebiten.Image
-	layer        string  `debug:"auto"`
-	drawOrder    int     `debug:"auto"`
-	tileSize     float64 `debug:"auto"`
-	drawToScreen bool    `debug:"auto"`
+	renderTarget renderer.RenderTarget
+	// layer        string  `debug:"auto"`
+	drawOrder int     `debug:"auto"`
+	tileSize  float64 `debug:"auto"`
+	// drawToScreen bool    `debug:"auto"`
 }
 
 func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
@@ -61,9 +63,9 @@ func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
 
 func (t *LDTKTilemapLayer) Update(cmd *commands.Commands) {
 	t.Graphic.Update(cmd)
-	if !t.drawToScreen {
-		return
-	}
+	// if !t.drawToScreen {
+	// 	return
+	// }
 	gPosX, gPosY := t.Transform2D.GetPos(false)
 	camX, camY := t.GetCamera().WorldToCam(gPosX, gPosY, true)
 	gScaleX, gScaleY := t.Transform2D.GetScale(false)
@@ -71,7 +73,7 @@ func (t *LDTKTilemapLayer) Update(cmd *commands.Commands) {
 
 	cmd.Renderer.Request(opgen.PosRotScale(
 		t.Image, camX, camY, gAngle, gScaleX, gScaleY, 0.0, 0.0,
-	), t.Image, t.layer, t.drawOrder)
+	), t.Image, t.renderTarget, t.drawOrder)
 }
 
 func (t *LDTKTilemapLayer) DrawInspector(ctx *debugui.Context) {
@@ -83,20 +85,18 @@ func NewLDTKTilemapLayer(
 	graphic *graphic.Graphic,
 	LDTKLayer *ebitenLDTK.Layer,
 	tilesetImg *ebiten.Image,
-	layer string,
+	renderTarget renderer.RenderTarget,
 	drawOrder int,
 	tileSize int,
 	pxWidth, pxHeight int,
-	drawToScreen bool,
 ) *LDTKTilemapLayer {
 	return &LDTKTilemapLayer{
 		LDTKlayer:    LDTKLayer,
 		Graphic:      graphic,
 		tilesetImage: tilesetImg,
 		Image:        ebiten.NewImage(pxWidth, pxHeight),
-		layer:        layer,
+		renderTarget: renderTarget,
 		drawOrder:    drawOrder,
 		tileSize:     float64(tileSize),
-		drawToScreen: drawToScreen,
 	}
 }

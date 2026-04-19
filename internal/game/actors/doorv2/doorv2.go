@@ -6,6 +6,7 @@ import (
 	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/backend/triggerenv"
 	"mask_of_the_tomb/internal/backend/vector64"
@@ -50,7 +51,7 @@ func (d *DoorV2) Init(cmd *commands.Commands) {
 
 	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
 	if !ok {
-		panic("Missing slambox env (Player)")
+		panic("Missing slambox env (Door)")
 	}
 
 	cmd.InputHandler.RegisterAction("DoorInteract", func() bool {
@@ -99,7 +100,10 @@ func (d *DoorV2) DrawGizmo(cmd *commands.Commands) {
 
 	camX, camY := d.GetCamera().WorldToCam(d.Hitbox.Left(), d.Hitbox.Top(), false)
 
-	cmd.Renderer.Request(opgen.Pos(d.gizmosImage, camX, camY), d.gizmosImage, "Overlay", 0)
+	cmd.Renderer.Request(opgen.Pos(d.gizmosImage, camX, camY), d.gizmosImage, renderer.RenderTarget{
+		Type: renderer.SCREEN,
+		Name: "Overlay",
+	}, 0)
 }
 
 // Hard-coded for now. Not great but might have to do

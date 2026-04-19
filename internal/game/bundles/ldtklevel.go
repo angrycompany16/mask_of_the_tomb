@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/colors"
 	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
@@ -17,7 +18,11 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 	ldtktilelayer "mask_of_the_tomb/internal/game/actors/LDTKTileLayer"
 	"mask_of_the_tomb/internal/game/actors/autotilesprite"
+	"mask_of_the_tomb/internal/game/actors/backgroundshader"
 	"mask_of_the_tomb/internal/game/actors/doorv2"
+	"mask_of_the_tomb/internal/game/actors/levelshader"
+	"mask_of_the_tomb/internal/game/actors/platform"
+	"mask_of_the_tomb/internal/game/actors/shaderactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/game/actors/tracker"
@@ -39,6 +44,8 @@ var layerMap = map[string]string{
 
 func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
+		// gw, gh := cmd.Renderer.GetGameSize()
+
 		LDTKData, ok := assetloader.GetAsset[assettypes.LDTKData](cmd.AssetLoader, "LDTK/world.ldtk")
 		if !ok {
 			panic("Grusom død")
@@ -84,32 +91,22 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			tileSize := tileset.TileGridSize
 			tilesetImg := tilesetMap[tileset.Name]
 
-			// TODO: Find a way to render the tile layers to texture instead
-			// of to screen. Then process them with shaders.
 			scene.SpawnActor(layer.Name, ldtktilelayer.NewLDTKTilemapLayer(
 				graphic.NewGraphic(
 					transform2D.NewTransform2D(
 						nodeactor.NewNode(),
 					),
 				),
-				&layer, tilesetImg, "Playerspace",
+				&layer, tilesetImg, renderer.RenderTarget{
+					Type: renderer.TEXTURE,
+					Name: "LevelTextureRaw",
+				},
 				-i,
 				int(tileSize),
 				int(level.PxWid),
 				int(level.PxHei),
-				false,
+				// false,
 			), cmd)
-
-			// // Spawn the shader as a child
-			// scene.AddChild("Shader",
-			// 	shaderactor.NewShaderEffect(
-			// 		graphic.NewGraphic(
-			// 			transform2D.NewTransform2D(
-			// 				nodeactor.NewNode(),
-			// 			),
-			// 		),
-			// 	),
-			// 	node, cmd)
 		}
 
 		scene.SpawnActor("BackgroundColor", vectorgraphic.NewVectorGraphic(
@@ -127,7 +124,10 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 					)
 				},
 			),
-			vectorgraphic.WithLayer("Background"),
+			vectorgraphic.WithTarget(renderer.RenderTarget{
+				Type: renderer.TEXTURE,
+				Name: "BackgroundRaw",
+			}),
 			vectorgraphic.WithDrawOrder(-len(level.Layers)-1),
 			vectorgraphic.WithImage(int(level.PxWid), int(level.PxHei)),
 			vectorgraphic.WithPivot(0, 0),
@@ -146,8 +146,8 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			// 	newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
 			// case names.CatcherEntity:
 			// 	newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
-			// case names.PlatformEntity:
-			// 	newLevel.platforms = append(newLevel.platforms, entities.NewPlatform(&entity, entityLayer.GridSize))
+			case "Platform":
+				SpawnPlatform(cmd, scene, &entity)
 			// case names.LanternEntity:
 			// 	newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
 			case "DoorV2":
@@ -169,8 +169,30 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),
 				),
-			), make([]*particles.Burst, 0), true, 0.5, 0, maths.RandomFloat64{0, 480}, maths.RandomFloat64{0, 270}, maths.RandomFloat64{0, 0}, maths.RandomFloat64{-5, 0}, maths.RandomFloat64{0, 4}, maths.RandomFloat64{0, 0.5}, maths.RandomFloat64{0, 0.01}, maths.RandomFloat64{0.7, 1.5}, maths.RandomFloat64{0.0, 0.0}, maths.RandomFloat64{3.0, 5.0}, maths.RandomFloat64{0.0, 2.0}, maths.RandomFloat64{0.0, 1.0}, [4]uint8{255, 255, 255, 255}, [4]uint8{255, 255, 255, 255}, 13, 13, "sprites/environment/star.png", "Background", 0,
+			), make([]*particles.Burst, 0), true, 0.5, 0, maths.RandomFloat64{0, 480}, maths.RandomFloat64{0, 270}, maths.RandomFloat64{0, 0}, maths.RandomFloat64{-5, 0}, maths.RandomFloat64{0, 4}, maths.RandomFloat64{0, 0.5}, maths.RandomFloat64{0, 0.01}, maths.RandomFloat64{0.7, 1.5}, maths.RandomFloat64{0.0, 0.0}, maths.RandomFloat64{3.0, 5.0}, maths.RandomFloat64{0.0, 2.0}, maths.RandomFloat64{0.0, 1.0}, [4]uint8{255, 255, 255, 255}, [4]uint8{255, 255, 255, 255}, 13, 13, "sprites/environment/star.png", "Background", 1,
 		), cmd)
+
+		scene.SpawnActor("BackgroundShader",
+			backgroundshader.NewBackgroundShader(
+				shaderactor.NewShader(
+					graphic.NewGraphic(
+						transform2D.NewTransform2D(
+							nodeactor.NewNode(),
+						),
+					), "shaders/fog.kage", cmd.Renderer.Textures["BackgroundRaw"], "Background", 0,
+				),
+			), cmd)
+
+		scene.SpawnActor("LevelShader",
+			levelshader.NewLevelShader(
+				shaderactor.NewShader(
+					graphic.NewGraphic(
+						transform2D.NewTransform2D(
+							nodeactor.NewNode(),
+						),
+					), "shaders/pixel_lights.kage", cmd.Renderer.Textures["LevelTextureRaw"], "Playerspace", 10,
+				),
+			), cmd)
 	}
 }
 
@@ -196,7 +218,10 @@ func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDT
 			transform2D.NewTransform2D(
 				nodeactor.NewNode(),
 			),
-		),
+		), renderer.RenderTarget{
+			Type: renderer.TEXTURE,
+			Name: "LevelTextureRaw",
+		},
 		autotilesprite.WithSize(entity.Width, entity.Height),
 		autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
 	), slamboxNode, cmd)
@@ -247,7 +272,10 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 				100,
 				"",
 			),
-		}, "Playerspace", 5, 0.5, 0.5, "Idle",
+		}, renderer.RenderTarget{
+			Type: renderer.TEXTURE,
+			Name: "LevelTextureRaw",
+		}, 5, 0.5, 0.5, "Idle",
 	), doorNode, cmd)
 
 	transform, ok := engine.As[*transform2D.Transform2D](doorSprite.GetValue())
@@ -274,4 +302,14 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	), doorNode, cmd)
 
 	doorV2Actor.Trigger, ok = engine.As[*trigger.Trigger](triggerNode.GetValue())
+}
+
+func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity) {
+	scene.SpawnActor("Platform", platform.NewPlatform(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+			),
+		), entity,
+	), cmd)
 }

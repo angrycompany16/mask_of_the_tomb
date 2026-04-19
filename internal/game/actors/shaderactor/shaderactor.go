@@ -5,10 +5,13 @@ import (
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/utils"
 
+	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -25,7 +28,7 @@ type Shader struct {
 	srcPath   string        `debug:"auto"`
 	layer     string        `debug:"auto"`
 	drawOrder int           `debug:"auto"`
-	op        *ebiten.DrawRectShaderOptions
+	Op        *ebiten.DrawRectShaderOptions
 }
 
 func (s *Shader) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
@@ -48,19 +51,9 @@ func (s *Shader) Update(cmd *commands.Commands) {
 		return
 	}
 
-	// shaderOp.Uniforms = map[string]any{
-	// 	"Time":       resources.Time / 5,
-	// 	"Amplitude":  1.0,
-	// 	"Frequency":  0.025,
-	// 	"Strength":   0.7,
-	// 	"Threshold":  0.4,
-	// 	"Color":      [4]float64{37.0 / 255, 49.0 / 255, 94.0 / 255, 1.0},
-	// 	"Center":     [2]float64{0.5, 0.5},
-	// 	"Resolution": [2]float64{rendering.GAME_WIDTH, rendering.GAME_HEIGHT},
-	// 	"PlayerPos":  [2]float64{ctx.PlayerX, ctx.PlayerY},
-	// }
 	gw, gh := cmd.Renderer.GetGameSize()
-	s.Image.DrawRectShader(int(gw), int(gh), s.shaderRef.Value(), s.op)
+	s.Image.Clear()
+	s.Image.DrawRectShader(int(gw), int(gh), s.shaderRef.Value(), s.Op)
 
 	gPosX, gPosY := s.Transform2D.GetPos(false)
 	camX, camY := s.GetCamera().WorldToCam(gPosX, gPosY, true)
@@ -68,19 +61,30 @@ func (s *Shader) Update(cmd *commands.Commands) {
 	cmd.Renderer.Request(opgen.Pos(
 		s.Image,
 		camX, camY,
-	), s.Image, s.layer, s.drawOrder)
+	), s.Image, renderer.RenderTarget{
+		renderer.SCREEN,
+		s.layer,
+	}, s.drawOrder)
+}
+
+func (s *Shader) DrawInspector(ctx *debugui.Context) {
+	s.Graphic.DrawInspector(ctx)
+	utils.RenderFieldsAuto(ctx, s)
 }
 
 func (s *Shader) SetShaderOp(op *ebiten.DrawRectShaderOptions) {
-	s.op = op
+	s.Op = op
+}
+
+func (s *Shader) GetSrcImage() *ebiten.Image {
+	return s.srcImage
 }
 
 func (s *Shader) SetShaderOpUniform(key string, value any) {
-	s.op.Uniforms[key] = value
+	s.Op.Uniforms[key] = value
 }
 
 func NewShader(graphic *graphic.Graphic, srcPath string, srcImage *ebiten.Image, layer string, drawOrder int) *Shader {
-
 	return &Shader{
 		Graphic:   graphic,
 		Image:     ebiten.NewImage(srcImage.Bounds().Dx(), srcImage.Bounds().Dy()),
@@ -88,6 +92,6 @@ func NewShader(graphic *graphic.Graphic, srcPath string, srcImage *ebiten.Image,
 		srcImage:  srcImage,
 		layer:     layer,
 		drawOrder: drawOrder,
-		op:        &ebiten.DrawRectShaderOptions{Blend: ebiten.BlendSourceOver},
+		Op:        &ebiten.DrawRectShaderOptions{Blend: ebiten.BlendSourceOver},
 	}
 }

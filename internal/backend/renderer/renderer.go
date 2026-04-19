@@ -16,14 +16,26 @@ const (
 	COLORM
 )
 
+type RenderType int
+
+const (
+	SCREEN RenderType = iota
+	TEXTURE
+)
+
+type RenderTarget struct {
+	Type RenderType
+	Name string
+}
+
 type DrawRequest struct {
-	requestType requestType
-	op          *ebiten.DrawImageOptions
-	colorm      colorm.ColorM
-	colormOp    *colorm.DrawImageOptions
-	src         *ebiten.Image
-	layer       string
-	drawOrder   int
+	requestType  requestType
+	renderTarget RenderTarget
+	op           *ebiten.DrawImageOptions
+	colorm       colorm.ColorM
+	colormOp     *colorm.DrawImageOptions
+	src          *ebiten.Image
+	drawOrder    int
 }
 
 type Renderer struct {
@@ -34,24 +46,24 @@ type Renderer struct {
 	Textures              map[string]*ebiten.Image // Images that aren't rendered to the screen
 }
 
-func (r *Renderer) Request(op *ebiten.DrawImageOptions, src *ebiten.Image, layer string, drawOrder int) {
+func (r *Renderer) Request(op *ebiten.DrawImageOptions, src *ebiten.Image, renderTarget RenderTarget, drawOrder int) {
 	r.drawRequests = append(r.drawRequests, &DrawRequest{
-		requestType: DRAW_IMAGE,
-		op:          op,
-		src:         src,
-		layer:       layer,
-		drawOrder:   drawOrder,
+		requestType:  DRAW_IMAGE,
+		op:           op,
+		src:          src,
+		renderTarget: renderTarget,
+		drawOrder:    drawOrder,
 	})
 }
 
-func (r *Renderer) RequestColorM(colorm colorm.ColorM, op *colorm.DrawImageOptions, src *ebiten.Image, layer string, drawOrder int) {
+func (r *Renderer) RequestColorM(colorm colorm.ColorM, op *colorm.DrawImageOptions, src *ebiten.Image, renderTarget RenderTarget, drawOrder int) {
 	r.drawRequests = append(r.drawRequests, &DrawRequest{
-		requestType: COLORM,
-		colorm:      colorm,
-		colormOp:    op,
-		src:         src,
-		layer:       layer,
-		drawOrder:   drawOrder,
+		requestType:  COLORM,
+		colorm:       colorm,
+		colormOp:     op,
+		src:          src,
+		renderTarget: renderTarget,
+		drawOrder:    drawOrder,
 	})
 }
 
@@ -66,16 +78,26 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 	})
 
 	for _, drawRequest := range r.drawRequests {
-		layer, ok := r.layers.Get(drawRequest.layer)
+		var target *ebiten.Image
+		var ok bool
+
+		switch drawRequest.renderTarget.Type {
+		case SCREEN:
+			target, ok = r.layers.Get(drawRequest.renderTarget.Name)
+		case TEXTURE:
+			target, ok = r.Textures[drawRequest.renderTarget.Name]
+		}
+
 		if !ok {
 			fmt.Println("Draw request failed - layer does not exist")
 			continue
 		}
+
 		switch drawRequest.requestType {
 		case DRAW_IMAGE:
-			layer.DrawImage(drawRequest.src, drawRequest.op)
+			target.DrawImage(drawRequest.src, drawRequest.op)
 		case COLORM:
-			colorm.DrawImage(layer, drawRequest.src, drawRequest.colorm, drawRequest.colormOp)
+			colorm.DrawImage(target, drawRequest.src, drawRequest.colorm, drawRequest.colormOp)
 		}
 	}
 
@@ -88,6 +110,12 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 		op.GeoM.Scale(scaleFactor, scaleFactor)
 		screen.DrawImage(layer, &op)
 		layer.Clear()
+	}
+}
+
+func (r *Renderer) ClearTextures() {
+	for _, texture := range r.Textures {
+		texture.Clear()
 	}
 }
 
@@ -106,6 +134,7 @@ func NewRenderer(gameWidth, gameHeight, pixelScale int, fullScreen, hideCursor b
 		pixelScale:   float64(pixelScale),
 		drawRequests: make([]*DrawRequest, 0),
 		layers:       om.New[string, *ebiten.Image](),
+		Textures:     make(map[string]*ebiten.Image, 0),
 	}
 
 	renderer.layers.Set("Background2", ebiten.NewImage(gameWidth, gameHeight))

@@ -198,7 +198,8 @@ func NewScene(name string, root Actor, cmd *commands.Commands) *Scene {
 var ErrTerminated = errors.New("Terminatednow")
 
 type Game struct {
-	cmd          *commands.Commands
+	cmd *commands.Commands
+	// TODO: Doesn't actually need to be a member of Game
 	sceneManager *SceneManager
 }
 
@@ -220,6 +221,7 @@ func (g *Game) Update() error {
 	}
 
 	g.sceneManager.activeScene.Update(g.cmd) // consider returning this instead?
+	g.cmd.Renderer.ClearTextures()
 	return nil
 }
 

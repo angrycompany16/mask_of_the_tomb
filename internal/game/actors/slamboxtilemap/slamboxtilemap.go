@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
@@ -56,7 +57,10 @@ func (st *SlamboxTilemap) DrawGizmo(cmd *commands.Commands) {
 	st.Graphic.DrawGizmo(cmd)
 	gPosX, gPosY := st.GetPos(false)
 	camX, camY := st.GetCamera().WorldToCam(gPosX, gPosY, false)
-	cmd.Renderer.Request(opgen.Pos(st.gizmosImage, camX, camY, 0, 0), st.gizmosImage, "Overlay", 1)
+	cmd.Renderer.Request(opgen.Pos(st.gizmosImage, camX, camY, 0, 0), st.gizmosImage, renderer.RenderTarget{
+		renderer.SCREEN,
+		"Overlay",
+	}, 1)
 }
 
 func NewSlamboxTilemap(graphic *graphic.Graphic, tiles [][]int, tileSize int) *SlamboxTilemap {

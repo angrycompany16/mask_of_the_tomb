@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
@@ -66,7 +67,10 @@ func (s *Slambox) DrawGizmo(cmd *commands.Commands) {
 
 	camX, camY := s.GetCamera().WorldToCam(s.rect.Left(), s.rect.Top(), false)
 
-	cmd.Renderer.Request(opgen.Pos(s.gizmosImage, camX, camY), s.gizmosImage, "Overlay", 0)
+	cmd.Renderer.Request(opgen.Pos(s.gizmosImage, camX, camY), s.gizmosImage, renderer.RenderTarget{
+		renderer.SCREEN,
+		"Overlay",
+	}, 0)
 }
 
 func (s *Slambox) RequestSlam(dir maths.Direction) {

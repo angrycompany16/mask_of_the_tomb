@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mask_of_the_tomb/internal/backend/input"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -51,7 +52,10 @@ func (i *Inspector) Update(cmd *commands.Commands) {
 	if i.visible {
 		i.editorImage.Clear()
 		i.UI.Draw(i.editorImage)
-		cmd.Renderer.Request(opgen.Pos(i.editorImage, i.x, i.y), i.editorImage, "EditorUI", 0)
+		cmd.Renderer.Request(opgen.Pos(i.editorImage, i.x, i.y), i.editorImage, renderer.RenderTarget{
+			renderer.SCREEN,
+			"EditorUI",
+		}, 0)
 	}
 }
 

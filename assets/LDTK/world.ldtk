@@ -11,7 +11,7 @@
 	"iid": "94589810-c210-11ef-b2e6-99619d5a4f10",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 484725,
-	"nextUid": 473,
+	"nextUid": 474,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "GridVania",
@@ -11232,7 +11232,7 @@
 			"fieldDefs": []
 		},
 		{
-			"identifier": "OneWayPlatform",
+			"identifier": "Platform",
 			"uid": 292,
 			"tags": [],
 			"exportToToc": false,
@@ -11266,7 +11266,7 @@
 			"pivotY": 0,
 			"fieldDefs": [
 				{
-					"identifier": "Direction",
+					"identifier": "DirectionPoint",
 					"doc": null,
 					"__type": "Point",
 					"uid": 318,
@@ -11293,6 +11293,46 @@
 					"regex": null,
 					"acceptFileTypes": null,
 					"defaultOverride": null,
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
+				},
+				{
+					"identifier": "Direction",
+					"doc": null,
+					"__type": "LocalEnum.Direction",
+					"uid": 473,
+					"type": "F_Enum(374)",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "EntityTile",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "StraightArrow",
+					"editorDisplayColor": null,
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": {
+						"id": "V_String",
+						"params": ["Down"]
+					},
 					"textLanguageMode": null,
 					"symmetricalRef": false,
 					"autoChainRef": true,
@@ -32475,21 +32515,24 @@
 							"__worldY": 680
 						},
 						{
-							"__identifier": "OneWayPlatform",
+							"__identifier": "Platform",
 							"__grid": [4,16],
 							"__pivot": [0,0],
 							"__tags": [],
-							"__tile": null,
+							"__tile": { "tilesetUid": 368, "x": 272, "y": 80, "w": 16, "h": 16 },
 							"__smartColor": "#A845AB",
 							"iid": "a593dee0-1030-11f0-b12c-fd0dc0302ebb",
 							"width": 16,
 							"height": 8,
 							"defUid": 292,
 							"px": [32,128],
-							"fieldInstances": [{ "__identifier": "Direction", "__type": "Point", "__value": { "cx": 4, "cy": 19 }, "__tile": null, "defUid": 318, "realEditorValues": [{
-								"id": "V_String",
-								"params": ["4,19"]
-							}] }],
+							"fieldInstances": [
+								{ "__identifier": "DirectionPoint", "__type": "Point", "__value": { "cx": 4, "cy": 19 }, "__tile": null, "defUid": 318, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["4,19"]
+								}] },
+								{ "__identifier": "Direction", "__type": "LocalEnum.Direction", "__value": "Down", "__tile": { "tilesetUid": 368, "x": 272, "y": 80, "w": 16, "h": 16 }, "defUid": 473, "realEditorValues": [] }
+							],
 							"__worldX": 1472,
 							"__worldY": 672
 						},

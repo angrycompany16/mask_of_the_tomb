@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -87,7 +88,10 @@ func (ps *ParticleSystem) DrawGizmo(cmd *commands.Commands) {
 
 	worldX, worldY := ps.Transform2D.GetPos(false)
 	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, false)
-	cmd.Renderer.Request(opgen.Pos(ps.gizmosImage, camX, camY, 0.5, 0.5), ps.gizmosImage, "Overlay", ps.drawOrder+1)
+	cmd.Renderer.Request(opgen.Pos(ps.gizmosImage, camX, camY, 0.5, 0.5), ps.gizmosImage, renderer.RenderTarget{
+		renderer.SCREEN,
+		"Overlay",
+	}, ps.drawOrder+1)
 }
 
 func (ps *ParticleSystem) Update(cmd *commands.Commands) {
@@ -130,7 +134,10 @@ func (ps *ParticleSystem) Update(cmd *commands.Commands) {
 		for _, particle := range ps.particles {
 			camX, camY := ps.GetCamera().WorldToCam(particle.posX, particle.posY, true)
 			c, op := particle.makeOp(camX, camY)
-			cmd.Renderer.RequestColorM(c, op, particle.sprite, ps.layer, ps.drawOrder)
+			cmd.Renderer.RequestColorM(c, op, particle.sprite, renderer.RenderTarget{
+				renderer.SCREEN,
+				ps.layer,
+			}, ps.drawOrder)
 		}
 		return
 	}
@@ -145,7 +152,10 @@ func (ps *ParticleSystem) Update(cmd *commands.Commands) {
 	angle := ps.Transform2D.GetAngle(false)
 	scaleX, scaleY := ps.Transform2D.GetScale(false)
 	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, true)
-	cmd.Renderer.Request(opgen.PosRotScale(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, ps.layer, ps.drawOrder)
+	cmd.Renderer.Request(opgen.PosRotScale(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, renderer.RenderTarget{
+		renderer.SCREEN,
+		ps.layer,
+	}, ps.drawOrder)
 }
 
 func (ps *ParticleSystem) DrawInspector(ctx *debugui.Context) {

@@ -5,6 +5,7 @@ import (
 	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/backend/triggerenv"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
@@ -95,7 +96,10 @@ func (t *Trigger) DrawGizmo(cmd *commands.Commands) {
 	t.Graphic.DrawGizmo(cmd)
 	gPosX, gPosY := t.GetPos(false)
 	camX, camY := t.GetCamera().WorldToCam(gPosX, gPosY, false)
-	cmd.Renderer.Request(opgen.Pos(t.gizmosImage, camX, camY, 0, 0), t.gizmosImage, "Overlay", 1)
+	cmd.Renderer.Request(opgen.Pos(t.gizmosImage, camX, camY, 0, 0), t.gizmosImage, renderer.RenderTarget{
+		renderer.SCREEN,
+		"Overlay",
+	}, 1)
 }
 
 func defaultTrigger(graphic *graphic.Graphic) *Trigger {
