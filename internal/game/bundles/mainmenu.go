@@ -4,12 +4,15 @@ import (
 	"image/color"
 	"mask_of_the_tomb/internal/backend/colors"
 	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/UI/align"
-	"mask_of_the_tomb/internal/engine/actors/UI/button"
-	"mask_of_the_tomb/internal/engine/actors/UI/buttonalign"
 	"mask_of_the_tomb/internal/engine/actors/UI/container"
+	"mask_of_the_tomb/internal/engine/actors/UI/cursor"
+	"mask_of_the_tomb/internal/engine/actors/UI/selectable"
+	"mask_of_the_tomb/internal/engine/actors/UI/selectlist"
 	"mask_of_the_tomb/internal/engine/actors/UI/textbox"
+	"mask_of_the_tomb/internal/engine/actors/UI/uigraphic"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/commands"
 )
@@ -28,6 +31,21 @@ func MakeMainMenuBundle() engine.Bundle {
 			align.WithSpacing([]float64{2, 3}),
 		), cmd)
 
+		scene.SpawnActor("CoolCursor", cursor.NewCursor(
+			uigraphic.NewUIGraphic(
+				container.NewContainer(
+					nodeactor.NewNode(),
+					container.WithRect(maths.NewRect(0, 0, 15, 15)),
+				),
+				"sprites/icons/circle-15x15.png",
+				3,
+				renderer.RenderTarget{
+					Type: renderer.SCREEN,
+					Name: "ScreenUI",
+				},
+			),
+		), cmd)
+
 		scene.AddChild("Title", textbox.NewTextBox(
 			container.NewContainer(
 				nodeactor.NewNode(),
@@ -37,7 +55,7 @@ func MakeMainMenuBundle() engine.Bundle {
 		), rootAlign, cmd)
 
 		buttonAlign := scene.AddChild("Align",
-			buttonalign.NewButtonAlign(
+			selectlist.NewButtonAlign(
 				align.NewAlign(
 					container.NewContainer(
 						nodeactor.NewNode(),
@@ -48,7 +66,7 @@ func MakeMainMenuBundle() engine.Bundle {
 			), rootAlign, cmd)
 
 		scene.AddChild("Text1",
-			button.NewButton(
+			selectable.NewSelectable(
 				textbox.NewTextBox(
 					container.NewContainer(
 						nodeactor.NewNode(),
@@ -67,7 +85,7 @@ func MakeMainMenuBundle() engine.Bundle {
 			), buttonAlign, cmd)
 
 		scene.AddChild("Text2",
-			button.NewButton(
+			selectable.NewSelectable(
 				textbox.NewTextBox(
 					container.NewContainer(
 						nodeactor.NewNode(),
@@ -86,7 +104,7 @@ func MakeMainMenuBundle() engine.Bundle {
 			), buttonAlign, cmd)
 
 		scene.AddChild("Text3",
-			button.NewButton(
+			selectable.NewSelectable(
 				textbox.NewTextBox(
 					container.NewContainer(
 						nodeactor.NewNode(),

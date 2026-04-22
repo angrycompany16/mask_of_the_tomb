@@ -54,6 +54,9 @@ func (t *Textbox) Init(cmd *commands.Commands) {
 func (t *Textbox) Update(cmd *commands.Commands) {
 	t.Container.Update(cmd)
 
+	// TODO: It is probably possible to make this work in
+	// a better way that doesn't create a new image each
+	// time
 	if data, raised := t.OnResize.Poll(); raised {
 		newRect := data["Rect"].(maths.Rect)
 		t.Image = ebiten.NewImage(int(newRect.Width), int(newRect.Height))

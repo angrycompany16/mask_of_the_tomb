@@ -1,30 +1,31 @@
-package buttonalign
+package selectlist
 
 import (
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/UI/align"
-	"mask_of_the_tomb/internal/engine/actors/UI/button"
+	"mask_of_the_tomb/internal/engine/actors/UI/selectable"
 	"mask_of_the_tomb/internal/engine/commands"
 )
 
-type ButtonAlign struct {
+type SelectList struct {
 	*align.Align
 	selectIndex int
 }
 
-func (b *ButtonAlign) Init(cmd *commands.Commands) {
+func (b *SelectList) Init(cmd *commands.Commands) {
 	b.Align.Init(cmd)
 
 	children := b.GetNode().GetChildren()
 	b.selectIndex = maths.Clamp(b.selectIndex, 0, len(children))
 
 	for i, child := range children {
-		buttonActor, ok := engine.As[*button.Button](child.GetValue())
+		buttonActor, ok := engine.As[*selectable.Selectable](child.GetValue())
 		if !ok {
 			continue
 		}
 		if i == b.selectIndex {
+
 			buttonActor.SetSelected(true)
 		} else {
 			buttonActor.SetDeselected()
@@ -32,7 +33,7 @@ func (b *ButtonAlign) Init(cmd *commands.Commands) {
 	}
 }
 
-func (b *ButtonAlign) Update(cmd *commands.Commands) {
+func (b *SelectList) Update(cmd *commands.Commands) {
 	b.Align.Update(cmd)
 	if b.IsRow {
 		if cmd.InputHandler.PollAction("UIRight") {
@@ -56,7 +57,7 @@ func (b *ButtonAlign) Update(cmd *commands.Commands) {
 	}
 
 	for i, child := range children {
-		buttonActor, ok := engine.As[*button.Button](child.GetValue())
+		buttonActor, ok := engine.As[*selectable.Selectable](child.GetValue())
 		if !ok {
 			continue
 		}
@@ -72,8 +73,8 @@ func (b *ButtonAlign) Update(cmd *commands.Commands) {
 	}
 }
 
-func NewButtonAlign(align *align.Align) *ButtonAlign {
-	return &ButtonAlign{
+func NewButtonAlign(align *align.Align) *SelectList {
+	return &SelectList{
 		Align:       align,
 		selectIndex: 0,
 	}

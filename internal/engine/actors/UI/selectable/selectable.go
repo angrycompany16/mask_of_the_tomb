@@ -1,4 +1,4 @@
-package button
+package selectable
 
 import (
 	"mask_of_the_tomb/internal/backend/colors"
@@ -6,18 +6,18 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 )
 
-type Button struct {
+type Selectable struct {
 	*textbox.Textbox
 	NormalColor   colors.ColorPair
 	SelectedColor colors.ColorPair
 	Selected      bool
 }
 
-func (b *Button) Update(cmd *commands.Commands) {
+func (b *Selectable) Update(cmd *commands.Commands) {
 	b.Textbox.Update(cmd)
 }
 
-func (b *Button) SetSelected(suppressSound bool) {
+func (b *Selectable) SetSelected(suppressSound bool) {
 	// if !b.selected && !suppresSound {
 	// 	sound_v2.PlaySound("selectUI", "sfxMaster", 0)
 	// }
@@ -34,7 +34,7 @@ func (b *Button) SetSelected(suppressSound bool) {
 	// }
 }
 
-func (b *Button) SetDeselected() {
+func (b *Selectable) SetDeselected() {
 	b.Selected = false
 	b.Textbox.Color = b.NormalColor
 	// b.Textbox.Color = colors.ColorPair{
@@ -48,8 +48,8 @@ func (b *Button) SetDeselected() {
 	// }
 }
 
-func NewButton(textbox *textbox.Textbox, normalColor colors.ColorPair, selectedColor colors.ColorPair) *Button {
-	return &Button{
+func NewSelectable(textbox *textbox.Textbox, normalColor colors.ColorPair, selectedColor colors.ColorPair) *Selectable {
+	return &Selectable{
 		Textbox:       textbox,
 		NormalColor:   normalColor,
 		SelectedColor: selectedColor,
