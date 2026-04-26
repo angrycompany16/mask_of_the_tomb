@@ -35,11 +35,6 @@ type Trigger struct {
 	gizmosImage       *ebiten.Image
 }
 
-// func (t *Trigger) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
-// 	t.Graphic.OnTreeAdd(node, cmd)
-// 	triggerenv, _ := commands.Get[triggerenv.TriggerEnv](cmd)
-// }
-
 func (t *Trigger) Init(cmd *commands.Commands) {
 	t.Graphic.Init(cmd)
 	triggerenv, ok := commands.Get[triggerenv.TriggerEnv](cmd)
@@ -100,6 +95,10 @@ func (t *Trigger) DrawGizmo(cmd *commands.Commands) {
 		renderer.SCREEN,
 		"Overlay",
 	}, 1)
+}
+
+func (t *Trigger) GetRect() maths.Rect {
+	return *t.trigger.Rect
 }
 
 func defaultTrigger(graphic *graphic.Graphic) *Trigger {

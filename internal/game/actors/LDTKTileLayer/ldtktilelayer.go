@@ -19,10 +19,8 @@ type LDTKTilemapLayer struct {
 	tilesetImage *ebiten.Image
 	Image        *ebiten.Image
 	renderTarget renderer.RenderTarget
-	// layer        string  `debug:"auto"`
-	drawOrder int     `debug:"auto"`
-	tileSize  float64 `debug:"auto"`
-	// drawToScreen bool    `debug:"auto"`
+	drawOrder    int     `debug:"auto"`
+	tileSize     float64 `debug:"auto"`
 }
 
 func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
@@ -35,7 +33,6 @@ func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
 		tiles = t.LDTKlayer.AutoLayerTiles
 	}
 
-	// fmt.Println(t.LDTKlayer.Name, t.tileSize)
 	for _, tile := range tiles {
 		scaleX, scaleY := 1.0, 1.0
 		switch tile.TileOrientation {
@@ -63,9 +60,7 @@ func (t *LDTKTilemapLayer) Init(cmd *commands.Commands) {
 
 func (t *LDTKTilemapLayer) Update(cmd *commands.Commands) {
 	t.Graphic.Update(cmd)
-	// if !t.drawToScreen {
-	// 	return
-	// }
+
 	gPosX, gPosY := t.Transform2D.GetPos(false)
 	camX, camY := t.GetCamera().WorldToCam(gPosX, gPosY, true)
 	gScaleX, gScaleY := t.Transform2D.GetScale(false)

@@ -11,6 +11,7 @@ import (
 	"mask_of_the_tomb/internal/backend/triggerenv"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -23,6 +24,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+type DoorState int
+
+const (
+	IDLE DoorState = iota
+	CLOSING
+	OPENING
+)
+
 const (
 	doorV2OtherSideFieldName = "OtherSide"
 	doorDirectionFieldName   = "Direction"
@@ -30,24 +39,30 @@ const (
 
 type DoorV2 struct {
 	*graphic.Graphic
-	Trigger         *trigger.Trigger         // an entity ref, not inheriting anything
-	SpriteTransform *transform2D.Transform2D // an entity ref, not inheriting anything
-	//
+	Trigger            *trigger.Trigger
+	SpriteTransform    *transform2D.Transform2D
+	AnimatedSprite     *animatedsprite.AnimatedSprite
 	EntityIid          string
 	OtherSideLevelIid  string
 	OtherSideEntityIid string
 	Hitbox             *maths.Rect
-	// The trigger child
-	// InteractRegion     *maths.Rect
-	// sprite             *ebiten.Image
-	isReady     bool
-	gizmosImage *ebiten.Image
-	direction   maths.Direction
-	OnCollision *eventsv2.EventBus
+	isReady            bool
+	gizmosImage        *ebiten.Image
+	Direction          maths.Direction
+	OnCollision        *eventsv2.EventBus
+	OnClipFinished     *eventsv2.EventBus
+	State              DoorState
 }
 
 func (d *DoorV2) Init(cmd *commands.Commands) {
 	d.Graphic.Init(cmd)
+	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
+
+	if sceneswitch.SpawnEntityIid == d.EntityIid {
+		d.State = CLOSING
+	}
+
+	d.OnClipFinished = eventsv2.NewEventBus(d.AnimatedSprite.OnClipFinished)
 
 	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
 	if !ok {
@@ -60,39 +75,54 @@ func (d *DoorV2) Init(cmd *commands.Commands) {
 	})
 	slamboxenv.AddEnvironmentRect(d.Hitbox)
 	d.OnCollision = eventsv2.NewEventBus(d.Trigger.OnCollision)
+
 }
 
 func (d *DoorV2) Update(cmd *commands.Commands) {
 	d.Transform2D.Update(cmd)
 
-	if value, raised := d.OnCollision.Poll(); raised && value["otherName"] == "Player" {
-		d.SpriteTransform.SetAngle(maths.DirToRadians(maths.Opposite(d.direction)))
-		d.isReady = true
-	} else {
-		d.isReady = false
-		d.SpriteTransform.SetAngle(maths.DirToRadians(d.direction))
-	}
-
-	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
-	if playerControls.PollAction("DoorInteract") && d.isReady {
-		fmt.Println("Switch scene!")
-		scenemanager, _ := commands.Get[engine.SceneManager](cmd)
-
-		sceneswitch, ok := commands.Get[sceneswitch.SceneSwitch](cmd)
-		if !ok {
-			panic("Missing scene switch (DoorV2)")
+	switch d.State {
+	case CLOSING:
+		d.AnimatedSprite.SwitchClip("Close")
+		if _, raised := d.OnClipFinished.Poll(); raised {
+			d.State = IDLE
+			cmd.InputHandler.InputSchemes["PlayerControls"].Active = true
 		}
-		sceneswitch.SpawnEntityIid = d.OtherSideEntityIid
-		sceneswitch.SpawnDirection = maths.Opposite(d.direction)
-		// TODO: There is a much better way to do this - Include an OnDestroy method that gets called whenever a scene gets destroyed.
-		slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
-		slamboxenv.Reset()
+	case OPENING:
+		if value, raised := d.OnClipFinished.Poll(); raised && value["clip"] == "Open" {
+			fmt.Println("Switch scene!")
+			scenemanager, _ := commands.Get[engine.SceneManager](cmd)
 
-		triggerenv, _ := commands.Get[triggerenv.TriggerEnv](cmd)
-		triggerenv.Reset()
+			sceneswitch, ok := commands.Get[sceneswitch.SceneSwitch](cmd)
+			if !ok {
+				panic("Missing scene switch (DoorV2)")
+			}
+			sceneswitch.SpawnEntityIid = d.OtherSideEntityIid
+			sceneswitch.SpawnDirection = maths.Opposite(d.Direction)
+			// TODO: There is a much better way to do this - Include an OnDestroy method that gets called whenever a scene gets destroyed.
+			slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
+			slamboxenv.Reset()
 
-		scenemanager.SpawnScene(d.OtherSideLevelIid, cmd)
+			triggerenv, _ := commands.Get[triggerenv.TriggerEnv](cmd)
+			triggerenv.Reset()
+
+			scenemanager.SpawnScene(d.OtherSideLevelIid, cmd)
+		}
+	case IDLE:
+		d.AnimatedSprite.SwitchClip("Idle")
+		if value, raised := d.OnCollision.Poll(); raised && value["otherName"] == "Player" {
+			d.isReady = true
+		} else {
+			d.isReady = false
+		}
+
+		playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+		if playerControls.PollAction("DoorInteract") && d.isReady {
+			d.AnimatedSprite.SwitchClip("Open")
+			d.State = OPENING
+		}
 	}
+
 }
 
 func (d *DoorV2) DrawGizmo(cmd *commands.Commands) {
@@ -111,7 +141,7 @@ func (d *DoorV2) DrawGizmo(cmd *commands.Commands) {
 // Hard-coded for now. Not great but might have to do
 func (d *DoorV2) GetSpawnPos() (float64, float64) {
 	cx, cy := d.Hitbox.Center()
-	switch d.direction {
+	switch d.Direction {
 	case maths.DirUp:
 		return cx - 8, d.Hitbox.Top() - 16
 	case maths.DirDown:
@@ -128,6 +158,7 @@ func NewDoorV2(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *e
 	newDoor := DoorV2{
 		Graphic:   graphic,
 		EntityIid: entity.Iid,
+		State:     IDLE,
 	}
 
 	newDoor.Hitbox = maths.NewRect(
@@ -138,7 +169,7 @@ func NewDoorV2(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *e
 	)
 
 	directionField := utils.Must(entity.GetFieldByName(doorDirectionFieldName))
-	newDoor.direction = maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)
+	newDoor.Direction = maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)
 
 	doorOtherSideField := utils.Must(entity.GetFieldByName(doorV2OtherSideFieldName))
 	doorOtherSide := ebitenLDTK.As[ebitenLDTK.EntityRef](doorOtherSideField)

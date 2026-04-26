@@ -53,8 +53,8 @@ func (a *AnimatedSprite) Update(cmd *commands.Commands) {
 
 	activeClip.Update()
 	if activeClip.IsFinished() {
+		a.OnClipFinished.WithData("clip", a.ActiveClipName).Raise()
 		if activeClip.GetNext() != "" {
-			a.OnClipFinished.WithData("clip", a.ActiveClipName).Raise()
 			a.ActiveClipName = activeClip.GetNext()
 		}
 	}

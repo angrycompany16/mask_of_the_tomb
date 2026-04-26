@@ -28,13 +28,16 @@ const (
 	SLAM_ANIM      = "Slam"
 )
 
-type playerState int
+//go:generate stringer -type=PlayerState
+type PlayerState int
 
 const (
-	Idle playerState = iota
-	Moving
-	Slamming
-	Dying
+	IDLE PlayerState = iota
+	MOVING
+	SLAMMING
+	DYING
+	LEAVING
+	ENTERING
 )
 
 // var (
@@ -45,7 +48,7 @@ const (
 
 type Player struct {
 	*slamboxactor.Slambox
-	State                     playerState
+	State                     PlayerState
 	direction                 maths.Direction
 	spriteTransform           *transform2D.Transform2D
 	animatedSprite            *animatedsprite.AnimatedSprite
@@ -58,6 +61,9 @@ type Player struct {
 	slamboxIDBuffer           int
 	slamDirBuffer             maths.Direction
 	hasSlammedBox             bool
+	doorOffset                float64
+	trueDoorOffset            float64
+	doorY                     float64
 	Light                     *shaders.Light
 
 	// Turn engine.bundle into some kind of generic thing (probably
@@ -109,6 +115,11 @@ func (p *Player) Init(cmd *commands.Commands) {
 		p.SetPos(doorActor.GetSpawnPos())
 		p.Transform2D.SetPos(doorActor.GetSpawnPos())
 		p.Transform2D.Propagate()
+		p.State = ENTERING
+		p.jumpOffset = -2 * p.GetRect().Height
+		p.jumpOffsetvel = 4.5
+		p.trueDoorOffset = 0
+		p.doorOffset = 0
 	}
 
 	p.direction = sceneswitch.SpawnDirection
@@ -148,26 +159,19 @@ func (p *Player) Init(cmd *commands.Commands) {
 func (p *Player) Update(cmd *commands.Commands) {
 	p.Slambox.Update(cmd)
 
+	scene, _ := commands.Get[engine.Scene](cmd)
+	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
+
 	x, y := p.pivotTransform.GetPos(false)
 
 	p.Light.X = x
 	p.Light.Y = y
 
-	scene, ok := commands.Get[engine.Scene](cmd)
-	if !ok {
-		panic("Missing scene (Player)")
-	}
-
-	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
-	if !ok {
-		panic("Missing slambox env (Player)")
-	}
-
 	switch p.State {
-	case Slamming:
+	case SLAMMING:
 		info, finished := p.OnClipFinish.Poll()
 		if finished && info["clip"] == "Slam" {
-			p.State = Idle
+			p.State = IDLE
 			p.jumpOffset = 0
 			p.jumpOffsetvel = 0
 			p.animatedSprite.SetPos(0, 0)
@@ -205,25 +209,64 @@ func (p *Player) Update(cmd *commands.Commands) {
 			p.slamboxIDBuffer = -1
 			p.hasSlammedBox = true
 		}
-		// p.jumpOffset = maths.Clamp(p.jumpOffset, 0, 1000000)
 		p.animatedSprite.SetPos(0, -p.jumpOffset)
 		// if p.jumpOffset == 0 && p.canPlaySlamSound {
 		// 	sound_v2.PlaySound("playerSlam", "sfxMaster", 0.04)
 		// 	p.canPlaySlamSound = false
 		// 	camera.Shake(0.4, 7, 1)
 		// }
-	case Idle:
+	case IDLE:
 		p.animatedSprite.SwitchClip(IDLE_ANIM)
-	case Moving:
+		playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+		if playerControls.PollAction("DoorInteract") {
+			doorNode, ok := scene.GetNodeFunc(func(n *engine.Node) bool {
+				door, ok := engine.As[*doorv2.DoorV2](n.GetValue())
+				if !ok {
+					return false
+				}
+				triggerRect := door.Trigger.GetRect()
+				return triggerRect.Contains(p.getCenterPos())
+			})
+
+			if ok {
+				p.State = LEAVING
+				door, _ := engine.As[*doorv2.DoorV2](doorNode.GetValue())
+				p.direction = door.Direction
+
+				p.setDoorOffset(door.Hitbox)
+
+				cmd.InputHandler.InputSchemes["PlayerControls"].Active = false
+				p.jumpOffsetvel = 3.5
+			}
+			//
+			// Switch to proper direction
+			// Move player to correct spot
+		}
+	case MOVING:
 		// p.movebox.Update()
 		_, finished := p.OnMoveFinish.Poll()
 		if finished {
 			p.direction = maths.Opposite(p.direction)
-			p.State = Idle
+			p.State = IDLE
 		}
-	case Dying:
+	case DYING:
 		p.animatedSprite.SwitchClip(IDLE_ANIM)
 		// p.deathAnim.Update()
+	case LEAVING:
+		p.jumpOffsetvel -= 0.2
+		p.jumpOffset += p.jumpOffsetvel
+		p.trueDoorOffset = maths.Lerp(p.trueDoorOffset, p.doorOffset, 0.1)
+		p.animatedSprite.SetPos(p.trueDoorOffset, -p.jumpOffset)
+	case ENTERING:
+		if p.jumpOffset > 0 {
+			p.jumpOffsetvel -= 0.32
+		} else if p.jumpOffset <= 0 && p.jumpOffsetvel <= 0 {
+			p.jumpOffset = 0
+			p.jumpOffsetvel = 0
+			p.State = IDLE
+		}
+		p.animatedSprite.SetPos(0, -p.jumpOffset)
+		p.jumpOffset += p.jumpOffsetvel
 	}
 
 	direction := p.readMoveInput(cmd)
@@ -237,7 +280,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 
 	p.inputbuffer.Update()
 
-	if moveDir == maths.DirNone || p.State != Idle {
+	if moveDir == maths.DirNone || p.State != IDLE {
 		return
 	}
 
@@ -261,10 +304,30 @@ func (p *Player) Update(cmd *commands.Commands) {
 	}
 }
 
+func (p *Player) getCenterPos() (float64, float64) {
+	x, y := p.Transform2D.GetPos(false)
+	return x + p.GetRect().Width/2, y + p.GetRect().Height/2
+}
+
+func (p *Player) setDoorOffset(doorRect *maths.Rect) {
+	dx := doorRect.Cx() - p.GetRect().Cx()
+	dy := doorRect.Cy() - p.GetRect().Cy()
+	switch p.direction {
+	case maths.DirUp:
+		p.doorOffset = dx
+	case maths.DirDown:
+		p.doorOffset = -dx
+	case maths.DirRight:
+		p.doorOffset = dy
+	case maths.DirLeft:
+		p.doorOffset = -dy
+	}
+}
+
 func (p *Player) Dash(direction maths.Direction) {
 	p.inputbuffer.Clear()
 	p.direction = direction
-	p.State = Moving
+	p.State = MOVING
 	p.Slambox.RequestSlam(direction)
 	p.animatedSprite.SwitchClip(DASH_INIT_ANIM)
 	// sound_v2.PlaySound("playerDash", "sfxMaster", 0.06)
@@ -276,7 +339,7 @@ func (p *Player) StartSlamming(direction maths.Direction) {
 	// p.canPlaySlamSound = true
 	p.direction = maths.Opposite(direction)
 	p.animatedSprite.SwitchClip(SLAM_ANIM)
-	p.State = Slamming
+	p.State = SLAMMING
 	p.jumpOffsetvel = 4
 }
 

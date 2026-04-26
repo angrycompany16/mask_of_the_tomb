@@ -281,8 +281,11 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	transform, ok := engine.As[*transform2D.Transform2D](doorSprite.GetValue())
 	if ok {
 		transform.SetAngle(maths.DirToRadians(direction))
-		doorV2Actor.SpriteTransform = transform
+		// doorV2Actor.SpriteTransform = transform
 	}
+
+	animatedsprite, _ := engine.As[*animatedsprite.AnimatedSprite](doorSprite.GetValue())
+	doorV2Actor.AnimatedSprite = animatedsprite
 
 	triggerField := utils.Must(entity.GetFieldByName("InteractRegion"))
 	triggerEntityIid := ebitenLDTK.As[ebitenLDTK.EntityRef](triggerField).EntityIid

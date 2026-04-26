@@ -7,9 +7,6 @@ import (
 	om "github.com/wk8/go-ordered-map/v2"
 )
 
-// HOLY SHIT.
-// There's a reason why I'm known as the pointer God...
-
 //go:generate stringer -type=AssetStatus
 type AssetStatus int
 
