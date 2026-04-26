@@ -66,6 +66,27 @@ func (n *Node[T]) GetChildFunc(f func(*Node[T]) bool) (*Node[T], bool) {
 	return n.children[i], true
 }
 
+// Returns a list of descendants for which the function evaluates to true.
+func (n *Node[T]) GetChildrenFunc(f func(*Node[T]) bool) []*Node[T] {
+	s := make([]*Node[T], 0)
+	if f(n) {
+		s = append(s, n)
+	}
+	s = slices.Concat(n.getChildrenRecursiveFunc(f))
+	return s
+}
+
+func (n *Node[T]) getChildrenRecursiveFunc(f func(*Node[T]) bool) []*Node[T] {
+	newChildren := make([]*Node[T], 0)
+	for _, child := range n.children {
+		if f(child) {
+			newChildren = append(newChildren, child)
+		}
+		newChildren = slices.Concat(newChildren, child.getChildrenRecursiveFunc(f))
+	}
+	return newChildren
+}
+
 func (n *Node[T]) getChildRecursiveFunc(f func(*Node[T]) bool) (*Node[T], bool) {
 	child, found := n.GetChildFunc(f)
 	if !found {
@@ -102,6 +123,10 @@ func (n *Node[T]) Reparent(parent *Node[T]) {
 	n.parent.children = trimmedChildren
 	n.parent = parent
 	n.parent.children = append(n.parent.children, n)
+}
+
+func (n *Node[T]) Traverse(callback func(*Node[T])) {
+	n.traverseRecursive(callback)
 }
 
 func (n *Node[T]) Print() {
@@ -157,6 +182,18 @@ func (n *NodeTree[T]) GetNodeFunc(f func(*Node[T]) bool) (*Node[T], bool) {
 	return n.root.getChildRecursiveFunc(f)
 }
 
+func (nt *NodeTree[T]) DeleteNode(id string) {
+	node, _ := nt.GetNode(id)
+	parent := node.GetParent()
+	// parent.children = make([]*Node[T], 0)
+	deleteIndex := slices.IndexFunc(parent.children, func(n *Node[T]) bool {
+		return n.id == id
+	})
+	parent.children[deleteIndex] = parent.children[len(parent.children)-1]
+	parent.children = parent.children[0 : len(parent.children)-1]
+	node.parent = nil
+}
+
 func (nt *NodeTree[T]) Print() {
 	nt.Traverse(func(n *Node[T]) {
 		n.Print()
@@ -176,9 +213,6 @@ func (nt *NodeTree[T]) DeepCopy(copy func(T) T) *NodeTree[T] {
 		nodeCopy, ok := newNodeTree.GetNode(node.id)
 		if !ok {
 			fmt.Println("Did not find node. Something is wrong")
-			// fmt.Println(node.id)
-			// newNodeTree.Print()
-			// panic(fmt.Errorf("død og pine"))
 			return
 		}
 

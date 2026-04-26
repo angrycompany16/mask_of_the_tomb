@@ -13,32 +13,48 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+type AutoAlign int
+
+const (
+	None AutoAlign = iota
+	Center
+	Fill
+)
+
 type Container struct {
 	*nodeactor.Node
 	Rect     *maths.Rect
 	absRect  *maths.Rect
 	OnResize *eventsv2.Event
-	Relative bool `debug:"auto"`
+	// Controls whether the Container is aligned automatically in relation
+	// to its parent. Note that this only has an effect on relatively
+	// positioned containers
+	autoAlign AutoAlign
+	Relative  bool `debug:"auto"`
 }
 
 func (c *Container) Init(cmd *commands.Commands) {
 	c.Node.Init(cmd)
-	cmd.InputHandler.AddBinding("UIConfirm", func() bool {
+	UIControls := cmd.InputHandler.InputSchemes["UIControls"]
+	UIControls.AddBinding("UIConfirm", func() bool {
 		return inpututil.IsKeyJustPressed(ebiten.KeySpace)
 	})
-	cmd.InputHandler.AddBinding("UIConfirm", func() bool {
+	UIControls.AddBinding("UIConfirm", func() bool {
 		return inpututil.IsKeyJustPressed(ebiten.KeyEnter)
 	})
-	cmd.InputHandler.AddBinding("UIRight", func() bool {
+	UIControls.AddBinding("UIClick", func() bool {
+		return inpututil.IsMouseButtonJustPressed(ebiten.MouseButton0)
+	})
+	UIControls.AddBinding("UIRight", func() bool {
 		return inpututil.IsKeyJustPressed(ebiten.KeyRight)
 	})
-	cmd.InputHandler.AddBinding("UILeft", func() bool {
+	UIControls.AddBinding("UILeft", func() bool {
 		return inpututil.IsKeyJustPressed(ebiten.KeyLeft)
 	})
-	cmd.InputHandler.AddBinding("UIUp", func() bool {
+	UIControls.AddBinding("UIUp", func() bool {
 		return inpututil.IsKeyJustPressed(ebiten.KeyUp)
 	})
-	cmd.InputHandler.AddBinding("UIDown", func() bool {
+	UIControls.AddBinding("UIDown", func() bool {
 		return inpututil.IsKeyJustPressed(ebiten.KeyDown)
 	})
 }
@@ -53,6 +69,19 @@ func (c *Container) Update(cmd *commands.Commands) {
 
 	if parentContainer, ok := engine.As[*Container](parentNode.GetValue()); ok {
 		if c.Relative {
+			switch c.autoAlign {
+			case None:
+			case Center:
+				wDiff := c.Rect.Width - parentContainer.Rect.Width
+				hDiff := c.Rect.Height - parentContainer.Rect.Height
+				offsetX := wDiff / 2
+				offsetY := hDiff / 2
+				c.Rect.SetPos(offsetX, offsetY)
+			case Fill:
+				c.Rect.SetPos(0, 0)
+				c.Rect.SetSize(parentContainer.Rect.Size())
+			}
+
 			c.absRect.SetPos(
 				parentContainer.absRect.X+c.Rect.X, parentContainer.absRect.Y+c.Rect.Y,
 			)
@@ -104,6 +133,10 @@ func (c *Container) GetAbsPos() (float64, float64) {
 	return c.absRect.X, c.absRect.Y
 }
 
+func (c *Container) GetAbsRect() maths.Rect {
+	return *c.absRect
+}
+
 func defaultContainer(node *nodeactor.Node) *Container {
 	return &Container{
 		Node:     node,
@@ -134,5 +167,11 @@ func WithRect(rect *maths.Rect) utils.Option[Container] {
 func WithRelative(relative bool) utils.Option[Container] {
 	return func(c *Container) {
 		c.Relative = relative
+	}
+}
+
+func WithAutoAlign(autoAlign AutoAlign) utils.Option[Container] {
+	return func(c *Container) {
+		c.autoAlign = autoAlign
 	}
 }

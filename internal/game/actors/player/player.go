@@ -107,18 +107,21 @@ func (p *Player) Init(cmd *commands.Commands) {
 			fmt.Println("Spawn door node could not convert to Door actor")
 		}
 		p.SetPos(doorActor.GetSpawnPos())
+		p.Transform2D.SetPos(doorActor.GetSpawnPos())
+		p.Transform2D.Propagate()
 	}
 
 	p.direction = sceneswitch.SpawnDirection
 
-	cmd.InputHandler.RegisterAction("moveLeft", input.KeyJustPressedAction(ebiten.KeyA))
-	cmd.InputHandler.AddBinding("moveLeft", input.KeyJustPressedAction(ebiten.KeyLeft))
-	cmd.InputHandler.RegisterAction("moveRight", input.KeyJustPressedAction(ebiten.KeyD))
-	cmd.InputHandler.AddBinding("moveRight", input.KeyJustPressedAction(ebiten.KeyRight))
-	cmd.InputHandler.RegisterAction("moveUp", input.KeyJustPressedAction(ebiten.KeyW))
-	cmd.InputHandler.AddBinding("moveUp", input.KeyJustPressedAction(ebiten.KeyUp))
-	cmd.InputHandler.RegisterAction("moveDown", input.KeyJustPressedAction(ebiten.KeyS))
-	cmd.InputHandler.AddBinding("moveDown", input.KeyJustPressedAction(ebiten.KeyDown))
+	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+	playerControls.RegisterAction("moveLeft", input.KeyJustPressedAction(ebiten.KeyA))
+	playerControls.AddBinding("moveLeft", input.KeyJustPressedAction(ebiten.KeyLeft))
+	playerControls.RegisterAction("moveRight", input.KeyJustPressedAction(ebiten.KeyD))
+	playerControls.AddBinding("moveRight", input.KeyJustPressedAction(ebiten.KeyRight))
+	playerControls.RegisterAction("moveUp", input.KeyJustPressedAction(ebiten.KeyW))
+	playerControls.AddBinding("moveUp", input.KeyJustPressedAction(ebiten.KeyUp))
+	playerControls.RegisterAction("moveDown", input.KeyJustPressedAction(ebiten.KeyS))
+	playerControls.AddBinding("moveDown", input.KeyJustPressedAction(ebiten.KeyDown))
 
 	// Would be very nice to set up a reference like this in another
 	// way
@@ -132,7 +135,10 @@ func (p *Player) Init(cmd *commands.Commands) {
 	pivotNode, ok := scene.GetNodeByName("PlayerPivot")
 	p.pivotTransform, ok = engine.As[*transform2D.Transform2D](pivotNode.GetValue())
 
-	// If relevant, spawn in a different position
+	p.pivotTransform.Propagate()
+	x, y := p.pivotTransform.GetPos(false)
+	p.Light.X = x
+	p.Light.Y = y
 
 	if !ok {
 		fmt.Println("død og jøde, markens grøde")
@@ -143,6 +149,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 	p.Slambox.Update(cmd)
 
 	x, y := p.pivotTransform.GetPos(false)
+
 	p.Light.X = x
 	p.Light.Y = y
 
@@ -274,13 +281,14 @@ func (p *Player) StartSlamming(direction maths.Direction) {
 }
 
 func (p *Player) readMoveInput(cmd *commands.Commands) maths.Direction {
-	if cmd.InputHandler.PollAction("moveLeft") {
+	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+	if playerControls.PollAction("moveLeft") {
 		return maths.DirLeft
-	} else if cmd.InputHandler.PollAction("moveRight") {
+	} else if playerControls.PollAction("moveRight") {
 		return maths.DirRight
-	} else if cmd.InputHandler.PollAction("moveUp") {
+	} else if playerControls.PollAction("moveUp") {
 		return maths.DirUp
-	} else if cmd.InputHandler.PollAction("moveDown") {
+	} else if playerControls.PollAction("moveDown") {
 		return maths.DirDown
 	}
 	return maths.DirNone

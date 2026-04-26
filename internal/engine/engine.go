@@ -38,6 +38,7 @@ type NodeTree = node.NodeTree[Actor]
 
 type SceneBuilder func(*commands.Commands) *Scene
 type Bundle func(*commands.Commands, *Scene)
+type BundleV2 func(*commands.Commands, *Scene) *Node
 
 type Scene struct {
 	name       string
@@ -83,6 +84,9 @@ func (s *Scene) GetNodeByID(id string) (*Node, bool) {
 	return s.nodeTree.GetNode(id)
 }
 
+// Traverses the tree and returns the first node that satisfies the
+// condition f. Returns true in this case, if no nodes satisfy
+// f it returns false
 func (s *Scene) GetNodeFunc(f func(*Node) bool) (*Node, bool) {
 	return s.nodeTree.GetNodeFunc(f)
 }
@@ -136,8 +140,19 @@ func (s *Scene) SpawnBundle(cmd *commands.Commands, bundle Bundle) {
 	bundle(cmd, s)
 }
 
+func (s *Scene) SpawnBundleV2(cmd *commands.Commands, bundle BundleV2) {
+	bundleRoot := bundle(cmd, s)
+	bundleRoot.Traverse(func(n *node.Node[Actor]) {
+		n.GetValue().Init(cmd)
+	})
+}
+
 func (s *Scene) SetParent(node *Node, parent *Node) {
 	node.Reparent(parent)
+}
+
+func (s *Scene) Delete(node *Node) {
+	s.nodeTree.DeleteNode(node.GetID())
 }
 
 func (s *Scene) Print() {
@@ -198,8 +213,7 @@ func NewScene(name string, root Actor, cmd *commands.Commands) *Scene {
 var ErrTerminated = errors.New("Terminatednow")
 
 type Game struct {
-	cmd *commands.Commands
-	// TODO: Doesn't actually need to be a member of Game
+	cmd          *commands.Commands
 	sceneManager *SceneManager
 }
 
@@ -220,7 +234,11 @@ func (g *Game) Update() error {
 		return nil
 	}
 
-	g.sceneManager.activeScene.Update(g.cmd) // consider returning this instead?
+	if g.cmd.GameInfo.Exit {
+		return ErrTerminated
+	}
+
+	g.sceneManager.activeScene.Update(g.cmd)
 	g.cmd.Renderer.ClearTextures()
 	return nil
 }
@@ -228,11 +246,6 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.cmd.Renderer.Draw(screen)
 }
-
-// Loads all staged assets
-// func (g *Game) LoadStaged() {
-// 	g.cmd.AssetLoader.LoadAll()
-// }
 
 func (g *Game) GetCmd() *commands.Commands {
 	return g.cmd
@@ -254,17 +267,6 @@ func (s *SceneManager) SpawnScene(name string, cmd *commands.Commands) *SceneMan
 	sceneInst := sceneBuilder(cmd)
 
 	// Load any staged assets
-	cmd.AssetLoader.LoadAll() // This will go into a different thread to avoid freezing
-	commands.Set[Scene](cmd, sceneInst)
-	s.activeScene = sceneInst
-
-	s.activeScene.Init(cmd)
-	return s
-}
-
-func (s *SceneManager) SpawnSceneImmediate(cmd *commands.Commands, sceneBuilder SceneBuilder) *SceneManager {
-	sceneInst := sceneBuilder(cmd)
-
 	cmd.AssetLoader.LoadAll()
 	commands.Set[Scene](cmd, sceneInst)
 	s.activeScene = sceneInst
@@ -272,6 +274,17 @@ func (s *SceneManager) SpawnSceneImmediate(cmd *commands.Commands, sceneBuilder 
 	s.activeScene.Init(cmd)
 	return s
 }
+
+// func (s *SceneManager) SpawnSceneImmediate(cmd *commands.Commands, sceneBuilder SceneBuilder) *SceneManager {
+// 	sceneInst := sceneBuilder(cmd)
+
+// 	cmd.AssetLoader.LoadAll()
+// 	commands.Set[Scene](cmd, sceneInst)
+// 	s.activeScene = sceneInst
+
+// 	s.activeScene.Init(cmd)
+// 	return s
+// }
 
 func (g *SceneManager) ActiveScene() *Scene {
 	return g.activeScene

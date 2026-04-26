@@ -15,8 +15,20 @@ type Align struct {
 	// should contain one number for each item, indicating how much
 	// of the relative space each cell should take. I.e. exactly
 	// copy what ebiten.debugui does.
+	// TODO: Add an option for automatically spacing all elements equally
 	spacing []float64
 	IsRow   bool
+}
+
+func (a *Align) Init(cmd *commands.Commands) {
+	a.Container.Init(cmd)
+	if len(a.spacing) == 1 && a.spacing[0] == -1 {
+		children := a.GetNode().GetChildren()
+		a.spacing = make([]float64, len(children))
+		for i := range a.spacing {
+			a.spacing[i] = 1
+		}
+	}
 }
 
 func (a *Align) Update(cmd *commands.Commands) {
@@ -63,7 +75,7 @@ func (a *Align) Update(cmd *commands.Commands) {
 func defaultAlign(container *container.Container) *Align {
 	return &Align{
 		Container: container,
-		spacing:   []float64{1},
+		spacing:   []float64{-1},
 		IsRow:     true,
 	}
 }

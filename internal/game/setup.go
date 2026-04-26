@@ -18,10 +18,14 @@ import (
 )
 
 func CreateGame(gw, gh, ps int) *engine.Game {
+	inputhandler := input.NewInputHandler()
+	inputhandler.InputSchemes["PlayerControls"] = input.NewInputScheme()
+	inputhandler.InputSchemes["UIControls"] = input.NewInputScheme()
+	inputhandler.InputSchemes["EngineControls"] = input.NewInputScheme()
 	cmd := commands.NewCommands(
 		renderer.NewRenderer(gw, gh, ps, true, true),
 		assetloader.NewAssetLoader(&assets.FS),
-		input.NewInputHandler(),
+		inputhandler,
 	)
 
 	commands.Set[triggerenv.TriggerEnv](cmd, triggerenv.NewTriggerEnv())
@@ -47,13 +51,12 @@ func CreateGame(gw, gh, ps int) *engine.Game {
 	sceneManager, _ := commands.Get[engine.SceneManager](cmd)
 	LDTKWorld := ldtkDataRef.Value().World
 	for _, level := range LDTKWorld.Levels {
-		sceneManager.RegisterScene(level.Iid, scenes.MakeGamePlayeScene(level.Iid))
+		sceneManager.RegisterScene(level.Iid, scenes.MakeGamePlayeScene(0, 0, level.Iid))
 	}
 
 	sceneManager.RegisterScene("MainMenu", scenes.MakeMainMenuScene())
+	sceneManager.RegisterScene("OptionsMenu", scenes.MakeOptionsScene())
 
-	// spawnScene, _ := LDTKWorld.GetLevelByName("Level_8")
-	// sceneManager.SpawnScene(spawnScene.Iid, cmd)
 	sceneManager.SpawnScene("MainMenu", cmd)
 	return game
 }

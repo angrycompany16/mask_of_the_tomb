@@ -72,6 +72,7 @@ func (t *Tracker) GetTarget() (float64, float64) {
 func (t *Tracker) SetPos(x, y float64) {
 	t.posX, t.posY = x, y
 	t.targetPosX, t.targetPosY = x, y
+	t.Transform2D.SetPos(x, y)
 }
 
 func (t *Tracker) GetPos() (float64, float64) {

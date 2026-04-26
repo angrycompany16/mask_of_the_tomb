@@ -54,7 +54,8 @@ func (d *DoorV2) Init(cmd *commands.Commands) {
 		panic("Missing slambox env (Door)")
 	}
 
-	cmd.InputHandler.RegisterAction("DoorInteract", func() bool {
+	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+	playerControls.RegisterAction("DoorInteract", func() bool {
 		return inpututil.IsKeyJustPressed(ebiten.KeySpace)
 	})
 	slamboxenv.AddEnvironmentRect(d.Hitbox)
@@ -72,7 +73,8 @@ func (d *DoorV2) Update(cmd *commands.Commands) {
 		d.SpriteTransform.SetAngle(maths.DirToRadians(d.direction))
 	}
 
-	if cmd.InputHandler.PollAction("DoorInteract") && d.isReady {
+	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+	if playerControls.PollAction("DoorInteract") && d.isReady {
 		fmt.Println("Switch scene!")
 		scenemanager, _ := commands.Get[engine.SceneManager](cmd)
 

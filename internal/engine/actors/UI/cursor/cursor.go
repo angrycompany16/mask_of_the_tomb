@@ -17,6 +17,15 @@ type Cursor struct {
 	*uigraphic.UIGraphic
 }
 
+func (c *Cursor) Init(cmd *commands.Commands) {
+	c.UIGraphic.Init(cmd)
+	mouseX, mouseY := ebiten.CursorPosition()
+	c.UIGraphic.SetPos(float64(mouseX), float64(mouseY))
+}
+
+// TODO: Here's an annoying thing: To avoid flickering we need to set the
+// mouse pos also in Init, which is kind of ugly... would be nice if
+// we could somehow defer rendering to the end of the Update loop always...
 func (c *Cursor) Update(cmd *commands.Commands) {
 	c.UIGraphic.Update(cmd)
 	mouseX, mouseY := ebiten.CursorPosition()

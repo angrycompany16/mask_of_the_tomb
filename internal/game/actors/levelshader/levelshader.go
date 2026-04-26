@@ -1,7 +1,6 @@
 package levelshader
 
 import (
-	"image/color"
 	"mask_of_the_tomb/internal/backend/shaders"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -32,30 +31,30 @@ func (l *LevelShader) Init(cmd *commands.Commands) {
 	playerActor, ok := engine.As[*player.Player](playerNode.GetValue())
 	l.player = playerActor
 
-	l.test.Fill(color.RGBA{255, 255, 255, 255})
+	// l.test.Fill(color.RGBA{255, 255, 255, 255})
 
-	gw, gh := cmd.Renderer.GetGameSize()
-	camX, camY := l.GetCamera().GetPos(false)
-	shakeX, shakeY := l.GetCamera().GetShake()
-	l.Shader.Op = shaders.MakeShaderOp(
-		// slices.Concat(
-		// arrays.MapSlice(l.turrets, func(turret *entities.Turret) *shaders.Light { return turret.Light }),
-		// arrays.MapSlice(l.lanterns, func(lantern *entities.Lantern) *shaders.Light { return lantern.Light }),
-		// arrays.MapSlice(l.slamboxEntities, func(slambox *SlamboxEntity) *shaders.Light { return slambox.Light }),
-		[]*shaders.Light{l.player.Light},
-		// ),
-		camX,
-		camY,
-		shakeX,
-		shakeY,
-		0.45,
-		0.45,
-		0.45,
-		cmd.GameInfo.GetTime()/5,
-		gw,
-		gh,
-		l.GetSrcImage(),
-	)
+	// gw, gh := cmd.Renderer.GetGameSize()
+	// camX, camY := l.GetCamera().GetPos(false)
+	// shakeX, shakeY := l.GetCamera().GetShake()
+	// l.Shader.Op = shaders.MakeShaderOp(
+	// 	// slices.Concat(
+	// 	// arrays.MapSlice(l.turrets, func(turret *entities.Turret) *shaders.Light { return turret.Light }),
+	// 	// arrays.MapSlice(l.lanterns, func(lantern *entities.Lantern) *shaders.Light { return lantern.Light }),
+	// 	// arrays.MapSlice(l.slamboxEntities, func(slambox *SlamboxEntity) *shaders.Light { return slambox.Light }),
+	// 	[]*shaders.Light{l.player.Light},
+	// 	// ),
+	// 	camX,
+	// 	camY,
+	// 	shakeX,
+	// 	shakeY,
+	// 	0.45,
+	// 	0.45,
+	// 	0.45,
+	// 	cmd.GameInfo.GetTime()/5,
+	// 	gw,
+	// 	gh,
+	// 	l.GetSrcImage(),
+	// )
 }
 
 func (l *LevelShader) Update(cmd *commands.Commands) {

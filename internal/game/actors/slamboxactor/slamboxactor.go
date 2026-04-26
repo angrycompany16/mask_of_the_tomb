@@ -37,6 +37,10 @@ func (s *Slambox) Init(cmd *commands.Commands) {
 		panic("Missing slambox env (Slambox)")
 	}
 	s.backendIndex = slamboxenv.AddSlambox(s.rect)
+
+	x, y := s.Tracker.GetPos()
+	s.rect.SetPos(x, y)
+	s.Transform2D.SetPos(x, y)
 }
 
 func (s *Slambox) Update(cmd *commands.Commands) {

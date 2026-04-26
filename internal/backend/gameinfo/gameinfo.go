@@ -3,6 +3,7 @@ package gameinfo
 import "time"
 
 type GameInfo struct {
+	Exit      bool
 	startTime time.Time
 }
 

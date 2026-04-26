@@ -52,6 +52,21 @@ func (t *Transform2D) DrawInspector(ctx *debugui.Context) {
 
 }
 
+// Deprecated: This is just shit
+// Should IN NO WAY be necessary. It's simply bad code.
+func (t *Transform2D) Propagate() {
+	parentNode := t.Node.GetNode().GetParent()
+	if parentNode == nil {
+		return
+	}
+
+	if parentTransform, ok := engine.As[*Transform2D](parentNode.GetValue()); ok {
+		t.global = t.local.times(&parentTransform.global)
+	} else {
+		t.global = t.local
+	}
+}
+
 func (t *Transform2D) GetPos(local bool) (float64, float64) {
 	if local {
 		return t.local.getPos()
@@ -61,6 +76,7 @@ func (t *Transform2D) GetPos(local bool) (float64, float64) {
 
 func (t *Transform2D) SetPos(x, y float64) {
 	t.local.setPos(x, y)
+	// t.Propagate()
 }
 
 func (t *Transform2D) GetAngle(local bool) float64 {

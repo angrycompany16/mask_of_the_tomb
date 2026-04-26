@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/game"
@@ -60,6 +61,7 @@ func main() {
 		if errors.Is(err, errors.ErrUnsupported) {
 			return
 		} else if err == engine.ErrTerminated {
+			fmt.Println("Quitting game. Goodbye!")
 			return
 		}
 		log.Fatal(err)

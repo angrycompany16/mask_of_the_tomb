@@ -1,10 +1,11 @@
 package bundles
 
 import (
-	"image/color"
-	"mask_of_the_tomb/internal/backend/colors"
+	"fmt"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/renderer"
+	"mask_of_the_tomb/internal/backend/slambox"
+	"mask_of_the_tomb/internal/backend/triggerenv"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/UI/align"
 	"mask_of_the_tomb/internal/engine/actors/UI/container"
@@ -17,21 +18,26 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 )
 
-func MakeMainMenuBundle() engine.Bundle {
-	return func(cmd *commands.Commands, scene *engine.Scene) {
+func MakePauseMenuBundle() engine.BundleV2 {
+	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		gw, gh := cmd.Renderer.GetGameSize()
 		ps := cmd.Renderer.GetPixelScale()
 
-		rootAlign := scene.SpawnActor("RootAlign", align.NewAlign(
+		rootContainer := scene.SpawnActor("PauseScreenBundle", container.NewContainer(
+			nodeactor.NewNode(),
+			container.WithRect(maths.NewRect(0, 0, gw*ps, gh*ps)),
+		), cmd)
+
+		rootAlign := scene.AddChild("Align", align.NewAlign(
 			container.NewContainer(
 				nodeactor.NewNode(),
 				container.WithRect(maths.NewRect(0, 0, gw*ps, gh*ps)),
 			),
 			align.WithIsRow(false),
 			align.WithSpacing([]float64{2, 3}),
-		), cmd)
+		), rootContainer, cmd)
 
-		scene.SpawnActor("CoolCursor", cursor.NewCursor(
+		scene.AddChild("CoolCursor", cursor.NewCursor(
 			uigraphic.NewUIGraphic(
 				container.NewContainer(
 					nodeactor.NewNode(),
@@ -44,18 +50,18 @@ func MakeMainMenuBundle() engine.Bundle {
 					Name: "ScreenUI",
 				},
 			),
-		), cmd)
+		), rootContainer, cmd)
 
 		scene.AddChild("Title", textbox.NewTextBox(
 			container.NewContainer(
 				nodeactor.NewNode(),
 			),
 			"fonts/JSE_AmigaAMOS.ttf",
-			textbox.WithText("Meletus' tomb"),
+			textbox.WithText("Pause"),
 		), rootAlign, cmd)
 
 		buttonAlign := scene.AddChild("Align",
-			selectlist.NewButtonAlign(
+			selectlist.NewSelectList(
 				align.NewAlign(
 					container.NewContainer(
 						nodeactor.NewNode(),
@@ -72,16 +78,20 @@ func MakeMainMenuBundle() engine.Bundle {
 						nodeactor.NewNode(),
 					),
 					"fonts/JSE_AmigaAMOS.ttf",
-					textbox.WithText("Play video game"),
+					textbox.WithText("Play"),
 				),
-				colors.ColorPair{
-					BrightColor: color.RGBA{255, 255, 255, 255},
-					DarkColor:   color.RGBA{100, 100, 100, 255},
-				},
-				colors.ColorPair{
-					BrightColor: color.RGBA{255, 0, 0, 255},
-					DarkColor:   color.RGBA{150, 50, 50, 255},
-				},
+				selectable.WithCallback(func(cmd *commands.Commands) {
+					playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+					playerControls.Active = true
+
+					scene, _ := commands.Get[engine.Scene](cmd)
+					pauseScreenRoot, ok := scene.GetNodeByName("PauseScreenBundle")
+					if !ok {
+						fmt.Println("Bad pasuemaneuwspawner update callback")
+						return
+					}
+					scene.Delete(pauseScreenRoot)
+				}),
 			), buttonAlign, cmd)
 
 		scene.AddChild("Text2",
@@ -93,14 +103,9 @@ func MakeMainMenuBundle() engine.Bundle {
 					"fonts/JSE_AmigaAMOS.ttf",
 					textbox.WithText("Options"),
 				),
-				colors.ColorPair{
-					BrightColor: color.RGBA{255, 255, 255, 255},
-					DarkColor:   color.RGBA{100, 100, 100, 255},
-				},
-				colors.ColorPair{
-					BrightColor: color.RGBA{255, 0, 0, 255},
-					DarkColor:   color.RGBA{150, 50, 50, 255},
-				},
+				selectable.WithCallback(func(cmd *commands.Commands) {
+
+				}),
 			), buttonAlign, cmd)
 
 		scene.AddChild("Text3",
@@ -110,16 +115,21 @@ func MakeMainMenuBundle() engine.Bundle {
 						nodeactor.NewNode(),
 					),
 					"fonts/JSE_AmigaAMOS.ttf",
-					textbox.WithText("Don't play video game"),
+					textbox.WithText("Quit"),
 				),
-				colors.ColorPair{
-					BrightColor: color.RGBA{255, 255, 255, 255},
-					DarkColor:   color.RGBA{100, 100, 100, 255},
-				},
-				colors.ColorPair{
-					BrightColor: color.RGBA{255, 0, 0, 255},
-					DarkColor:   color.RGBA{150, 50, 50, 255},
-				},
+				selectable.WithCallback(func(cmd *commands.Commands) {
+					slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
+					slamboxenv.Reset()
+					triggerenv, _ := commands.Get[triggerenv.TriggerEnv](cmd)
+					triggerenv.Reset()
+
+					playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+					playerControls.Active = true
+					scenemanager, _ := commands.Get[engine.SceneManager](cmd)
+					scenemanager.SpawnScene("MainMenu", cmd)
+				}),
 			), buttonAlign, cmd)
+
+		return rootContainer
 	}
 }

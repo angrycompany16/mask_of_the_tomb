@@ -25,7 +25,8 @@ type Inspector struct {
 
 func (i *Inspector) Init(cmd *commands.Commands) {
 	i.Node.Init(cmd)
-	cmd.InputHandler.RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
+	engineControls := cmd.InputHandler.InputSchemes["EngineControls"]
+	engineControls.RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
 }
 
 func (i *Inspector) Update(cmd *commands.Commands) {
@@ -40,7 +41,8 @@ func (i *Inspector) Update(cmd *commands.Commands) {
 		fmt.Println("Error in Editor!")
 	}
 
-	if cmd.InputHandler.PollAction("toggleInspector") {
+	engineControls := cmd.InputHandler.InputSchemes["EngineControls"]
+	if engineControls.PollAction("toggleInspector") {
 		i.visible = !i.visible
 		if i.visible {
 			ebiten.SetCursorMode(ebiten.CursorModeVisible)
@@ -53,8 +55,8 @@ func (i *Inspector) Update(cmd *commands.Commands) {
 		i.editorImage.Clear()
 		i.UI.Draw(i.editorImage)
 		cmd.Renderer.Request(opgen.Pos(i.editorImage, i.x, i.y), i.editorImage, renderer.RenderTarget{
-			renderer.SCREEN,
-			"EditorUI",
+			Type: renderer.SCREEN,
+			Name: "EditorUI",
 		}, 0)
 	}
 }
