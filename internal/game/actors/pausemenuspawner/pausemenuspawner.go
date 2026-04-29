@@ -23,13 +23,14 @@ func (p *PauseMenuSpawner) Init(cmd *commands.Commands) {
 	})
 }
 
+// TODO: Bug: If we pause while the player is currently in a level
+// transition, then the completion of said transition will re-enable
+// the player input scheme, meaning that we can control the player
+// when in reality we should not
+// A solution would be to somehow stop the update loop for the game.
+// although "live" pause screens are kind of cool i think.
 func (p *PauseMenuSpawner) Update(cmd *commands.Commands) {
 	p.Node.Update(cmd)
-	// TODO: Disable gameplay when pause menu is active
-	// Q: What to disable?
-	// Idea:
-	// - Slow down game time
-	// - Disable input
 	UIControls := cmd.InputHandler.InputSchemes["UIControls"]
 	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
 	if UIControls.PollAction("Pause") {

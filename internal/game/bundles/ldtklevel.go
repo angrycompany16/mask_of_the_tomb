@@ -33,9 +33,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type LDTKLevelBundleData struct {
-}
-
 var layerMap = map[string]string{
 	"Foreground":       "Foreground",
 	"PlayerspaceAlt":   "Playerspace",
@@ -150,7 +147,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			// case names.HazardEntity:
 			// 	newLevel.hazards = append(newLevel.hazards, entities.NewHazard(&entity))
 			case "Slambox":
-				SpawnSlambox(cmd, scene, &entity)
+				SpawnSlambox(cmd, scene, &entity, envParentNode)
 			// case names.GrassEntity:
 			// 	newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
 			// case names.TurretEntity:
@@ -158,11 +155,11 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			// case names.CatcherEntity:
 			// 	newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
 			case "Platform":
-				SpawnPlatform(cmd, scene, &entity)
+				SpawnPlatform(cmd, scene, &entity, envParentNode)
 			// case names.LanternEntity:
 			// 	newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
 			case "DoorV2":
-				SpawnDoor(cmd, scene, &entity, &level)
+				SpawnDoor(cmd, scene, &entity, &level, envParentNode)
 				// case chainNodeEntityName:
 				// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 				// case names.TestSpeechBubbleEntity:
@@ -207,24 +204,22 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 	}
 }
 
-func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity) {
+func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
 	// Spawn slambox bundle
-	slamboxNode := scene.SpawnActor("Slambox",
-		slamboxactor.NewSlambox(
-			tracker.NewTracker(
-				graphic.NewGraphic(
-					transform2D.NewTransform2D(
-						nodeactor.NewNode(),
-					),
-				), 7.5, entity.Px[0], entity.Px[1],
-			),
-			slamboxactor.WithPos(entity.Px[0], entity.Px[1]),
-			slamboxactor.WithSize(entity.Width, entity.Height),
+	slamboxActor := slamboxactor.NewSlambox(
+		tracker.NewTracker(
+			graphic.NewGraphic(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+				),
+			), 7.5, entity.Px[0], entity.Px[1],
 		),
-		cmd,
+		slamboxactor.WithPos(entity.Px[0], entity.Px[1]),
+		slamboxactor.WithSize(entity.Width, entity.Height),
 	)
+	slamboxNode := envParentNode.AddChild(slamboxActor, "Slambox", engine.MakeOnTreeAdd(slamboxActor, cmd))
 
-	scene.AddChild("Sprite", autotilesprite.NewAutoTileSprite(
+	autotileActor := autotilesprite.NewAutoTileSprite(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
 				nodeactor.NewNode(),
@@ -235,23 +230,23 @@ func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDT
 		},
 		autotilesprite.WithSize(entity.Width, entity.Height),
 		autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
-	), slamboxNode, cmd)
+	)
+	slamboxNode.AddChild(autotileActor, "Sprite", engine.MakeOnTreeAdd(autotileActor, cmd))
 }
 
-func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level) {
+func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level, envParentNode *engine.Node) {
 	directionField := utils.Must(entity.GetFieldByName("Direction"))
 	direction := maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)
 
-	doorNode := scene.SpawnActor("Door", doorv2.NewDoorV2(
+	doorV2Actor := doorv2.NewDoorV2(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
 				nodeactor.NewNode(),
 				transform2D.WithPos(entity.Px[0], entity.Px[1]),
 			),
 		), entity, level,
-	), cmd)
-
-	doorV2Actor, ok := engine.As[*doorv2.DoorV2](doorNode.GetValue())
+	)
+	doorNode := envParentNode.AddChild(doorV2Actor, "Door", engine.MakeOnTreeAdd(doorV2Actor, cmd))
 
 	doorAnim := animatedsprite.NewAnimatedSprite(
 		graphic.NewGraphic(
@@ -289,9 +284,9 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 		}, 5, 0.5, 0.5, "Idle",
 	)
 
-	doorSpriteNode := doorNode.AddChild(doorAnim, "Sprite", engine.MakeOnTreeAdd(doorAnim, cmd))
+	doorAnimNode := doorNode.AddChild(doorAnim, "Sprite", engine.MakeOnTreeAdd(doorAnim, cmd))
 
-	transform, ok := engine.As[*transform2D.Transform2D](doorSpriteNode.GetValue())
+	transform, ok := engine.As[*transform2D.Transform2D](doorAnimNode.GetValue())
 	if ok {
 		transform.SetAngle(maths.DirToRadians(direction))
 	}
@@ -320,12 +315,13 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	doorV2Actor.Trigger = triggerActor
 }
 
-func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity) {
-	scene.SpawnActor("Platform", platform.NewPlatform(
+func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
+	platformActor := platform.NewPlatform(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
 				nodeactor.NewNode(),
 			),
 		), entity,
-	), cmd)
+	)
+	envParentNode.AddChild(platformActor, "Platform", engine.MakeOnTreeAdd(platformActor, cmd))
 }
