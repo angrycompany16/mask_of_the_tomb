@@ -1,13 +1,15 @@
 package sprite
 
 import (
+	"fmt"
 	"image"
+	"mask_of_the_tomb/internal/backend/assetloader"
+	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
+	"mask_of_the_tomb/internal/backend/opgen"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/transform2D"
-	"mask_of_the_tomb/internal/engine/servers"
-	"mask_of_the_tomb/internal/engine/servers/assetloader"
-	"mask_of_the_tomb/internal/engine/servers/assetloader/assettypes"
-	"mask_of_the_tomb/internal/engine/servers/renderer"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
+	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
 	"math"
 
@@ -15,48 +17,53 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Option func(*Sprite)
-
 type Sprite struct {
-	transform2D.Transform2D
-	layer      string  `debug:"auto"`
-	drawOrder  int     `debug:"auto"`
-	scaling    float64 `debug:"auto"`
-	srcPath    string  `debug:"auto"`
-	imageAsset *assetloader.AssetRef[ebiten.Image]
+	*graphic.Graphic
+	drawOrder int     `debug:"auto"`
+	scaling   float64 `debug:"auto"`
+	srcPath   string  `debug:"auto"`
+	pivotX    float64 `debug:"auto"`
+	pivotY    float64 `debug:"auto"`
+	target    renderer.RenderTarget
+	imageRef  *assetloader.AssetRef[ebiten.Image]
 }
 
-func (s *Sprite) OnTreeAdd(node *engine.Node, servers *servers.Servers) {
-	s.Transform2D.OnTreeAdd(node, servers)
-	s.imageAsset = assetloader.StageAsset[ebiten.Image](
-		servers.AssetLoader(),
-		"sprite",
-		assettypes.MakeImageAsset(s.srcPath),
+func (s *Sprite) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
+	s.Graphic.OnTreeAdd(node, cmd)
+	s.imageRef = assetloader.StageAsset[ebiten.Image](
+		cmd.AssetLoader,
+		s.srcPath,
+		assettypes.NewImageAsset(s.srcPath),
 	)
 }
 
-func (s *Sprite) Init() {}
+func (s *Sprite) Init(cmd *commands.Commands) {
+	s.Graphic.Init(cmd)
+}
 
-func (s *Sprite) Update(servers *servers.Servers) {
-	s.Transform2D.Update(servers)
-	if s.imageAsset.Status() != assetloader.LOADED {
+func (s *Sprite) Update(cmd *commands.Commands) {
+	s.Graphic.Update(cmd)
+	if s.imageRef.Status() != assetloader.LOADED {
+		fmt.Println("Error: Sprite image asset not loaded")
 		// This should in theory never happen. But humans make mistakes...
 		return
 	}
 	gPosX, gPosY := s.Transform2D.GetPos(false)
 	gAngle := s.Transform2D.GetAngle(false)
 	gScaleX, gScaleY := s.Transform2D.GetScale(false)
+	camX, camY := s.GetCamera().WorldToCam(gPosX, gPosY, true)
 
 	// Change this so that stuff is centered tbh
-	servers.Renderer().Request(renderer.PosScaleRot(
-		s.imageAsset.Value(),
-		gPosX, gPosY,
+	cmd.Renderer.Request(opgen.PosRotScale(
+		s.imageRef.Value(),
+		camX, camY,
 		gAngle,
 		gScaleX*s.scaling, gScaleY*s.scaling,
-		0.5, 0.5,
-	), s.imageAsset.Value(), s.layer, s.drawOrder)
+		s.pivotX, s.pivotY,
+	), s.imageRef.Value(), s.target, s.drawOrder)
 }
 
+// TODO: Implement DrawInspector for some more stuff
 func (s *Sprite) DrawInspector(ctx *debugui.Context) {
 	ctx.SetGridLayout([]int{0}, []int{0})
 	ctx.Header("Sprite", false, func() {
@@ -65,14 +72,14 @@ func (s *Sprite) DrawInspector(ctx *debugui.Context) {
 		ctx.GridCell(func(bounds image.Rectangle) {
 			ctx.DrawOnlyWidget(func(screen *ebiten.Image) {
 				scale := ctx.Scale()
-				S := s.imageAsset.Value().Bounds().Size()
+				S := s.imageRef.Value().Bounds().Size()
 				trueWidth := float64(bounds.Dx() * scale)
 				trueHeight := float64(bounds.Dy() * scale)
 				scalingFactorX := trueWidth / float64(S.X)
 				scalingFactorY := trueHeight / float64(S.Y)
 				scalingFactor := math.Min(float64(scalingFactorX), float64(scalingFactorY))
-				screen.DrawImage(s.imageAsset.Value(), renderer.PosScale(
-					s.imageAsset.Value(),
+				screen.DrawImage(s.imageRef.Value(), opgen.PosScale(
+					s.imageRef.Value(),
 					float64(bounds.Min.X*scale),
 					float64(bounds.Min.Y*scale),
 					scalingFactor,
@@ -82,13 +89,18 @@ func (s *Sprite) DrawInspector(ctx *debugui.Context) {
 		})
 		utils.RenderFieldsAuto(ctx, s)
 	})
-	s.Transform2D.DrawInspector(ctx)
+	s.Graphic.DrawInspector(ctx)
+}
+
+func (s *Sprite) GetLayer() string {
+	return s.target.Name
 }
 
 // We can remove layer and src as required args
-func NewSprite(transform2D transform2D.Transform2D, layer string, srcPath string, options ...Option) *Sprite {
-	s := defaultSprite(transform2D)
-	s.layer = layer
+func NewSprite(graphic *graphic.Graphic, target renderer.RenderTarget, srcPath string, options ...utils.Option[Sprite]) *Sprite {
+	s := defaultSprite(graphic)
+	s.target = target
+
 	s.srcPath = srcPath
 
 	for _, option := range options {
@@ -98,23 +110,35 @@ func NewSprite(transform2D transform2D.Transform2D, layer string, srcPath string
 	return s
 }
 
-func defaultSprite(transform2D transform2D.Transform2D) *Sprite {
+func defaultSprite(graphic *graphic.Graphic) *Sprite {
 	return &Sprite{
-		layer:       "Playerspace",
-		drawOrder:   0,
-		scaling:     1.0,
-		Transform2D: transform2D,
+		target: renderer.RenderTarget{
+			Type: renderer.SCREEN,
+			Name: "Playerspace",
+		},
+		drawOrder: 0,
+		scaling:   1.0,
+		Graphic:   graphic,
+		pivotX:    0.5,
+		pivotY:    0.5,
 	}
 }
 
-func WithDrawOrder(drawOrder int) Option {
+func WithDrawOrder(drawOrder int) utils.Option[Sprite] {
 	return func(s *Sprite) {
 		s.drawOrder = drawOrder
 	}
 }
 
-func WithScaling(scaling float64) Option {
+func WithScaling(scaling float64) utils.Option[Sprite] {
 	return func(s *Sprite) {
 		s.scaling = scaling
+	}
+}
+
+func WithPivot(x, y float64) utils.Option[Sprite] {
+	return func(s *Sprite) {
+		s.pivotX = x
+		s.pivotY = y
 	}
 }

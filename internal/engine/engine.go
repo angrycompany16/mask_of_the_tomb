@@ -1,15 +1,17 @@
 package engine
 
 import (
-	"mask_of_the_tomb/internal/engine/servers"
-	"mask_of_the_tomb/internal/engine/servers/renderer"
-	"mask_of_the_tomb/internal/node_v2"
-	"mask_of_the_tomb/internal/node_v2/ebitenrender"
+	"errors"
+	"fmt"
+	"mask_of_the_tomb/internal/backend/node"
+	"mask_of_the_tomb/internal/backend/node/ebitenrender"
+	"mask_of_the_tomb/internal/engine/commands"
 	"reflect"
 	"unsafe"
 
 	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 // I'm pretty sure this is massively slow right now. Performance
@@ -24,37 +26,51 @@ import (
 // A pointer to the Node instance corresponding to this actor is passed in
 // The rest of the methods are obvious.
 type Actor interface {
-	Init()
-	Update(*servers.Servers)
-	// We need to implement LateUpdate
-	OnTreeAdd(*Node, *servers.Servers)
-	DrawInspector(ctx *debugui.Context)
+	Init(*commands.Commands)
+	Update(*commands.Commands) // TODO: Change to handle errors in nodes independently
+	OnTreeAdd(*Node, *commands.Commands)
+	DrawInspector(*debugui.Context)
+	DrawGizmo(*commands.Commands)
 }
 
-type Node = node_v2.Node[Actor]
-type NodeTree = node_v2.NodeTree[Actor]
+type Node = node.Node[Actor]
+type NodeTree = node.NodeTree[Actor]
+
+type SceneBuilder func(*commands.Commands) *Scene
+type Bundle func(*commands.Commands, *Scene)
+type BundleV2 func(*commands.Commands, *Scene) *Node
 
 type Scene struct {
-	name     string
-	nodeTree NodeTree
-	servers  *servers.Servers
+	name       string
+	nodeTree   *NodeTree
+	drawGizmos bool
 }
 
-func (s *Scene) Update(servers *servers.Servers) {
+func (s *Scene) Update(cmd *commands.Commands) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		s.drawGizmos = !s.drawGizmos
+	}
+
 	s.nodeTree.Traverse(func(n *Node) {
-		(*n.GetValue()).Update(servers)
+		n.GetValue().Update(cmd)
 	})
+
+	if s.drawGizmos {
+		s.nodeTree.Traverse(func(n *Node) {
+			n.GetValue().DrawGizmo(cmd)
+		})
+	}
 }
 
-func (s *Scene) Init() {
+func (s *Scene) Init(servers *commands.Commands) {
 	s.nodeTree.Traverse(func(n *Node) {
-		(*n.GetValue()).Init()
+		n.GetValue().Init(servers)
 	})
 }
 
 func (s *Scene) MakeDrawFunc(w, h int) func(ctx *debugui.Context) error {
-	return ebitenrender.MakeRenderFunc(s.name, w, h, &s.nodeTree, func(ctx *debugui.Context, nodeVal *Actor) {
-		(*nodeVal).DrawInspector(ctx)
+	return ebitenrender.MakeRenderFunc(s.name, w, h, s.nodeTree, func(ctx *debugui.Context, nodeVal Actor) {
+		nodeVal.DrawInspector(ctx)
 	})
 }
 
@@ -68,6 +84,28 @@ func (s *Scene) GetNodeByID(id string) (*Node, bool) {
 	return s.nodeTree.GetNode(id)
 }
 
+// Traverses the tree and returns the first node that satisfies the
+// condition f. Returns true in this case, if no nodes satisfy
+// f it returns false
+func (s *Scene) GetNodeFunc(f func(*Node) bool) (*Node, bool) {
+	return s.nodeTree.GetNodeFunc(f)
+}
+
+// Returns the first actor of type T, or false if none is found
+func GetNodeByType[T Actor](s *Scene) (*Node, bool) {
+	f := func(n *Node) bool {
+		_, ok := n.GetValue().(T)
+		return ok
+	}
+	return s.nodeTree.GetNodeFunc(f)
+}
+
+func (s *Scene) GetChildByName(node *Node, name string) (*Node, bool) {
+	return node.GetChildFunc(func(n *Node) bool {
+		return n.GetName() == name
+	})
+}
+
 func (s *Scene) GetRoot() *Node {
 	return s.nodeTree.GetRoot()
 }
@@ -76,36 +114,65 @@ func (s *Scene) GetName() string {
 	return s.name
 }
 
-func (s *Scene) Spawn(name string, actor Actor) *Node {
-	node := s.nodeTree.GetRoot().AddChild(actor, name)
-	actor.OnTreeAdd(node, s.servers)
+func (s *Scene) SpawnActor(name string, actor Actor, cmd *commands.Commands) *Node {
+	node := s.nodeTree.GetRoot().AddChild(actor, name, MakeOnTreeAdd(actor, cmd))
+	actor.OnTreeAdd(node, cmd)
 	return node
 }
 
+func MakeOnTreeAdd(actor Actor, cmd *commands.Commands) func(*Node) {
+	return func(node *Node) {
+		actor.OnTreeAdd(node, cmd)
+	}
+}
+
+func (s *Scene) SpawnActorAlt(name string, actor Actor, cmd *commands.Commands) Actor {
+	node := s.nodeTree.GetRoot().AddChild(actor, name, MakeOnTreeAdd(actor, cmd))
+	actor.OnTreeAdd(node, cmd)
+	return actor
+}
+
+// Deprecated: It's now possible to call the node library directly instead
 // Spawn a child of type node with the specified parent
 // This is sort of annoying: We should be able to add children by
 // chaining methods, hence the Node is the type that should have
 // an addchild method. However, that doesn't really work...
-func (s *Scene) AddChild(actor Actor, name string, parent *Node) *Node {
-	node := s.Spawn(name, actor)
+func (s *Scene) AddChild(name string, actor Actor, parent *Node, cmd *commands.Commands) *Node {
+	node := s.SpawnActor(name, actor, cmd)
 	s.SetParent(node, parent)
 	return node
+}
+
+func (s *Scene) SpawnBundle(cmd *commands.Commands, bundle Bundle) {
+	bundle(cmd, s)
+}
+
+func (s *Scene) SpawnBundleV2(cmd *commands.Commands, bundle BundleV2) {
+	bundleRoot := bundle(cmd, s)
+	bundleRoot.Traverse(func(n *node.Node[Actor]) {
+		n.GetValue().Init(cmd)
+	})
 }
 
 func (s *Scene) SetParent(node *Node, parent *Node) {
 	node.Reparent(parent)
 }
 
+func (s *Scene) Delete(node *Node) {
+	s.nodeTree.DeleteNode(node.GetID())
+}
+
 func (s *Scene) Print() {
 	s.nodeTree.Print()
 }
 
+// TODO: Make it so that we don't have to use a pointer as type argument
 // Returns the field T embedded in the actor passed in, i.e.
 //
-//	GetActor[Node](transform2D)
+//	As[*Node](transform2D)
 //
 // returns the Node actor embedded in the Transform2D passed in.
-func GetActor[T Actor](actor Actor) (T, bool) {
+func As[T Actor](actor Actor) (T, bool) {
 	if val, ok := actor.(T); ok {
 		return val, true
 	}
@@ -125,7 +192,7 @@ func GetActor[T Actor](actor Actor) (T, bool) {
 			return val, true
 		}
 
-		recurseVal, ok := GetActor[T](vf.Addr().Interface().(Actor))
+		recurseVal, ok := As[T](vf.Interface().(Actor))
 		if ok {
 			return recurseVal, true
 		}
@@ -137,90 +204,101 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 	return reflect.NewAt(v.Type(), unsafe.Pointer(v.UnsafeAddr())).Elem()
 }
 
-func NewScene(name string, root Actor, servers *servers.Servers) *Scene {
-	nodeTree, rootNode := node_v2.NewNodeTree(root)
-	root.OnTreeAdd(rootNode, servers)
+// TODO: It's sort of unclear why this needs Commands, this should
+// be fixed
+// The only reason it exists is so that we can pass it on to
+// OnTreeAdd, which might not even be necessary at all
+func NewScene(name string, root Actor, cmd *commands.Commands) *Scene {
+	nodeTree, rootNode := node.NewNodeTree(root)
+	root.OnTreeAdd(rootNode, cmd)
 	return &Scene{
-		servers:  servers,
 		name:     name,
-		nodeTree: *nodeTree,
+		nodeTree: nodeTree,
 	}
 }
+
+var ErrTerminated = errors.New("Terminatednow")
 
 type Game struct {
-	servers     *servers.Servers
-	editor      *Editor
-	scenes      map[string]*Scene // Would it be more correct to call these scene templates?
-	activeScene Scene
+	cmd          *commands.Commands
+	sceneManager *SceneManager
 }
 
-func NewGame(servers *servers.Servers, editor *Editor) *Game {
-	return &Game{
-		servers: servers,
-		editor:  editor,
-		scenes:  make(map[string]*Scene),
+func NewGame(cmd *commands.Commands) *Game {
+	g := &Game{
+		cmd:          cmd,
+		sceneManager: NewSceneManager(),
 	}
-}
 
-func (g *Game) AddScene(scene *Scene) *Game {
-	g.scenes[scene.name] = scene
+	commands.Set[SceneManager](g.cmd, g.sceneManager)
+
 	return g
-}
-
-func (g *Game) MakeScene(name string, root Actor) *Scene {
-	g.scenes[name] = NewScene(name, root, g.servers)
-	return g.scenes[name]
-}
-
-func (g *Game) SetActiveScene(name string) *Game {
-	g.LoadStaged() // This will go into a different thread to avoid freezing
-	g.activeScene = *g.scenes[name]
-	g.activeScene.Init() // Reset values?
-	return g
-}
-
-func (g *Game) ActiveScene() *Scene {
-	return &g.activeScene
 }
 
 func (g *Game) Update() error {
-	if _, err := g.editor.treeUI.Update(
-		g.ActiveScene().MakeDrawFunc(int(300), int(500)),
-	); err != nil {
-		return err
+	if g.sceneManager.activeScene == nil {
+		fmt.Println("Warning: Running game without active scene")
+		return nil
 	}
 
-	g.activeScene.Update(g.servers) // consider returning this instead?
-	g.editor.Update(g.servers)
+	if g.cmd.GameInfo.Exit {
+		return ErrTerminated
+	}
+
+	g.sceneManager.activeScene.Update(g.cmd)
+	g.cmd.Renderer.ClearTextures()
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.editor.Draw()
-	g.servers.Renderer().Draw(screen)
+	g.cmd.Renderer.Draw(screen)
 }
 
-// Loads all staged assets
-func (g *Game) LoadStaged() {
-	g.servers.AssetLoader().LoadAll()
+func (g *Game) GetCmd() *commands.Commands {
+	return g.cmd
 }
 
-type Editor struct {
-	treeUI      debugui.DebugUI
-	editorImage *ebiten.Image
+type SceneManager struct {
+	scenes      map[string]SceneBuilder
+	activeScene *Scene
 }
 
-func (e *Editor) Update(servers *servers.Servers) {
-	servers.Renderer().Request(renderer.Pos(e.editorImage, 0, 0), e.editorImage, "EditorUI", 0)
+func (s *SceneManager) RegisterScene(name string, sceneBuilder SceneBuilder) *SceneManager {
+	s.scenes[name] = sceneBuilder
+	return s
 }
 
-func (e *Editor) Draw() {
-	e.editorImage.Clear()
-	e.treeUI.Draw(e.editorImage)
+func (s *SceneManager) SpawnScene(name string, cmd *commands.Commands) *SceneManager {
+	// Create an instance of the scene's node tree
+	sceneBuilder := s.scenes[name]
+	sceneInst := sceneBuilder(cmd)
+
+	// Load any staged assets
+	cmd.AssetLoader.LoadAll()
+	commands.Set[Scene](cmd, sceneInst)
+	s.activeScene = sceneInst
+
+	s.activeScene.Init(cmd)
+	return s
 }
 
-func NewEditor(w, h int) *Editor {
-	return &Editor{
-		editorImage: ebiten.NewImage(w, h),
+// func (s *SceneManager) SpawnSceneImmediate(cmd *commands.Commands, sceneBuilder SceneBuilder) *SceneManager {
+// 	sceneInst := sceneBuilder(cmd)
+
+// 	cmd.AssetLoader.LoadAll()
+// 	commands.Set[Scene](cmd, sceneInst)
+// 	s.activeScene = sceneInst
+
+// 	s.activeScene.Init(cmd)
+// 	return s
+// }
+
+func (g *SceneManager) ActiveScene() *Scene {
+	return g.activeScene
+}
+
+func NewSceneManager() *SceneManager {
+	return &SceneManager{
+		scenes: make(map[string]SceneBuilder, 0),
 	}
 }

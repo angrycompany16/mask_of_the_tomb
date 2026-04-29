@@ -1,8 +1,8 @@
 package main
 
 import (
-	"mask_of_the_tomb/internal/node_v2"
-	"mask_of_the_tomb/internal/node_v2/ebitenrender"
+	"mask_of_the_tomb/internal/backend/node"
+	"mask_of_the_tomb/internal/backend/node/ebitenrender"
 
 	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,12 +15,12 @@ type object struct {
 
 type Game struct {
 	debugui  debugui.DebugUI
-	nodeTree *node_v2.NodeTree[object]
+	nodeTree *node.NodeTree[object]
 }
 
 func (g *Game) Update() error {
 	if _, err := g.debugui.Update(
-		ebitenrender.MakeRenderFunc[object]("test UI", 320, 180, g.nodeTree, func(ctx *debugui.Context, nodeVal *object) {}),
+		ebitenrender.MakeRenderFunc[object]("test UI", 320, 180, g.nodeTree, func(ctx *debugui.Context, nodeVal object) {}),
 	); err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func main() {
-	nodeTree, _ := node_v2.NewNodeTree[object](
+	nodeTree, _ := node.NewNodeTree[object](
 		object{
 			x: 0,
 			y: 0,
@@ -48,7 +48,9 @@ func main() {
 	child2.AddChild(object{x: 2, y: 400}, "grandchild")
 
 	game := &Game{
-		nodeTree: nodeTree,
+		nodeTree: nodeTree.DeepCopy(func(o object) object {
+			return o
+		}),
 	}
 
 	if err := ebiten.RunGame(game); err != nil {

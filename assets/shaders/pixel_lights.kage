@@ -29,6 +29,7 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
         pos := vec2(PositionsX[i], PositionsY[i]) - CamShake
         color := vec3(ColorsR[i], ColorsG[i], ColorsB[i])
         attenuation := 1-smoothstep(InnerRadii[i], OuterRadii[i], distance(srcPos, pos))
+        // This hard-coded noise factor is honestly not that great... I want to change this.
         noiseFactor := cnoise(vec3(srcPos * 0.1, Time * 2)) * smoothstep(70, 150, distance(srcPos, pos))
         strength := attenuation * Intensities[i] * (1 - noiseFactor)
         
@@ -43,7 +44,9 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
     }
 
     color := srcColor.xyz * lighting
+
     if srcColor.a == 0 {
+        // return vec4(1, 1, 1, 1)
         return vec4(srcColor)
     } else {
         return vec4(getNearest(color, srcColor.xyz), srcColor.a)

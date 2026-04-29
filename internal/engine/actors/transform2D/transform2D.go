@@ -1,42 +1,38 @@
 package transform2D
 
 import (
-	"mask_of_the_tomb/internal/core/maths"
+	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/node"
-	"mask_of_the_tomb/internal/engine/servers"
+	"mask_of_the_tomb/internal/engine/actors/nodeactor"
+	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/utils"
 
 	"github.com/ebitengine/debugui"
 )
 
-type Option func(*Transform2D)
-
 type Transform2D struct {
-	node.Node // Actually, should this be a pointer?
-	local     *transform
-	global    *transform
+	*nodeactor.Node // Actually, should this be a pointer?
+	local           transform
+	global          transform
 }
 
-func (t *Transform2D) Init() {
-	t.Node.Init()
-}
-
-func (t *Transform2D) Update(servers *servers.Servers) {
-	t.Node.Update(servers) // best practice
+func (t *Transform2D) Update(cmd *commands.Commands) {
+	t.Node.Update(cmd)
 
 	parentNode := t.Node.GetNode().GetParent()
 	if parentNode == nil {
 		return
 	}
 
-	if parentTransform, ok := engine.GetActor[*Transform2D](*parentNode.GetValue()); ok {
-		t.global = t.local.times(parentTransform.global)
+	if parentTransform, ok := engine.As[*Transform2D](parentNode.GetValue()); ok {
+		t.global = t.local.times(&parentTransform.global)
 	} else {
 		t.global = t.local
 	}
 }
 
 func (t *Transform2D) DrawInspector(ctx *debugui.Context) {
+	t.Node.DrawInspector(ctx)
 	ctx.SetGridLayout([]int{0}, []int{0})
 
 	ctx.Header("Transform", false, func() {
@@ -54,7 +50,21 @@ func (t *Transform2D) DrawInspector(ctx *debugui.Context) {
 		ctx.NumberFieldF(&t.local.angle, 0.01, 2).On(t.local.recompute)
 	})
 
-	t.Node.DrawInspector(ctx)
+}
+
+// Deprecated: This is just shit
+// Should IN NO WAY be necessary. It's simply bad code.
+func (t *Transform2D) Propagate() {
+	parentNode := t.Node.GetNode().GetParent()
+	if parentNode == nil {
+		return
+	}
+
+	if parentTransform, ok := engine.As[*Transform2D](parentNode.GetValue()); ok {
+		t.global = t.local.times(&parentTransform.global)
+	} else {
+		t.global = t.local
+	}
 }
 
 func (t *Transform2D) GetPos(local bool) (float64, float64) {
@@ -66,6 +76,7 @@ func (t *Transform2D) GetPos(local bool) (float64, float64) {
 
 func (t *Transform2D) SetPos(x, y float64) {
 	t.local.setPos(x, y)
+	// t.Propagate()
 }
 
 func (t *Transform2D) GetAngle(local bool) float64 {
@@ -93,7 +104,7 @@ func (t *Transform2D) SetScale(scaleX, scaleY float64) {
 // Right now we are instantiating the node as a zero object, which
 // is fine-ish (we don't get any nil references), but not great
 // (this could break if we change node, and is not very clean)
-func NewTransform2D(node node.Node, options ...Option) *Transform2D {
+func NewTransform2D(node *nodeactor.Node, options ...utils.Option[Transform2D]) *Transform2D {
 	t := defaultTransform2D(node)
 
 	for _, option := range options {
@@ -103,15 +114,15 @@ func NewTransform2D(node node.Node, options ...Option) *Transform2D {
 	return t
 }
 
-func defaultTransform2D(node node.Node) *Transform2D {
+func defaultTransform2D(node *nodeactor.Node) *Transform2D {
 	return &Transform2D{
 		Node:   node,
-		local:  newTransform(0, 0, 0, 1, 1),
-		global: newTransform(0, 0, 0, 1, 1),
+		local:  *newTransform(0, 0, 0, 1, 1),
+		global: *newTransform(0, 0, 0, 1, 1),
 	}
 }
 
-func WithPos(x, y float64) Option {
+func WithPos(x, y float64) utils.Option[Transform2D] {
 	return func(t *Transform2D) {
 		t.local.origin.X = x
 		t.local.origin.Y = y
@@ -120,14 +131,14 @@ func WithPos(x, y float64) Option {
 	}
 }
 
-func WithAngle(angle float64) Option {
+func WithAngle(angle float64) utils.Option[Transform2D] {
 	return func(t *Transform2D) {
 		t.local.angle = angle
 		t.global.angle = angle
 	}
 }
 
-func WithScale(scaleX, scaleY float64) Option {
+func WithScale(scaleX, scaleY float64) utils.Option[Transform2D] {
 	return func(t *Transform2D) {
 		t.local.scaleX = scaleX
 		t.global.scaleY = scaleY
@@ -144,8 +155,8 @@ type transform struct {
 	origin         maths.Vec2
 }
 
-func (t *transform) times(other *transform) *transform {
-	return &transform{
+func (t *transform) times(other *transform) transform {
+	return transform{
 		angle:        t.angle + other.angle,
 		scaleX:       t.scaleX * other.scaleX,
 		scaleY:       t.scaleY * other.scaleY,
