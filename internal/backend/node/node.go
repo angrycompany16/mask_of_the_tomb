@@ -102,8 +102,9 @@ func (n *Node[T]) getChildRecursiveFunc(f func(*Node[T]) bool) (*Node[T], bool) 
 	return nil, false
 }
 
-func (n *Node[T]) AddChild(value T, name string) *Node[T] {
+func (n *Node[T]) AddChild(value T, name string, OnTreeAddCallback func(*Node[T])) *Node[T] {
 	child := NewNode(value, name)
+	OnTreeAddCallback(child)
 	child.parent = n
 	n.children = append(n.children, child)
 	return child

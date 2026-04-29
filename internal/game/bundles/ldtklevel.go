@@ -33,6 +33,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type LDTKLevelBundleData struct {
+}
+
 var layerMap = map[string]string{
 	"Foreground":       "Foreground",
 	"PlayerspaceAlt":   "Playerspace",
@@ -48,7 +51,8 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 
 		LDTKData, ok := assetloader.GetAsset[assettypes.LDTKData](cmd.AssetLoader, "LDTK/world.ldtk")
 		if !ok {
-			panic("Grusom død")
+			fmt.Println("Unable to load LDTK world asset from assetloader when making level bundle. Returning.")
+			return
 		}
 
 		world := LDTKData.Value().World
@@ -69,8 +73,12 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			}
 		}
 
+		envParentNode := scene.SpawnActor("Environment", transform2D.NewTransform2D(
+			nodeactor.NewNode(),
+		), cmd)
+
 		intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
-		scene.SpawnActor("SlamboxTilemap", slamboxtilemap.NewSlamboxTilemap(
+		slamboxTilemapActor := slamboxtilemap.NewSlamboxTilemap(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),
@@ -78,7 +86,8 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			),
 			intGridCSV,
 			int(playerspace.GridSize),
-		), cmd)
+		)
+		envParentNode.AddChild(slamboxTilemapActor, "SlamboxTilemap", engine.MakeOnTreeAdd(slamboxTilemapActor, cmd))
 
 		for i := range level.Layers {
 			layer := level.Layers[i]
@@ -91,7 +100,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			tileSize := tileset.TileGridSize
 			tilesetImg := tilesetMap[tileset.Name]
 
-			scene.SpawnActor(layer.Name, ldtktilelayer.NewLDTKTilemapLayer(
+			ldtkTileLayerActor := ldtktilelayer.NewLDTKTilemapLayer(
 				graphic.NewGraphic(
 					transform2D.NewTransform2D(
 						nodeactor.NewNode(),
@@ -106,7 +115,9 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 				int(level.PxWid),
 				int(level.PxHei),
 				// false,
-			), cmd)
+			)
+
+			envParentNode.AddChild(ldtkTileLayerActor, layer.Name, engine.MakeOnTreeAdd(ldtkTileLayerActor, cmd))
 		}
 
 		scene.SpawnActor("BackgroundColor", vectorgraphic.NewVectorGraphic(
@@ -242,7 +253,7 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 
 	doorV2Actor, ok := engine.As[*doorv2.DoorV2](doorNode.GetValue())
 
-	doorSprite := scene.AddChild("Sprite", animatedsprite.NewAnimatedSprite(
+	doorAnim := animatedsprite.NewAnimatedSprite(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
 				nodeactor.NewNode(),
@@ -276,16 +287,16 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 			Type: renderer.TEXTURE,
 			Name: "LevelTextureRaw",
 		}, 5, 0.5, 0.5, "Idle",
-	), doorNode, cmd)
+	)
 
-	transform, ok := engine.As[*transform2D.Transform2D](doorSprite.GetValue())
+	doorSpriteNode := doorNode.AddChild(doorAnim, "Sprite", engine.MakeOnTreeAdd(doorAnim, cmd))
+
+	transform, ok := engine.As[*transform2D.Transform2D](doorSpriteNode.GetValue())
 	if ok {
 		transform.SetAngle(maths.DirToRadians(direction))
-		// doorV2Actor.SpriteTransform = transform
 	}
 
-	animatedsprite, _ := engine.As[*animatedsprite.AnimatedSprite](doorSprite.GetValue())
-	doorV2Actor.AnimatedSprite = animatedsprite
+	doorV2Actor.AnimatedSprite = doorAnim
 
 	triggerField := utils.Must(entity.GetFieldByName("InteractRegion"))
 	triggerEntityIid := ebitenLDTK.As[ebitenLDTK.EntityRef](triggerField).EntityIid
@@ -293,7 +304,7 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 
 	relPosX := triggerEntity.Px[0] - entity.Px[0]
 	relPosY := triggerEntity.Px[1] - entity.Px[1]
-	triggerNode := scene.AddChild("Trigger", trigger.NewTrigger(
+	triggerActor := trigger.NewTrigger(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
 				nodeactor.NewNode(),
@@ -302,9 +313,11 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 		),
 		trigger.WithRect(maths.NewRect(triggerEntity.Px[0], triggerEntity.Px[1], triggerEntity.Width, triggerEntity.Height)),
 		trigger.WithName(fmt.Sprintf("Door-%s", triggerEntityIid)),
-	), doorNode, cmd)
+	)
 
-	doorV2Actor.Trigger, ok = engine.As[*trigger.Trigger](triggerNode.GetValue())
+	doorNode.AddChild(triggerActor, "Trigger", engine.MakeOnTreeAdd(triggerActor, cmd))
+
+	doorV2Actor.Trigger = triggerActor
 }
 
 func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity) {

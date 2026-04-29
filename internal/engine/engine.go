@@ -115,17 +115,24 @@ func (s *Scene) GetName() string {
 }
 
 func (s *Scene) SpawnActor(name string, actor Actor, cmd *commands.Commands) *Node {
-	node := s.nodeTree.GetRoot().AddChild(actor, name)
+	node := s.nodeTree.GetRoot().AddChild(actor, name, MakeOnTreeAdd(actor, cmd))
 	actor.OnTreeAdd(node, cmd)
 	return node
 }
 
+func MakeOnTreeAdd(actor Actor, cmd *commands.Commands) func(*Node) {
+	return func(node *Node) {
+		actor.OnTreeAdd(node, cmd)
+	}
+}
+
 func (s *Scene) SpawnActorAlt(name string, actor Actor, cmd *commands.Commands) Actor {
-	node := s.nodeTree.GetRoot().AddChild(actor, name)
+	node := s.nodeTree.GetRoot().AddChild(actor, name, MakeOnTreeAdd(actor, cmd))
 	actor.OnTreeAdd(node, cmd)
 	return actor
 }
 
+// Deprecated: It's now possible to call the node library directly instead
 // Spawn a child of type node with the specified parent
 // This is sort of annoying: We should be able to add children by
 // chaining methods, hence the Node is the type that should have

@@ -108,6 +108,7 @@ func defaultTrigger(graphic *graphic.Graphic) *Trigger {
 		OnCollision:      eventsv2.NewEvent(),
 		OnCollisionEnter: eventsv2.NewEvent(),
 		OnCollisionExit:  eventsv2.NewEvent(),
+		gizmosImage:      ebiten.NewImage(8, 8),
 	}
 }
 
