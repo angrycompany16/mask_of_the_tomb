@@ -8,10 +8,6 @@ import (
 	"math"
 )
 
-type EventData struct {
-	dir maths.Direction
-}
-
 type Tracker struct {
 	*graphic.Graphic
 	OnMoveFinishEv         *eventsv2.Event

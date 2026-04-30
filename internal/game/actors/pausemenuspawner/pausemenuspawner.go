@@ -28,7 +28,7 @@ func (p *PauseMenuSpawner) Init(cmd *commands.Commands) {
 // the player input scheme, meaning that we can control the player
 // when in reality we should not
 // A solution would be to somehow stop the update loop for the game.
-// although "live" pause screens are kind of cool i think.
+// although "live" pause screens are kind of cool i think
 func (p *PauseMenuSpawner) Update(cmd *commands.Commands) {
 	p.Node.Update(cmd)
 	UIControls := cmd.InputHandler.InputSchemes["UIControls"]

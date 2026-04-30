@@ -39,7 +39,7 @@ func (e *EventBus) Poll() (map[string]any, bool) {
 	return e.data, false
 }
 
-func NewEventBus(event *Event) *EventBus {
+func NewBusFrom(event *Event) *EventBus {
 	eventbus := &EventBus{
 		notif: false,
 		data:  make(map[string]any),

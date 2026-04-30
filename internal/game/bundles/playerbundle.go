@@ -31,16 +31,19 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 				),
 				slamboxactor.WithPos(tlX, tlY),
 				slamboxactor.WithSize(playerWidth, playerHeight),
+				slamboxactor.WithHasParticles(false),
 			),
 			0.1,
 		), cmd)
 
-		pivotNode := scene.AddChild("PlayerPivot", transform2D.NewTransform2D(
+		pivotActor := transform2D.NewTransform2D(
 			nodeactor.NewNode(),
 			transform2D.WithPos(playerWidth/2, playerHeight/2),
-		), playerNode, cmd)
+		)
 
-		scene.AddChild("PlayerSprite", animatedsprite.NewAnimatedSprite(
+		pivotNode := playerNode.AddChild(pivotActor, "PlayerPivot", engine.MakeOnTreeAdd(pivotActor, cmd))
+
+		spriteActor := animatedsprite.NewAnimatedSprite(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),
@@ -83,9 +86,11 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 				Type: renderer.TEXTURE,
 				Name: "LevelTextureRaw",
 			}, 6, 0.5, 0.5, player.IDLE_ANIM,
-		), pivotNode, cmd)
+		)
 
-		scene.AddChild("PlayerTrigger", trigger.NewTrigger(
+		pivotNode.AddChild(spriteActor, "PlayerSprite", engine.MakeOnTreeAdd(spriteActor, cmd))
+
+		triggerActor := trigger.NewTrigger(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),
@@ -93,6 +98,8 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			),
 			trigger.WithRect(maths.NewRect(playerX, playerY, playerWidth, playerHeight)),
 			trigger.WithName("Player"),
-		), playerNode, cmd)
+		)
+
+		playerNode.AddChild(triggerActor, "PlayerTrigger", engine.MakeOnTreeAdd(triggerActor, cmd))
 	}
 }

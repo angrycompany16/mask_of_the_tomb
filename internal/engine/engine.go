@@ -116,7 +116,7 @@ func (s *Scene) GetName() string {
 
 func (s *Scene) SpawnActor(name string, actor Actor, cmd *commands.Commands) *Node {
 	node := s.nodeTree.GetRoot().AddChild(actor, name, MakeOnTreeAdd(actor, cmd))
-	actor.OnTreeAdd(node, cmd)
+	// actor.OnTreeAdd(node, cmd)
 	return node
 }
 

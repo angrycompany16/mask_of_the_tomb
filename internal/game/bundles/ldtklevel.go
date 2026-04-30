@@ -172,12 +172,12 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		}
 
 		// Spawn the appropriate particle system
-		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystem(
+		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystemOld(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),
 				),
-			), make([]*particles.Burst, 0), true, 0.5, 0, maths.RandomFloat64{0, 480}, maths.RandomFloat64{0, 270}, maths.RandomFloat64{0, 0}, maths.RandomFloat64{-5, 0}, maths.RandomFloat64{0, 4}, maths.RandomFloat64{0, 0.5}, maths.RandomFloat64{0, 0.01}, maths.RandomFloat64{0.7, 1.5}, maths.RandomFloat64{0.0, 0.0}, maths.RandomFloat64{3.0, 5.0}, maths.RandomFloat64{0.0, 2.0}, maths.RandomFloat64{0.0, 1.0}, [4]uint8{255, 255, 255, 255}, [4]uint8{255, 255, 255, 255}, 13, 13, "sprites/environment/star.png", "Background", 1,
+			), make([]*particles.Burst, 0), true, 0.5, 0, maths.RandomFloat64{0, 480}, maths.RandomFloat64{0, 270}, maths.RandomFloat64{0, 0}, maths.RandomFloat64{-5, 0}, maths.RandomFloat64{0, 4}, maths.RandomFloat64{0, 0.5}, maths.RandomFloat64{0, 0.01}, maths.RandomFloat64{0.7, 1.5}, maths.RandomFloat64{0.0, 0.0}, maths.RandomFloat64{3.0, 5.0}, maths.RandomFloat64{0.0, 2.0}, maths.RandomFloat64{0.0, 1.0}, [4]uint8{255, 255, 255, 255}, [4]uint8{255, 255, 255, 255}, 13, 13, "sprites/environment/star.png", renderer.RenderTarget{Type: renderer.SCREEN, Name: "Background"}, 1,
 		), cmd)
 
 		scene.SpawnActor("BackgroundShader",

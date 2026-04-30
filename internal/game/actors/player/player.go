@@ -40,12 +40,6 @@ const (
 	ENTERING
 )
 
-// var (
-// 	playerSpritePath       = filepath.Join(assets.PlayerFolder, "player.png")
-// 	jumpParticlesBroadPath = filepath.Join("assets", "particlesystems", "jump-broad.yaml")
-// 	jumpParticlesTightPath = filepath.Join("assets", "particlesystems", "jump-tight.yaml")
-// )
-
 type Player struct {
 	*slamboxactor.Slambox
 	State                     PlayerState
@@ -141,7 +135,7 @@ func (p *Player) Init(cmd *commands.Commands) {
 	childNode, ok := scene.GetNodeByName("PlayerSprite")
 	p.spriteTransform, ok = engine.As[*transform2D.Transform2D](childNode.GetValue())
 	p.animatedSprite, ok = engine.As[*animatedsprite.AnimatedSprite](childNode.GetValue())
-	p.OnClipFinish = eventsv2.NewEventBus(p.animatedSprite.OnClipFinished)
+	p.OnClipFinish = eventsv2.NewBusFrom(p.animatedSprite.OnClipFinished)
 
 	pivotNode, ok := scene.GetNodeByName("PlayerPivot")
 	p.pivotTransform, ok = engine.As[*transform2D.Transform2D](pivotNode.GetValue())
@@ -186,7 +180,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.jumpOffset += p.jumpOffsetvel
 		p.jumpOffset = math.Max(p.jumpOffset, 0)
 		if p.jumpOffset == 0 && !p.hasSlammedBox {
-			theOther, ok := scene.GetRoot().GetChildFunc(
+			slamboxHits := scene.GetRoot().GetChildrenFunc(
 				func(n *engine.Node) bool {
 					slambox_, ok := n.GetValue().(*slamboxactor.Slambox)
 					if !ok {
@@ -195,13 +189,13 @@ func (p *Player) Update(cmd *commands.Commands) {
 					return slambox_.GetBackendID() == p.slamboxIDBuffer
 				},
 			)
-			if !ok {
-				fmt.Println("Major problems")
+			if len(slamboxHits) == 0 {
+				fmt.Println("No slambox matching ID")
 				return
 			}
-			slamboxactor, ok := theOther.GetValue().(*slamboxactor.Slambox)
+			slamboxactor, ok := slamboxHits[0].GetValue().(*slamboxactor.Slambox)
 			if !ok {
-				fmt.Println("Major problems")
+				fmt.Println("Slambox node could not be cast to slambox actor")
 				return
 			}
 			slamboxactor.RequestSlam(p.slamDirBuffer)
@@ -210,11 +204,6 @@ func (p *Player) Update(cmd *commands.Commands) {
 			p.hasSlammedBox = true
 		}
 		p.animatedSprite.SetPos(0, -p.jumpOffset)
-		// if p.jumpOffset == 0 && p.canPlaySlamSound {
-		// 	sound_v2.PlaySound("playerSlam", "sfxMaster", 0.04)
-		// 	p.canPlaySlamSound = false
-		// 	camera.Shake(0.4, 7, 1)
-		// }
 	case IDLE:
 		p.animatedSprite.SwitchClip(IDLE_ANIM)
 		playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
@@ -238,12 +227,8 @@ func (p *Player) Update(cmd *commands.Commands) {
 				cmd.InputHandler.InputSchemes["PlayerControls"].Active = false
 				p.jumpOffsetvel = 3.5
 			}
-			//
-			// Switch to proper direction
-			// Move player to correct spot
 		}
 	case MOVING:
-		// p.movebox.Update()
 		_, finished := p.OnMoveFinish.Poll()
 		if finished {
 			p.direction = maths.Opposite(p.direction)
@@ -251,7 +236,6 @@ func (p *Player) Update(cmd *commands.Commands) {
 		}
 	case DYING:
 		p.animatedSprite.SwitchClip(IDLE_ANIM)
-		// p.deathAnim.Update()
 	case LEAVING:
 		p.jumpOffsetvel -= 0.2
 		p.jumpOffset += p.jumpOffsetvel
@@ -292,6 +276,9 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.OnMove.WithData("Direction", moveDir).Raise()
 		p.Dash(moveDir)
 		p.inputbuffer.Clear()
+		// Gotta find the right x, y
+		x, y := p.getCenterPos()
+		scene.SpawnBundle(cmd, MakeJumpParticlesBundle(x, y, moveDir, p.GetRect().Width/2))
 		return
 	}
 
@@ -361,7 +348,7 @@ func NewPlayer(slambox *slamboxactor.Slambox, inputBufferDuration float64) *Play
 	player := &Player{
 		Slambox:      slambox,
 		inputbuffer:  inputbuffer.NewInputBuffer(inputBufferDuration),
-		OnMoveFinish: eventsv2.NewEventBus(slambox.OnMoveFinishEv),
+		OnMoveFinish: eventsv2.NewBusFrom(slambox.OnMoveFinishEv),
 		OnMove:       eventsv2.NewEvent(),
 
 		// TODO: Change so that the parameters are more intuitive

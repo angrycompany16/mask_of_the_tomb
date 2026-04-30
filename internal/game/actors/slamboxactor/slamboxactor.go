@@ -2,6 +2,7 @@ package slamboxactor
 
 import (
 	"image/color"
+	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/renderer"
@@ -24,6 +25,8 @@ type Slambox struct {
 	inGroup      bool
 	isCenter     bool
 	gizmosImage  *ebiten.Image
+	OnMoveFinish *eventsv2.EventBus
+	hasParticles bool
 }
 
 func (s *Slambox) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
@@ -46,14 +49,19 @@ func (s *Slambox) Init(cmd *commands.Commands) {
 func (s *Slambox) Update(cmd *commands.Commands) {
 	s.Tracker.Update(cmd)
 
-	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
-	if !ok {
-		panic("Missing slambox env (Slambox)")
-	}
+	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
+	scene, _ := commands.Get[engine.Scene](cmd)
 
 	x, y := s.Tracker.GetPos()
 	s.rect.SetPos(x, y)
 	s.Transform2D.SetPos(x, y)
+
+	if data, raised := s.OnMoveFinish.Poll(); raised && s.hasParticles {
+		dir := data["dir"].(maths.Direction)
+		cx, cy := s.rect.Center()
+		w, h := s.rect.HalfSize()
+		scene.SpawnBundle(cmd, MakeSlamboxParticlesBundle(cx, cy, dir, w, h))
+	}
 
 	if s.slamRequest == maths.DirNone && !s.inChain && !s.inGroup {
 		return
@@ -100,14 +108,21 @@ func (s *Slambox) IsCenter() bool {
 func defaultSlambox(tracker *tracker.Tracker) *Slambox {
 	x, y := tracker.GetPos()
 	return &Slambox{
-		Tracker:     tracker,
-		rect:        maths.NewRect(x, y, 8, 8),
-		slamRequest: maths.DirNone,
-		gizmosImage: ebiten.NewImage(8, 8),
+		Tracker:      tracker,
+		rect:         maths.NewRect(x, y, 8, 8),
+		slamRequest:  maths.DirNone,
+		gizmosImage:  ebiten.NewImage(8, 8),
+		OnMoveFinish: eventsv2.NewBusFrom(tracker.OnMoveFinishEv),
+		hasParticles: true,
 	}
 }
 
-// TODO: Replace rect with width, height
+// TODO: The better approach would be to make the particles
+// entirely possible to specify, so that playerparticles
+// and slambox particles became the same thing lowkey
+// Or we could extract the particles to some other place
+// That may honestly be the better move, but it might not
+// matter that much.
 func NewSlambox(tracker *tracker.Tracker, options ...utils.Option[Slambox]) *Slambox {
 	slambox := defaultSlambox(tracker)
 
@@ -129,5 +144,11 @@ func WithSize(width, height float64) utils.Option[Slambox] {
 	return func(s *Slambox) {
 		s.rect.SetSize(width, height)
 		s.gizmosImage = ebiten.NewImage(int(width), int(height))
+	}
+}
+
+func WithHasParticles(hasParticles bool) utils.Option[Slambox] {
+	return func(s *Slambox) {
+		s.hasParticles = hasParticles
 	}
 }

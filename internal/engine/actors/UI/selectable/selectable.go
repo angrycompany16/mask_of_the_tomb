@@ -76,7 +76,7 @@ func defaultSelectable(textbox *textbox.Textbox) *Selectable {
 		},
 		OnHoverStart:    onHoverStart,
 		OnHoverEnd:      eventsv2.NewEvent(),
-		OnHoverStartBus: eventsv2.NewEventBus(onHoverStart),
+		OnHoverStartBus: eventsv2.NewBusFrom(onHoverStart),
 		Callback:        func(c *commands.Commands) {},
 	}
 }

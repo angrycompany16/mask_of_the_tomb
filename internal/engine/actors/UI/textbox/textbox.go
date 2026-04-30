@@ -48,7 +48,7 @@ func (t *Textbox) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 
 func (t *Textbox) Init(cmd *commands.Commands) {
 	t.Container.Init(cmd)
-	t.OnResize = eventsv2.NewEventBus(t.Container.OnResize)
+	t.OnResize = eventsv2.NewBusFrom(t.Container.OnResize)
 }
 
 func (t *Textbox) Update(cmd *commands.Commands) {

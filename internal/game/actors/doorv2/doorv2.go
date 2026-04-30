@@ -62,7 +62,7 @@ func (d *DoorV2) Init(cmd *commands.Commands) {
 		d.State = CLOSING
 	}
 
-	d.OnClipFinished = eventsv2.NewEventBus(d.AnimatedSprite.OnClipFinished)
+	d.OnClipFinished = eventsv2.NewBusFrom(d.AnimatedSprite.OnClipFinished)
 
 	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
 	if !ok {
@@ -74,7 +74,7 @@ func (d *DoorV2) Init(cmd *commands.Commands) {
 		return inpututil.IsKeyJustPressed(ebiten.KeySpace)
 	})
 	slamboxenv.AddEnvironmentRect(d.Hitbox)
-	d.OnCollision = eventsv2.NewEventBus(d.Trigger.OnCollision)
+	d.OnCollision = eventsv2.NewBusFrom(d.Trigger.OnCollision)
 
 }
 

@@ -34,8 +34,8 @@ func (p *Platform) Init(cmd *commands.Commands) {
 	}
 
 	playerActor, _ := engine.As[*player.Player](playerNode.GetValue())
-	p.OnPlayerMove = eventsv2.NewEventBus(playerActor.OnMove)
-	p.OnPlayerMoveFinish = eventsv2.NewEventBus(playerActor.OnMoveFinishEv)
+	p.OnPlayerMove = eventsv2.NewBusFrom(playerActor.OnMove)
+	p.OnPlayerMoveFinish = eventsv2.NewBusFrom(playerActor.OnMoveFinishEv)
 }
 
 // TODO: Bug: When the player uses a buffered input, OnPlayerMove

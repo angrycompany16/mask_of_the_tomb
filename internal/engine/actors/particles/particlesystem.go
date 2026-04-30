@@ -59,15 +59,14 @@ type ParticleSystem struct {
 	SpritePath  string                              `debug:"auto"`
 	surf        *ebiten.Image                       // The image that the particles are drawn onto
 	imageAsset  *assetloader.AssetRef[ebiten.Image] // The sprite for the particles
-	// layer       *ebiten.Image
 	gizmosImage *ebiten.Image
 	burstTimers []*time.Timer
-	isPlaying   bool   `debug:"auto"`
-	layer       string `debug:"auto"`
-	drawOrder   int    `debug:"auto"`
+	isPlaying   bool                  `debug:"auto"`
+	target      renderer.RenderTarget `debug:"auto"`
+	// layer       string                `debug:"auto"`
+	drawOrder int `debug:"auto"`
 }
 
-// This could maybe just be part of the constructor
 func (ps *ParticleSystem) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	ps.Graphic.OnTreeAdd(node, cmd)
 	ps.imageAsset = assetloader.StageAsset[ebiten.Image](
@@ -89,8 +88,8 @@ func (ps *ParticleSystem) DrawGizmo(cmd *commands.Commands) {
 	worldX, worldY := ps.Transform2D.GetPos(false)
 	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, false)
 	cmd.Renderer.Request(opgen.Pos(ps.gizmosImage, camX, camY, 0.5, 0.5), ps.gizmosImage, renderer.RenderTarget{
-		renderer.SCREEN,
-		"Overlay",
+		Type: renderer.SCREEN,
+		Name: "Overlay",
 	}, ps.drawOrder+1)
 }
 
@@ -134,10 +133,7 @@ func (ps *ParticleSystem) Update(cmd *commands.Commands) {
 		for _, particle := range ps.particles {
 			camX, camY := ps.GetCamera().WorldToCam(particle.posX, particle.posY, true)
 			c, op := particle.makeOp(camX, camY)
-			cmd.Renderer.RequestColorM(c, op, particle.sprite, renderer.RenderTarget{
-				renderer.SCREEN,
-				ps.layer,
-			}, ps.drawOrder)
+			cmd.Renderer.RequestColorM(c, op, particle.sprite, ps.target, ps.drawOrder)
 		}
 		return
 	}
@@ -152,10 +148,7 @@ func (ps *ParticleSystem) Update(cmd *commands.Commands) {
 	angle := ps.Transform2D.GetAngle(false)
 	scaleX, scaleY := ps.Transform2D.GetScale(false)
 	camX, camY := ps.GetCamera().WorldToCam(worldX, worldY, true)
-	cmd.Renderer.Request(opgen.PosRotScale(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, renderer.RenderTarget{
-		renderer.SCREEN,
-		ps.layer,
-	}, ps.drawOrder)
+	cmd.Renderer.Request(opgen.PosRotScale(ps.surf, camX, camY, angle, scaleX, scaleY, 0.5, 0.5), ps.surf, ps.target, ps.drawOrder)
 }
 
 func (ps *ParticleSystem) DrawInspector(ctx *debugui.Context) {
@@ -216,7 +209,8 @@ func (ps *ParticleSystem) newParticle() *Particle {
 	}
 }
 
-func NewParticleSystem(
+// Deprecated: Use the modular constructor instead.
+func NewParticleSystemOld(
 	graphic *graphic.Graphic,
 	Bursts []*Burst,
 	GlobalSpace bool,
@@ -239,7 +233,7 @@ func NewParticleSystem(
 	ImageWidth int,
 	ImageHeight int,
 	SpritePath string,
-	layer string,
+	target renderer.RenderTarget,
 	drawOrder int,
 ) *ParticleSystem {
 	return &ParticleSystem{
@@ -271,7 +265,7 @@ func NewParticleSystem(
 		gizmosImage:     ebiten.NewImage(ImageWidth, ImageHeight),
 		burstTimers:     make([]*time.Timer, len(Bursts)),
 		isPlaying:       false,
-		layer:           layer,
+		target:          target,
 		drawOrder:       drawOrder,
 	}
 }

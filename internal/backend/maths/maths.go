@@ -73,23 +73,11 @@ func DirFromVector(x, y float64) Direction {
 	} else if rotated.X < 0 && rotated.Y > 0 {
 		return DirDown
 	} else if rotated.X > 0 && rotated.Y < 0 {
-		return DirLeft
-	} else if rotated.X < 0 && rotated.Y < 0 {
 		return DirUp
+	} else if rotated.X < 0 && rotated.Y < 0 {
+		return DirLeft
 	}
 	return DirNone
-
-	// if x == 0 && y < 0 {
-	// 	return DirUp
-	// } else if x == 0 && y > 0 {
-	// 	return DirDown
-	// } else if x > 0 && y == 0 {
-	// 	return DirRight
-	// } else if x < 0 && y == 0 {
-	// 	return DirLeft
-	// } else {
-	// 	return DirNone
-	// }
 }
 
 func DirToVector(dir Direction) (float64, float64) {
