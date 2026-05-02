@@ -3,7 +3,7 @@ package selectable
 import (
 	"image/color"
 	"mask_of_the_tomb/internal/backend/colors"
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/UI/cursor"
 	"mask_of_the_tomb/internal/engine/actors/UI/textbox"
@@ -17,9 +17,9 @@ type Selectable struct {
 	SelectedColor   colors.ColorPair
 	Selected        bool
 	Hovered         bool
-	OnHoverStart    *eventsv2.Event
-	OnHoverEnd      *eventsv2.Event
-	OnHoverStartBus *eventsv2.EventBus
+	OnHoverStart    *events.Event
+	OnHoverEnd      *events.Event
+	OnHoverStartBus *events.EventBus
 	Callback        func(*commands.Commands)
 }
 
@@ -63,7 +63,7 @@ func (b *Selectable) SetSelectState(selected, suppressSound bool) {
 }
 
 func defaultSelectable(textbox *textbox.Textbox) *Selectable {
-	onHoverStart := eventsv2.NewEvent()
+	onHoverStart := events.NewEvent()
 	return &Selectable{
 		Textbox: textbox,
 		NormalColor: colors.ColorPair{
@@ -75,8 +75,8 @@ func defaultSelectable(textbox *textbox.Textbox) *Selectable {
 			DarkColor:   color.RGBA{150, 50, 50, 255},
 		},
 		OnHoverStart:    onHoverStart,
-		OnHoverEnd:      eventsv2.NewEvent(),
-		OnHoverStartBus: eventsv2.NewBusFrom(onHoverStart),
+		OnHoverEnd:      events.NewEvent(),
+		OnHoverStartBus: events.NewBusFrom(onHoverStart),
 		Callback:        func(c *commands.Commands) {},
 	}
 }

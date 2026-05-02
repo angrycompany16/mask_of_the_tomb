@@ -1,7 +1,7 @@
 package platform
 
 import (
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/slambox"
 	"mask_of_the_tomb/internal/engine"
@@ -19,8 +19,8 @@ type Platform struct {
 	*graphic.Graphic
 	Hitbox             *maths.Rect
 	direction          maths.Direction
-	OnPlayerMove       *eventsv2.EventBus
-	OnPlayerMoveFinish *eventsv2.EventBus
+	OnPlayerMove       *events.EventBus
+	OnPlayerMoveFinish *events.EventBus
 	active             bool
 }
 
@@ -34,8 +34,8 @@ func (p *Platform) Init(cmd *commands.Commands) {
 	}
 
 	playerActor, _ := engine.As[*player.Player](playerNode.GetValue())
-	p.OnPlayerMove = eventsv2.NewBusFrom(playerActor.OnMove)
-	p.OnPlayerMoveFinish = eventsv2.NewBusFrom(playerActor.OnMoveFinishEv)
+	p.OnPlayerMove = events.NewBusFrom(playerActor.OnMove)
+	p.OnPlayerMoveFinish = events.NewBusFrom(playerActor.OnMoveFinishEv)
 }
 
 // TODO: Bug: When the player uses a buffered input, OnPlayerMove

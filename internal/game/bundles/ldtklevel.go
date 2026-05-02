@@ -20,6 +20,7 @@ import (
 	"mask_of_the_tomb/internal/game/actors/autotilesprite"
 	"mask_of_the_tomb/internal/game/actors/backgroundshader"
 	"mask_of_the_tomb/internal/game/actors/doorv2"
+	"mask_of_the_tomb/internal/game/actors/hazard"
 	"mask_of_the_tomb/internal/game/actors/levelshader"
 	"mask_of_the_tomb/internal/game/actors/platform"
 	"mask_of_the_tomb/internal/game/actors/shaderactor"
@@ -46,6 +47,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
 		// gw, gh := cmd.Renderer.GetGameSize()
 
+		// 1. Load and prepare data from LDTK
 		LDTKData, ok := assetloader.GetAsset[assettypes.LDTKData](cmd.AssetLoader, "LDTK/world.ldtk")
 		if !ok {
 			fmt.Println("Unable to load LDTK world asset from assetloader when making level bundle. Returning.")
@@ -70,6 +72,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			}
 		}
 
+		// 2. Spawn nodes for tilemap layers, including spikes
 		envParentNode := scene.SpawnActor("Environment", transform2D.NewTransform2D(
 			nodeactor.NewNode(),
 		), cmd)
@@ -141,11 +144,12 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			vectorgraphic.WithPivot(0, 0),
 		), cmd)
 
+		// 3. Spawn entities (doors, slamboxes, platforms, etc...)
 		entityLayer := utils.Must(level.GetLayerByName("Entities"))
 		for _, entity := range entityLayer.Entities {
 			switch entity.Name {
-			// case names.HazardEntity:
-			// 	newLevel.hazards = append(newLevel.hazards, entities.NewHazard(&entity))
+			case "Hazard":
+				SpawnHazard(cmd, scene, &entity, envParentNode)
 			case "Slambox":
 				SpawnSlambox(cmd, scene, &entity, envParentNode)
 			// case names.GrassEntity:
@@ -171,7 +175,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			}
 		}
 
-		// Spawn the appropriate particle system
+		// 4. Spawn remaining actors (particlesystems, shaders, etc...)
 		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystemOld(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
@@ -201,6 +205,8 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 					), "shaders/pixel_lights.kage", cmd.Renderer.Textures["LevelTextureRaw"], "Playerspace", 10,
 				),
 			), cmd)
+
+		// scene.SpawnActor("Resetlistener", resetlistener.NewResetListener(nodeactor.NewNode()), cmd)
 	}
 }
 
@@ -324,4 +330,16 @@ func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLD
 		), entity,
 	)
 	envParentNode.AddChild(platformActor, "Platform", engine.MakeOnTreeAdd(platformActor, cmd))
+}
+
+func SpawnHazard(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
+	hazardActor := hazard.NewHazard(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+			),
+		), entity,
+	)
+
+	envParentNode.AddChild(hazardActor, "Hazard", engine.MakeOnTreeAdd(hazardActor, cmd))
 }

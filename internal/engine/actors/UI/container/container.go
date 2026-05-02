@@ -1,7 +1,7 @@
 package container
 
 import (
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
@@ -25,7 +25,7 @@ type Container struct {
 	*nodeactor.Node
 	Rect     *maths.Rect
 	absRect  *maths.Rect
-	OnResize *eventsv2.Event
+	OnResize *events.Event
 	// Controls whether the Container is aligned automatically in relation
 	// to its parent. Note that this only has an effect on relatively
 	// positioned containers
@@ -142,7 +142,7 @@ func defaultContainer(node *nodeactor.Node) *Container {
 		Node:     node,
 		Rect:     maths.NewRect(0, 0, 460, 100),
 		absRect:  maths.NewRect(0, 0, 460, 100),
-		OnResize: eventsv2.NewEvent(),
+		OnResize: events.NewEvent(),
 		Relative: true,
 	}
 }

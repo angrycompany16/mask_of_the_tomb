@@ -1,7 +1,7 @@
 package tracker
 
 import (
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -10,7 +10,7 @@ import (
 
 type Tracker struct {
 	*graphic.Graphic
-	OnMoveFinishEv         *eventsv2.Event
+	OnMoveFinishEv         *events.Event
 	isMoving               bool
 	posX, posY             float64
 	targetPosX, targetPosY float64
@@ -85,7 +85,7 @@ func NewTracker(graphic *graphic.Graphic, moveSpeed, x, y float64) *Tracker {
 		isMoving: false,
 		// I feel like this is kinda dumb
 		// Event listeners should store events, not the other way around
-		OnMoveFinishEv: eventsv2.NewEvent(),
+		OnMoveFinishEv: events.NewEvent(),
 		moveSpeed:      moveSpeed,
 		posX:           x,
 		posY:           y,

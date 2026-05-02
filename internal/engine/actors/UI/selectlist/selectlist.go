@@ -1,7 +1,7 @@
 package selectlist
 
 import (
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/node"
 	"mask_of_the_tomb/internal/engine"
@@ -21,7 +21,7 @@ type SelectList struct {
 	*align.Align
 	Active          bool
 	selectIndex     int
-	hoverEventBuses []*eventsv2.EventBus
+	hoverEventBuses []*events.EventBus
 }
 
 func (b *SelectList) Init(cmd *commands.Commands) {

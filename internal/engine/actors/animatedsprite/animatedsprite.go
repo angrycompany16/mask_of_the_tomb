@@ -5,7 +5,7 @@ import (
 	"image"
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
@@ -21,7 +21,7 @@ type AnimatedSprite struct {
 	*graphic.Graphic
 	Clips          map[string]*Clip
 	ActiveClipName string
-	OnClipFinished *eventsv2.Event
+	OnClipFinished *events.Event
 	target         renderer.RenderTarget
 	drawOrder      int     `debug:"auto"`
 	pivotX         float64 `debug:"auto"`
@@ -104,7 +104,7 @@ func NewAnimatedSprite(
 	return &AnimatedSprite{
 		Graphic:        graphic,
 		Clips:          clips,
-		OnClipFinished: eventsv2.NewEvent(),
+		OnClipFinished: events.NewEvent(),
 		target:         target,
 		drawOrder:      drawOrder,
 		pivotX:         pivotX,

@@ -2,7 +2,7 @@ package player
 
 import (
 	"fmt"
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/input"
 	"mask_of_the_tomb/internal/backend/inputbuffer"
 	"mask_of_the_tomb/internal/backend/maths"
@@ -14,7 +14,9 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/doorv2"
+	"mask_of_the_tomb/internal/game/actors/hazard"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
+	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/sceneswitch"
 	"math"
 
@@ -43,14 +45,14 @@ const (
 type Player struct {
 	*slamboxactor.Slambox
 	State                     PlayerState
-	direction                 maths.Direction
+	Direction                 maths.Direction
 	spriteTransform           *transform2D.Transform2D
 	animatedSprite            *animatedsprite.AnimatedSprite
 	pivotTransform            *transform2D.Transform2D
 	inputbuffer               *inputbuffer.InputBuffer
-	OnMoveFinish              *eventsv2.EventBus
-	OnClipFinish              *eventsv2.EventBus
-	OnMove                    *eventsv2.Event
+	OnMoveFinish              *events.EventBus
+	OnClipFinish              *events.EventBus
+	OnMove                    *events.Event
 	jumpOffset, jumpOffsetvel float64
 	slamboxIDBuffer           int
 	slamDirBuffer             maths.Direction
@@ -59,36 +61,15 @@ type Player struct {
 	trueDoorOffset            float64
 	doorY                     float64
 	Light                     *shaders.Light
-
-	// Turn engine.bundle into some kind of generic thing (probably
-	// just a function), then pass it in explicitly. Hopefully we can
-	// then spawn the bundle after we've started playing the game, with
-	// no import problems :D
-	// jumpParticleSys engine.bundle
-
-	// moveSpeed   float64 // 5.0
-	// defaultPlayerHealth   = 5.0
-	// invincibilityDuration = time.Second
-	// inputBufferDuration   = 0.1
 }
-
-// Children
-// jumpParticlesBroad *particles.ParticleSystem
-// jumpParticlesTight *particles.ParticleSystem
-// sprite                    *ebiten.Image
 
 func (p *Player) Init(cmd *commands.Commands) {
 	p.Slambox.Init(cmd)
 
-	scene, ok := commands.Get[engine.Scene](cmd)
-	if !ok {
-		panic("Missing scene (Player)")
-	}
+	scene, _ := commands.Get[engine.Scene](cmd)
+	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
+	gamestate_, _ := commands.Get[gamestate.GameState](cmd)
 
-	sceneswitch, ok := commands.Get[sceneswitch.SceneSwitch](cmd)
-	if !ok {
-		panic("Missing sceneswitch (Player)")
-	}
 	spawnDoorIid := sceneswitch.SpawnEntityIid
 	spawnDoorNode, ok := scene.GetNodeFunc(
 		func(n *node.Node[engine.Actor]) bool {
@@ -116,7 +97,10 @@ func (p *Player) Init(cmd *commands.Commands) {
 		p.doorOffset = 0
 	}
 
-	p.direction = sceneswitch.SpawnDirection
+	p.Direction = sceneswitch.SpawnDirection
+	x, y := p.GetPos()
+	gamestate_.LevelStates[scene.GetName()] = gamestate.NewLevelState(x, y, p.Direction)
+	gamestate_.SaveLevelState(scene)
 
 	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
 	playerControls.RegisterAction("moveLeft", input.KeyJustPressedAction(ebiten.KeyA))
@@ -127,6 +111,7 @@ func (p *Player) Init(cmd *commands.Commands) {
 	playerControls.AddBinding("moveUp", input.KeyJustPressedAction(ebiten.KeyUp))
 	playerControls.RegisterAction("moveDown", input.KeyJustPressedAction(ebiten.KeyS))
 	playerControls.AddBinding("moveDown", input.KeyJustPressedAction(ebiten.KeyDown))
+	playerControls.AddBinding("Reset", input.KeyJustPressedAction(ebiten.KeyR))
 
 	// Would be very nice to set up a reference like this in another
 	// way
@@ -135,13 +120,13 @@ func (p *Player) Init(cmd *commands.Commands) {
 	childNode, ok := scene.GetNodeByName("PlayerSprite")
 	p.spriteTransform, ok = engine.As[*transform2D.Transform2D](childNode.GetValue())
 	p.animatedSprite, ok = engine.As[*animatedsprite.AnimatedSprite](childNode.GetValue())
-	p.OnClipFinish = eventsv2.NewBusFrom(p.animatedSprite.OnClipFinished)
+	p.OnClipFinish = events.NewBusFrom(p.animatedSprite.OnClipFinished)
 
 	pivotNode, ok := scene.GetNodeByName("PlayerPivot")
 	p.pivotTransform, ok = engine.As[*transform2D.Transform2D](pivotNode.GetValue())
 
 	p.pivotTransform.Propagate()
-	x, y := p.pivotTransform.GetPos(false)
+	x, y = p.pivotTransform.GetPos(false)
 	p.Light.X = x
 	p.Light.Y = y
 
@@ -155,6 +140,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 
 	scene, _ := commands.Get[engine.Scene](cmd)
 	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
+	gameState, _ := commands.Get[gamestate.GameState](cmd)
 
 	x, y := p.pivotTransform.GetPos(false)
 
@@ -220,10 +206,11 @@ func (p *Player) Update(cmd *commands.Commands) {
 			if ok {
 				p.State = LEAVING
 				door, _ := engine.As[*doorv2.DoorV2](doorNode.GetValue())
-				p.direction = door.Direction
+				p.Direction = door.Direction
 
 				p.setDoorOffset(door.Hitbox)
 
+				gameState.SaveLevelState(scene)
 				cmd.InputHandler.InputSchemes["PlayerControls"].Active = false
 				p.jumpOffsetvel = 3.5
 			}
@@ -231,7 +218,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 	case MOVING:
 		_, finished := p.OnMoveFinish.Poll()
 		if finished {
-			p.direction = maths.Opposite(p.direction)
+			p.Direction = maths.Opposite(p.Direction)
 			p.State = IDLE
 		}
 	case DYING:
@@ -260,9 +247,27 @@ func (p *Player) Update(cmd *commands.Commands) {
 
 	moveDir := p.inputbuffer.Read()
 
-	p.pivotTransform.SetAngle(maths.DirToRadians(p.direction))
+	p.pivotTransform.SetAngle(maths.DirToRadians(p.Direction))
 
 	p.inputbuffer.Update()
+
+	if cmd.InputHandler.InputSchemes["PlayerControls"].PollAction("Reset") {
+		p.ResetLevel(scene, gameState)
+	}
+
+	// TODO: This is not clean at all
+	// Would be a lot better if we could use events for this
+	_, ok := scene.GetNodeFunc(func(n *engine.Node) bool {
+		hazard, ok := engine.As[*hazard.Hazard](n.GetValue())
+		if !ok {
+			return false
+		}
+		triggerRect := hazard.Trigger.GetRect()
+		return triggerRect.Overlapping(p.GetRect())
+	})
+	if ok {
+		p.ResetLevel(scene, gameState)
+	}
 
 	if moveDir == maths.DirNone || p.State != IDLE {
 		return
@@ -296,10 +301,33 @@ func (p *Player) getCenterPos() (float64, float64) {
 	return x + p.GetRect().Width/2, y + p.GetRect().Height/2
 }
 
+func (p *Player) ResetLevel(scene *engine.Scene, gameState *gamestate.GameState) {
+	levelstate := gameState.LevelStates[scene.GetName()]
+
+	p.SetPos(levelstate.PlayerSpawnPos.X, levelstate.PlayerSpawnPos.Y)
+	p.Direction = levelstate.PlayerSpawnDir
+
+	slamboxes := scene.GetRoot().GetChildrenFunc(
+		func(n *node.Node[engine.Actor]) bool {
+			_, ok := engine.As[*slamboxactor.Slambox](n.GetValue())
+			return ok
+		},
+	)
+
+	for _, slambox := range slamboxes {
+		slamboxactor, _ := engine.As[*slamboxactor.Slambox](slambox.GetValue())
+		if _, ok := engine.As[*Player](slambox.GetValue()); ok {
+			continue
+		}
+		slamboxPos := levelstate.SlamboxPositions[slambox.GetID()]
+		slamboxactor.SetPos(slamboxPos.X, slamboxPos.Y)
+	}
+}
+
 func (p *Player) setDoorOffset(doorRect *maths.Rect) {
 	dx := doorRect.Cx() - p.GetRect().Cx()
 	dy := doorRect.Cy() - p.GetRect().Cy()
-	switch p.direction {
+	switch p.Direction {
 	case maths.DirUp:
 		p.doorOffset = dx
 	case maths.DirDown:
@@ -313,7 +341,7 @@ func (p *Player) setDoorOffset(doorRect *maths.Rect) {
 
 func (p *Player) Dash(direction maths.Direction) {
 	p.inputbuffer.Clear()
-	p.direction = direction
+	p.Direction = direction
 	p.State = MOVING
 	p.Slambox.RequestSlam(direction)
 	p.animatedSprite.SwitchClip(DASH_INIT_ANIM)
@@ -324,7 +352,7 @@ func (p *Player) Dash(direction maths.Direction) {
 func (p *Player) StartSlamming(direction maths.Direction) {
 	// sound_v2.PlaySound("playerDash", "sfxMaster", 0.06)
 	// p.canPlaySlamSound = true
-	p.direction = maths.Opposite(direction)
+	p.Direction = maths.Opposite(direction)
 	p.animatedSprite.SwitchClip(SLAM_ANIM)
 	p.State = SLAMMING
 	p.jumpOffsetvel = 4
@@ -348,8 +376,8 @@ func NewPlayer(slambox *slamboxactor.Slambox, inputBufferDuration float64) *Play
 	player := &Player{
 		Slambox:      slambox,
 		inputbuffer:  inputbuffer.NewInputBuffer(inputBufferDuration),
-		OnMoveFinish: eventsv2.NewBusFrom(slambox.OnMoveFinishEv),
-		OnMove:       eventsv2.NewEvent(),
+		OnMoveFinish: events.NewBusFrom(slambox.OnMoveFinishEv),
+		OnMove:       events.NewEvent(),
 
 		// TODO: Change so that the parameters are more intuitive
 		// noise factor should not be hard-coded

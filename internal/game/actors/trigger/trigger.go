@@ -1,8 +1,9 @@
 package trigger
 
 import (
+	"fmt"
 	"image/color"
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/renderer"
@@ -27,9 +28,9 @@ const (
 type Trigger struct {
 	*graphic.Graphic
 	trigger           *triggerenv.Trigger
-	OnCollision       *eventsv2.Event
-	OnCollisionEnter  *eventsv2.Event
-	OnCollisionExit   *eventsv2.Event
+	OnCollision       *events.Event
+	OnCollisionEnter  *events.Event
+	OnCollisionExit   *events.Event
 	otherColliderName string
 	state             TriggerState
 	gizmosImage       *ebiten.Image
@@ -39,15 +40,14 @@ func (t *Trigger) Init(cmd *commands.Commands) {
 	t.Graphic.Init(cmd)
 	triggerenv, ok := commands.Get[triggerenv.TriggerEnv](cmd)
 	if !ok {
-		panic("Missing triggerenv (Trigger)")
+		fmt.Println("Missing triggerenv (Trigger)")
+		return
 	}
 
 	triggerenv.AddTrigger(t.trigger)
 	if ok, info := triggerenv.CheckCollision(t.trigger); ok {
 		switch t.state {
 		case DISJOINT:
-			// fmt.Println("Start in COLLIDING state")
-			// fmt.Println("OTherName:", info.OtherName)
 			t.state = COLLIDING
 			t.otherColliderName = info.OtherName
 		}
@@ -105,9 +105,9 @@ func defaultTrigger(graphic *graphic.Graphic) *Trigger {
 	return &Trigger{
 		Graphic:          graphic,
 		trigger:          triggerenv.NewTrigger(maths.NewRect(0, 0, 8, 8), ""),
-		OnCollision:      eventsv2.NewEvent(),
-		OnCollisionEnter: eventsv2.NewEvent(),
-		OnCollisionExit:  eventsv2.NewEvent(),
+		OnCollision:      events.NewEvent(),
+		OnCollisionEnter: events.NewEvent(),
+		OnCollisionExit:  events.NewEvent(),
 		gizmosImage:      ebiten.NewImage(8, 8),
 	}
 }

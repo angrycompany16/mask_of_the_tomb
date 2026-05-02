@@ -2,7 +2,7 @@ package slamboxactor
 
 import (
 	"image/color"
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/renderer"
@@ -25,7 +25,7 @@ type Slambox struct {
 	inGroup      bool
 	isCenter     bool
 	gizmosImage  *ebiten.Image
-	OnMoveFinish *eventsv2.EventBus
+	OnMoveFinish *events.EventBus
 	hasParticles bool
 }
 
@@ -112,7 +112,7 @@ func defaultSlambox(tracker *tracker.Tracker) *Slambox {
 		rect:         maths.NewRect(x, y, 8, 8),
 		slamRequest:  maths.DirNone,
 		gizmosImage:  ebiten.NewImage(8, 8),
-		OnMoveFinish: eventsv2.NewBusFrom(tracker.OnMoveFinishEv),
+		OnMoveFinish: events.NewBusFrom(tracker.OnMoveFinishEv),
 		hasParticles: true,
 	}
 }

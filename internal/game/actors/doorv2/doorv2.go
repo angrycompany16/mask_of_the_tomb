@@ -3,7 +3,7 @@ package doorv2
 import (
 	"fmt"
 	"image/color"
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/renderer"
@@ -49,8 +49,8 @@ type DoorV2 struct {
 	isReady            bool
 	gizmosImage        *ebiten.Image
 	Direction          maths.Direction
-	OnCollision        *eventsv2.EventBus
-	OnClipFinished     *eventsv2.EventBus
+	OnCollision        *events.EventBus
+	OnClipFinished     *events.EventBus
 	State              DoorState
 }
 
@@ -62,7 +62,7 @@ func (d *DoorV2) Init(cmd *commands.Commands) {
 		d.State = CLOSING
 	}
 
-	d.OnClipFinished = eventsv2.NewBusFrom(d.AnimatedSprite.OnClipFinished)
+	d.OnClipFinished = events.NewBusFrom(d.AnimatedSprite.OnClipFinished)
 
 	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
 	if !ok {
@@ -74,7 +74,7 @@ func (d *DoorV2) Init(cmd *commands.Commands) {
 		return inpututil.IsKeyJustPressed(ebiten.KeySpace)
 	})
 	slamboxenv.AddEnvironmentRect(d.Hitbox)
-	d.OnCollision = eventsv2.NewBusFrom(d.Trigger.OnCollision)
+	d.OnCollision = events.NewBusFrom(d.Trigger.OnCollision)
 
 }
 

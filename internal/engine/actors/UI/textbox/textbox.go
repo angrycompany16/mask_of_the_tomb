@@ -5,7 +5,7 @@ import (
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/colors"
-	eventsv2 "mask_of_the_tomb/internal/backend/events_v2"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
 	"mask_of_the_tomb/internal/backend/renderer"
@@ -33,7 +33,7 @@ type Textbox struct {
 	Image          *ebiten.Image
 	target         renderer.RenderTarget
 	drawOrder      int
-	OnResize       *eventsv2.EventBus
+	OnResize       *events.EventBus
 	pivotX, pivotY float64
 }
 
@@ -48,7 +48,7 @@ func (t *Textbox) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 
 func (t *Textbox) Init(cmd *commands.Commands) {
 	t.Container.Init(cmd)
-	t.OnResize = eventsv2.NewBusFrom(t.Container.OnResize)
+	t.OnResize = events.NewBusFrom(t.Container.OnResize)
 }
 
 func (t *Textbox) Update(cmd *commands.Commands) {

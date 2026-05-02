@@ -2,6 +2,7 @@ package gameinfo
 
 import "time"
 
+// TODO: Probably will be merged into gamestate
 type GameInfo struct {
 	Exit      bool
 	startTime time.Time
