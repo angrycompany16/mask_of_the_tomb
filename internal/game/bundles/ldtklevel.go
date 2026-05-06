@@ -176,12 +176,33 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		}
 
 		// 4. Spawn remaining actors (particlesystems, shaders, etc...)
-		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystemOld(
+		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystem(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),
 				),
-			), make([]*particles.Burst, 0), true, 0.5, 0, maths.RandomFloat64{0, 480}, maths.RandomFloat64{0, 270}, maths.RandomFloat64{0, 0}, maths.RandomFloat64{-5, 0}, maths.RandomFloat64{0, 4}, maths.RandomFloat64{0, 0.5}, maths.RandomFloat64{0, 0.01}, maths.RandomFloat64{0.7, 1.5}, maths.RandomFloat64{0.0, 0.0}, maths.RandomFloat64{3.0, 5.0}, maths.RandomFloat64{0.0, 2.0}, maths.RandomFloat64{0.0, 1.0}, [4]uint8{255, 255, 255, 255}, [4]uint8{255, 255, 255, 255}, 13, 13, "sprites/environment/star.png", renderer.RenderTarget{Type: renderer.SCREEN, Name: "Background"}, 1,
+			),
+			particles.WithBursts(),
+			particles.WithGlobalSpace(true),
+			particles.WithEmission(0.5),
+			particles.WithSpawnPos(0, 480, 0, 270),
+			particles.WithSpawnVel(0, 0, -5, 0),
+			particles.WithSpawnAngle(0, 4),
+			particles.WithSpawnAngularVel(0, 0.5),
+			particles.WithAirFriction(0, 0.01),
+			particles.WithScale(0.7, 1.5, 0.0, 0.0),
+			particles.WithLifetime(3, 5),
+			particles.WithNoiseFactor(0, 2, 0, 1),
+			particles.WithColors(
+				[4]uint8{255, 255, 255, 255},
+				[4]uint8{255, 255, 255, 255},
+			),
+			particles.WithImageSize(13, 13),
+			particles.WithSprite("sprites/environment/star.png"),
+			particles.WithRenderInfo(
+				renderer.RenderTarget{Type: renderer.SCREEN, Name: "Background"},
+				1,
+			),
 		), cmd)
 
 		scene.SpawnActor("BackgroundShader",
