@@ -44,8 +44,10 @@ func MakeSlamboxParticlesBundle(x, y float64, dir maths.Direction, halfWidth, ha
 			particles.WithSpawnPos(-size, size, 0, 0),
 			particles.WithSpawnVel(-20, 20, 2, 120),
 			particles.WithColors(
+				[4]uint8{200, 200, 200, 255},
 				[4]uint8{255, 255, 255, 255},
-				[4]uint8{255, 255, 255, 255},
+				[4]uint8{150, 150, 150, 255},
+				[4]uint8{200, 200, 200, 255},
 			),
 			particles.WithGlobalSpace(false),
 			particles.WithImageSize(256, 64),
@@ -56,7 +58,7 @@ func MakeSlamboxParticlesBundle(x, y float64, dir maths.Direction, halfWidth, ha
 			particles.WithRenderInfo(renderer.RenderTarget{
 				Type: renderer.TEXTURE,
 				Name: "LevelTextureRaw",
-			}, 20),
+			}, 30),
 		), cmd)
 
 		cmd.AssetLoader.LoadAll()

@@ -196,6 +196,8 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			particles.WithColors(
 				[4]uint8{255, 255, 255, 255},
 				[4]uint8{255, 255, 255, 255},
+				[4]uint8{255, 255, 255, 255},
+				[4]uint8{255, 255, 255, 255},
 			),
 			particles.WithImageSize(13, 13),
 			particles.WithSprite("sprites/environment/star.png"),

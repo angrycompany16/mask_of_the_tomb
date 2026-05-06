@@ -36,6 +36,8 @@ func MakeJumpParticlesBundle(x, y float64, dir maths.Direction, halfSize float64
 			particles.WithColors(
 				[4]uint8{255, 255, 255, 255},
 				[4]uint8{200, 200, 200, 255},
+				[4]uint8{200, 200, 200, 255},
+				[4]uint8{255, 0, 0, 255},
 			),
 			particles.WithGlobalSpace(false),
 			particles.WithImageSize(64, 64),
@@ -61,6 +63,8 @@ func MakeJumpParticlesBundle(x, y float64, dir maths.Direction, halfSize float64
 			particles.WithColors(
 				[4]uint8{255, 255, 255, 255},
 				[4]uint8{200, 200, 200, 255},
+				[4]uint8{200, 200, 200, 255},
+				[4]uint8{255, 0, 0, 255},
 			),
 			particles.WithGlobalSpace(false),
 			particles.WithImageSize(64, 64),

@@ -35,25 +35,25 @@ type ParticleSystem struct {
 	*graphic.Graphic
 	particles       []*Particle
 	Bursts          []*Burst
-	GlobalSpace     bool                `debug:"auto"`
-	Emission        float64             `debug:"auto"`
-	Angle           float64             `debug:"auto"`
-	SpawnPosX       maths.RandomFloat64 `debug:"auto"`
-	SpawnPosY       maths.RandomFloat64 `debug:"auto"`
-	SpawnVelX       maths.RandomFloat64 `debug:"auto"`
-	SpawnVelY       maths.RandomFloat64 `debug:"auto"`
-	SpawnAngle      maths.RandomFloat64 `debug:"auto"`
-	SpawnAngularVel maths.RandomFloat64 `debug:"auto"`
-	AirFriction     maths.RandomFloat64 `debug:"auto"`
-	StartScale      maths.RandomFloat64 `debug:"auto"`
-	EndScale        maths.RandomFloat64 `debug:"auto"`
-	Lifetime        maths.RandomFloat64 `debug:"auto"`
-	NoiseFactorX    maths.RandomFloat64 `debug:"auto"`
-	NoiseFactorY    maths.RandomFloat64 `debug:"auto"`
-	t               float64             `debug:"auto"`
+	GlobalSpace     bool              `debug:"auto"`
+	Emission        float64           `debug:"auto"`
+	Angle           float64           `debug:"auto"`
+	SpawnPosX       maths.RandomFloat `debug:"auto"`
+	SpawnPosY       maths.RandomFloat `debug:"auto"`
+	SpawnVelX       maths.RandomFloat `debug:"auto"`
+	SpawnVelY       maths.RandomFloat `debug:"auto"`
+	SpawnAngle      maths.RandomFloat `debug:"auto"`
+	SpawnAngularVel maths.RandomFloat `debug:"auto"`
+	AirFriction     maths.RandomFloat `debug:"auto"`
+	StartScale      maths.RandomFloat `debug:"auto"`
+	EndScale        maths.RandomFloat `debug:"auto"`
+	Lifetime        maths.RandomFloat `debug:"auto"`
+	NoiseFactorX    maths.RandomFloat `debug:"auto"`
+	NoiseFactorY    maths.RandomFloat `debug:"auto"`
+	t               float64           `debug:"auto"`
 	// TODO: Use ebiten.color by making embedded struct with custom unmarshaler
-	StartColor  [4]uint8                            `debug:"auto"`
-	EndColor    [4]uint8                            `debug:"auto"`
+	StartColor  [4]maths.RandomInt                  `debug:"auto"`
+	EndColor    [4]maths.RandomInt                  `debug:"auto"`
 	ImageWidth  int                                 `debug:"auto"`
 	ImageHeight int                                 `debug:"auto"`
 	SpritePath  string                              `debug:"auto"`
@@ -186,16 +186,16 @@ func (ps *ParticleSystem) newParticle() *Particle {
 	}
 	startScale := ps.StartScale.Eval()
 	startColor := color.RGBA{
-		R: ps.StartColor[0],
-		G: ps.StartColor[1],
-		B: ps.StartColor[2],
-		A: ps.StartColor[3],
+		R: uint8(ps.StartColor[0].Eval()),
+		G: (uint8(ps.StartColor[1].Eval())),
+		B: (uint8(ps.StartColor[2].Eval())),
+		A: (uint8(ps.StartColor[3].Eval())),
 	}
 	endColor := color.RGBA{
-		R: ps.EndColor[0],
-		G: ps.EndColor[1],
-		B: ps.EndColor[2],
-		A: ps.EndColor[3],
+		R: uint8(ps.EndColor[0].Eval()),
+		G: uint8(ps.EndColor[1].Eval()),
+		B: uint8(ps.EndColor[2].Eval()),
+		A: uint8(ps.EndColor[3].Eval()),
 	}
 	return &Particle{
 		x, y, ps.SpawnVelX.Eval(), ps.SpawnVelY.Eval(),

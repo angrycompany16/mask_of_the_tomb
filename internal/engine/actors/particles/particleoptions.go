@@ -32,30 +32,40 @@ func defaultParticleSystem(
 		GlobalSpace:     true,
 		Emission:        5,
 		Angle:           0,
-		SpawnPosX:       maths.RandomFloat64{Min: -10, Max: 10},
-		SpawnPosY:       maths.RandomFloat64{Min: -10, Max: 10},
-		SpawnVelX:       maths.RandomFloat64{Min: -6, Max: 5},
-		SpawnVelY:       maths.RandomFloat64{Min: -5, Max: 5},
-		SpawnAngle:      maths.RandomFloat64{Min: 0, Max: 0},
-		SpawnAngularVel: maths.RandomFloat64{Min: 0, Max: 0},
-		AirFriction:     maths.RandomFloat64{Min: 0, Max: 0},
-		StartScale:      maths.RandomFloat64{Min: 1, Max: 1},
-		EndScale:        maths.RandomFloat64{Min: 0, Max: 0},
-		Lifetime:        maths.RandomFloat64{Min: 0.5, Max: 1},
-		NoiseFactorX:    maths.RandomFloat64{Min: 0, Max: 0},
-		NoiseFactorY:    maths.RandomFloat64{Min: 0, Max: 0},
+		SpawnPosX:       maths.RandomFloat{Min: -10, Max: 10},
+		SpawnPosY:       maths.RandomFloat{Min: -10, Max: 10},
+		SpawnVelX:       maths.RandomFloat{Min: -6, Max: 5},
+		SpawnVelY:       maths.RandomFloat{Min: -5, Max: 5},
+		SpawnAngle:      maths.RandomFloat{Min: 0, Max: 0},
+		SpawnAngularVel: maths.RandomFloat{Min: 0, Max: 0},
+		AirFriction:     maths.RandomFloat{Min: 0, Max: 0},
+		StartScale:      maths.RandomFloat{Min: 1, Max: 1},
+		EndScale:        maths.RandomFloat{Min: 0, Max: 0},
+		Lifetime:        maths.RandomFloat{Min: 0.5, Max: 1},
+		NoiseFactorX:    maths.RandomFloat{Min: 0, Max: 0},
+		NoiseFactorY:    maths.RandomFloat{Min: 0, Max: 0},
 		t:               0,
-		StartColor:      [4]uint8{255, 255, 255, 255},
-		EndColor:        [4]uint8{0, 0, 0, 255},
-		ImageWidth:      1,
-		ImageHeight:     1,
-		SpritePath:      "sprites/icons/circle-15x15.png",
-		surf:            ebiten.NewImage(1, 1),
-		gizmosImage:     ebiten.NewImage(1, 1),
-		burstTimers:     make([]*time.Timer, 1),
-		isPlaying:       true,
-		target:          renderer.RenderTarget{Type: renderer.SCREEN, Name: "Playerspace"},
-		drawOrder:       0,
+		StartColor: [4]maths.RandomInt{
+			maths.NewRandomInt(255, 255),
+			maths.NewRandomInt(255, 255),
+			maths.NewRandomInt(255, 255),
+			maths.NewRandomInt(255, 255),
+		},
+		EndColor: [4]maths.RandomInt{
+			maths.NewRandomInt(0, 0),
+			maths.NewRandomInt(0, 0),
+			maths.NewRandomInt(0, 0),
+			maths.NewRandomInt(0, 0),
+		},
+		ImageWidth:  1,
+		ImageHeight: 1,
+		SpritePath:  "sprites/icons/circle-15x15.png",
+		surf:        ebiten.NewImage(1, 1),
+		gizmosImage: ebiten.NewImage(1, 1),
+		burstTimers: make([]*time.Timer, 1),
+		isPlaying:   true,
+		target:      renderer.RenderTarget{Type: renderer.SCREEN, Name: "Playerspace"},
+		drawOrder:   0,
 	}
 }
 
@@ -85,60 +95,70 @@ func WithAngle(angle float64) utils.Option[ParticleSystem] {
 
 func WithSpawnPos(minX, maxX, minY, maxY float64) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.SpawnPosX = maths.RandomFloat64{Min: minX, Max: maxX}
-		ps.SpawnPosY = maths.RandomFloat64{Min: minY, Max: maxY}
+		ps.SpawnPosX = maths.RandomFloat{Min: minX, Max: maxX}
+		ps.SpawnPosY = maths.RandomFloat{Min: minY, Max: maxY}
 	}
 }
 
 func WithSpawnVel(minX, maxX, minY, maxY float64) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.SpawnVelX = maths.RandomFloat64{Min: minX, Max: maxX}
-		ps.SpawnVelY = maths.RandomFloat64{Min: minY, Max: maxY}
+		ps.SpawnVelX = maths.RandomFloat{Min: minX, Max: maxX}
+		ps.SpawnVelY = maths.RandomFloat{Min: minY, Max: maxY}
 	}
 }
 
 func WithSpawnAngle(min, max float64) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.SpawnAngle = maths.RandomFloat64{Min: min, Max: max}
+		ps.SpawnAngle = maths.RandomFloat{Min: min, Max: max}
 	}
 }
 
 func WithSpawnAngularVel(min, max float64) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.SpawnAngularVel = maths.RandomFloat64{Min: min, Max: max}
+		ps.SpawnAngularVel = maths.RandomFloat{Min: min, Max: max}
 	}
 }
 
 func WithAirFriction(min, max float64) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.AirFriction = maths.RandomFloat64{Min: min, Max: max}
+		ps.AirFriction = maths.RandomFloat{Min: min, Max: max}
 	}
 }
 
 func WithScale(startMin, startMax, endMin, endMax float64) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.StartScale = maths.RandomFloat64{Min: startMin, Max: startMax}
-		ps.EndScale = maths.RandomFloat64{Min: endMin, Max: endMax}
+		ps.StartScale = maths.RandomFloat{Min: startMin, Max: startMax}
+		ps.EndScale = maths.RandomFloat{Min: endMin, Max: endMax}
 	}
 }
 
 func WithLifetime(min, max float64) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.Lifetime = maths.RandomFloat64{Min: min, Max: max}
+		ps.Lifetime = maths.RandomFloat{Min: min, Max: max}
 	}
 }
 
 func WithNoiseFactor(minX, maxX, minY, maxY float64) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.NoiseFactorX = maths.RandomFloat64{Min: minX, Max: maxX}
-		ps.NoiseFactorY = maths.RandomFloat64{Min: minY, Max: maxY}
+		ps.NoiseFactorX = maths.RandomFloat{Min: minX, Max: maxX}
+		ps.NoiseFactorY = maths.RandomFloat{Min: minY, Max: maxY}
 	}
 }
 
-func WithColors(start, end [4]uint8) utils.Option[ParticleSystem] {
+func WithColors(startMin, startMax, endMin, endMax [4]uint8) utils.Option[ParticleSystem] {
 	return func(ps *ParticleSystem) {
-		ps.StartColor = start
-		ps.EndColor = end
+		ps.StartColor = [4]maths.RandomInt{
+			maths.NewRandomInt(int(startMin[0]), int(startMax[0])),
+			maths.NewRandomInt(int(startMin[1]), int(startMax[1])),
+			maths.NewRandomInt(int(startMin[2]), int(startMax[2])),
+			maths.NewRandomInt(int(startMin[3]), int(startMax[3])),
+		}
+		ps.EndColor = [4]maths.RandomInt{
+			maths.NewRandomInt(int(endMin[0]), int(endMax[0])),
+			maths.NewRandomInt(int(endMin[1]), int(endMax[1])),
+			maths.NewRandomInt(int(endMin[2]), int(endMax[2])),
+			maths.NewRandomInt(int(endMin[3]), int(endMax[3])),
+		}
 	}
 }
 
