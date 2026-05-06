@@ -1,7 +1,6 @@
 package shaderactor
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/opgen"
@@ -47,7 +46,7 @@ func (s *Shader) Init(cmd *commands.Commands) {
 func (s *Shader) Update(cmd *commands.Commands) {
 	s.Graphic.Update(cmd)
 	if s.shaderRef.Status() != assetloader.LOADED {
-		fmt.Println("Shader asset not loaded. Check error logs.")
+		// fmt.Println("Shader asset not loaded. Check error logs.")
 		return
 	}
 

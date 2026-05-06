@@ -1,0 +1,83 @@
+//kage:unit pixels
+
+package main
+
+var Time float
+var Amplitude float
+var Frequency float
+var Strength float
+var Threshold float
+var Color vec4
+var Center vec2
+var Resolution vec2
+var PlayerPos vec2
+
+// gg... cannot have state like this
+// this means that we need to write an entire backend library actually
+// Yay, lots of wasted effort!
+var positions [20]vec2
+var angles [20]float
+var init bool
+
+func Fragment(dstPos vec4, srcPos vec2) vec4 {
+    // DARKEST := RGBA(12.0, 19.0, 39.0, 255.0)
+    // DARK := RGBA(3.0, 40.0, 43.0, 255.0)
+    // DIM := RGBA(9.0, 73.0, 63.0, 255.0)
+    // MID := RGBA(17.0, 131.0, 55.0, 255.0)
+    // BRIGHT := RGBA(87.0, 197.0, 43.0, 255.0)
+    // BRIGHTEST := RGBA(185.0, 237.0, 94.0, 255.0)
+
+    if !init {
+        Init()
+        init = true
+    }
+
+    Update()
+    col := Draw(srcPos)
+
+    return col
+}
+
+func Init() {
+    for i := 0; i < 20; i++ {
+        angles[i] = Hash(float(i))
+    }
+}
+
+func Update() {
+    for i := 0; i < 20; i++ {
+        direction := vec2(cos(angles[i], sin(angles[i])))
+        positions[i] += direction * moveSpeed * 0.0166666
+    }
+}
+
+func Draw(pos vec2) {
+    for i := 0; i < 20; i++ {
+        if Approx(positions[i].x, pos.x, 0.1) && Approx(positions[i].y, pos.y, 0.1) {
+            return vec4(1.0, 1.0, 1.0, 1.0)
+        } else {
+            return vec4(0.0, 0.0, 0.0, 0.0)
+        }
+    }
+}
+
+func Approx(x, y, tol float) bool {
+    if abs(x - y) < tol {
+        return true
+    } else {
+        return false
+    }
+}
+
+func RGBA(r, g, b, a float) vec4 {
+    return vec4(r / 255.0, g / 255.0, b / 255.0, a / 255.0)
+}
+
+// From https://www.shadertoy.com/view/4djSRW
+// This'll do i guess... ? Probably shit but oh ewell.
+func Hash(f float) float {
+    f = fract(f * 0.10310485702)
+    f *= f + 33.33
+    f *= f + f
+    return fract(f);
+}

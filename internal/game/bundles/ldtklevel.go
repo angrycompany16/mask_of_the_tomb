@@ -216,7 +216,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 						transform2D.NewTransform2D(
 							nodeactor.NewNode(),
 						),
-					), "shaders/fog.kage", cmd.Renderer.Textures["BackgroundRaw"], "Background", 0,
+					), "shaders/grass_background.kage", cmd.Renderer.Textures["BackgroundRaw"], "Background", 0,
 				),
 			), cmd)
 
