@@ -209,67 +209,6 @@ func (ps *ParticleSystem) newParticle() *Particle {
 	}
 }
 
-// Deprecated: Use the modular constructor instead.
-func NewParticleSystemOld(
-	graphic *graphic.Graphic,
-	Bursts []*Burst,
-	GlobalSpace bool,
-	Emission float64,
-	Angle float64,
-	SpawnPosX maths.RandomFloat64,
-	SpawnPosY maths.RandomFloat64,
-	SpawnVelX maths.RandomFloat64,
-	SpawnVelY maths.RandomFloat64,
-	SpawnAngle maths.RandomFloat64,
-	SpawnAngularVel maths.RandomFloat64,
-	AirFriction maths.RandomFloat64,
-	StartScale maths.RandomFloat64,
-	EndScale maths.RandomFloat64,
-	Lifetime maths.RandomFloat64,
-	NoiseFactorX maths.RandomFloat64,
-	NoiseFactorY maths.RandomFloat64,
-	StartColor [4]uint8,
-	EndColor [4]uint8,
-	ImageWidth int,
-	ImageHeight int,
-	SpritePath string,
-	target renderer.RenderTarget,
-	drawOrder int,
-) *ParticleSystem {
-	return &ParticleSystem{
-		Graphic:         graphic,
-		particles:       make([]*Particle, 0),
-		Bursts:          Bursts,
-		GlobalSpace:     GlobalSpace,
-		Emission:        Emission,
-		Angle:           Angle,
-		SpawnPosX:       SpawnPosX,
-		SpawnPosY:       SpawnPosY,
-		SpawnVelX:       SpawnVelX,
-		SpawnVelY:       SpawnVelY,
-		SpawnAngle:      SpawnAngle,
-		SpawnAngularVel: SpawnAngularVel,
-		AirFriction:     AirFriction,
-		StartScale:      StartScale,
-		EndScale:        EndScale,
-		Lifetime:        Lifetime,
-		NoiseFactorX:    NoiseFactorX,
-		NoiseFactorY:    NoiseFactorY,
-		t:               0,
-		StartColor:      StartColor,
-		EndColor:        EndColor,
-		ImageWidth:      ImageWidth,
-		ImageHeight:     ImageHeight,
-		SpritePath:      SpritePath,
-		surf:            ebiten.NewImage(ImageWidth, ImageHeight),
-		gizmosImage:     ebiten.NewImage(ImageWidth, ImageHeight),
-		burstTimers:     make([]*time.Timer, len(Bursts)),
-		isPlaying:       false,
-		target:          target,
-		drawOrder:       drawOrder,
-	}
-}
-
 type Burst struct {
 	Count int     `yaml:"Count"`
 	Time  float64 `yaml:"Time"`
