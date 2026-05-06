@@ -8,14 +8,16 @@ import (
 	"math"
 )
 
+// TODO: Make this control the transform2D's position instead
+// of keeping it's own position members
 type Tracker struct {
 	*graphic.Graphic
 	OnMoveFinishEv         *events.Event
+	MoveSpeed              float64
 	isMoving               bool
 	posX, posY             float64
 	targetPosX, targetPosY float64
 	moveDirX, moveDirY     float64
-	moveSpeed              float64
 }
 
 func (t *Tracker) Init(cmd *commands.Commands) {
@@ -26,8 +28,8 @@ func (t *Tracker) Init(cmd *commands.Commands) {
 
 func (t *Tracker) Update(cmd *commands.Commands) {
 	t.Graphic.Update(cmd)
-	t.posX += t.moveSpeed * t.moveDirX
-	t.posY += t.moveSpeed * t.moveDirY
+	t.posX += t.MoveSpeed * t.moveDirX
+	t.posY += t.MoveSpeed * t.moveDirY
 
 	if t.moveDirX < 0 {
 		t.posX = maths.Clamp(t.posX, t.targetPosX, t.posX)
@@ -86,7 +88,7 @@ func NewTracker(graphic *graphic.Graphic, moveSpeed, x, y float64) *Tracker {
 		// I feel like this is kinda dumb
 		// Event listeners should store events, not the other way around
 		OnMoveFinishEv: events.NewEvent(),
-		moveSpeed:      moveSpeed,
+		MoveSpeed:      moveSpeed,
 		posX:           x,
 		posY:           y,
 	}

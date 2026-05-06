@@ -74,7 +74,7 @@ func MakeMainMenuBundle() engine.Bundle {
 				),
 				selectable.WithCallback(func(cmd *commands.Commands) {
 					scenemanager, _ := commands.Get[engine.SceneManager](cmd)
-					scenemanager.SpawnScene("e52cfcd0-1030-11f0-b12c-fb81b8dc6f61", cmd)
+					scenemanager.SpawnScene("d5ae6780-1030-11f0-996f-efbed2df7e2d", cmd)
 				}),
 			), buttonAlign, cmd)
 

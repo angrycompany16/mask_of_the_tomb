@@ -70,6 +70,8 @@ func (p *Player) Init(cmd *commands.Commands) {
 	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
 	gamestate_, _ := commands.Get[gamestate.GameState](cmd)
 
+	// TODO: Make it so that we aren't *forced* to spawn the player after
+	// All of the doors and stuff...
 	spawnDoorIid := sceneswitch.SpawnEntityIid
 	spawnDoorNode, ok := scene.GetNodeFunc(
 		func(n *node.Node[engine.Actor]) bool {
@@ -200,7 +202,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 					return false
 				}
 				triggerRect := door.Trigger.GetRect()
-				return triggerRect.Contains(p.getCenterPos())
+				return triggerRect.Contains(p.GetCenterPos())
 			})
 
 			if ok {
@@ -282,7 +284,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.Dash(moveDir)
 		p.inputbuffer.Clear()
 		// Gotta find the right x, y
-		x, y := p.getCenterPos()
+		x, y := p.GetCenterPos()
 		scene.SpawnBundle(cmd, MakeJumpParticlesBundle(x, y, moveDir, p.GetRect().Width/2))
 		return
 	}
@@ -296,7 +298,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 	}
 }
 
-func (p *Player) getCenterPos() (float64, float64) {
+func (p *Player) GetCenterPos() (float64, float64) {
 	x, y := p.Transform2D.GetPos(false)
 	return x + p.GetRect().Width/2, y + p.GetRect().Height/2
 }

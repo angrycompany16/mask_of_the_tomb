@@ -15,7 +15,7 @@ import (
 
 func MakeSlamboxParticlesBundle(x, y float64, dir maths.Direction, halfWidth, halfHeight float64) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
-		dx, dy := maths.DirToVector(dir)
+		dx, dy := maths.VecFromDir(dir)
 		x += dx * halfWidth
 		y += dy * halfHeight
 		size := 0.0
@@ -44,10 +44,10 @@ func MakeSlamboxParticlesBundle(x, y float64, dir maths.Direction, halfWidth, ha
 			particles.WithSpawnPos(-size, size, 0, 0),
 			particles.WithSpawnVel(-20, 20, 2, 120),
 			particles.WithColors(
-				[4]uint8{200, 200, 200, 255},
-				[4]uint8{255, 255, 255, 255},
-				[4]uint8{150, 150, 150, 255},
-				[4]uint8{200, 200, 200, 255},
+				[4]uint8{255, 230, 70, 255},
+				[4]uint8{255, 200, 50, 255},
+				[4]uint8{200, 100, 0, 255},
+				[4]uint8{100, 50, 0, 255},
 			),
 			particles.WithGlobalSpace(false),
 			particles.WithImageSize(256, 64),

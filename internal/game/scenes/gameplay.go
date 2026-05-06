@@ -9,7 +9,7 @@ import (
 	"mask_of_the_tomb/internal/game/bundles"
 )
 
-func MakeGamePlayeScene(playerX, playerY float64, levelIid string) engine.SceneBuilder {
+func MakeGamePlayScene(playerX, playerY float64, levelIid string) engine.SceneBuilder {
 	return func(cmd *commands.Commands) *engine.Scene {
 		scene := engine.NewScene("loadingScene", nodeactor.NewNode(), cmd)
 

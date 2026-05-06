@@ -53,7 +53,7 @@ func CreateGame(gw, gh, ps int) *engine.Game {
 	sceneManager, _ := commands.Get[engine.SceneManager](cmd)
 	LDTKWorld := ldtkDataRef.Value().World
 	for _, level := range LDTKWorld.Levels {
-		sceneManager.RegisterScene(level.Iid, scenes.MakeGamePlayeScene(0, 0, level.Iid))
+		sceneManager.RegisterScene(level.Iid, scenes.MakeGamePlayScene(0, 0, level.Iid))
 	}
 
 	sceneManager.RegisterScene("MainMenu", scenes.MakeMainMenuScene())

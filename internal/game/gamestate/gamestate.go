@@ -5,6 +5,7 @@ import (
 	"mask_of_the_tomb/internal/backend/node"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
+	"math/rand/v2"
 )
 
 // Figure out how to separate persistent / non-persistent data
@@ -21,8 +22,9 @@ type LevelState struct {
 }
 
 type GameState struct {
-	Config      Config
-	LevelStates map[string]LevelState
+	Config        Config
+	LevelStates   map[string]LevelState
+	GrassWindSeed int64
 }
 
 func (g *GameState) SaveLevelState(scene *engine.Scene) {
@@ -43,8 +45,9 @@ func (g *GameState) SaveLevelState(scene *engine.Scene) {
 
 func NewGameState() *GameState {
 	return &GameState{
-		Config:      Config{},
-		LevelStates: make(map[string]LevelState),
+		Config:        Config{},
+		LevelStates:   make(map[string]LevelState),
+		GrassWindSeed: rand.Int64(),
 	}
 }
 

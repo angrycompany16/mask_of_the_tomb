@@ -20,6 +20,7 @@ import (
 	"mask_of_the_tomb/internal/game/actors/autotilesprite"
 	"mask_of_the_tomb/internal/game/actors/backgroundshader"
 	"mask_of_the_tomb/internal/game/actors/doorv2"
+	"mask_of_the_tomb/internal/game/actors/grass"
 	"mask_of_the_tomb/internal/game/actors/hazard"
 	"mask_of_the_tomb/internal/game/actors/levelshader"
 	"mask_of_the_tomb/internal/game/actors/platform"
@@ -28,6 +29,7 @@ import (
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/game/actors/tracker"
 	"mask_of_the_tomb/internal/game/actors/trigger"
+	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -152,8 +154,8 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 				SpawnHazard(cmd, scene, &entity, envParentNode)
 			case "Slambox":
 				SpawnSlambox(cmd, scene, &entity, envParentNode)
-			// case names.GrassEntity:
-			// 	newLevel.grassEntities = append(newLevel.grassEntities, entities.NewGrass(&entity, 16, newLevel.grassTilemap, rendering.ScreenLayers.Playerspace))
+			case "Grass":
+				SpawnGrass(cmd, scene, &entity, &level, envParentNode)
 			// case names.TurretEntity:
 			// 	newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
 			// case names.CatcherEntity:
@@ -365,4 +367,29 @@ func SpawnHazard(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK
 	)
 
 	envParentNode.AddChild(hazardActor, "Hazard", engine.MakeOnTreeAdd(hazardActor, cmd))
+}
+
+func SpawnGrass(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level, envParentNode *engine.Node) {
+	playerspace := utils.Must(level.GetLayerByName("Playerspace"))
+	gamestate, _ := commands.Get[gamestate.GameState](cmd)
+
+	grassActor := grass.NewGrass(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+				transform2D.WithPos(entity.Px[0], entity.Px[1]),
+			),
+		),
+		entity,
+		playerspace.GridSize,
+		"sprites/environment/grass.png",
+		gamestate.GrassWindSeed,
+		renderer.RenderTarget{
+			Type: renderer.TEXTURE,
+			Name: "LevelTextureRaw",
+		},
+		-10,
+	)
+
+	envParentNode.AddChild(grassActor, "Grass", engine.MakeOnTreeAdd(grassActor, cmd))
 }

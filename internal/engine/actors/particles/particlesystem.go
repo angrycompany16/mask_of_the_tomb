@@ -51,7 +51,7 @@ type ParticleSystem struct {
 	NoiseFactorX    maths.RandomFloat `debug:"auto"`
 	NoiseFactorY    maths.RandomFloat `debug:"auto"`
 	t               float64           `debug:"auto"`
-	// TODO: Use ebiten.color by making embedded struct with custom unmarshaler
+	// TODO: This is not working. Needs gradient
 	StartColor  [4]maths.RandomInt                  `debug:"auto"`
 	EndColor    [4]maths.RandomInt                  `debug:"auto"`
 	ImageWidth  int                                 `debug:"auto"`
@@ -187,9 +187,9 @@ func (ps *ParticleSystem) newParticle() *Particle {
 	startScale := ps.StartScale.Eval()
 	startColor := color.RGBA{
 		R: uint8(ps.StartColor[0].Eval()),
-		G: (uint8(ps.StartColor[1].Eval())),
-		B: (uint8(ps.StartColor[2].Eval())),
-		A: (uint8(ps.StartColor[3].Eval())),
+		G: uint8(ps.StartColor[1].Eval()),
+		B: uint8(ps.StartColor[2].Eval()),
+		A: uint8(ps.StartColor[3].Eval()),
 	}
 	endColor := color.RGBA{
 		R: uint8(ps.EndColor[0].Eval()),
