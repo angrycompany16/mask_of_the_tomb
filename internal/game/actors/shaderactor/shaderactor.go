@@ -61,8 +61,8 @@ func (s *Shader) Update(cmd *commands.Commands) {
 		s.Image,
 		camX, camY,
 	), s.Image, renderer.RenderTarget{
-		renderer.SCREEN,
-		s.layer,
+		Type: renderer.SCREEN,
+		Name: s.layer,
 	}, s.drawOrder)
 }
 

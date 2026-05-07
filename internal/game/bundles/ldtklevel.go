@@ -227,7 +227,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 						transform2D.NewTransform2D(
 							nodeactor.NewNode(),
 						),
-					), "shaders/pixel_lights.kage", cmd.Renderer.Textures["LevelTextureRaw"], "Playerspace", 10,
+					), "shaders/pixel_lights.kage", cmd.Renderer.Textures["LevelTextureRaw"], "Playerspace", 0,
 				),
 			), cmd)
 

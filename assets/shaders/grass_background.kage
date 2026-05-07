@@ -2,6 +2,15 @@
 
 package main
 
+const (
+    THRESHOLD = 0.6
+    CELLS_X = 10
+    CELLS_Y = 10
+    RESOLUTION_X = 10
+    RESOLUTION_Y = 10
+    FALLOFF = 32.0
+)
+
 var Time float
 var Amplitude float
 var Frequency float
@@ -12,13 +21,6 @@ var Center vec2
 var Resolution vec2
 var PlayerPos vec2
 
-// gg... cannot have state like this
-// this means that we need to write an entire backend library actually
-// Yay, lots of wasted effort!
-var positions [20]vec2
-var angles [20]float
-var init bool
-
 func Fragment(dstPos vec4, srcPos vec2) vec4 {
     // DARKEST := RGBA(12.0, 19.0, 39.0, 255.0)
     // DARK := RGBA(3.0, 40.0, 43.0, 255.0)
@@ -27,47 +29,98 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
     // BRIGHT := RGBA(87.0, 197.0, 43.0, 255.0)
     // BRIGHTEST := RGBA(185.0, 237.0, 94.0, 255.0)
 
-    if !init {
-        Init()
-        init = true
-    }
+    res := voronoi(srcPos)
 
-    Update()
-    col := Draw(srcPos)
-
-    return col
+    color := res.x
+    // color += getBorder(srcPos)
+    
+    return vec4(color, color, color, 1.0)
 }
 
-func Init() {
-    for i := 0; i < 20; i++ {
-        angles[i] = Hash(float(i))
-    }
-}
+func voronoi(p vec2) vec2 {
+    pos := p / Resolution
+    pos.x *= Resolution.x / Resolution.y
+    cell_resolution := vec2(RESOLUTION_X, RESOLUTION_Y)
 
-func Update() {
-    for i := 0; i < 20; i++ {
-        direction := vec2(cos(angles[i], sin(angles[i])))
-        positions[i] += direction * moveSpeed * 0.0166666
-    }
-}
+    n := floor(pos * cell_resolution)
+    f := fract(pos * cell_resolution)
 
-func Draw(pos vec2) {
-    for i := 0; i < 20; i++ {
-        if Approx(positions[i].x, pos.x, 0.1) && Approx(positions[i].y, pos.y, 0.1) {
-            return vec4(1.0, 1.0, 1.0, 1.0)
-        } else {
-            return vec4(0.0, 0.0, 0.0, 0.0)
+    res := vec2(10.0, 10.0)
+
+    for j := -1; j <= 1; j++ {
+        for i := -1; i <= 1; i++ {
+            neighbour := vec2(float(i), float(j))
+            point := random2(n + neighbour)
+
+            // What?
+            point = 0.5 + 0.5 * sin(Time + 6.2831 * point);
+
+            dist := length(point + neighbour - f)
+
+            res.x += exp2(-FALLOFF * dist)
+            // res.y += exp2(-FALLOFF * (dist - 0.1))
         }
     }
+
+    return vec2(
+        FALLOFF * log2(res.x),
+        FALLOFF * log2(res.y),
+    )
 }
 
-func Approx(x, y, tol float) bool {
-    if abs(x - y) < tol {
-        return true
-    } else {
-        return false
-    }
+func getBorder(p vec2) float {
+    res := voronoi(p)
+
+    dist := res.y - res.x
+
+    return 1.0 - smoothstep(0.0, 0.05, dist)
 }
+
+// func make_points() [100]vec2 {
+    // points := [100]vec2{}
+    // cells := vec2(CELLS_X, CELLS_Y)
+    // cell_size := Resolution / cells
+
+
+    // for i := 0; i < 100; i++ {
+    //     points[i] = vec2(0, 0)
+    // }
+
+    // for i := 0; i < 10; i++ {
+    //     for j := 0; j < 10; j++ {
+    //         x := (float(i) + 0.5) * cell_size.x
+    //         y := (float(j) + 0.5) * cell_size.y
+    //         k := i * 10 + j
+    //         points[k] = vec2(x, y)
+    //     }
+    // }
+ 
+//     return points
+// }
+
+// Pass in cells_x * cells_y
+// func voronoi(pos vec2, points [100]vec2) float {
+    // dists := [100]float{}
+
+    // for i := 0; i < 100; i++ {
+    //     x := points[i].x
+    //     y := points[i].y
+    //     dists[i] = abs(x - y)
+        // dists[i] = length(vec2(points[i].x, points[i].y))
+        // dists[i] = length(points[i])
+        // dists[i] = length(points[i] - pos)
+    // }
+
+    // minDist := 10.0
+    // for i := 0; i < 100; i++ {
+    //     if dists[i] < minDist {
+    //         minDist = dists[i]
+    //     }
+    // }
+
+    // col := min(dists[0], dists[1], dists[2])
+    // return dists[0]
+// }
 
 func RGBA(r, g, b, a float) vec4 {
     return vec4(r / 255.0, g / 255.0, b / 255.0, a / 255.0)
@@ -80,4 +133,8 @@ func Hash(f float) float {
     f *= f + 33.33
     f *= f + f
     return fract(f);
+}
+
+func random2(p vec2) vec2 {
+    return fract(sin(vec2(dot(p, vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
 }

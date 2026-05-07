@@ -73,6 +73,9 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 	// Stable sort would lowkey be nice as it stops Z-fighting. But at the same time idk
 	// BETTER: It's most likely a lot more performant to sort the
 	// list as it is being made, rather than every time we call draw!
+	// NOTE: We actually need to do texture requests first.
+	// Cause some screen stuff might need to use textures during the same
+	// frame
 	slices.SortFunc(r.drawRequests, func(a *DrawRequest, b *DrawRequest) int {
 		return a.drawOrder - b.drawOrder
 	})
