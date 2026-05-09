@@ -44,11 +44,11 @@ func Fragment(dstPos vec4, srcPos vec2) vec4 {
 
     pos *= 5
 
-    q := vec2(0.)
+    q := vec2(0.0)
     q.x = fbm(pos + 0.2 * Time)
     q.y = fbm(pos + vec2(1.0))
 
-    r := vec2(0.)
+    r := vec2(0.0)
     r.x = fbm(pos + 1.0*q + vec2(1.7, 9.2) + 0.15 * Time)
     r.y = fbm(pos + 1.0*q + vec2(8.3, 2.8) + 0.126 * Time)
 
@@ -114,7 +114,3 @@ func fbm(p vec2) float {
 func random21(p vec2) float {
     return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453123)
 }
-
-// func random22(p vec2) vec2 {
-//     return fract(sin(vec2(dot(p, vec2(127.1,311.7)),dot(p, vec2(269.5,183.3))))*43758.5453)
-// }
