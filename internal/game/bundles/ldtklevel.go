@@ -45,6 +45,15 @@ var layerMap = map[string]string{
 	"BackgroundTiles":  "Background",
 }
 
+var shaderMap = map[string]string{
+	"Basement":                     "shaders/basement_background.kage",
+	"Library":                      "shaders/basement_background.kage",
+	"Grasslands":                   "shaders/grass_background.kage",
+	"Strange_dark_blue_palm_trees": "shaders/basement_background.kage",
+	"Royal_palace":                 "shaders/basement_background.kage",
+	"Purple_rain":                  "shaders/basement_background.kage",
+}
+
 func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
 		// gw, gh := cmd.Renderer.GetGameSize()
@@ -60,6 +69,8 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		tilesetMap := LDTKData.Value().Tilesets
 		defs := world.Defs
 		level := utils.Must(world.GetLevelByIid(levelIid))
+		biomeField := utils.Must(level.GetFieldByName("Biome"))
+		biome := ebitenLDTK.As[ebitenLDTK.Enum](biomeField).Value
 
 		playerspace, err := level.GetLayerByName("Playerspace")
 		if err != nil {
@@ -216,7 +227,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 						transform2D.NewTransform2D(
 							nodeactor.NewNode(),
 						),
-					), "shaders/grass_background.kage", cmd.Renderer.Textures["BackgroundRaw"], "Background", 0,
+					), shaderMap[biome], cmd.Renderer.Textures["BackgroundRaw"], "Background", 0,
 				),
 			), cmd)
 
