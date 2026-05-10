@@ -26,6 +26,10 @@ type Inspector struct {
 func (i *Inspector) Init(cmd *commands.Commands) {
 	i.Node.Init(cmd)
 	engineControls := cmd.InputHandler.InputSchemes["EngineControls"]
+	if engineControls == nil {
+		cmd.InputHandler.InputSchemes["EngineControls"] = input.NewInputScheme()
+		engineControls = cmd.InputHandler.InputSchemes["EngineControls"]
+	}
 	engineControls.RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
 }
 

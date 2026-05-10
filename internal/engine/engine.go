@@ -143,10 +143,12 @@ func (s *Scene) AddChild(name string, actor Actor, parent *Node, cmd *commands.C
 	return node
 }
 
+// Deprecated(?): Use SpawnBundleV2 instead?
 func (s *Scene) SpawnBundle(cmd *commands.Commands, bundle Bundle) {
 	bundle(cmd, s)
 }
 
+// This will initialize the root of the bundle. Probably a good idea
 func (s *Scene) SpawnBundleV2(cmd *commands.Commands, bundle BundleV2) {
 	bundleRoot := bundle(cmd, s)
 	bundleRoot.Traverse(func(n *node.Node[Actor]) {
@@ -208,6 +210,7 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 // be fixed
 // The only reason it exists is so that we can pass it on to
 // OnTreeAdd, which might not even be necessary at all
+// Also, what is the point of Name? Well, nothing
 func NewScene(name string, root Actor, cmd *commands.Commands) *Scene {
 	nodeTree, rootNode := node.NewNodeTree(root)
 	root.OnTreeAdd(rootNode, cmd)
@@ -224,6 +227,7 @@ type Game struct {
 	sceneManager *SceneManager
 }
 
+// Creates the game struct, and sets up the Scene Manager in cmd.
 func NewGame(cmd *commands.Commands) *Game {
 	g := &Game{
 		cmd:          cmd,

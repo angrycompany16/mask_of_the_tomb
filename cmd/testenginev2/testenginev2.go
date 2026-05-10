@@ -1,19 +1,23 @@
 package main
 
 import (
+	"mask_of_the_tomb/assets"
+	"mask_of_the_tomb/cmd/testenginev2/actors/demo"
+	"mask_of_the_tomb/cmd/testenginev2/actors/switcher"
+	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/input"
+	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/assetviewer"
 	"mask_of_the_tomb/internal/engine/actors/camera"
+	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/inspector"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
-	"mask_of_the_tomb/internal/game/actors/demo"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 const (
@@ -27,14 +31,6 @@ type App struct {
 }
 
 func (a *App) Update() error {
-	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
-		a.toggle = !a.toggle
-		if a.toggle {
-			a.game.SpawnScene("TestScene2")
-		} else {
-			a.game.SpawnScene("TestScene1")
-		}
-	}
 	return a.game.Update()
 }
 
@@ -47,16 +43,21 @@ func (a *App) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight
 }
 
 func main() {
-	game := engine.NewGame(engine.NewCommands(
-		engine.WithRenderer(gw, gh, ps, false, false),
-	))
-	game.RegisterScene("TestScene1", CreateTestScene1)
-	game.RegisterScene("TestScene2", CreateTestScene2)
+	inputHandler := input.NewInputHandler()
+	cmd := commands.NewCommands(
+		renderer.NewRenderer(gw, gh, ps, false, false),
+		assetloader.NewAssetLoader(assets.FS),
+		inputHandler,
+	)
 
-	game.GetCmd().InputHandler.RegisterAction("toggleInspector", input.KeyJustPressedAction(ebiten.KeyTab))
+	game := engine.NewGame(cmd)
+	sceneManager, _ := commands.Get[engine.SceneManager](cmd)
+
+	sceneManager.RegisterScene("TestScene1", CreateTestScene1)
+	sceneManager.RegisterScene("TestScene2", CreateTestScene2)
 
 	// Kinda cursed but this works?
-	game.SpawnScene("TestScene1")
+	sceneManager.SpawnScene("TestScene1", cmd)
 
 	app := &App{
 		game: game,
@@ -68,14 +69,23 @@ func main() {
 }
 
 func CreateTestScene1(cmd *commands.Commands) *engine.Scene {
-	scene := engine.NewScene("testScene1", nodeactor.NewNode(), cmd)
+	scene := engine.NewScene("TestScene1", nodeactor.NewNode(), cmd)
+	scene.SpawnActor("Switcher", switcher.NewSwitch(
+		nodeactor.NewNode(),
+		scene.GetName(),
+	), cmd)
 	node1 := scene.SpawnActor("Node1", demo.NewDemo(
 		sprite.NewSprite(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
-				transform2D.WithPos(gw*ps/2, gh*ps/2),
+			graphic.NewGraphic(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+					transform2D.WithPos(gw*ps/2, gh*ps/2),
+				),
 			),
-			"Playerspace",
+			renderer.RenderTarget{
+				Type: renderer.SCREEN,
+				Name: "Playerspace",
+			},
 			"sprites/player/player.png",
 			sprite.WithScaling(2.0),
 		),
@@ -91,28 +101,35 @@ func CreateTestScene1(cmd *commands.Commands) *engine.Scene {
 	// I guess we just have to wait and see
 	node3 := scene.SpawnActor("Node3", demo.NewDemo(
 		sprite.NewSprite(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
+			graphic.NewGraphic(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+				),
 			),
-			"Playerspace",
+			renderer.RenderTarget{
+				Type: renderer.SCREEN,
+				Name: "Playerspace",
+			},
 			"sprites/player/player.png",
 			sprite.WithScaling(2.0),
 		),
 		demo.WithOnlyRotate(false),
 	), cmd)
 
-	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400), cmd)
+	scene.SpawnActor("Inspector", inspector.NewInspector(
+		nodeactor.NewNode(),
+		inspector.WithPos(0, 0),
+		inspector.WithSize(300, 400),
+	), cmd)
 
-	gw, gh := cmd.Renderer().GetGameSize()
+	gw, gh := cmd.Renderer.GetGameSize()
 	scene.SpawnActor("Camera", camera.NewCamera(
 		transform2D.NewTransform2D(
 			nodeactor.NewNode(),
 		),
-		gw, gh, 0, 0, 0, 0,
-	), cmd)
-
-	scene.SpawnActor("AssetViewer", assetviewer.NewAssetViewer(
-		nodeactor.NewNode(),
+		camera.WithSize(gw, gh),
+		camera.WithMargins(0, 0),
+		camera.WithOffset(0, 0),
 	), cmd)
 
 	scene.SpawnActor("AssetViewer", assetviewer.NewAssetViewer(
@@ -125,20 +142,33 @@ func CreateTestScene1(cmd *commands.Commands) *engine.Scene {
 }
 
 func CreateTestScene2(cmd *commands.Commands) *engine.Scene {
-	scene := engine.NewScene("testScene2", nodeactor.NewNode(), cmd)
+	scene := engine.NewScene("TestScene2", nodeactor.NewNode(), cmd)
+	scene.SpawnActor("Switcher", switcher.NewSwitch(
+		nodeactor.NewNode(),
+		scene.GetName(),
+	), cmd)
 	scene.SpawnActor("Node1", demo.NewDemo(
 		sprite.NewSprite(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
-				transform2D.WithPos(gw*ps/2, gh*ps/3),
+			graphic.NewGraphic(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+					transform2D.WithPos(gw*ps/2, gh*ps/3),
+				),
 			),
-			"Playerspace",
+			renderer.RenderTarget{
+				Type: renderer.SCREEN,
+				Name: "Playerspace",
+			},
 			"sprites/player/player.png",
 			sprite.WithScaling(2.0),
 		),
 		demo.WithOnlyRotate(false),
 	), cmd)
 
-	scene.SpawnActor("Inspector", inspector.NewInspector(0, 0, 300, 400), cmd)
+	scene.SpawnActor("Inspector", inspector.NewInspector(
+		nodeactor.NewNode(),
+		inspector.WithPos(0, 0),
+		inspector.WithSize(300, 400),
+	), cmd)
 	return scene
 }

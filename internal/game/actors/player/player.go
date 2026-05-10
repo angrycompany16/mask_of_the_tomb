@@ -283,7 +283,6 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.OnMove.WithData("Direction", moveDir).Raise()
 		p.Dash(moveDir)
 		p.inputbuffer.Clear()
-		// Gotta find the right x, y
 		x, y := p.GetCenterPos()
 		scene.SpawnBundle(cmd, MakeJumpParticlesBundle(x, y, moveDir, p.GetRect().Width/2))
 		return

@@ -44,12 +44,10 @@ func (c *Camera) Update(cmd *commands.Commands) {
 	c.shakeOffsetY = maths.RandomRange(-c.shakeStrength, c.shakeStrength)
 }
 
-// func (c *Camera) SetOffset(x, y float64) {
-// 	c.offsetX = x
-// 	c.offsetY = y
-// }
-
+// TODO: Start phasing out WorldToCam usage
 // returns the position of the camera
+// Deprecated: From now we will be using a static camera, hence this will
+// no longer be necessary to use.
 func (c *Camera) WorldToCam(x, y float64, includeShake bool) (float64, float64) {
 	camX, camY := c.Transform2D.GetPos(false)
 
@@ -71,17 +69,6 @@ func (c *Camera) GetShake() (float64, float64) {
 	return c.shakeOffsetX, c.shakeOffsetY
 }
 
-// func (c *Camera) SetPos(x, y, gameWidth, gameHeight float64) {
-// 	if c.height == 272 {
-// 		c.screenMarginY = 2
-// 	} else {
-// 		c.screenMarginY = 0
-// 	}
-
-// 	c.x = maths.Clamp(x-c.offsetX, c.screenMarginX/2, c.width-gameWidth-c.screenMarginX/2)
-// 	c.y = maths.Clamp(y-c.offsetY, c.screenMarginY/2, c.height-gameHeight-c.screenMarginY/2)
-// }
-
 func (c *Camera) Shake(duration, strength, damping float64) {
 	c.shakeTime = 0
 	c.shakeDuration = duration
@@ -94,12 +81,10 @@ type Option func(*Camera)
 
 func newDefaultCamera() *Camera {
 	return &Camera{
-		width:   480,
-		height:  270,
-		offsetX: 0,
-		offsetY: 0,
-		// offsetX:       240,
-		// offsetY:       135,
+		width:         480,
+		height:        270,
+		offsetX:       0,
+		offsetY:       0,
 		screenMarginX: 0,
 		screenMarginY: 0,
 	}

@@ -107,6 +107,27 @@ func (a *AssetLoader) GetAssetPool() *om.OrderedMap[string, *Asset] {
 	return a.assetpool
 }
 
+// Immediate asset loading function
+func LoadImmediate[T any](a *AssetLoader, name string, loadable Loadable) *T {
+	// This is so stupid
+	// TODO: Fix
+	asset := &Asset{
+		loadable: loadable,
+		status:   STAGED,
+	}
+
+	val, err := asset.loadable.Load(a.fs)
+
+	if err != nil {
+		fmt.Println("Immediate-load asset failed:", name)
+		asset.status = FAILED
+	}
+
+	asset.status = LOADED
+	a.assetpool.Set(name, asset)
+	return (val).(*T)
+}
+
 func NewAssetLoader(fs fs.FS) *AssetLoader {
 	return &AssetLoader{
 		assetpool: om.New[string, *Asset](),

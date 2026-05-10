@@ -3,12 +3,11 @@ package demo
 import (
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/utils"
 	"math"
 
 	"github.com/ebitengine/debugui"
 )
-
-type Option func(*Demo)
 
 type Demo struct {
 	*sprite.Sprite
@@ -19,26 +18,27 @@ type Demo struct {
 	angle          float64
 }
 
-func (d *Demo) Update(servers *commands.Commands) {
+func (d *Demo) Update(cmd *commands.Commands) {
+	d.Sprite.Update(cmd)
+
 	d.t += 0.016666
 	d.angle = 0.5 * d.t
 	d.Sprite.SetAngle(d.angle)
 
 	if d.onlyRotate {
-	} else {
-		d.scaleX = 2 * math.Sin(d.t)
-		d.scaleY = 1 + 2*math.Cos(d.t)
-		d.Sprite.SetScale(d.scaleX, d.scaleY)
+		return
 	}
 
-	d.Sprite.Update(servers)
+	d.scaleX = 2 * math.Sin(d.t)
+	d.scaleY = 1 + 2*math.Cos(d.t)
+	d.Sprite.SetScale(d.scaleX, d.scaleY)
 }
 
 func (d *Demo) DrawInspector(ctx *debugui.Context) {
 	d.Sprite.DrawInspector(ctx)
 }
 
-func NewDemo(sprite *sprite.Sprite, options ...Option) *Demo {
+func NewDemo(sprite *sprite.Sprite, options ...utils.Option[Demo]) *Demo {
 	d := defaultDemo(sprite)
 
 	for _, option := range options {
@@ -56,7 +56,7 @@ func defaultDemo(sprite *sprite.Sprite) *Demo {
 }
 
 // At some point it'll get tedious to write these...
-func WithOnlyRotate(onlyRotate bool) Option {
+func WithOnlyRotate(onlyRotate bool) utils.Option[Demo] {
 	return func(d *Demo) {
 		d.onlyRotate = onlyRotate
 	}

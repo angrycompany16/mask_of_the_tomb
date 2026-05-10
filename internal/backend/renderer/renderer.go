@@ -130,6 +130,20 @@ func (r *Renderer) GetPixelScale() float64 {
 	return r.pixelScale
 }
 
+func TextureTarget(name string) RenderTarget {
+	return RenderTarget{
+		Type: TEXTURE,
+		Name: name,
+	}
+}
+
+func ScreenTarget(name string) RenderTarget {
+	return RenderTarget{
+		Type: SCREEN,
+		Name: name,
+	}
+}
+
 func NewRenderer(gameWidth, gameHeight, pixelScale int, fullScreen, hideCursor bool) *Renderer {
 	renderer := Renderer{
 		gameWidth:    float64(gameWidth),
