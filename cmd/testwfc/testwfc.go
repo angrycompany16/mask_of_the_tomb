@@ -15,14 +15,15 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/engine/enginebundles"
-	"mask_of_the_tomb/internal/game/actors/wfcentity"
+	"mask_of_the_tomb/internal/game/actors/overlappingmodel"
+	"mask_of_the_tomb/internal/game/actors/simpletiledmodel"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
-	gw, gh = 1920, 1080
-	ps     = 4
+	gw, gh = 120, 68
+	ps     = 16
 )
 
 type App struct {
@@ -52,8 +53,9 @@ func main() {
 	game := engine.NewGame(cmd)
 	sceneManager, _ := commands.Get[engine.SceneManager](cmd)
 
-	sceneManager.RegisterScene("Scene", CreateScene)
-	sceneManager.SpawnScene("Scene", cmd)
+	sceneManager.RegisterScene("Scene", CreateSimpleTiledScene)
+	sceneManager.RegisterScene("Scene2", CreateOverlappingMethodScene)
+	sceneManager.SpawnScene("Scene2", cmd)
 
 	app := &App{
 		game: game,
@@ -66,7 +68,37 @@ func main() {
 	}
 }
 
-func CreateScene(cmd *commands.Commands) *engine.Scene {
+func CreateOverlappingMethodScene(cmd *commands.Commands) *engine.Scene {
+	scene := engine.NewScene("TestScene2", nodeactor.NewNode(), cmd)
+	scene.SpawnBundle(
+		cmd,
+		enginebundles.MakeDefaultBundle(gw, gh, ps),
+	)
+
+	wfcSrc := assetloader.LoadImmediate[image.RGBA](
+		cmd.AssetLoader,
+		"wfcSrc",
+		assettypes.NewRGBAImageAsset("sprites/concept-art/wfc-test.png"),
+	)
+	wfcSetup := wfc.NewOverlappingModel(wfcSrc, 3, 64, 64, true, true)
+
+	scene.SpawnActor("Halla kompis",
+		overlappingmodel.NewOverlappingModel(
+			graphic.NewGraphic(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+				),
+			),
+			wfcSetup,
+			renderer.ScreenTarget("Playerspace"),
+			0,
+		),
+		cmd,
+	)
+	return scene
+}
+
+func CreateSimpleTiledScene(cmd *commands.Commands) *engine.Scene {
 	scene := engine.NewScene("TestScene1", nodeactor.NewNode(), cmd)
 	scene.SpawnBundle(
 		cmd,
@@ -78,7 +110,7 @@ func CreateScene(cmd *commands.Commands) *engine.Scene {
 		"TestTileset",
 		assettypes.NewImageAsset("sprites/concept-art/simple_tiled_test.png"),
 	)
-	wfcSetup := wfc.NewWFC(16, 10, 10, tileset, 14)
+	wfcSetup := wfc.NewSimpleTiled(16, 10, 10, tileset, 14)
 
 	// 0 - SAND
 	sand := wfc.NewModule(image.Rect(0, 0, 16, 16),
@@ -121,7 +153,7 @@ func CreateScene(cmd *commands.Commands) *engine.Scene {
 	wfcSetup.InitTiles()
 
 	scene.SpawnActor("Halla kompis",
-		wfcentity.NewWFCEntity(
+		simpletiledmodel.NewSimpleTiledWFC(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
 					nodeactor.NewNode(),

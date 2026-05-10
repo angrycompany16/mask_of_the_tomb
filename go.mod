@@ -20,6 +20,7 @@ require (
 	github.com/ebitengine/hideconsole v1.0.0 // indirect
 	github.com/ebitengine/oto/v3 v3.4.0 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
+	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200707082815-5321531c36a2 // indirect
 	github.com/go-text/typesetting v0.3.4 // indirect
 	github.com/hajimehoshi/bitmapfont/v4 v4.1.0 // indirect

@@ -80,7 +80,7 @@ func DirFromVector(x, y float64) Direction {
 	return DirNone
 }
 
-func VecFromDir(dir Direction) (float64, float64) {
+func VectorFromDir(dir Direction) (float64, float64) {
 	switch dir {
 	case DirUp:
 		return 0, -1

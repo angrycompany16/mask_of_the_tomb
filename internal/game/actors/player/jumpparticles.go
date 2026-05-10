@@ -16,7 +16,7 @@ import (
 // However, it's not causing any lag right now, fortunately.
 func MakeJumpParticlesBundle(x, y float64, dir maths.Direction, halfSize float64) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
-		dx, dy := maths.VecFromDir(dir)
+		dx, dy := maths.VectorFromDir(dir)
 		x -= dx * halfSize
 		y -= dy * halfSize
 		rot := maths.DirToRadians(dir)

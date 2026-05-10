@@ -15,7 +15,7 @@ import (
 
 func MakeSlamboxParticlesBundle(x, y float64, dir maths.Direction, halfWidth, halfHeight float64) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
-		dx, dy := maths.VecFromDir(dir)
+		dx, dy := maths.VectorFromDir(dir)
 		x += dx * halfWidth
 		y += dy * halfHeight
 		size := 0.0

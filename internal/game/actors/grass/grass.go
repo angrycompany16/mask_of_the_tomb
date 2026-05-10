@@ -128,7 +128,7 @@ func NewGrass(
 		direction:        direction,
 	}
 
-	dirX, dirY := maths.VecFromDir(direction)
+	dirX, dirY := maths.VectorFromDir(direction)
 	interpX, interpY := math.Abs(dirX), math.Abs(dirY)
 
 	t := 0.0
