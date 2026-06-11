@@ -40,6 +40,7 @@ var playRequestChan = make(chan playRequest)
 var stopRequestChan = make(chan string)
 var dspChannelEffectChan = make(chan effectRequest)
 var dspChannelEditEffectChan = make(chan editEffectRequest)
+var addNewSoundChan = make(chan struct {soundData SoundData, name string})
 
 type SoundData struct {
 	Path        string
@@ -72,6 +73,10 @@ type finishedPlayer struct {
 	looping bool
 }
 
+func AddNewSound(name string, data SoundData) {
+	addNewSoundChan <- struct{soundData SoundData; name string}{name: name, soundData: data}
+}
+
 func PlaySound(name string, DSPChannel string, pitchRandomization float64) {
 	playRequestChan <- playRequest{name, DSPChannel, pitchRandomization}
 }
@@ -102,15 +107,7 @@ func SoundServer(
 	dspChannels.makeDSPChannels(DSPChannelNames)
 
 	for name, soundData := range soundCatalogue {
-		playerChan := make(chan finishedPlayer, soundData.QueueSize)
-		playChan := make(chan playRequest, requestBufferSize)
-		stopChan := make(chan int)
-
-		playChans[name] = playChan
-		stopChans[name] = stopChan
-
-		go player(playChan, playerChan, stopChan)
-		go worker(playerChan, soundData.Path, soundData.Looping, soundData.format)
+		addSound(name, soundData)
 	}
 
 	for {
@@ -131,8 +128,23 @@ func SoundServer(
 				continue
 			}
 			stopChans[name] <- 1
+		case addSoundRequest := <-addNewSoundChan:
+			addSound(addSoundRequest.name, addSoundRequest.soundData)
 		}
 	}
+}
+
+func addSound(name string, data SoundData) {
+	playerChan := make(chan finishedPlayer, soundData.QueueSize)
+		playChan := make(chan playRequest, requestBufferSize)
+		stopChan := make(chan int)
+
+		playChans[name] = playChan
+		stopChans[name] = stopChan
+
+		go player(playChan, playerChan, stopChan)
+		go worker(playerChan, soundData.Path, soundData.Looping, soundData.format)
+
 }
 
 func player(
