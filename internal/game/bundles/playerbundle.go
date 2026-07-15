@@ -7,6 +7,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
+	"mask_of_the_tomb/internal/engine/actors/sound"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/player"
@@ -42,7 +43,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		)
 
 		pivotNode := playerNode.AddChild(pivotActor, "PlayerPivot", engine.MakeOnTreeAdd(pivotActor, cmd))
-
+		
 		spriteActor := animatedsprite.NewAnimatedSprite(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
@@ -101,5 +102,18 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		)
 
 		playerNode.AddChild(triggerActor, "PlayerTrigger", engine.MakeOnTreeAdd(triggerActor, cmd))
+
+		playerActor, _ := engine.As[*player.Player](playerNode.GetValue())
+
+		onMoveEv := playerActor.OnMove
+
+		playerSound := sound.NewSoundPlayer(
+			nodeactor.NewNode(),
+			sound.WithSoundData("sfx/dash.wav", false, "dash"),
+			sound.WithDspChannel("master"),
+			sound.WithEventBus(onMoveEv),
+		)
+
+		playerNode.AddChild(playerSound, "DashSound", engine.MakeOnTreeAdd(playerSound, cmd));
 	}
 }

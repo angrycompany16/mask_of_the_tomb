@@ -40,7 +40,7 @@ var playRequestChan = make(chan playRequest)
 var stopRequestChan = make(chan string)
 var dspChannelEffectChan = make(chan effectRequest)
 var dspChannelEditEffectChan = make(chan editEffectRequest)
-var addNewSoundChan = make(chan struct {soundData SoundData, name string})
+var addNewSoundChan = make(chan addSoundRequest)
 
 type SoundData struct {
 	Path        string
@@ -48,6 +48,11 @@ type SoundData struct {
 	format      AudioFormat
 	QueueSize   int
 	DSPChannels []string
+}
+
+type addSoundRequest struct {
+	soundData SoundData
+	name string
 }
 
 type playRequest struct {
@@ -98,9 +103,11 @@ func EditDSPChannelEffect(channelName string, effectName string, action func(eff
 
 func SoundServer(
 	// Data - Always pass by value so we don't get shared memory errors
-	soundCatalogue map[string]SoundData,
+	soundCatalogue map[string]SoundData, // Need to fix this
 	DSPChannelNames []string,
 ) {
+	fmt.Println("Starting sound server")
+
 	audio.NewContext(sampleRate)
 	playChans := make(map[string]chan playRequest)
 	stopChans := make(map[string]chan int)
@@ -129,22 +136,21 @@ func SoundServer(
 			}
 			stopChans[name] <- 1
 		case addSoundRequest := <-addNewSoundChan:
-			addSound(addSoundRequest.name, addSoundRequest.soundData)
+//			addSound(addSoundRequest.name, addSoundRequest.soundData)
+			playerChan := make(chan finishedPlayer, addSoundRequest.soundData.QueueSize)
+			playChan := make(chan playRequest, requestBufferSize)
+			stopChan := make(chan int)
+
+			playChans[addSoundRequest.name] = playChan
+			stopChans[addSoundRequest.name] = stopChan
+
+			go player(playChan, playerChan, stopChan)
+			go worker(playerChan, addSoundRequest.soundData.Path, addSoundRequest.soundData.Looping, addSoundRequest.soundData.format)
 		}
 	}
 }
 
-func addSound(name string, data SoundData) {
-	playerChan := make(chan finishedPlayer, soundData.QueueSize)
-		playChan := make(chan playRequest, requestBufferSize)
-		stopChan := make(chan int)
-
-		playChans[name] = playChan
-		stopChans[name] = stopChan
-
-		go player(playChan, playerChan, stopChan)
-		go worker(playerChan, soundData.Path, soundData.Looping, soundData.format)
-
+func addSound(name string, soundData SoundData) {
 }
 
 func player(

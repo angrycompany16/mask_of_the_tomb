@@ -1,6 +1,7 @@
 package sound
 
 import (
+	"mask_of_the_tomb/internal/backend/events"
 	sound_v2 "mask_of_the_tomb/internal/backend/sound"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -14,6 +15,7 @@ type SoundPlayer struct {
 	name string
 	dspChannelName string
 	pitchRandomization float64
+	eventBus *events.EventBus
 }
 
 func (s *SoundPlayer) Init (cmd *commands.Commands) {
@@ -26,6 +28,16 @@ func (s *SoundPlayer) Init (cmd *commands.Commands) {
 	}
 }
 
+func (s *SoundPlayer) Update(cmd *commands.Commands) {
+	if s.eventBus == nil {
+		return
+	}
+
+	if _, ok := s.eventBus.Poll(); ok{
+		s.Play()
+	}
+}
+
 func (s *SoundPlayer) Play() {
 	sound_v2.PlaySound(s.name, s.dspChannelName, s.pitchRandomization)
 }
@@ -33,11 +45,12 @@ func (s *SoundPlayer) Play() {
 func defaultSoundPlayer(node *nodeactor.Node) *SoundPlayer {
 	return &SoundPlayer{
 		Node: node,
-		filePath: "lattis-burge.wav",
+		filePath: "sfx/vietnamese_talking.wav",
 		loop: false,
 		name: "test-sound",
 		dspChannelName:  "master",
 		pitchRandomization: 0,
+		eventBus: nil,
 	}
 }
 
@@ -70,3 +83,10 @@ func WithPitchRandomization(pitchRandomization float64) utils.Option[SoundPlayer
 		s.pitchRandomization = pitchRandomization
 	}
 }
+
+func WithEventBus(event *events.Event) utils.Option[SoundPlayer] {
+	return func(s *SoundPlayer) {
+		s.eventBus = events.NewBusFrom(event)
+	}
+}
+

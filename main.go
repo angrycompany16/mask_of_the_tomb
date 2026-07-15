@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	sound_v2 "mask_of_the_tomb/internal/backend/sound"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/game"
 	"mask_of_the_tomb/internal/utils"
@@ -56,6 +57,8 @@ func main() {
 	}
 
 	ebiten.SetFullscreen(true)
+
+	go sound_v2.SoundServer(make(map[string]sound_v2.SoundData, 0), []string{"master"})
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, errors.ErrUnsupported) {
