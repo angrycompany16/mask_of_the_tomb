@@ -2,4 +2,5 @@ HEISANN!
 
 # Today's game dev task is:
 
-- [ ] Add slambox slam sound effect
+- [X] Add slambox slam sound effect
+- [ ] Add slambox "hit ground" sound effect

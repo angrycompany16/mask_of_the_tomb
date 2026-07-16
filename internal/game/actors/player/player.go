@@ -53,6 +53,7 @@ type Player struct {
 	OnMoveFinish              *events.EventBus
 	OnClipFinish              *events.EventBus
 	OnMove                    *events.Event
+	OnSlam                    *events.Event
 	jumpOffset, jumpOffsetvel float64
 	slamboxIDBuffer           int
 	slamDirBuffer             maths.Direction
@@ -168,6 +169,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.jumpOffset += p.jumpOffsetvel
 		p.jumpOffset = math.Max(p.jumpOffset, 0)
 		if p.jumpOffset == 0 && !p.hasSlammedBox {
+			p.OnSlam.Raise()
 			slamboxHits := scene.GetRoot().GetChildrenFunc(
 				func(n *engine.Node) bool {
 					slambox_, ok := n.GetValue().(*slamboxactor.Slambox)
@@ -247,8 +249,6 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.inputbuffer.Set(direction)
 	}
 
-	moveDir := p.inputbuffer.Read()
-
 	p.pivotTransform.SetAngle(maths.DirToRadians(p.Direction))
 
 	p.inputbuffer.Update()
@@ -271,6 +271,8 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.ResetLevel(scene, gameState)
 	}
 
+	moveDir := p.inputbuffer.Read()
+
 	if moveDir == maths.DirNone || p.State != IDLE {
 		return
 	}
@@ -289,6 +291,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 	}
 
 	if !tilemapCollision {
+		p.OnMove.WithData("Direction", moveDir).Raise()
 		p.hasSlammedBox = false
 		p.slamboxIDBuffer = slamboxQuery.Index
 		p.slamDirBuffer = moveDir
@@ -379,6 +382,7 @@ func NewPlayer(slambox *slamboxactor.Slambox, inputBufferDuration float64) *Play
 		inputbuffer:  inputbuffer.NewInputBuffer(inputBufferDuration),
 		OnMoveFinish: events.NewBusFrom(slambox.OnMoveFinishEv),
 		OnMove:       events.NewEvent(),
+		OnSlam:       events.NewEvent(),
 
 		// TODO: Change so that the parameters are more intuitive
 		// noise factor should not be hard-coded

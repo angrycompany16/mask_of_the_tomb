@@ -105,15 +105,22 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 
 		playerActor, _ := engine.As[*player.Player](playerNode.GetValue())
 
-		onMoveEv := playerActor.OnMove
-
-		playerSound := sound.NewSoundPlayer(
+		dashSound := sound.NewSoundPlayer(
 			nodeactor.NewNode(),
 			sound.WithSoundData("sfx/dash.wav", false, "dash"),
 			sound.WithDspChannel("master"),
-			sound.WithEventBus(onMoveEv),
+			sound.WithEventBus(playerActor.OnMove),
 		)
 
-		playerNode.AddChild(playerSound, "DashSound", engine.MakeOnTreeAdd(playerSound, cmd));
+		playerNode.AddChild(dashSound, "DashSound", engine.MakeOnTreeAdd(dashSound, cmd));
+
+		slamSound := sound.NewSoundPlayer(
+			nodeactor.NewNode(),
+			sound.WithSoundData("sfx/slam.ogg", false, "slam"),
+			sound.WithDspChannel("master"),
+			sound.WithEventBus(playerActor.OnSlam),
+		)
+
+		playerNode.AddChild(slamSound, "DashSound", engine.MakeOnTreeAdd(slamSound, cmd));
 	}
 }
