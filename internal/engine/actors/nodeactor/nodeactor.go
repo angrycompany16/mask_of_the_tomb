@@ -1,6 +1,7 @@
 package nodeactor
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
@@ -16,6 +17,10 @@ type Node struct {
 func (n *Node) Init(cmd *commands.Commands)      {}
 func (n *Node) Update(cmd *commands.Commands)    {}
 func (n *Node) DrawGizmo(cmd *commands.Commands) {}
+func (n *Node) OnDestroy(cmd *commands.Commands) {
+	fmt.Println("Node destroyed!")
+}
+
 func (n *Node) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
 	n.treeID = node.GetID()
 	n.node = node

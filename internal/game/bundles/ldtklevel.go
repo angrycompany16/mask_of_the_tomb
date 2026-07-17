@@ -7,12 +7,14 @@ import (
 	"mask_of_the_tomb/internal/backend/colors"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/renderer"
+	sound_v2 "mask_of_the_tomb/internal/backend/sound"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/particles"
+	"mask_of_the_tomb/internal/engine/actors/sound"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/actors/vectorgraphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -27,9 +29,11 @@ import (
 	"mask_of_the_tomb/internal/game/actors/shaderactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
+	"mask_of_the_tomb/internal/game/actors/sounddebug"
 	"mask_of_the_tomb/internal/game/actors/tracker"
 	"mask_of_the_tomb/internal/game/actors/trigger"
 	"mask_of_the_tomb/internal/game/gamestate"
+	"mask_of_the_tomb/internal/game/sceneswitch"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -54,6 +58,16 @@ var shaderMap = map[string]string{
 	"Purple_rain":                  "shaders/basement_background.kage",
 }
 
+var songMap = map[string]string{
+	"Basement":                     "music/basement.ogg",
+	"Library":                      "music/library.ogg",
+	"Grasslands":                   "music/grasslands.ogg",
+	"Strange_dark_blue_palm_trees": "music/strange_dark_blue_palm_trees.mp3",
+	"Royal_palace":                 "music/royal_palace.mp3",
+	"Purple_rain":                  "music/purple_rain.mp3",
+}
+
+
 func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
 		// gw, gh := cmd.Renderer.GetGameSize()
@@ -71,6 +85,14 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		level := utils.Must(world.GetLevelByIid(levelIid))
 		biomeField := utils.Must(level.GetFieldByName("Biome"))
 		biome := ebitenLDTK.As[ebitenLDTK.Enum](biomeField).Value
+
+		sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
+		if biome != sceneswitch.PreviousBiome {
+			// Stop playing the current song (This is VERY UGLY!)
+			fmt.Println("hello")
+			sound_v2.StopSound(songMap[sceneswitch.PreviousBiome])
+			fmt.Println("world")
+		}
 
 		playerspace, err := level.GetLayerByName("Playerspace")
 		if err != nil {
@@ -189,6 +211,14 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		}
 
 		// 4. Spawn remaining actors (particlesystems, shaders, etc...)
+		scene.SpawnActor("SoundDebug", sounddebug.CreateSoundDebug(), cmd)
+
+		scene.SpawnActor("MusicPlayer", sound.NewSoundPlayer(
+			nodeactor.NewNode(),
+			sound.WithSoundData(songMap[biome], true, songMap[biome]),
+			sound.WithAutoPlay(),
+		), cmd)
+
 		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystem(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
@@ -274,6 +304,14 @@ func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDT
 		autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
 	)
 	slamboxNode.AddChild(autotileActor, "Sprite", engine.MakeOnTreeAdd(autotileActor, cmd))
+
+	slamboxSound := sound.NewSoundPlayer(
+		nodeactor.NewNode(),
+		sound.WithSoundData("sfx/stone-crash-trimmed.wav", false, "Slambox-land"),
+		sound.WithStartTriggers(slamboxActor.OnMoveFinishEv),
+	)
+
+	slamboxNode.AddChild(slamboxSound, "slamboxSound", engine.MakeOnTreeAdd(slamboxSound, cmd))
 }
 
 func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level, envParentNode *engine.Node) {

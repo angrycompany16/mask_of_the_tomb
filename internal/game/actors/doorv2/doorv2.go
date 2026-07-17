@@ -52,6 +52,7 @@ type DoorV2 struct {
 	OnCollision        *events.EventBus
 	OnClipFinished     *events.EventBus
 	State              DoorState
+	biome string
 }
 
 func (d *DoorV2) Init(cmd *commands.Commands) {
@@ -99,6 +100,7 @@ func (d *DoorV2) Update(cmd *commands.Commands) {
 			}
 			sceneswitch.SpawnEntityIid = d.OtherSideEntityIid
 			sceneswitch.SpawnDirection = maths.Opposite(d.Direction)
+			sceneswitch.PreviousBiome = d.biome
 			// TODO: There is a much better way to do this - Include an OnDestroy method that gets called whenever a scene gets destroyed.
 			slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
 			slamboxenv.Reset()
@@ -167,6 +169,9 @@ func NewDoorV2(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *e
 		entity.Width,
 		entity.Height,
 	)
+
+	biomeField := utils.Must(levelLDTK.GetFieldByName("Biome"))
+	newDoor.biome = ebitenLDTK.As[ebitenLDTK.Enum](biomeField).Value
 
 	directionField := utils.Must(entity.GetFieldByName(doorDirectionFieldName))
 	newDoor.Direction = maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)

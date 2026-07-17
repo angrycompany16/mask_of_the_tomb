@@ -109,7 +109,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			nodeactor.NewNode(),
 			sound.WithSoundData("sfx/dash.wav", false, "dash"),
 			sound.WithDspChannel("master"),
-			sound.WithEventBus(playerActor.OnMove),
+			sound.WithStartTriggers(playerActor.OnMove),
 		)
 
 		playerNode.AddChild(dashSound, "DashSound", engine.MakeOnTreeAdd(dashSound, cmd));
@@ -118,7 +118,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			nodeactor.NewNode(),
 			sound.WithSoundData("sfx/slam.ogg", false, "slam"),
 			sound.WithDspChannel("master"),
-			sound.WithEventBus(playerActor.OnSlam),
+			sound.WithStartTriggers(playerActor.OnSlam),
 		)
 
 		playerNode.AddChild(slamSound, "DashSound", engine.MakeOnTreeAdd(slamSound, cmd));

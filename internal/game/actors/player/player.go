@@ -291,7 +291,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 	}
 
 	if !tilemapCollision {
-		p.OnMove.WithData("Direction", moveDir).Raise()
+//		p.OnMove.WithData("Direction", moveDir).Raise()
 		p.hasSlammedBox = false
 		p.slamboxIDBuffer = slamboxQuery.Index
 		p.slamDirBuffer = moveDir

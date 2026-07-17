@@ -31,7 +31,7 @@ func CreateGame(gw, gh, ps int) *engine.Game {
 
 	commands.Set[triggerenv.TriggerEnv](cmd, triggerenv.NewTriggerEnv())
 	commands.Set[slambox.SlamboxEnvironment](cmd, slambox.NewSlamboxEnvironment(8))
-	commands.Set[sceneswitch.SceneSwitch](cmd, &sceneswitch.SceneSwitch{"", maths.DirUp})
+	commands.Set[sceneswitch.SceneSwitch](cmd, &sceneswitch.SceneSwitch{"", maths.DirUp, ""})
 	commands.Set[gamestate.GameState](cmd, gamestate.NewGameState())
 
 	cmd.Renderer.Textures["ForegroundRaw"] = ebiten.NewImage(gw, gh)

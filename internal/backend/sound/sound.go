@@ -41,6 +41,7 @@ var stopRequestChan = make(chan string)
 var dspChannelEffectChan = make(chan effectRequest)
 var dspChannelEditEffectChan = make(chan editEffectRequest)
 var addNewSoundChan = make(chan addSoundRequest)
+var debugRequestChan = make(chan int)
 
 type SoundData struct {
 	Path        string
@@ -79,16 +80,22 @@ type finishedPlayer struct {
 }
 
 func AddNewSound(name string, data SoundData) {
+	fmt.Println("Adding new sound", name)
 	addNewSoundChan <- struct{soundData SoundData; name string}{name: name, soundData: data}
+	fmt.Println("Added new sound")
 }
 
 func PlaySound(name string, DSPChannel string, pitchRandomization float64) {
+	fmt.Println("Sending play request")
 	playRequestChan <- playRequest{name, DSPChannel, pitchRandomization}
+	fmt.Println("Sent play request")
 }
 
 // BETTER: Add a small fadeout when stopping a sound
 func StopSound(name string) {
+	fmt.Println("Sending stop request")
 	stopRequestChan <- name
+	fmt.Println("Sent stop request")
 }
 
 func AddDSPChannelEffect(channelName string, effectName string, effect resound.IEffect) {
@@ -101,9 +108,13 @@ func EditDSPChannelEffect(channelName string, effectName string, action func(eff
 	dspChannelEditEffectChan <- editEffectRequest{channelName, effectName, action}
 }
 
+func DebugSoundServer() {
+	debugRequestChan <- 1
+}
+
 func SoundServer(
 	// Data - Always pass by value so we don't get shared memory errors
-	soundCatalogue map[string]SoundData, // Need to fix this
+	// soundCatalogue map[string]SoundData, // Need to fix this
 	DSPChannelNames []string,
 ) {
 	fmt.Println("Starting sound server")
@@ -113,30 +124,33 @@ func SoundServer(
 	stopChans := make(map[string]chan int)
 	dspChannels.makeDSPChannels(DSPChannelNames)
 
-	for name, soundData := range soundCatalogue {
-		addSound(name, soundData)
-	}
-
 	for {
 		select {
 		case audioRequest := <-playRequestChan:
+			fmt.Println("Time to play", audioRequest.name)
 			if playChans[audioRequest.name] == nil {
 				fmt.Printf("player named [%s] not found!\n", audioRequest.name)
 				continue
 			}
 			playChans[audioRequest.name] <- audioRequest
+			fmt.Println("Played it")
 		case effectRequest := <-dspChannelEffectChan:
 			dspChannels.addEffect(effectRequest.channelName, effectRequest.effectName, effectRequest.effect)
 		case editEffectRequest := <-dspChannelEditEffectChan:
 			dspChannels.editEffect(editEffectRequest.channelName, editEffectRequest.effectName, editEffectRequest.action)
 		case name := <-stopRequestChan:
+			fmt.Println("Time to stop", name)
 			if stopChans[name] == nil {
 				fmt.Printf("player named [%s] not found!\n", name)
 				continue
 			}
 			stopChans[name] <- 1
+			fmt.Println("Stopped it")
 		case addSoundRequest := <-addNewSoundChan:
-//			addSound(addSoundRequest.name, addSoundRequest.soundData)
+			if playChans[addSoundRequest.name] != nil {
+				continue
+			}
+
 			playerChan := make(chan finishedPlayer, addSoundRequest.soundData.QueueSize)
 			playChan := make(chan playRequest, requestBufferSize)
 			stopChan := make(chan int)
@@ -146,11 +160,13 @@ func SoundServer(
 
 			go player(playChan, playerChan, stopChan)
 			go worker(playerChan, addSoundRequest.soundData.Path, addSoundRequest.soundData.Looping, addSoundRequest.soundData.format)
+		case <-debugRequestChan:
+			fmt.Println("Debug info:")
+			for name, _ := range playChans {
+				fmt.Println(name)
+			}
 		}
 	}
-}
-
-func addSound(name string, soundData SoundData) {
 }
 
 func player(
@@ -171,7 +187,7 @@ func player(
 
 			if finishedPlayer.looping {
 				if isPlaying {
-					return
+					continue
 				}
 				isPlaying = true
 			}

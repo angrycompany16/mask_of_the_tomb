@@ -26,11 +26,12 @@ import (
 // A pointer to the Node instance corresponding to this actor is passed in
 // The rest of the methods are obvious.
 type Actor interface {
+	OnTreeAdd(*Node, *commands.Commands)
 	Init(*commands.Commands)
 	Update(*commands.Commands) // TODO: Change to handle errors in nodes independently
-	OnTreeAdd(*Node, *commands.Commands)
 	DrawInspector(*debugui.Context)
 	DrawGizmo(*commands.Commands)
+	OnDestroy(*commands.Commands)
 }
 
 type Node = node.Node[Actor]
@@ -62,9 +63,15 @@ func (s *Scene) Update(cmd *commands.Commands) {
 	}
 }
 
-func (s *Scene) Init(servers *commands.Commands) {
+func (s *Scene) Init(cmd *commands.Commands) {
 	s.nodeTree.Traverse(func(n *Node) {
-		n.GetValue().Init(servers)
+		n.GetValue().Init(cmd)
+	})
+}
+
+func (s *Scene) Destroy(cmd *commands.Commands) {
+	s.nodeTree.Traverse(func(n *Node) {
+		n.GetValue().OnDestroy(cmd)
 	})
 }
 
@@ -168,12 +175,6 @@ func (s *Scene) Print() {
 	s.nodeTree.Print()
 }
 
-// TODO: Make it so that we don't have to use a pointer as type argument
-// Returns the field T embedded in the actor passed in, i.e.
-//
-//	As[*Node](transform2D)
-//
-// returns the Node actor embedded in the Transform2D passed in.
 func As[T Actor](actor Actor) (T, bool) {
 	if val, ok := actor.(T); ok {
 		return val, true
@@ -210,7 +211,7 @@ func extractFieldUnsafe(v reflect.Value) reflect.Value {
 // be fixed
 // The only reason it exists is so that we can pass it on to
 // OnTreeAdd, which might not even be necessary at all
-// Also, what is the point of Name? Well, nothing
+// Also, what is the point of name? Well, nothing
 func NewScene(name string, root Actor, cmd *commands.Commands) *Scene {
 	nodeTree, rootNode := node.NewNodeTree(root)
 	root.OnTreeAdd(rootNode, cmd)
@@ -273,6 +274,11 @@ func (s *SceneManager) RegisterScene(name string, sceneBuilder SceneBuilder) *Sc
 }
 
 func (s *SceneManager) SpawnScene(name string, cmd *commands.Commands) *SceneManager {
+	// Destroy the current scene (unless nil, which happens for the first scene spawned)
+	if s.activeScene != nil {
+		s.activeScene.Destroy(cmd)
+	}
+
 	// Create an instance of the scene's node tree
 	sceneBuilder := s.scenes[name]
 	sceneInst := sceneBuilder(cmd)

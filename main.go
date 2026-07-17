@@ -58,7 +58,7 @@ func main() {
 
 	ebiten.SetFullscreen(true)
 
-	go sound_v2.SoundServer(make(map[string]sound_v2.SoundData, 0), []string{"master"})
+	go sound_v2.SoundServer([]string{"master"})
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, errors.ErrUnsupported) {
