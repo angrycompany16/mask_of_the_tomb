@@ -62,7 +62,7 @@ var songMap = map[string]string{
 	"Basement":                     "music/basement.ogg",
 	"Library":                      "music/library.ogg",
 	"Grasslands":                   "music/grasslands.ogg",
-	"Strange_dark_blue_palm_trees": "music/strange_dark_blue_palm_trees.mp3",
+	"Strange_dark_blue_palm_trees": "music/strange_dark_blue_palm_trees.ogg",
 	"Royal_palace":                 "music/royal_palace.mp3",
 	"Purple_rain":                  "music/purple_rain.mp3",
 }
@@ -216,7 +216,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		scene.SpawnActor("MusicPlayer", sound.NewSoundPlayer(
 			nodeactor.NewNode(),
 			sound.WithSoundData(songMap[biome], true, songMap[biome]),
-			sound.WithAutoPlay(),
+			sound.WithAutoPlay(true),
 		), cmd)
 
 		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystem(
@@ -393,6 +393,24 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	doorNode.AddChild(triggerActor, "Trigger", engine.MakeOnTreeAdd(triggerActor, cmd))
 
 	doorV2Actor.Trigger = triggerActor
+
+	doorOpenSound := sound.NewSoundPlayer(
+		nodeactor.NewNode(),
+		sound.WithSoundData("sfx/door-open.ogg", false, "door-open"),
+		sound.WithStartTriggers(doorV2Actor.OnOpen),
+	)
+
+	doorNode.AddChild(doorOpenSound, "door-open", engine.MakeOnTreeAdd(doorOpenSound, cmd))
+
+	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
+
+	doorCloseSound := sound.NewSoundPlayer(
+		nodeactor.NewNode(),
+		sound.WithSoundData("sfx/door-close.ogg", false, "door-close"),
+		sound.WithAutoPlay(sceneswitch.SpawnEntityIid == doorV2Actor.EntityIid),
+	)
+
+	doorNode.AddChild(doorCloseSound, "door-close", engine.MakeOnTreeAdd(doorCloseSound, cmd))
 }
 
 func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {

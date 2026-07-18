@@ -15,6 +15,9 @@ Bug list:
   (not sure if it is the 1st or 2nd time) (This is important so please fix)
 - Exiting to main menu and then playing the game again causes deadlock
   somewhere
+- Loading large sound files mid-game can lead to freezing, so we have to be careful to either
+	keep the size of for ex. music files small, or alternatively pre-load them (probably the better)
+	option...
 
 Engine improvements:
 - Spawning children should ideally not need to go through the scene object,

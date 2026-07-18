@@ -51,6 +51,7 @@ type DoorV2 struct {
 	Direction          maths.Direction
 	OnCollision        *events.EventBus
 	OnClipFinished     *events.EventBus
+	OnOpen *events.Event
 	State              DoorState
 	biome string
 }
@@ -122,9 +123,9 @@ func (d *DoorV2) Update(cmd *commands.Commands) {
 		if playerControls.PollAction("DoorInteract") && d.isReady {
 			d.AnimatedSprite.SwitchClip("Open")
 			d.State = OPENING
+			d.OnOpen.Raise()
 		}
 	}
-
 }
 
 func (d *DoorV2) DrawGizmo(cmd *commands.Commands) {
@@ -161,6 +162,7 @@ func NewDoorV2(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *e
 		Graphic:   graphic,
 		EntityIid: entity.Iid,
 		State:     IDLE,
+		OnOpen: events.NewEvent(),
 	}
 
 	newDoor.Hitbox = maths.NewRect(

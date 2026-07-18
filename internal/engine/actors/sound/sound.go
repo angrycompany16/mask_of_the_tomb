@@ -98,9 +98,9 @@ func WithSoundData(filePath string, loop bool, name string) utils.Option[SoundPl
 	}
 }
 
-func WithAutoPlay() utils.Option[SoundPlayer] {
+func WithAutoPlay(autoplay bool) utils.Option[SoundPlayer] {
 	return func(s *SoundPlayer) {
-		s.autoplay = true
+		s.autoplay = autoplay
 	}
 }
 
