@@ -28,6 +28,7 @@ import (
 	"mask_of_the_tomb/internal/game/actors/platform"
 	"mask_of_the_tomb/internal/game/actors/shaderactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
+	"mask_of_the_tomb/internal/game/actors/slamboxgroup"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/game/actors/sounddebug"
 	"mask_of_the_tomb/internal/game/actors/tracker"
@@ -185,8 +186,26 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			switch entity.Name {
 			case "Hazard":
 				SpawnHazard(cmd, scene, &entity, envParentNode)
-			case "Slambox":
-				SpawnSlambox(cmd, scene, &entity, envParentNode)
+			case "Slambox":	
+				isGroupField, _ := entity.GetFieldByName("IsGroup")
+				isGroup := ebitenLDTK.As[bool](isGroupField)
+
+				if isGroup {
+					mainRect := maths.NewRect(entity.Px[0], entity.Px[1], entity.Width, entity.Height)
+					subSlamboxesField, _ := entity.GetFieldByName("SubSlamboxes")
+					subSlamboxes := ebitenLDTK.AsArray[ebitenLDTK.EntityRef](subSlamboxesField)
+					subrects := make([]*maths.Rect, len(subSlamboxes))
+
+					for i, entityRef := range subSlamboxes {
+						entity, _ := level.GetEntityByIid(entityRef.EntityIid)
+						subrects[i] = maths.NewRect(entity.Px[0], entity.Px[1], entity.Width, entity.Height)
+					}
+
+					SpawnSlamboxGroup(mainRect, subrects, cmd, scene, envParentNode)
+				} else {
+					SpawnSlambox(cmd, scene, &entity, envParentNode)
+				}
+
 			case "Grass":
 				SpawnGrass(cmd, scene, &entity, &level, envParentNode)
 			// case names.TurretEntity:
@@ -276,8 +295,55 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 	}
 }
 
+func SpawnSlamboxGroup(mainRect *maths.Rect, subrects []*maths.Rect, cmd *commands.Commands, scene *engine.Scene, envParentNode *engine.Node) {
+	for _, rect := range subrects {
+		fmt.Println(rect)
+	}
+
+	fmt.Println(mainRect)
+
+	slamboxGroup := slamboxgroup.NewSlamboxGroup(
+		tracker.NewTracker(
+			graphic.NewGraphic(
+				transform2D.NewTransform2D(
+					nodeactor.NewNode(),
+				),
+			), 7.5, mainRect.X, mainRect.Y,
+		),
+		slamboxgroup.WithRects(mainRect, subrects),
+	)
+	slamboxNode := envParentNode.AddChild(slamboxGroup, "Slambox", engine.MakeOnTreeAdd(slamboxGroup, cmd))
+
+	subrects_ := make([]*maths.Rect, len(subrects))
+	for i := range subrects_ {
+		r := subrects[i]
+		subrects_[i] = maths.NewRect(r.X, r.Y, r.Width, r.Height)
+	}
+
+	autotileActor := autotilesprite.NewAutoTileSprite(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(
+				nodeactor.NewNode(),
+			),
+		), renderer.RenderTarget{
+			Type: renderer.TEXTURE,
+			Name: "LevelTextureRaw",
+		},
+		autotilesprite.WithRects(maths.NewRect(mainRect.X, mainRect.Y, mainRect.Width, mainRect.Height), subrects_),
+		autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
+	)
+	slamboxNode.AddChild(autotileActor, "Sprite", engine.MakeOnTreeAdd(autotileActor, cmd))
+
+	slamboxSound := sound.NewSoundPlayer(
+		nodeactor.NewNode(),
+		sound.WithSoundData("sfx/stone-crash-trimmed.wav", false, "Slambox-land"),
+		sound.WithStartTriggers(slamboxGroup.OnMoveFinishEv),
+	)
+
+	slamboxNode.AddChild(slamboxSound, "slamboxSound", engine.MakeOnTreeAdd(slamboxSound, cmd))
+}
+
 func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
-	// Spawn slambox bundle
 	slamboxActor := slamboxactor.NewSlambox(
 		tracker.NewTracker(
 			graphic.NewGraphic(

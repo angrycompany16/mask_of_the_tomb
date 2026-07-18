@@ -89,6 +89,10 @@ func (v *Vec2) Ortho() Vec2 {
 	return NewVec2(-v.Y, v.X)
 }
 
+func (v *Vec2) XY() (float64, float64) {
+	return v.X, v.Y
+}
+
 func NewVec2(x, y float64) Vec2 {
 	return Vec2{
 		X: x,

@@ -1,6 +1,7 @@
 package autotilesprite
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/autotile"
@@ -11,6 +12,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/utils"
+	"slices"
 
 	"github.com/ebitengine/debugui"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -19,7 +21,9 @@ import (
 type AutoTileSprite struct {
 	*graphic.Graphic
 	rect       *maths.Rect
+	otherRects []*maths.Rect
 	sprite     *ebiten.Image
+	subsprites []*ebiten.Image
 	tilemapSrc string
 	tilemap    *assetloader.AssetRef[ebiten.Image]
 	target     renderer.RenderTarget
@@ -45,6 +49,15 @@ func (a *AutoTileSprite) Update(cmd *commands.Commands) {
 	gPosX, gPosY := a.GetPos(false)
 	camX, camY := a.GetCamera().WorldToCam(gPosX, gPosY, true)
 	cmd.Renderer.Request(opgen.Pos(a.sprite, camX, camY, 0, 0), a.sprite, a.target, 20)
+
+	fmt.Println(len(a.subsprites))
+	for i, subsprite := range a.subsprites {
+		dx := a.otherRects[i].X - a.rect.X
+		dy := a.otherRects[i].Y - a.rect.Y
+
+		fmt.Println(dx, dy)
+		cmd.Renderer.Request(opgen.Pos(subsprite, camX + dx, camY + dy, 0, 0), subsprite, a.target, 20)
+	}
 }
 
 func (a *AutoTileSprite) DrawInspector(ctx *debugui.Context) {
@@ -64,10 +77,32 @@ func (a *AutoTileSprite) createSprite(slamboxTilemap *ebiten.Image) {
 		a.rect,
 		autotile.WALL,
 		autotile.RectList{
-			List: make([]*maths.Rect, 0),
+			List: a.otherRects,
 			Kind: autotile.WALL,
 		},
 	)
+
+
+	for i, rect := range a.otherRects {
+		neighbours := slices.Concat(a.otherRects[:i], a.otherRects[i+1:])
+		neighbours = append(neighbours, a.rect)
+
+		fmt.Println(a.otherRects, a.rect)
+
+		autotile.CreateSprite(
+			slamboxTilemap,
+			a.subsprites[i],
+			autotile.GetDefaultTileRectData(0, 0, 8),
+			autotile.GetDefaultTileRuleset(),
+			8,
+			rect,
+			autotile.WALL,
+			autotile.RectList{
+				List: neighbours,
+				Kind: autotile.WALL,
+			},
+		)
+	}
 }
 
 func defaultAutoTileSprite(graphic *graphic.Graphic) *AutoTileSprite {
@@ -87,6 +122,19 @@ func NewAutoTileSprite(graphic *graphic.Graphic, target renderer.RenderTarget, o
 	}
 
 	return newAutoTileSprite
+}
+
+func WithRects(mainRect *maths.Rect, otherRects []*maths.Rect) utils.Option[AutoTileSprite] {
+	return func(a *AutoTileSprite) {
+		a.rect = mainRect
+		a.otherRects = otherRects
+
+		a.sprite = ebiten.NewImage(int(a.rect.Width), int(a.rect.Height))
+		a.subsprites = make([]*ebiten.Image, len(a.otherRects))
+		for i, rect := range otherRects {
+			a.subsprites[i] = ebiten.NewImage(int(rect.Width), int(rect.Height))
+		}
+	}
 }
 
 func WithSize(width, height float64) utils.Option[AutoTileSprite] {

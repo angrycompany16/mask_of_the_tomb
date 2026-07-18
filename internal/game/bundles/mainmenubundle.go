@@ -52,29 +52,29 @@ func MakeMainMenuBundle() engine.Bundle {
 			textbox.WithText("Meletus' tomb"),
 		), rootAlign, cmd)
 
-		buttonAlign := scene.AddChild("Align",
-			selectlist.NewSelectList(
-				align.NewAlign(
-					container.NewContainer(
-						nodeactor.NewNode(),
+			buttonAlign := scene.AddChild("Align",
+				selectlist.NewSelectList(
+					align.NewAlign(
+						container.NewContainer(
+							nodeactor.NewNode(),
+						),
+						align.WithIsRow(false),
+						align.WithSpacing([]float64{1, 1, 1}),
 					),
-					align.WithIsRow(false),
-					align.WithSpacing([]float64{1, 1, 1}),
-				),
-			), rootAlign, cmd)
+				), rootAlign, cmd)
 
-		scene.AddChild("Text1",
-			selectable.NewSelectable(
-				textbox.NewTextBox(
-					container.NewContainer(
-						nodeactor.NewNode(),
+			scene.AddChild("Text1",
+				selectable.NewSelectable(
+					textbox.NewTextBox(
+						container.NewContainer(
+							nodeactor.NewNode(),
+						),
+						"fonts/JSE_AmigaAMOS.ttf",
+						textbox.WithText("Play video game"),
 					),
-					"fonts/JSE_AmigaAMOS.ttf",
-					textbox.WithText("Play video game"),
-				),
-				selectable.WithCallback(func(cmd *commands.Commands) {
-					scenemanager, _ := commands.Get[engine.SceneManager](cmd)
-					scenemanager.SpawnScene("d5ae6780-1030-11f0-996f-efbed2df7e2d", cmd)
+					selectable.WithCallback(func(cmd *commands.Commands) {
+						scenemanager, _ := commands.Get[engine.SceneManager](cmd)
+						scenemanager.SpawnScene("d5ae6780-1030-11f0-996f-efbed2df7e2d", cmd)
 				}),
 			), buttonAlign, cmd)
 

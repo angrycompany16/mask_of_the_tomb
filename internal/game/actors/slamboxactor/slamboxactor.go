@@ -29,9 +29,9 @@ type Slambox struct {
 	hasParticles bool
 }
 
-func (s *Slambox) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
-	s.Tracker.OnTreeAdd(node, cmd)
-}
+//func (s *Slambox) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
+//	s.Tracker.OnTreeAdd(node, cmd)
+//}
 
 func (s *Slambox) Init(cmd *commands.Commands) {
 	s.Tracker.Init(cmd)

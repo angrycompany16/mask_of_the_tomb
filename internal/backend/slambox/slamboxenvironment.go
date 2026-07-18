@@ -185,7 +185,7 @@ func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool
 	var targetSlambox *maths.Rect
 	if isGroup {
 		targetSlamboxGroup := chain.slamboxGroups[objectID]
-		targetSlambox = targetSlamboxGroup.slamboxes[targetSlamboxGroup.centerIndex]
+		targetSlambox = targetSlamboxGroup.slamboxes[targetSlamboxGroup.CenterIndex]
 	} else {
 		targetSlambox = chain.slamboxes[objectID]
 	}
@@ -237,7 +237,7 @@ func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool
 		}
 
 		for _, slamboxGroup := range chain.slamboxGroups {
-			slambox := slamboxGroup.slamboxes[slamboxGroup.centerIndex]
+			slambox := slamboxGroup.slamboxes[slamboxGroup.CenterIndex]
 			if chain.IsBetween(i, nextIndex, slambox.Cx(), slambox.Cy()) {
 				skip, nodeDist := se.checkSkip(chain, slambox, nextIndex, nodeDir)
 				if skip {
@@ -276,7 +276,7 @@ func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool
 		}
 
 		for _, slamboxGroup := range chain.slamboxGroups {
-			slambox := slamboxGroup.slamboxes[slamboxGroup.centerIndex]
+			slambox := slamboxGroup.slamboxes[slamboxGroup.CenterIndex]
 			if chain.IsBetween(i, nextIndex, slambox.Cx(), slambox.Cy()) {
 				if skip, _ := se.checkSkip(chain, slambox, nextIndex, nodeDir); skip {
 					continue

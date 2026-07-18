@@ -16,6 +16,7 @@ import (
 	"mask_of_the_tomb/internal/game/actors/doorv2"
 	"mask_of_the_tomb/internal/game/actors/hazard"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
+	"mask_of_the_tomb/internal/game/actors/slamboxgroup"
 	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/sceneswitch"
 	"math"
@@ -176,22 +177,45 @@ func (p *Player) Update(cmd *commands.Commands) {
 					if !ok {
 						return false
 					}
+
 					return slambox_.GetBackendID() == p.slamboxIDBuffer
 				},
 			)
-			if len(slamboxHits) == 0 {
+
+			slamboxGroupHits := scene.GetRoot().GetChildrenFunc(
+				func(n *engine.Node) bool {
+					slamboxGroup, ok := n.GetValue().(*slamboxgroup.SlamboxGroup)
+					if !ok {
+						return false
+					}
+					return slamboxGroup.BackendIndex == p.slamboxIDBuffer
+				},
+			)
+
+			if len(slamboxHits) != 0 {
+				slamboxactor, ok := slamboxHits[0].GetValue().(*slamboxactor.Slambox)
+				if !ok {
+					fmt.Println("Slambox node could not be cast to slambox actor")
+					return
+				}
+				slamboxactor.RequestSlam(p.slamDirBuffer)
+				p.slamDirBuffer = maths.DirNone
+				p.slamboxIDBuffer = -1
+				p.hasSlammedBox = true
+			} else if len(slamboxGroupHits) != 0 {
+				slamboxgroup, ok := slamboxGroupHits[0].GetValue().(*slamboxgroup.SlamboxGroup)
+				if !ok {
+					fmt.Println("Slambox node could not be cast to slambox actor")
+					return
+				}
+				slamboxgroup.RequestSlam(p.slamDirBuffer)
+				p.slamDirBuffer = maths.DirNone
+				p.slamboxIDBuffer = -1
+				p.hasSlammedBox = true
+			} else {
 				fmt.Println("No slambox matching ID")
 				return
 			}
-			slamboxactor, ok := slamboxHits[0].GetValue().(*slamboxactor.Slambox)
-			if !ok {
-				fmt.Println("Slambox node could not be cast to slambox actor")
-				return
-			}
-			slamboxactor.RequestSlam(p.slamDirBuffer)
-			p.slamDirBuffer = maths.DirNone
-			p.slamboxIDBuffer = -1
-			p.hasSlammedBox = true
 		}
 		p.animatedSprite.SetPos(0, -p.jumpOffset)
 	case IDLE:

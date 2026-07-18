@@ -1,62 +1,136 @@
 package slamboxgroup
 
-// A group of slamboxes connected as one.
-// Contains slamboxes as children?
-// type SlamboxGroup struct {
-// 	*transform2D.Transform2D
-// 	backendID   int
-// 	centerIndex int
-// 	inChain     bool
-// }
+import (
+	"mask_of_the_tomb/internal/backend/events"
+	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/backend/slambox"
+	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/game/actors/tracker"
+	"mask_of_the_tomb/internal/utils"
 
-// func (sg *SlamboxGroup) Init(cmd *commands.Commands) {
-// 	childSlamboxes := make([]*maths.Rect, 0)
-// 	children := sg.Node.GetNode().GetChildren()
-// 	for i, child := range children {
-// 		childSlambox, ok := engine.GetActor[*slamboxactor.Slambox](child.GetValue())
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
-// 		if !ok {
-// 			continue
-// 		}
+type SlamboxGroup struct {
+	*tracker.Tracker
+	rect         *maths.Rect
+	subrects []*maths.Rect
+	backendGroup *slambox.SlamboxGroup
+	BackendIndex int
 
-// 		if childSlambox.IsCenter() {
-// 			sg.centerIndex = i
-// 		}
+	slamRequest  maths.Direction
+	gizmosImage  *ebiten.Image
+	OnMoveFinish *events.EventBus
+	hasParticles bool
+}
 
-// 		childSlamboxes = append(childSlamboxes, childSlambox.GetRect())
-// 	}
-// 	sg.backendID = cmd.SlamboxEnv().AddSlamboxGroup(slambox.NewSlamboxGroup(childSlamboxes, sg.centerIndex))
-// }
+func (s *SlamboxGroup) Init(cmd *commands.Commands) {
+	s.Tracker.Init(cmd)
+	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
+	if !ok {
+		panic("Missing slambox env (Slambox)")
+	}
 
-// func (sg *SlamboxGroup) Update(cmd commands.Commands) {
-// 	children := sg.Node.GetNode().GetChildren()
-// 	var slamDir maths.Direction
-// 	for _, child := range children {
-// 		childSlambox, ok := engine.GetActor[*slamboxactor.Slambox](child.GetValue())
-// 		if !ok {
-// 			continue
-// 		}
 
-// 		slamDir = childSlambox.GetSlamRequest()
-// 	}
-// 	if slamDir == maths.DirNone {
-// 		return
-// 	}
+	s.BackendIndex = slamboxenv.AddSlamboxGroup(
+		slambox.NewSlamboxGroup(
+			append(s.subrects, s.rect),
+			len(s.subrects),
+		),
+	)
 
-// 	newRects := cmd.SlamboxEnv().SlamSlamboxGroup(sg.backendID, slamDir)
+	s.backendGroup = slamboxenv.GetSlamboxGroups()[s.BackendIndex]
 
-// 	for i, child := range children {
-// 		childSlambox, ok := engine.GetActor[*slamboxactor.Slambox](child.GetValue())
-// 		if !ok {
-// 			continue
-// 		}
+	x, y := s.Tracker.GetPos()
+	s.backendGroup.SetPos(x, y)
+	s.Transform2D.SetPos(x, y)
+}
 
-// 		childSlambox.SetTarget(newRects[i].Cx(), newRects[i].Cy())
-// 	}
-// }
+func (s *SlamboxGroup) Update(cmd *commands.Commands) {
+	s.Tracker.Update(cmd)
 
-// func NewSlamboxGroup(transform2D *transform2D.Transform2D, inChain bool) *SlamboxGroup {
-// 	return &SlamboxGroup{
-// 		Transform2D: transform2D,
-// 	}
-// }
+	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
+//	scene, _ := commands.Get[engine.Scene](cmd)
+
+	x, y := s.Tracker.GetPos()
+	s.backendGroup.SetPos(x, y)
+	s.Transform2D.SetPos(x, y)
+
+//	if data, raised := s.OnMoveFinish.Poll(); raised && s.hasParticles {
+//		dir := data["dir"].(maths.Direction)
+//		cx, cy := s.rect.Center()
+//		w, h := s.rect.HalfSize()
+//		scene.SpawnBundle(cmd, MakeSlamboxParticlesBundle(cx, cy, dir, w, h))
+//	}
+
+	if s.slamRequest == maths.DirNone {
+		return
+	}
+
+	slammedRects := slamboxenv.SlamSlamboxGroup(s.BackendIndex, s.slamRequest)
+	s.Tracker.SetTarget(slammedRects[s.backendGroup.CenterIndex].X, slammedRects[s.backendGroup.CenterIndex].Y)
+	s.slamRequest = maths.DirNone
+}
+
+//func (s *Slambox) DrawGizmo(cmd *commands.Commands) {
+//	s.Tracker.DrawGizmo(cmd)
+//	s.gizmosImage.Clear()
+//	vector64.StrokeRect(s.gizmosImage, 0, 0, s.rect.Width-1, s.rect.Height-1, 1, color.RGBA{255, 0, 0, 255}, false)
+//
+//	camX, camY := s.GetCamera().WorldToCam(s.rect.Left(), s.rect.Top(), false)
+//
+//	cmd.Renderer.Request(opgen.Pos(s.gizmosImage, camX, camY), s.gizmosImage, renderer.RenderTarget{
+//		renderer.SCREEN,
+//		"Overlay",
+//	}, 0)
+//}
+
+func (s *SlamboxGroup) RequestSlam(dir maths.Direction) {
+	s.slamRequest = dir
+}
+
+func (s *SlamboxGroup) GetSlamRequest() maths.Direction {
+	return s.slamRequest
+}
+
+func defaultSlambox(tracker *tracker.Tracker) *SlamboxGroup {
+	x, y := tracker.GetPos()
+	return &SlamboxGroup{
+		Tracker:      tracker,
+		rect:         maths.NewRect(x, y, 8, 8),
+		subrects: make([]*maths.Rect, 0),
+		slamRequest:  maths.DirNone,
+		gizmosImage:  ebiten.NewImage(8, 8),
+		OnMoveFinish: events.NewBusFrom(tracker.OnMoveFinishEv),
+		hasParticles: true,
+	}
+}
+
+// TODO: The better approach would be to make the particles
+// entirely possible to specify, so that playerparticles
+// and slambox particles became the same thing lowkey
+// Or we could extract the particles to some other place
+// That may honestly be the better move, but it might not
+// matter that much.
+func NewSlamboxGroup(tracker *tracker.Tracker, options ...utils.Option[SlamboxGroup]) *SlamboxGroup {
+	slambox := defaultSlambox(tracker)
+
+	for _, option := range options {
+		option(slambox)
+	}
+
+	return slambox
+}
+
+func WithRects(mainRect *maths.Rect, subrects []*maths.Rect) utils.Option[SlamboxGroup] {
+	return func(s *SlamboxGroup) {
+		s.rect = mainRect
+		s.subrects = subrects
+	}
+}
+
+func WithHasParticles(hasParticles bool) utils.Option[SlamboxGroup] {
+	return func(s *SlamboxGroup) {
+		s.hasParticles = hasParticles
+	}
+}
