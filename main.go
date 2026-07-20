@@ -52,13 +52,13 @@ func main() {
 	ebiten.SetWindowTitle("Mask of the tomb")
 	// ebiten.SetCursorMode(ebiten.CursorModeHidden)
 
+	go sound_v2.SoundServer([]string{"master"})
+
 	a := &App{
 		game.CreateGame(GAME_WIDTH, GAME_HEIGHT, PIXEL_SCALE),
 	}
 
 	ebiten.SetFullscreen(true)
-
-	go sound_v2.SoundServer([]string{"master"})
 
 	if err := ebiten.RunGame(a); err != nil {
 		if errors.Is(err, errors.ErrUnsupported) {

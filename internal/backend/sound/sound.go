@@ -113,8 +113,7 @@ func DebugSoundServer() {
 }
 
 func SoundServer(
-	// Data - Always pass by value so we don't get shared memory errors
-	// soundCatalogue map[string]SoundData, // Need to fix this
+//	soundCatalogue map[string]SoundData,
 	DSPChannelNames []string,
 ) {
 	fmt.Println("Starting sound server")

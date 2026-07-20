@@ -2,6 +2,7 @@ package slider
 
 import (
 	"fmt"
+	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine/actors/UI/selectable"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -9,11 +10,12 @@ import (
 
 type Slider struct {
 	*selectable.Selectable
-	Min     float64
-	Max     float64
-	Step    float64
-	Default float64
-	val     float64
+	Min        float64
+	Max        float64
+	Step       float64
+	Default    float64
+	val        float64
+	OnChangeEv *events.Event
 }
 
 func (s *Slider) Init(cmd *commands.Commands) {
@@ -30,10 +32,12 @@ func (s *Slider) Update(cmd *commands.Commands) {
 
 	UIControls := cmd.InputHandler.InputSchemes["UIControls"]
 	if UIControls.PollAction("UILeft") {
+		s.OnChangeEv.Raise()
 		s.val -= s.Step
 	}
 
 	if UIControls.PollAction("UIRight") {
+		s.OnChangeEv.Raise()
 		s.val += s.Step
 	}
 
@@ -50,5 +54,6 @@ func NewSlider(selectable *selectable.Selectable, min, max, step, _default float
 		Step:       step,
 		Default:    _default,
 		val:        _default,
+		OnChangeEv: events.NewEvent(),
 	}
 }

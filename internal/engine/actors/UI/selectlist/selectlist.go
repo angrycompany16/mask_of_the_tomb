@@ -22,6 +22,7 @@ type SelectList struct {
 	Active          bool
 	selectIndex     int
 	hoverEventBuses []*events.EventBus
+	OnSelectEv      *events.Event
 }
 
 func (b *SelectList) Init(cmd *commands.Commands) {
@@ -41,9 +42,9 @@ func (b *SelectList) Init(cmd *commands.Commands) {
 		}
 
 		if i == b.selectIndex {
-			selectable.SetSelectState(true, true)
+			selectable.SetSelectState(true)
 		} else {
-			selectable.SetSelectState(false, true)
+			selectable.SetSelectState(false)
 		}
 	}
 }
@@ -57,14 +58,18 @@ func (b *SelectList) Update(cmd *commands.Commands) {
 	UIControls := cmd.InputHandler.InputSchemes["UIControls"]
 	if b.IsRow {
 		if UIControls.PollAction("UIRight") {
+			b.OnSelectEv.Raise()
 			b.selectIndex += 1
 		} else if UIControls.PollAction("UILeft") {
+			b.OnSelectEv.Raise()
 			b.selectIndex -= 1
 		}
 	} else {
 		if UIControls.PollAction("UIDown") {
+			b.OnSelectEv.Raise()
 			b.selectIndex += 1
 		} else if UIControls.PollAction("UIUp") {
+			b.OnSelectEv.Raise()
 			b.selectIndex -= 1
 		}
 	}
@@ -115,12 +120,12 @@ func (b *SelectList) Update(cmd *commands.Commands) {
 			if selectValue == selectable.Selected {
 				continue
 			}
-			selectable.SetSelectState(selectValue, false)
+			selectable.SetSelectState(selectValue)
 		}
 
 		if selectable, ok := engine.As[*selectable.Selectable](child.GetValue()); ok {
 			if selectValue != selectable.Selected {
-				selectable.SetSelectState(selectValue, false)
+				selectable.SetSelectState(selectValue)
 			}
 		}
 
@@ -145,5 +150,6 @@ func NewSelectList(align *align.Align) *SelectList {
 		Align:       align,
 		selectIndex: 0,
 		Active:      true,
+		OnSelectEv:  events.NewEvent(),
 	}
 }

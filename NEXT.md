@@ -4,4 +4,5 @@
 - [X] Add slambox "hit ground" sound effect
 - [X] Reimplement music
 - [X] Create / implement door sound
-- [ ] Add sound effects for UI elements
+- [X] Add sound effects for UI elements
+- [ ] Add particle effects to multi-slamboxes

@@ -53,7 +53,7 @@ func (b *Selectable) Update(cmd *commands.Commands) {
 	}
 }
 
-func (b *Selectable) SetSelectState(selected, suppressSound bool) {
+func (b *Selectable) SetSelectState(selected bool) {
 	b.Selected = selected
 	if selected {
 		b.Textbox.Color = b.SelectedColor
