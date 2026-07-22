@@ -4,6 +4,7 @@ import (
 	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/slambox"
+	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/tracker"
 	"mask_of_the_tomb/internal/utils"
@@ -14,9 +15,10 @@ import (
 type SlamboxGroup struct {
 	*tracker.Tracker
 	rect         *maths.Rect
-	subrects []*maths.Rect
+	subrects     []*maths.Rect
 	backendGroup *slambox.SlamboxGroup
 	BackendIndex int
+	hitRectIndex int
 
 	slamRequest  maths.Direction
 	gizmosImage  *ebiten.Image
@@ -30,7 +32,6 @@ func (s *SlamboxGroup) Init(cmd *commands.Commands) {
 	if !ok {
 		panic("Missing slambox env (Slambox)")
 	}
-
 
 	s.BackendIndex = slamboxenv.AddSlamboxGroup(
 		slambox.NewSlamboxGroup(
@@ -50,24 +51,27 @@ func (s *SlamboxGroup) Update(cmd *commands.Commands) {
 	s.Tracker.Update(cmd)
 
 	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
-//	scene, _ := commands.Get[engine.Scene](cmd)
+	scene, _ := commands.Get[engine.Scene](cmd)
 
 	x, y := s.Tracker.GetPos()
 	s.backendGroup.SetPos(x, y)
 	s.Transform2D.SetPos(x, y)
 
-//	if data, raised := s.OnMoveFinish.Poll(); raised && s.hasParticles {
-//		dir := data["dir"].(maths.Direction)
-//		cx, cy := s.rect.Center()
-//		w, h := s.rect.HalfSize()
-//		scene.SpawnBundle(cmd, MakeSlamboxParticlesBundle(cx, cy, dir, w, h))
-//	}
+	if data, raised := s.OnMoveFinish.Poll(); raised && s.hasParticles {
+		dir := data["dir"].(maths.Direction)
+		if s.hitRectIndex == len(s.subrects) {
+			scene.SpawnBundle(cmd, MakeSlamboxParticlesBundle(s.rect, dir))
+		} else {
+			scene.SpawnBundle(cmd, MakeSlamboxParticlesBundle(s.subrects[s.hitRectIndex], dir))
+		}
+	}
 
 	if s.slamRequest == maths.DirNone {
 		return
 	}
 
-	slammedRects := slamboxenv.SlamSlamboxGroup(s.BackendIndex, s.slamRequest)
+	slammedRects, i := slamboxenv.SlamSlamboxGroup(s.BackendIndex, s.slamRequest)
+	s.hitRectIndex = i
 	s.Tracker.SetTarget(slammedRects[s.backendGroup.CenterIndex].X, slammedRects[s.backendGroup.CenterIndex].Y)
 	s.slamRequest = maths.DirNone
 }
@@ -98,7 +102,7 @@ func defaultSlambox(tracker *tracker.Tracker) *SlamboxGroup {
 	return &SlamboxGroup{
 		Tracker:      tracker,
 		rect:         maths.NewRect(x, y, 8, 8),
-		subrects: make([]*maths.Rect, 0),
+		subrects:     make([]*maths.Rect, 0),
 		slamRequest:  maths.DirNone,
 		gizmosImage:  ebiten.NewImage(8, 8),
 		OnMoveFinish: events.NewBusFrom(tracker.OnMoveFinishEv),

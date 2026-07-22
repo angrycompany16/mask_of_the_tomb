@@ -1,12 +1,14 @@
 New game mechanic ideas:
 - Buttons... I might have to add buttons
+	- Can be triggered either by player stepping on them or being hit by a slambox
+	- Can cause various level effects, such as opening doors, changing the level geometry etc. 
 - Rotating slamboxes, sort of like tetris pieces. Requires making a 
   function for rotating a rect about its center, but not that much more.
 - A mode where the (unnamed) main character controls all of the 
   slamboxes simultaneously, see testslamboxenv.go for an example
   of how this could work! This is a very cool idea.
 
-Bug list:
+Bug and improvement list:
 - 44100 Hz audio does not work on arch, which is quite a huge problem
 - Sometimes spamming pause/play while respawning causes the player to not appear at all
 - Opening the game and then exiting from the main menu deletes the current save
@@ -18,32 +20,8 @@ Bug list:
 - Loading large sound files mid-game can lead to freezing, so we have to be careful to either
 	keep the size of for ex. music files small, or alternatively pre-load them (probably the better)
 	option...
-
-Engine improvements:
-- Spawning children should ideally not need to go through the scene object,
-  it would be way cleaner if we could just do that as a function of the node
-  I believe the problem is that Init and OnTreeAdd would not be called in 
-  this case. Example:
-			
-      cmd.Scene().AddChild()
-
-- The deep nesting of constructors really needs to be fixed... Example:
-		
-    scene.SpawnActor("Slambox",
-			slamboxactor.NewSlambox(
-				tracker.NewTracker(
-					graphic.NewGraphic(
-						transform2D.NewTransform2D(
-							nodeactor.NewNode(),
-						),
-					), moveSpeed, posX, posY,
-				),
-				slamboxactor.WithPos(posX, posY),
-				slamboxactor.WithSize(width, height),
-			),
-			cmd,
-		)
-
+- There seems to be a frame perfect bug where if we press the 'Go through	door' button exactly as 
+	the player hits the door trigger (?), we may simply phase through the door and disappear...
 - It would be very nice if we did not need to call child methods
   each time we inherit from a different class. for example:
 
@@ -59,12 +37,5 @@ Engine improvements:
   becomes a nil pointer unless we call Init manually...
 - Rectify() in SlamboxEnv is currently being called on demand.
   I guess it's fine, but we really shouldn't be doing that kind
-  of stuff.
-- Another constructor problem: If we forget to spawn some parent
-  actor with an instance of its child, everything panics. It
-  would be nice if we could create component A inheriting from B,
-  and then somehow make a constructor for B which makes it impossible
-  to forget to add an A.
-- We need to go back from the centered positioning system... 0, 0 should
-  be top-left in order to make things at least a little bit compatible
-  with LDtk!!!!
+  of stuff. It would be better if we just manually re-rectify whenever we actually
+	change the level geometry.

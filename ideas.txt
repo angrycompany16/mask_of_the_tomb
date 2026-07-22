@@ -3,7 +3,6 @@ Mechanic ideas:
 
 Let's just try to make some simple puzzles with these few mechanics
 
-
 Mood:
 Everything is very abandoned and old (dying)
 but
@@ -12,12 +11,10 @@ something
 unique
 BASE IT A LOT ON ETERNAL RUINS
 
-
 song inspo:
 Overall:
  https://www.youtube.com/watch?v=1sK0ujiu2ec
 Baggage basement:
-
 
 Areas:
  - Baggage Basement
@@ -25,3 +22,10 @@ Areas:
  - The observatory
  - Stars of the sky
  - Make something RoR2 inspired? Kinda purple + green vibe
+
+Story / progression mechanic:
+We create a cmd system that stores global (i.e. world-level) info about game
+progression, such as collectibles, context for NPC's, and other things. Once again we will
+learn from the best and take inspiration from aarthificial.
+
+

@@ -14,9 +14,7 @@ import (
 func MakeDefaultBundle(gameWidth, gameHeight, pixelScale float64) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
 		scene.SpawnActor("Camera", camera.NewCamera(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
-			),
+			transform2D.NewTransform2D(),
 			camera.WithSize(gameWidth, gameHeight),
 		), cmd)
 

@@ -15,6 +15,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/particles"
 	"mask_of_the_tomb/internal/engine/actors/sound"
+	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/actors/vectorgraphic"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -24,6 +25,7 @@ import (
 	"mask_of_the_tomb/internal/game/actors/doorv2"
 	"mask_of_the_tomb/internal/game/actors/grass"
 	"mask_of_the_tomb/internal/game/actors/hazard"
+	"mask_of_the_tomb/internal/game/actors/key"
 	"mask_of_the_tomb/internal/game/actors/levelshader"
 	"mask_of_the_tomb/internal/game/actors/platform"
 	"mask_of_the_tomb/internal/game/actors/shaderactor"
@@ -68,7 +70,6 @@ var songMap = map[string]string{
 	"Purple_rain":                  "music/purple_rain.mp3",
 }
 
-
 func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
 		// gw, gh := cmd.Renderer.GetGameSize()
@@ -109,16 +110,12 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		}
 
 		// 2. Spawn nodes for tilemap layers, including spikes
-		envParentNode := scene.SpawnActor("Environment", transform2D.NewTransform2D(
-			nodeactor.NewNode(),
-		), cmd)
+		envParentNode := scene.SpawnActor("Environment", transform2D.NewTransform2D(), cmd)
 
 		intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
 		slamboxTilemapActor := slamboxtilemap.NewSlamboxTilemap(
 			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
-				),
+				transform2D.NewTransform2D(),
 			),
 			intGridCSV,
 			int(playerspace.GridSize),
@@ -138,9 +135,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 
 			ldtkTileLayerActor := ldtktilelayer.NewLDTKTilemapLayer(
 				graphic.NewGraphic(
-					transform2D.NewTransform2D(
-						nodeactor.NewNode(),
-					),
+					transform2D.NewTransform2D(),
 				),
 				&layer, tilesetImg, renderer.RenderTarget{
 					Type: renderer.TEXTURE,
@@ -158,9 +153,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 
 		scene.SpawnActor("BackgroundColor", vectorgraphic.NewVectorGraphic(
 			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
-				),
+				transform2D.NewTransform2D(),
 			),
 			vectorgraphic.WithDrawFunc(
 				func(img *ebiten.Image) {
@@ -186,7 +179,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			switch entity.Name {
 			case "Hazard":
 				SpawnHazard(cmd, scene, &entity, envParentNode)
-			case "Slambox":	
+			case "Slambox":
 				isGroupField, _ := entity.GetFieldByName("IsGroup")
 				isGroup := ebitenLDTK.As[bool](isGroupField)
 
@@ -226,6 +219,9 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 				// 		entity.Px[0], entity.Px[1], entity.Width, entity.Height, false,
 				// 	)
 				// }
+			case "DoorKey":
+				fmt.Println("key!!")
+				SpawnDoorKey(cmd, scene, &entity, &level, envParentNode)
 			}
 		}
 
@@ -240,9 +236,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 
 		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystem(
 			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
-				),
+				transform2D.NewTransform2D(),
 			),
 			particles.WithBursts(),
 			particles.WithGlobalSpace(true),
@@ -273,9 +267,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			backgroundshader.NewBackgroundShader(
 				shaderactor.NewShader(
 					graphic.NewGraphic(
-						transform2D.NewTransform2D(
-							nodeactor.NewNode(),
-						),
+						transform2D.NewTransform2D(),
 					), shaderMap[biome], cmd.Renderer.Textures["BackgroundRaw"], "Background", 0,
 				),
 			), cmd)
@@ -284,9 +276,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			levelshader.NewLevelShader(
 				shaderactor.NewShader(
 					graphic.NewGraphic(
-						transform2D.NewTransform2D(
-							nodeactor.NewNode(),
-						),
+						transform2D.NewTransform2D(),
 					), "shaders/pixel_lights.kage", cmd.Renderer.Textures["LevelTextureRaw"], "Playerspace", 0,
 				),
 			), cmd)
@@ -305,9 +295,7 @@ func SpawnSlamboxGroup(mainRect *maths.Rect, subrects []*maths.Rect, cmd *comman
 	slamboxGroup := slamboxgroup.NewSlamboxGroup(
 		tracker.NewTracker(
 			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
-				),
+				transform2D.NewTransform2D(),
 			), 7.5, mainRect.X, mainRect.Y,
 		),
 		slamboxgroup.WithRects(mainRect, subrects),
@@ -322,9 +310,7 @@ func SpawnSlamboxGroup(mainRect *maths.Rect, subrects []*maths.Rect, cmd *comman
 
 	autotileActor := autotilesprite.NewAutoTileSprite(
 		graphic.NewGraphic(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
-			),
+			transform2D.NewTransform2D(),
 		), renderer.RenderTarget{
 			Type: renderer.TEXTURE,
 			Name: "LevelTextureRaw",
@@ -347,9 +333,7 @@ func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDT
 	slamboxActor := slamboxactor.NewSlambox(
 		tracker.NewTracker(
 			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
-				),
+				transform2D.NewTransform2D(),
 			), 7.5, entity.Px[0], entity.Px[1],
 		),
 		slamboxactor.WithPos(entity.Px[0], entity.Px[1]),
@@ -359,9 +343,7 @@ func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDT
 
 	autotileActor := autotilesprite.NewAutoTileSprite(
 		graphic.NewGraphic(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
-			),
+			transform2D.NewTransform2D(),
 		), renderer.RenderTarget{
 			Type: renderer.TEXTURE,
 			Name: "LevelTextureRaw",
@@ -387,7 +369,6 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	doorV2Actor := doorv2.NewDoorV2(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
 				transform2D.WithPos(entity.Px[0], entity.Px[1]),
 			),
 		), entity, level,
@@ -397,7 +378,6 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	doorAnim := animatedsprite.NewAnimatedSprite(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
 				transform2D.WithPos(entity.Width/2, entity.Height/2),
 			),
 		),
@@ -448,7 +428,6 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	triggerActor := trigger.NewTrigger(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
 				transform2D.WithPos(relPosX, relPosY),
 			),
 		),
@@ -482,9 +461,7 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
 	platformActor := platform.NewPlatform(
 		graphic.NewGraphic(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
-			),
+			transform2D.NewTransform2D(),
 		), entity,
 	)
 	envParentNode.AddChild(platformActor, "Platform", engine.MakeOnTreeAdd(platformActor, cmd))
@@ -493,9 +470,7 @@ func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLD
 func SpawnHazard(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
 	hazardActor := hazard.NewHazard(
 		graphic.NewGraphic(
-			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
-			),
+			transform2D.NewTransform2D(),
 		), entity,
 	)
 
@@ -509,7 +484,6 @@ func SpawnGrass(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.
 	grassActor := grass.NewGrass(
 		graphic.NewGraphic(
 			transform2D.NewTransform2D(
-				nodeactor.NewNode(),
 				transform2D.WithPos(entity.Px[0], entity.Px[1]),
 			),
 		),
@@ -517,12 +491,30 @@ func SpawnGrass(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.
 		playerspace.GridSize,
 		"sprites/environment/grass.png",
 		gamestate.GrassWindSeed,
-		renderer.RenderTarget{
-			Type: renderer.TEXTURE,
-			Name: "LevelTextureRaw",
-		},
+		renderer.TextureTarget("LevelTextureRaw"),
 		-10,
 	)
 
 	envParentNode.AddChild(grassActor, "Grass", engine.MakeOnTreeAdd(grassActor, cmd))
+}
+
+func SpawnDoorKey(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level, envParentNode *engine.Node) {
+	keyActor := key.NewKey(
+		transform2D.NewTransform2D(
+			transform2D.WithPos(entity.Px[0], entity.Px[1]),
+		),
+	)
+
+	keyActorNode := envParentNode.AddChild(keyActor, "Key", engine.MakeOnTreeAdd(keyActor, cmd))
+
+	keySprite := sprite.NewSprite(
+		graphic.NewGraphic(
+			transform2D.NewTransform2D(),
+		),
+		renderer.TextureTarget("LevelTextureRaw"),
+		"sprites/environment/key.png",
+		sprite.WithPivot(0, 0),
+	)
+
+	keyActorNode.AddChild(keySprite, "sprite", engine.MakeOnTreeAdd(keySprite, cmd))
 }

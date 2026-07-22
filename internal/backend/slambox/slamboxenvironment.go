@@ -169,12 +169,12 @@ func (se *SlamboxEnvironment) SlamSlambox(index int, dir maths.Direction) (float
 	return projRect.Left(), projRect.Top()
 }
 
-func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) []maths.Rect {
+func (se *SlamboxEnvironment) SlamSlamboxGroup(i int, dir maths.Direction) ([]maths.Rect, int) {
 	slamboxGroup := se.slamboxGroups[i]
 	rects := slamboxGroup.slamboxes
 	otherRects := slices.Concat(se.GetSlamboxRects(-1), se.GetSlamboxGroupRects(i), se.GetSlamboxChainRects(-1))
-	newRects, _ := se.ProjectRects(rects, dir, math.Inf(1), otherRects)
-	return newRects
+	newRects, _, i := se.ProjectRects(rects, dir, math.Inf(1), otherRects)
+	return newRects, i
 }
 
 func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool, dir maths.Direction) (maths.Rect, []maths.Rect) {
@@ -243,7 +243,7 @@ func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool
 				if skip {
 					continue
 				}
-				_, dist := se.ProjectRects(slamboxGroup.slamboxes, nodeDir, nodeDist, otherRects)
+				_, dist, _ := se.ProjectRects(slamboxGroup.slamboxes, nodeDir, nodeDist, otherRects)
 				if dist < minDist {
 					minDist = dist
 				}
@@ -281,7 +281,7 @@ func (se *SlamboxEnvironment) SlamSlamboxChain(i int, objectID int, isGroup bool
 				if skip, _ := se.checkSkip(chain, slambox, nextIndex, nodeDir); skip {
 					continue
 				}
-				projRects, _ := se.ProjectRects(slamboxGroup.slamboxes, nodeDir, minDist, otherRects)
+				projRects, _, _ := se.ProjectRects(slamboxGroup.slamboxes, nodeDir, minDist, otherRects)
 
 				return maths.Rect{}, projRects
 			}
@@ -306,7 +306,9 @@ func (se *SlamboxEnvironment) checkSkip(chain *SlamboxChain, slambox *maths.Rect
 // Projects a group of rects through the environment. Returns
 // a list of rects with the same length as the incoming one,
 // but projected in the specified direction.
-func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direction, maxDist float64, otherRects []*maths.Rect) ([]maths.Rect, float64) {
+// Also return the index of the rect that actually "hit" the wall!
+// This will be important later.
+func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direction, maxDist float64, otherRects []*maths.Rect) ([]maths.Rect, float64, int) {
 	shortestDist := math.Inf(1)
 	var closestRect maths.Rect
 	var closestID int
@@ -328,7 +330,7 @@ func (se *SlamboxEnvironment) ProjectRects(rects []*maths.Rect, dir maths.Direct
 		translatedRect := otherRect.Translated(offsetX, offsetY)
 		projectedList = append(projectedList, translatedRect)
 	}
-	return projectedList, shortestDist
+	return projectedList, shortestDist, closestID
 }
 
 // Projects a rect (moves it as far as possible) through the slambox

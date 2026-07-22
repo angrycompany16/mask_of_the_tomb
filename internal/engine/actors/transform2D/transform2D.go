@@ -104,8 +104,8 @@ func (t *Transform2D) SetScale(scaleX, scaleY float64) {
 // Right now we are instantiating the node as a zero object, which
 // is fine-ish (we don't get any nil references), but not great
 // (this could break if we change node, and is not very clean)
-func NewTransform2D(node *nodeactor.Node, options ...utils.Option[Transform2D]) *Transform2D {
-	t := defaultTransform2D(node)
+func NewTransform2D(options ...utils.Option[Transform2D]) *Transform2D {
+	t := defaultTransform2D()
 
 	for _, option := range options {
 		option(t)
@@ -114,9 +114,9 @@ func NewTransform2D(node *nodeactor.Node, options ...utils.Option[Transform2D]) 
 	return t
 }
 
-func defaultTransform2D(node *nodeactor.Node) *Transform2D {
+func defaultTransform2D() *Transform2D {
 	return &Transform2D{
-		Node:   node,
+		Node:   nodeactor.NewNode(),
 		local:  *newTransform(0, 0, 0, 1, 1),
 		global: *newTransform(0, 0, 0, 1, 1),
 	}

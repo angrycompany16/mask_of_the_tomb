@@ -1,4 +1,4 @@
-package slamboxactor
+package slamboxgroup
 
 import (
 	"fmt"
@@ -12,9 +12,11 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 )
 
-func MakeSlamboxParticlesBundle(x, y float64, dir maths.Direction, halfWidth, halfHeight float64) engine.Bundle {
+func MakeSlamboxParticlesBundle(rect *maths.Rect, dir maths.Direction) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) {
 		dx, dy := maths.VectorFromDir(dir)
+		x, y := rect.Cx(), rect.Cy()
+		halfWidth, halfHeight := rect.HalfSize()
 		x += dx * halfWidth
 		y += dy * halfHeight
 		size := 0.0

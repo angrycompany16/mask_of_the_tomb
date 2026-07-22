@@ -6,7 +6,6 @@ import (
 	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
-	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/particles"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -23,7 +22,6 @@ func MakeJumpParticlesBundle(x, y float64, dir maths.Direction, halfSize float64
 		particlesBroad := scene.SpawnActor("JumpParticlesBroad", particles.NewParticleSystem(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
 					transform2D.WithPos(x, y),
 					transform2D.WithAngle(rot),
 				),
@@ -50,7 +48,6 @@ func MakeJumpParticlesBundle(x, y float64, dir maths.Direction, halfSize float64
 		particlesTight := scene.SpawnActor("JumpParticlesTight", particles.NewParticleSystem(
 			graphic.NewGraphic(
 				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
 					transform2D.WithPos(x, y),
 					transform2D.WithAngle(rot),
 				),

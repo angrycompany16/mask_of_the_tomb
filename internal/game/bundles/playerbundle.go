@@ -25,7 +25,6 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 				tracker.NewTracker(
 					graphic.NewGraphic(
 						transform2D.NewTransform2D(
-							nodeactor.NewNode(),
 							transform2D.WithPos(playerX, playerY),
 						),
 					), 10.0, tlX, tlY,
@@ -38,17 +37,14 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		), cmd)
 
 		pivotActor := transform2D.NewTransform2D(
-			nodeactor.NewNode(),
 			transform2D.WithPos(playerWidth/2, playerHeight/2),
 		)
 
 		pivotNode := playerNode.AddChild(pivotActor, "PlayerPivot", engine.MakeOnTreeAdd(pivotActor, cmd))
-		
+
 		spriteActor := animatedsprite.NewAnimatedSprite(
 			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
-				),
+				transform2D.NewTransform2D(),
 			),
 			map[string]*animatedsprite.Clip{
 				player.IDLE_ANIM: animatedsprite.NewClip(
@@ -93,9 +89,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 
 		triggerActor := trigger.NewTrigger(
 			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
-				),
+				transform2D.NewTransform2D(),
 			),
 			trigger.WithRect(maths.NewRect(playerX, playerY, playerWidth, playerHeight)),
 			trigger.WithName("Player"),
@@ -112,7 +106,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			sound.WithStartTriggers(playerActor.OnMove),
 		)
 
-		playerNode.AddChild(dashSound, "DashSound", engine.MakeOnTreeAdd(dashSound, cmd));
+		playerNode.AddChild(dashSound, "DashSound", engine.MakeOnTreeAdd(dashSound, cmd))
 
 		slamSound := sound.NewSoundPlayer(
 			nodeactor.NewNode(),
@@ -121,6 +115,6 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			sound.WithStartTriggers(playerActor.OnSlam),
 		)
 
-		playerNode.AddChild(slamSound, "DashSound", engine.MakeOnTreeAdd(slamSound, cmd));
+		playerNode.AddChild(slamSound, "DashSound", engine.MakeOnTreeAdd(slamSound, cmd))
 	}
 }
