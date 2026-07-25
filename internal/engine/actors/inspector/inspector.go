@@ -70,9 +70,9 @@ func (i *Inspector) DrawInspector(ctx *debugui.Context) {
 	utils.RenderFieldsAuto(ctx, i)
 }
 
-func defaultInspector(node *nodeactor.Node) *Inspector {
+func defaultInspector() *Inspector {
 	return &Inspector{
-		Node:        node,
+		Node:        nodeactor.NewNode(),
 		x:           0,
 		y:           0,
 		width:       300,
@@ -82,8 +82,8 @@ func defaultInspector(node *nodeactor.Node) *Inspector {
 	}
 }
 
-func NewInspector(node *nodeactor.Node, options ...utils.Option[Inspector]) *Inspector {
-	inspector := defaultInspector(node)
+func NewInspector(options ...utils.Option[Inspector]) *Inspector {
+	inspector := defaultInspector()
 
 	for _, option := range options {
 		option(inspector)

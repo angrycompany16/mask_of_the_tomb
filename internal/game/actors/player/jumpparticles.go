@@ -20,12 +20,17 @@ func MakeJumpParticlesBundle(x, y float64, dir maths.Direction, halfSize float64
 		y -= dy * halfSize
 		rot := maths.DirToRadians(dir)
 		particlesBroad := scene.SpawnActor("JumpParticlesBroad", particles.NewParticleSystem(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					transform2D.WithPos(x, y),
-					transform2D.WithAngle(rot),
+			particles.WithGraphic(
+				graphic.NewGraphic(
+					graphic.WithTransform(
+						transform2D.NewTransform2D(
+							transform2D.WithPos(x, y),
+							transform2D.WithAngle(rot),
+						),
+					),
 				),
 			),
+
 			particles.WithBursts(
 				&particles.Burst{Count: 5, Time: 0},
 			),
@@ -46,10 +51,14 @@ func MakeJumpParticlesBundle(x, y float64, dir maths.Direction, halfSize float64
 		), cmd)
 
 		particlesTight := scene.SpawnActor("JumpParticlesTight", particles.NewParticleSystem(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					transform2D.WithPos(x, y),
-					transform2D.WithAngle(rot),
+			particles.WithGraphic(
+				graphic.NewGraphic(
+					graphic.WithTransform(
+						transform2D.NewTransform2D(
+							transform2D.WithPos(x, y),
+							transform2D.WithAngle(rot),
+						),
+					),
 				),
 			),
 			particles.WithBursts(

@@ -10,18 +10,18 @@ import (
 
 type SoundPlayer struct {
 	*nodeactor.Node
-	filePath string
-	loop bool
-	name string
-	dspChannelName string
+	filePath           string
+	loop               bool
+	name               string
+	dspChannelName     string
 	pitchRandomization float64
-	autoplay bool
-	autostop bool
-	startTriggers []*events.EventBus
-	endTriggers []*events.EventBus
+	autoplay           bool
+	autostop           bool
+	startTriggers      []*events.EventBus
+	endTriggers        []*events.EventBus
 }
 
-func (s *SoundPlayer) Init (cmd *commands.Commands) {
+func (s *SoundPlayer) Init(cmd *commands.Commands) {
 	s.Node.Init(cmd)
 
 	if s.loop {
@@ -38,13 +38,13 @@ func (s *SoundPlayer) Init (cmd *commands.Commands) {
 func (s *SoundPlayer) Update(cmd *commands.Commands) {
 	s.Node.Update(cmd)
 	for _, trigger := range s.startTriggers {
-		if _, ok := trigger.Poll(); ok{
+		if _, ok := trigger.Poll(); ok {
 			s.Play()
 		}
 	}
 
 	for _, trigger := range s.endTriggers {
-		if _, ok := trigger.Poll(); ok{
+		if _, ok := trigger.Poll(); ok {
 			s.Stop()
 		}
 	}
@@ -65,23 +65,23 @@ func (s *SoundPlayer) Stop() {
 	sound_v2.StopSound(s.name)
 }
 
-func defaultSoundPlayer(node *nodeactor.Node) *SoundPlayer {
+func defaultSoundPlayer() *SoundPlayer {
 	return &SoundPlayer{
-		Node: node,
-		filePath: "sfx/vietnamese_talking.wav",
-		loop: false,
-		name: "test-sound",
-		dspChannelName:  "master",
+		Node:               nodeactor.NewNode(),
+		filePath:           "sfx/vietnamese_talking.wav",
+		loop:               false,
+		name:               "test-sound",
+		dspChannelName:     "master",
 		pitchRandomization: 0,
-		startTriggers: make([]*events.EventBus, 0),
-		endTriggers: make([]*events.EventBus, 0),
-		autoplay: false,
-		autostop: false,
+		startTriggers:      make([]*events.EventBus, 0),
+		endTriggers:        make([]*events.EventBus, 0),
+		autoplay:           false,
+		autostop:           false,
 	}
 }
 
-func NewSoundPlayer(node *nodeactor.Node, options ...utils.Option[SoundPlayer]) *SoundPlayer {
-	player := defaultSoundPlayer(node)
+func NewSoundPlayer(options ...utils.Option[SoundPlayer]) *SoundPlayer {
+	player := defaultSoundPlayer()
 
 	for _, option := range options {
 		option(player)

@@ -6,7 +6,6 @@ import (
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
-	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sound"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
@@ -24,8 +23,10 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			slamboxactor.NewSlambox(
 				tracker.NewTracker(
 					graphic.NewGraphic(
-						transform2D.NewTransform2D(
-							transform2D.WithPos(playerX, playerY),
+						graphic.WithTransform(
+							transform2D.NewTransform2D(
+								transform2D.WithPos(playerX, playerY),
+							),
 						),
 					), 10.0, tlX, tlY,
 				),
@@ -43,9 +44,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		pivotNode := playerNode.AddChild(pivotActor, "PlayerPivot", engine.MakeOnTreeAdd(pivotActor, cmd))
 
 		spriteActor := animatedsprite.NewAnimatedSprite(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(),
-			),
+			graphic.NewGraphic(),
 			map[string]*animatedsprite.Clip{
 				player.IDLE_ANIM: animatedsprite.NewClip(
 					"sprites/player/player-idle-Sheet.png",
@@ -88,9 +87,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		pivotNode.AddChild(spriteActor, "PlayerSprite", engine.MakeOnTreeAdd(spriteActor, cmd))
 
 		triggerActor := trigger.NewTrigger(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(),
-			),
+			graphic.NewGraphic(),
 			trigger.WithRect(maths.NewRect(playerX, playerY, playerWidth, playerHeight)),
 			trigger.WithName("Player"),
 		)
@@ -100,7 +97,6 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		playerActor, _ := engine.As[*player.Player](playerNode.GetValue())
 
 		dashSound := sound.NewSoundPlayer(
-			nodeactor.NewNode(),
 			sound.WithSoundData("sfx/dash.wav", false, "dash"),
 			sound.WithDspChannel("master"),
 			sound.WithStartTriggers(playerActor.OnMove),
@@ -109,7 +105,6 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		playerNode.AddChild(dashSound, "DashSound", engine.MakeOnTreeAdd(dashSound, cmd))
 
 		slamSound := sound.NewSoundPlayer(
-			nodeactor.NewNode(),
 			sound.WithSoundData("sfx/slam.ogg", false, "slam"),
 			sound.WithDspChannel("master"),
 			sound.WithStartTriggers(playerActor.OnSlam),

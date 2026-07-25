@@ -281,7 +281,6 @@ func MakeOptionsbundle() engine.Bundle {
 		buttonAlignNode.AddChild(backButton, "backButton", engine.MakeOnTreeAdd(backButton, cmd))
 
 		selectSound := sound.NewSoundPlayer(
-			nodeactor.NewNode(),
 			sound.WithSoundData("sfx/select3.ogg", false, "select"),
 			sound.WithStartTriggers(buttonAlign.OnSelectEv, qualityOption.OnSelectEv, masterSlider.OnChangeEv, musicSlider.OnChangeEv, sfxSlider.OnChangeEv),
 		)

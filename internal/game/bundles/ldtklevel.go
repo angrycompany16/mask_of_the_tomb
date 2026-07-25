@@ -12,7 +12,6 @@ import (
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
-	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/particles"
 	"mask_of_the_tomb/internal/engine/actors/sound"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
@@ -114,9 +113,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 
 		intGridCSV := playerspace.ExtractLayerCSV([]int{spikeIntGridID})
 		slamboxTilemapActor := slamboxtilemap.NewSlamboxTilemap(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(),
-			),
+			graphic.NewGraphic(),
 			intGridCSV,
 			int(playerspace.GridSize),
 		)
@@ -134,9 +131,7 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 			tilesetImg := tilesetMap[tileset.Name]
 
 			ldtkTileLayerActor := ldtktilelayer.NewLDTKTilemapLayer(
-				graphic.NewGraphic(
-					transform2D.NewTransform2D(),
-				),
+				graphic.NewGraphic(),
 				&layer, tilesetImg, renderer.RenderTarget{
 					Type: renderer.TEXTURE,
 					Name: "LevelTextureRaw",
@@ -152,9 +147,6 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		}
 
 		scene.SpawnActor("BackgroundColor", vectorgraphic.NewVectorGraphic(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(),
-			),
 			vectorgraphic.WithDrawFunc(
 				func(img *ebiten.Image) {
 					vector64.FillRect(
@@ -229,15 +221,11 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		scene.SpawnActor("SoundDebug", sounddebug.CreateSoundDebug(), cmd)
 
 		scene.SpawnActor("MusicPlayer", sound.NewSoundPlayer(
-			nodeactor.NewNode(),
 			sound.WithSoundData(songMap[biome], true, songMap[biome]),
 			sound.WithAutoPlay(true),
 		), cmd)
 
 		scene.SpawnActor("BackgroundParticles", particles.NewParticleSystem(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(),
-			),
 			particles.WithBursts(),
 			particles.WithGlobalSpace(true),
 			particles.WithEmission(0.5),
@@ -266,18 +254,14 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		scene.SpawnActor("BackgroundShader",
 			backgroundshader.NewBackgroundShader(
 				shaderactor.NewShader(
-					graphic.NewGraphic(
-						transform2D.NewTransform2D(),
-					), shaderMap[biome], cmd.Renderer.Textures["BackgroundRaw"], "Background", 0,
+					graphic.NewGraphic(), shaderMap[biome], cmd.Renderer.Textures["BackgroundRaw"], "Background", 0,
 				),
 			), cmd)
 
 		scene.SpawnActor("LevelShader",
 			levelshader.NewLevelShader(
 				shaderactor.NewShader(
-					graphic.NewGraphic(
-						transform2D.NewTransform2D(),
-					), "shaders/pixel_lights.kage", cmd.Renderer.Textures["LevelTextureRaw"], "Playerspace", 0,
+					graphic.NewGraphic(), "shaders/pixel_lights.kage", cmd.Renderer.Textures["LevelTextureRaw"], "Playerspace", 0,
 				),
 			), cmd)
 
@@ -294,9 +278,7 @@ func SpawnSlamboxGroup(mainRect *maths.Rect, subrects []*maths.Rect, cmd *comman
 
 	slamboxGroup := slamboxgroup.NewSlamboxGroup(
 		tracker.NewTracker(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(),
-			), 7.5, mainRect.X, mainRect.Y,
+			graphic.NewGraphic(), 7.5, mainRect.X, mainRect.Y,
 		),
 		slamboxgroup.WithRects(mainRect, subrects),
 	)
@@ -309,9 +291,7 @@ func SpawnSlamboxGroup(mainRect *maths.Rect, subrects []*maths.Rect, cmd *comman
 	}
 
 	autotileActor := autotilesprite.NewAutoTileSprite(
-		graphic.NewGraphic(
-			transform2D.NewTransform2D(),
-		), renderer.RenderTarget{
+		graphic.NewGraphic(), renderer.RenderTarget{
 			Type: renderer.TEXTURE,
 			Name: "LevelTextureRaw",
 		},
@@ -321,7 +301,6 @@ func SpawnSlamboxGroup(mainRect *maths.Rect, subrects []*maths.Rect, cmd *comman
 	slamboxNode.AddChild(autotileActor, "Sprite", engine.MakeOnTreeAdd(autotileActor, cmd))
 
 	slamboxSound := sound.NewSoundPlayer(
-		nodeactor.NewNode(),
 		sound.WithSoundData("sfx/stone-crash-trimmed.wav", false, "Slambox-land"),
 		sound.WithStartTriggers(slamboxGroup.OnMoveFinishEv),
 	)
@@ -332,9 +311,7 @@ func SpawnSlamboxGroup(mainRect *maths.Rect, subrects []*maths.Rect, cmd *comman
 func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
 	slamboxActor := slamboxactor.NewSlambox(
 		tracker.NewTracker(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(),
-			), 7.5, entity.Px[0], entity.Px[1],
+			graphic.NewGraphic(), 7.5, entity.Px[0], entity.Px[1],
 		),
 		slamboxactor.WithPos(entity.Px[0], entity.Px[1]),
 		slamboxactor.WithSize(entity.Width, entity.Height),
@@ -342,9 +319,7 @@ func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDT
 	slamboxNode := envParentNode.AddChild(slamboxActor, "Slambox", engine.MakeOnTreeAdd(slamboxActor, cmd))
 
 	autotileActor := autotilesprite.NewAutoTileSprite(
-		graphic.NewGraphic(
-			transform2D.NewTransform2D(),
-		), renderer.RenderTarget{
+		graphic.NewGraphic(), renderer.RenderTarget{
 			Type: renderer.TEXTURE,
 			Name: "LevelTextureRaw",
 		},
@@ -354,7 +329,6 @@ func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDT
 	slamboxNode.AddChild(autotileActor, "Sprite", engine.MakeOnTreeAdd(autotileActor, cmd))
 
 	slamboxSound := sound.NewSoundPlayer(
-		nodeactor.NewNode(),
 		sound.WithSoundData("sfx/stone-crash-trimmed.wav", false, "Slambox-land"),
 		sound.WithStartTriggers(slamboxActor.OnMoveFinishEv),
 	)
@@ -368,8 +342,10 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 
 	doorV2Actor := doorv2.NewDoorV2(
 		graphic.NewGraphic(
-			transform2D.NewTransform2D(
-				transform2D.WithPos(entity.Px[0], entity.Px[1]),
+			graphic.WithTransform(
+				transform2D.NewTransform2D(
+					transform2D.WithPos(entity.Px[0], entity.Px[1]),
+				),
 			),
 		), entity, level,
 	)
@@ -377,8 +353,10 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 
 	doorAnim := animatedsprite.NewAnimatedSprite(
 		graphic.NewGraphic(
-			transform2D.NewTransform2D(
-				transform2D.WithPos(entity.Width/2, entity.Height/2),
+			graphic.WithTransform(
+				transform2D.NewTransform2D(
+					transform2D.WithPos(entity.Width/2, entity.Height/2),
+				),
 			),
 		),
 		map[string]*animatedsprite.Clip{
@@ -427,8 +405,10 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	relPosY := triggerEntity.Px[1] - entity.Px[1]
 	triggerActor := trigger.NewTrigger(
 		graphic.NewGraphic(
-			transform2D.NewTransform2D(
-				transform2D.WithPos(relPosX, relPosY),
+			graphic.WithTransform(
+				transform2D.NewTransform2D(
+					transform2D.WithPos(relPosX, relPosY),
+				),
 			),
 		),
 		trigger.WithRect(maths.NewRect(triggerEntity.Px[0], triggerEntity.Px[1], triggerEntity.Width, triggerEntity.Height)),
@@ -440,7 +420,6 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	doorV2Actor.Trigger = triggerActor
 
 	doorOpenSound := sound.NewSoundPlayer(
-		nodeactor.NewNode(),
 		sound.WithSoundData("sfx/door-open.ogg", false, "door-open"),
 		sound.WithStartTriggers(doorV2Actor.OnOpen),
 	)
@@ -450,7 +429,6 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
 
 	doorCloseSound := sound.NewSoundPlayer(
-		nodeactor.NewNode(),
 		sound.WithSoundData("sfx/door-close.ogg", false, "door-close"),
 		sound.WithAutoPlay(sceneswitch.SpawnEntityIid == doorV2Actor.EntityIid),
 	)
@@ -460,18 +438,14 @@ func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.E
 
 func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
 	platformActor := platform.NewPlatform(
-		graphic.NewGraphic(
-			transform2D.NewTransform2D(),
-		), entity,
+		graphic.NewGraphic(), entity,
 	)
 	envParentNode.AddChild(platformActor, "Platform", engine.MakeOnTreeAdd(platformActor, cmd))
 }
 
 func SpawnHazard(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
 	hazardActor := hazard.NewHazard(
-		graphic.NewGraphic(
-			transform2D.NewTransform2D(),
-		), entity,
+		graphic.NewGraphic(), entity,
 	)
 
 	envParentNode.AddChild(hazardActor, "Hazard", engine.MakeOnTreeAdd(hazardActor, cmd))
@@ -483,8 +457,10 @@ func SpawnGrass(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.
 
 	grassActor := grass.NewGrass(
 		graphic.NewGraphic(
-			transform2D.NewTransform2D(
-				transform2D.WithPos(entity.Px[0], entity.Px[1]),
+			graphic.WithTransform(
+				transform2D.NewTransform2D(
+					transform2D.WithPos(entity.Px[0], entity.Px[1]),
+				),
 			),
 		),
 		entity,
@@ -508,9 +484,6 @@ func SpawnDoorKey(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDT
 	keyActorNode := envParentNode.AddChild(keyActor, "Key", engine.MakeOnTreeAdd(keyActor, cmd))
 
 	keySprite := sprite.NewSprite(
-		graphic.NewGraphic(
-			transform2D.NewTransform2D(),
-		),
 		renderer.TextureTarget("LevelTextureRaw"),
 		"sprites/environment/key.png",
 		sprite.WithPivot(0, 0),

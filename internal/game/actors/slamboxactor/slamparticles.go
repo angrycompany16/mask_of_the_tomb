@@ -28,10 +28,14 @@ func MakeSlamboxParticlesBundle(x, y float64, dir maths.Direction, halfWidth, ha
 		fmt.Println(dir)
 		rot := maths.DirToRadians(dir)
 		slamboxParticles := scene.SpawnActor("SlamboxParticles", particles.NewParticleSystem(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					transform2D.WithPos(x, y),
-					transform2D.WithAngle(rot),
+			particles.WithGraphic(
+				graphic.NewGraphic(
+					graphic.WithTransform(
+						transform2D.NewTransform2D(
+							transform2D.WithPos(x, y),
+							transform2D.WithAngle(rot),
+						),
+					),
 				),
 			),
 

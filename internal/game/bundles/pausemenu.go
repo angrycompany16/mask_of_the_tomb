@@ -142,7 +142,6 @@ func MakePauseMenuBundle() engine.BundleV2 {
 		buttonAlignNode.AddChild(quitButton, "quitButton", engine.MakeOnTreeAdd(quitButton, cmd))
 
 		selectSound := sound.NewSoundPlayer(
-			nodeactor.NewNode(),
 			sound.WithSoundData("sfx/select3.ogg", false, "select"),
 			sound.WithStartTriggers(buttonAlign.OnSelectEv),
 		)

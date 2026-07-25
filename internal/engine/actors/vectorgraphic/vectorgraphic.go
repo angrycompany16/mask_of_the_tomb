@@ -41,30 +41,32 @@ func (v *VectorGraphic) Update(cmd *commands.Commands) {
 	), v.image, v.target, v.drawOrder)
 }
 
-func NewDefaultVectorGraphic(graphic *graphic.Graphic) *VectorGraphic {
+func NewDefaultVectorGraphic() *VectorGraphic {
 	return &VectorGraphic{
-		Graphic:  graphic,
-		drawFunc: func(i *ebiten.Image) { vector64.FillRect(i, 0, 0, 16, 16, color.RGBA{255, 0, 0, 255}, false) },
-		image:    ebiten.NewImage(16, 16),
-		target: renderer.RenderTarget{
-			renderer.SCREEN,
-			"Playerspace",
-		},
+		Graphic:   graphic.NewGraphic(),
+		drawFunc:  func(i *ebiten.Image) { vector64.FillRect(i, 0, 0, 16, 16, color.RGBA{255, 0, 0, 255}, false) },
+		image:     ebiten.NewImage(16, 16),
+		target:    renderer.ScreenTarget("Playerspace"),
 		drawOrder: 0,
 	}
 }
 
 func NewVectorGraphic(
-	graphic *graphic.Graphic,
 	options ...utils.Option[VectorGraphic],
 ) *VectorGraphic {
-	vectorGraphic := NewDefaultVectorGraphic(graphic)
+	vectorGraphic := NewDefaultVectorGraphic()
 
 	for _, option := range options {
 		option(vectorGraphic)
 	}
 
 	return vectorGraphic
+}
+
+func WithGraphic(graphic *graphic.Graphic) utils.Option[VectorGraphic] {
+	return func(vg *VectorGraphic) {
+		vg.Graphic = graphic
+	}
 }
 
 func WithDrawFunc(drawFunc func(*ebiten.Image)) utils.Option[VectorGraphic] {

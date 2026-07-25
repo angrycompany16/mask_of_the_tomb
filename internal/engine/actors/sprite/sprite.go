@@ -97,8 +97,8 @@ func (s *Sprite) GetLayer() string {
 }
 
 // We can remove layer and src as required args
-func NewSprite(graphic *graphic.Graphic, target renderer.RenderTarget, srcPath string, options ...utils.Option[Sprite]) *Sprite {
-	s := defaultSprite(graphic)
+func NewSprite(target renderer.RenderTarget, srcPath string, options ...utils.Option[Sprite]) *Sprite {
+	s := defaultSprite()
 	s.target = target
 
 	s.srcPath = srcPath
@@ -110,15 +110,12 @@ func NewSprite(graphic *graphic.Graphic, target renderer.RenderTarget, srcPath s
 	return s
 }
 
-func defaultSprite(graphic *graphic.Graphic) *Sprite {
+func defaultSprite() *Sprite {
 	return &Sprite{
-		target: renderer.RenderTarget{
-			Type: renderer.SCREEN,
-			Name: "Playerspace",
-		},
+		Graphic:   graphic.NewGraphic(),
+		target:    renderer.ScreenTarget("Playerspace"),
 		drawOrder: 0,
 		scaling:   1.0,
-		Graphic:   graphic,
 		pivotX:    0.5,
 		pivotY:    0.5,
 	}

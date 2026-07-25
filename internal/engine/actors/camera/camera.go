@@ -4,6 +4,7 @@ import (
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/utils"
 )
 
 type Camera struct {
@@ -49,7 +50,7 @@ func (c *Camera) Update(cmd *commands.Commands) {
 // Deprecated: From now we will be using a static camera, hence this will
 // no longer be necessary to use.
 func (c *Camera) WorldToCam(x, y float64, includeShake bool) (float64, float64) {
-	camX, camY := c.Transform2D.GetPos(false)
+	camX, camY := c.GetPos(false)
 
 	if includeShake {
 		return x - (camX + c.shakeOffsetX - c.offsetX), y - (camY + c.shakeOffsetY - c.offsetY)
@@ -58,7 +59,7 @@ func (c *Camera) WorldToCam(x, y float64, includeShake bool) (float64, float64) 
 }
 
 func (c *Camera) WorldToCamCustomOffset(x, y float64, offsetX, offsetY float64, includeShake bool) (float64, float64) {
-	camX, camY := c.Transform2D.GetPos(false)
+	camX, camY := c.GetPos(false)
 	if includeShake {
 		return x - (camX + c.shakeOffsetX - offsetX), y - (camY + c.shakeOffsetY - offsetY)
 	}
@@ -81,6 +82,7 @@ type Option func(*Camera)
 
 func newDefaultCamera() *Camera {
 	return &Camera{
+		Transform2D:   transform2D.NewTransform2D(),
 		width:         480,
 		height:        270,
 		offsetX:       0,
@@ -91,16 +93,20 @@ func newDefaultCamera() *Camera {
 }
 
 // 20, 20 are good default value for shake padding
-func NewCamera(transform2D *transform2D.Transform2D, options ...Option) *Camera {
-	camera := &Camera{
-		Transform2D: transform2D,
-	}
+func NewCamera(options ...Option) *Camera {
+	camera := newDefaultCamera()
 
 	for _, option := range options {
 		option(camera)
 	}
 
 	return camera
+}
+
+func WithTransform(transform *transform2D.Transform2D) utils.Option[Camera] {
+	return func(c *Camera) {
+		c.Transform2D = transform
+	}
 }
 
 func WithSize(width, height float64) Option {

@@ -32,8 +32,8 @@ func (a *AssetViewer) DrawInspector(ctx *debugui.Context) {
 	})
 }
 
-func NewAssetViewer(node *nodeactor.Node) *AssetViewer {
+func NewAssetViewer() *AssetViewer {
 	return &AssetViewer{
-		Node: node,
+		Node: nodeactor.NewNode(),
 	}
 }

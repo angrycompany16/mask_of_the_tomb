@@ -115,7 +115,6 @@ func MakeMainMenuBundle() engine.Bundle {
 		selectListNode.AddChild(quitButton, "quitButton", engine.MakeOnTreeAdd(quitButton, cmd))
 
 		selectSound := sound.NewSoundPlayer(
-			nodeactor.NewNode(),
 			sound.WithSoundData("sfx/select3.ogg", false, "select"),
 			sound.WithStartTriggers(selectList.OnSelectEv),
 			//			sound.WithStartTriggers(playButton.OnHoverStart, optionsButton.OnHoverStart, quitButton.OnHoverStart, selectList.OnSelect),

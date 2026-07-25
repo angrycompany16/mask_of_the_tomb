@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/camera"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/utils"
 )
 
 // TODO: Remove. This is most likely not needed at all
@@ -28,9 +29,7 @@ func (g *Graphic) Init(cmd *commands.Commands) {
 	if !ok {
 		fmt.Println("No camera was found! Instantiating default camera")
 
-		camNode = scene.SpawnActor("Camera", camera.NewCamera(
-			transform2D.NewTransform2D(),
-		), cmd)
+		camNode = scene.SpawnActor("Camera", camera.NewCamera(), cmd)
 	}
 	camActor, ok := engine.As[*camera.Camera](camNode.GetValue())
 	g.camera = camActor
@@ -40,8 +39,25 @@ func (g *Graphic) GetCamera() *camera.Camera {
 	return g.camera
 }
 
-func NewGraphic(transform2d *transform2D.Transform2D) *Graphic {
+func defaultGraphic() *Graphic {
 	return &Graphic{
-		Transform2D: transform2d,
+		Transform2D: transform2D.NewTransform2D(),
+		camera:      nil,
+	}
+}
+
+func NewGraphic(options ...utils.Option[Graphic]) *Graphic {
+	graphic := defaultGraphic()
+
+	for _, option := range options {
+		option(graphic)
+	}
+
+	return graphic
+}
+
+func WithTransform(transform *transform2D.Transform2D) utils.Option[Graphic] {
+	return func(g *Graphic) {
+		g.Transform2D = transform
 	}
 }

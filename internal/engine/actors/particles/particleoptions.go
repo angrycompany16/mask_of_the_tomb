@@ -10,8 +10,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewParticleSystem(graphic *graphic.Graphic, options ...utils.Option[ParticleSystem]) *ParticleSystem {
-	particleSys := defaultParticleSystem(graphic)
+func NewParticleSystem(options ...utils.Option[ParticleSystem]) *ParticleSystem {
+	particleSys := defaultParticleSystem()
 
 	for _, option := range options {
 		option(particleSys)
@@ -20,11 +20,9 @@ func NewParticleSystem(graphic *graphic.Graphic, options ...utils.Option[Particl
 	return particleSys
 }
 
-func defaultParticleSystem(
-	graphic *graphic.Graphic,
-) *ParticleSystem {
+func defaultParticleSystem() *ParticleSystem {
 	return &ParticleSystem{
-		Graphic:   graphic,
+		Graphic:   graphic.NewGraphic(),
 		particles: make([]*Particle, 0),
 		Bursts: []*Burst{
 			&Burst{50, 1},
@@ -66,6 +64,12 @@ func defaultParticleSystem(
 		isPlaying:   true,
 		target:      renderer.RenderTarget{Type: renderer.SCREEN, Name: "Playerspace"},
 		drawOrder:   0,
+	}
+}
+
+func WithGraphic(graphic *graphic.Graphic) utils.Option[ParticleSystem] {
+	return func(ps *ParticleSystem) {
+		ps.Graphic = graphic
 	}
 }
 
