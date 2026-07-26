@@ -1,7 +1,6 @@
 package game
 
 import (
-	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/input"
@@ -14,6 +13,7 @@ import (
 	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/scenes"
 	"mask_of_the_tomb/internal/game/sceneswitch"
+	"mask_of_the_tomb/motb_assets/assets"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

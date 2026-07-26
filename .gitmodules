@@ -1,0 +1,3 @@
+[submodule "motb_assets"]
+	path = motb_assets
+	url = git@github.com:angrycompany16/motb_assets.git

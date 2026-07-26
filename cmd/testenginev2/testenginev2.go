@@ -1,7 +1,6 @@
 package main
 
 import (
-	"mask_of_the_tomb/assets"
 	"mask_of_the_tomb/cmd/testenginev2/actors/demo"
 	"mask_of_the_tomb/cmd/testenginev2/actors/switcher"
 	"mask_of_the_tomb/internal/backend/assetloader"
@@ -16,6 +15,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/motb_assets/assets"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
