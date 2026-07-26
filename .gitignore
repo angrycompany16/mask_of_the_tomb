@@ -1,6 +1,6 @@
 .VSCodeCounter*
 save/*
-assets
+assets/*
 assets/LDTK/world/backups/*
 .venv
 .prof
