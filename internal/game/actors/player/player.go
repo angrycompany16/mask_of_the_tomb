@@ -13,8 +13,9 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
-	"mask_of_the_tomb/internal/game/actors/doorv2"
+	"mask_of_the_tomb/internal/game/actors/door"
 	"mask_of_the_tomb/internal/game/actors/hazard"
+	"mask_of_the_tomb/internal/game/actors/key"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxgroup"
 	"mask_of_the_tomb/internal/game/gamestate"
@@ -63,6 +64,8 @@ type Player struct {
 	trueDoorOffset            float64
 	doorY                     float64
 	Light                     *shaders.Light
+	doorOnOpen                *events.EventBus
+	doorMemory                *door.Door
 }
 
 func (p *Player) Init(cmd *commands.Commands) {
@@ -77,7 +80,7 @@ func (p *Player) Init(cmd *commands.Commands) {
 	spawnDoorIid := sceneswitch.SpawnEntityIid
 	spawnDoorNode, ok := scene.GetNodeFunc(
 		func(n *node.Node[engine.Actor]) bool {
-			doorActor, ok := engine.As[*doorv2.DoorV2](n.GetValue())
+			doorActor, ok := engine.As[*door.Door](n.GetValue())
 			if !ok {
 				return false
 			}
@@ -87,7 +90,7 @@ func (p *Player) Init(cmd *commands.Commands) {
 	if !ok {
 		fmt.Println("Problem: Could not find door to spawn at...")
 	} else {
-		doorActor, ok := engine.As[*doorv2.DoorV2](spawnDoorNode.GetValue())
+		doorActor, ok := engine.As[*door.Door](spawnDoorNode.GetValue())
 		if !ok {
 			fmt.Println("Spawn door node could not convert to Door actor")
 		}
@@ -116,6 +119,7 @@ func (p *Player) Init(cmd *commands.Commands) {
 	playerControls.RegisterAction("moveDown", input.KeyJustPressedAction(ebiten.KeyS))
 	playerControls.AddBinding("moveDown", input.KeyJustPressedAction(ebiten.KeyDown))
 	playerControls.AddBinding("Reset", input.KeyJustPressedAction(ebiten.KeyR))
+	playerControls.AddBinding("Use", input.KeyJustPressedAction(ebiten.KeyE))
 
 	// Would be very nice to set up a reference like this in another
 	// way
@@ -221,9 +225,10 @@ func (p *Player) Update(cmd *commands.Commands) {
 	case IDLE:
 		p.animatedSprite.SwitchClip(IDLE_ANIM)
 		playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
+
 		if playerControls.PollAction("DoorInteract") {
 			doorNode, ok := scene.GetNodeFunc(func(n *engine.Node) bool {
-				door, ok := engine.As[*doorv2.DoorV2](n.GetValue())
+				door, ok := engine.As[*door.Door](n.GetValue())
 				if !ok {
 					return false
 				}
@@ -232,15 +237,17 @@ func (p *Player) Update(cmd *commands.Commands) {
 			})
 
 			if ok {
-				p.State = LEAVING
-				door, _ := engine.As[*doorv2.DoorV2](doorNode.GetValue())
-				p.Direction = door.Direction
+				doorActor, _ := engine.As[*door.Door](doorNode.GetValue())
+				if !doorActor.Locked {
+					p.State = LEAVING
+					p.Direction = doorActor.Direction
 
-				p.setDoorOffset(door.Hitbox)
+					p.setDoorOffset(doorActor.Hitbox)
 
-				gameState.SaveLevelState(scene)
-				cmd.InputHandler.InputSchemes["PlayerControls"].Active = false
-				p.jumpOffsetvel = 3.5
+					gameState.SaveLevelState(scene)
+					cmd.InputHandler.InputSchemes["PlayerControls"].Active = false
+					p.jumpOffsetvel = 3.5
+				}
 			}
 		}
 	case MOVING:
@@ -282,6 +289,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 	}
 
 	// TODO: This is not clean at all
+	// Potentially just turn into a separate function, not a terrible "solution"...
 	// Would be a lot better if we could use events for this
 	_, ok := scene.GetNodeFunc(func(n *engine.Node) bool {
 		hazard, ok := engine.As[*hazard.Hazard](n.GetValue())
@@ -293,6 +301,25 @@ func (p *Player) Update(cmd *commands.Commands) {
 	})
 	if ok {
 		p.ResetLevel(scene, gameState)
+	}
+
+	keyNode, ok := scene.GetNodeFunc(func(n *engine.Node) bool {
+		key, ok := engine.As[*key.Key](n.GetValue())
+		if !ok {
+			return false
+		}
+
+		return key.Hitbox.Overlapping(p.GetRect())
+	})
+
+	if ok {
+		key, _ := engine.As[*key.Key](keyNode.GetValue())
+		if !key.PickedUp {
+			gamestate, _ := commands.Get[gamestate.GameState](cmd)
+			inventory := gamestate.Inventory
+			inventory.AddKey(key.DoorIid)
+			key.OnPickupEv.Raise()
+		}
 	}
 
 	moveDir := p.inputbuffer.Read()
@@ -310,12 +337,12 @@ func (p *Player) Update(cmd *commands.Commands) {
 		p.Dash(moveDir)
 		p.inputbuffer.Clear()
 		x, y := p.GetCenterPos()
-		scene.SpawnBundle(cmd, MakeJumpParticlesBundle(x, y, moveDir, p.GetRect().Width/2))
+		scene.SpawnBundleV2(cmd, MakeJumpParticlesBundle(x, y, moveDir, p.GetRect().Width/2))
 		return
 	}
 
 	if !tilemapCollision {
-//		p.OnMove.WithData("Direction", moveDir).Raise()
+		//		p.OnMove.WithData("Direction", moveDir).Raise()
 		p.hasSlammedBox = false
 		p.slamboxIDBuffer = slamboxQuery.Index
 		p.slamDirBuffer = moveDir

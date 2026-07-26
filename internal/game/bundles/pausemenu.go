@@ -19,7 +19,7 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 )
 
-func MakePauseMenuBundle() engine.BundleV2 {
+func MakePauseMenuBundle() engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		gw, gh := cmd.Renderer.GetGameSize()
 		ps := cmd.Renderer.GetPixelScale()

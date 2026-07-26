@@ -1,4 +1,4 @@
-package doorv2
+package door
 
 import (
 	"fmt"
@@ -16,6 +16,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/trigger"
+	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/sceneswitch"
 	"mask_of_the_tomb/internal/utils"
 
@@ -33,11 +34,11 @@ const (
 )
 
 const (
-	doorV2OtherSideFieldName = "OtherSide"
-	doorDirectionFieldName   = "Direction"
+	otherSideFieldName = "OtherSide"
+	directionFieldName = "Direction"
 )
 
-type DoorV2 struct {
+type Door struct {
 	*graphic.Graphic
 	Trigger            *trigger.Trigger
 	SpriteTransform    *transform2D.Transform2D
@@ -51,12 +52,15 @@ type DoorV2 struct {
 	Direction          maths.Direction
 	OnCollision        *events.EventBus
 	OnClipFinished     *events.EventBus
-	OnOpen *events.Event
+	OnOpen             *events.Event
+	OnTryOpenLocked    *events.Event
+	OnUnlockEv         *events.Event
 	State              DoorState
-	biome string
+	biome              string
+	Locked             bool
 }
 
-func (d *DoorV2) Init(cmd *commands.Commands) {
+func (d *Door) Init(cmd *commands.Commands) {
 	d.Graphic.Init(cmd)
 	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
 
@@ -80,7 +84,7 @@ func (d *DoorV2) Init(cmd *commands.Commands) {
 
 }
 
-func (d *DoorV2) Update(cmd *commands.Commands) {
+func (d *Door) Update(cmd *commands.Commands) {
 	d.Transform2D.Update(cmd)
 
 	switch d.State {
@@ -97,7 +101,7 @@ func (d *DoorV2) Update(cmd *commands.Commands) {
 
 			sceneswitch, ok := commands.Get[sceneswitch.SceneSwitch](cmd)
 			if !ok {
-				panic("Missing scene switch (DoorV2)")
+				panic("Missing scene switch (Door)")
 			}
 			sceneswitch.SpawnEntityIid = d.OtherSideEntityIid
 			sceneswitch.SpawnDirection = maths.Opposite(d.Direction)
@@ -121,14 +125,31 @@ func (d *DoorV2) Update(cmd *commands.Commands) {
 
 		playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
 		if playerControls.PollAction("DoorInteract") && d.isReady {
-			d.AnimatedSprite.SwitchClip("Open")
-			d.State = OPENING
-			d.OnOpen.Raise()
+			if d.Locked {
+				fmt.Println("Unable to open locked door") // Here we will add a sound effect
+				d.OnTryOpenLocked.Raise()
+			} else if !d.Locked {
+				d.OnOpen.Raise()
+				d.AnimatedSprite.SwitchClip("Open")
+				d.State = OPENING
+			}
+		}
+
+		if playerControls.PollAction("Use") && d.isReady {
+			gamestate, _ := commands.Get[gamestate.GameState](cmd)
+			inventory := gamestate.Inventory
+			haskey := inventory.HasKey(d.EntityIid) || inventory.HasKey(d.OtherSideEntityIid)
+
+			if d.Locked && haskey {
+				fmt.Println("Door unlocked! Let's play a little jingle!")
+				d.OnUnlockEv.Raise()
+				d.Locked = false
+			}
 		}
 	}
 }
 
-func (d *DoorV2) DrawGizmo(cmd *commands.Commands) {
+func (d *Door) DrawGizmo(cmd *commands.Commands) {
 	d.Graphic.DrawGizmo(cmd)
 	d.gizmosImage.Clear()
 	vector64.StrokeRect(d.gizmosImage, 0, 0, d.Hitbox.Width-1, d.Hitbox.Height-1, 1, color.RGBA{255, 0, 0, 255}, false)
@@ -142,7 +163,7 @@ func (d *DoorV2) DrawGizmo(cmd *commands.Commands) {
 }
 
 // Hard-coded for now. Not great but might have to do
-func (d *DoorV2) GetSpawnPos() (float64, float64) {
+func (d *Door) GetSpawnPos() (float64, float64) {
 	cx, cy := d.Hitbox.Center()
 	switch d.Direction {
 	case maths.DirUp:
@@ -157,12 +178,14 @@ func (d *DoorV2) GetSpawnPos() (float64, float64) {
 	return 0, 0
 }
 
-func NewDoorV2(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *ebitenLDTK.Level) *DoorV2 {
-	newDoor := DoorV2{
-		Graphic:   graphic,
-		EntityIid: entity.Iid,
-		State:     IDLE,
-		OnOpen: events.NewEvent(),
+func NewDoor(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *ebitenLDTK.Level) *Door {
+	newDoor := Door{
+		Graphic:         graphic,
+		EntityIid:       entity.Iid,
+		State:           IDLE,
+		OnOpen:          events.NewEvent(),
+		OnTryOpenLocked: events.NewEvent(),
+		OnUnlockEv:      events.NewEvent(),
 	}
 
 	newDoor.Hitbox = maths.NewRect(
@@ -175,10 +198,13 @@ func NewDoorV2(graphic *graphic.Graphic, entity *ebitenLDTK.Entity, levelLDTK *e
 	biomeField := utils.Must(levelLDTK.GetFieldByName("Biome"))
 	newDoor.biome = ebitenLDTK.As[ebitenLDTK.Enum](biomeField).Value
 
-	directionField := utils.Must(entity.GetFieldByName(doorDirectionFieldName))
+	directionField := utils.Must(entity.GetFieldByName(directionFieldName))
 	newDoor.Direction = maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)
 
-	doorOtherSideField := utils.Must(entity.GetFieldByName(doorV2OtherSideFieldName))
+	lockedField := utils.Must(entity.GetFieldByName("Locked"))
+	newDoor.Locked = ebitenLDTK.As[bool](lockedField)
+
+	doorOtherSideField := utils.Must(entity.GetFieldByName(otherSideFieldName))
 	doorOtherSide := ebitenLDTK.As[ebitenLDTK.EntityRef](doorOtherSideField)
 
 	newDoor.OtherSideLevelIid = doorOtherSide.LevelIid

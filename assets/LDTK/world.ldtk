@@ -11,7 +11,7 @@
 	"iid": "94589810-c210-11ef-b2e6-99619d5a4f10",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 484725,
-	"nextUid": 534,
+	"nextUid": 537,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "GridVania",
@@ -13046,7 +13046,7 @@
 			"fieldDefs": []
 		},
 		{
-			"identifier": "DoorV2",
+			"identifier": "Door",
 			"uid": 372,
 			"tags": [],
 			"exportToToc": false,
@@ -13189,6 +13189,46 @@
 					"allowedRefsEntityUid": 377,
 					"allowedRefTags": [],
 					"tilesetUid": null
+				},
+				{
+					"identifier": "Locked",
+					"doc": null,
+					"__type": "Bool",
+					"uid": 536,
+					"type": "F_Bool",
+					"isArray": false,
+					"canBeNull": false,
+					"arrayMinLength": null,
+					"arrayMaxLength": null,
+					"editorDisplayMode": "NameAndValue",
+					"editorDisplayScale": 1,
+					"editorDisplayPos": "Above",
+					"editorLinkStyle": "StraightArrow",
+					"editorDisplayColor": "#000000",
+					"editorAlwaysShow": false,
+					"editorShowInWorld": true,
+					"editorCutLongValues": true,
+					"editorTextSuffix": null,
+					"editorTextPrefix": null,
+					"useForSmartColor": false,
+					"exportToToc": false,
+					"searchable": false,
+					"min": null,
+					"max": null,
+					"regex": null,
+					"acceptFileTypes": null,
+					"defaultOverride": {
+						"id": "V_Bool",
+						"params": [ false ]
+					},
+					"textLanguageMode": null,
+					"symmetricalRef": false,
+					"autoChainRef": true,
+					"allowOutOfLevelRef": true,
+					"allowedRefs": "OnlySame",
+					"allowedRefsEntityUid": null,
+					"allowedRefTags": [],
+					"tilesetUid": null
 				}
 			]
 		},
@@ -13294,7 +13334,7 @@
 					"autoChainRef": true,
 					"allowOutOfLevelRef": true,
 					"allowedRefs": "OnlySpecificEntity",
-					"allowedRefsEntityUid": 525,
+					"allowedRefsEntityUid": 372,
 					"allowedRefTags": [],
 					"tilesetUid": null
 				},
@@ -16612,7 +16652,7 @@
 							"__worldY": 736
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,24],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -16645,7 +16685,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["e2e9b4e0-fa90-11f0-b65b-f738ec52911e"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 464,
 							"__worldY": 736
@@ -18343,7 +18384,7 @@
 							"__worldY": 760
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,24],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -18376,7 +18417,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["4ff92120-fa90-11f0-b65b-db952930087a"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 1424,
 							"__worldY": 736
@@ -18398,7 +18440,7 @@
 							"__worldY": 736
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,24],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -18431,7 +18473,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["a2b03570-fa90-11f0-b65b-e762be667c84"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 960,
 							"__worldY": 736
@@ -20585,7 +20628,10 @@
 							"px": [280,96],
 							"fieldInstances": [
 								{ "__identifier": "Attachments", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
-								{ "__identifier": "IsGroup", "__type": "Bool", "__value": false, "__tile": null, "defUid": 359, "realEditorValues": [] },
+								{ "__identifier": "IsGroup", "__type": "Bool", "__value": true, "__tile": null, "defUid": 359, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] },
 								{ "__identifier": "InChain", "__type": "Bool", "__value": false, "__tile": null, "defUid": 360, "realEditorValues": [] },
 								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 363, "realEditorValues": [] }
 							],
@@ -20647,7 +20693,7 @@
 							"__worldY": 336
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [6,32],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -20680,7 +20726,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["9aa00eb0-fa90-11f0-b65b-1319cc4e5efe"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 1728,
 							"__worldY": 528
@@ -20702,7 +20749,7 @@
 							"__worldY": 512
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [34,0],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -20735,7 +20782,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["d7204e60-21a0-11f1-9d98-a1a1ab2ff8a7"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 1952,
 							"__worldY": 272
@@ -23148,7 +23196,10 @@
 							"px": [128,96],
 							"fieldInstances": [
 								{ "__identifier": "Attachments", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
-								{ "__identifier": "IsGroup", "__type": "Bool", "__value": false, "__tile": null, "defUid": 359, "realEditorValues": [] },
+								{ "__identifier": "IsGroup", "__type": "Bool", "__value": true, "__tile": null, "defUid": 359, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] },
 								{ "__identifier": "InChain", "__type": "Bool", "__value": false, "__tile": null, "defUid": 360, "realEditorValues": [] },
 								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 363, "realEditorValues": [] }
 							],
@@ -23207,7 +23258,7 @@
 							"__worldY": 120
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [4,32],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -23240,7 +23291,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["eded1920-21a0-11f1-9d98-8de134cfbe7a"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 1952,
 							"__worldY": 256
@@ -23262,7 +23314,7 @@
 							"__worldY": 240
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [38,0],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -23295,7 +23347,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["05808f40-21a0-11f1-9d98-2b1c655e3158"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2224,
 							"__worldY": 0
@@ -23317,7 +23370,7 @@
 							"__worldY": 16
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [33,32],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -23350,7 +23403,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["4b4bafa0-21a0-11f1-9d98-1b82452186dd"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2184,
 							"__worldY": 256
@@ -24825,7 +24879,7 @@
 							"__worldY": 392
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [3,0],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -24858,7 +24912,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["57be2dd0-21a0-11f1-9d98-45761995a38a"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2184,
 							"__worldY": 272
@@ -24880,7 +24935,7 @@
 							"__worldY": 288
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,26],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -24913,7 +24968,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["8129f820-21a0-11f1-9d98-5d96ec593f85"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2624,
 							"__worldY": 480
@@ -27419,7 +27475,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,24],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -27452,7 +27508,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["8b5163e0-fa90-11f0-b65b-475cfe95ad1e"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 944,
 							"__worldY": 736
@@ -27474,7 +27531,7 @@
 							"__worldY": 736
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,24],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -27507,7 +27564,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["ca9511a0-fa90-11f0-b65b-6fcb20414838"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 480,
 							"__worldY": 736
@@ -29625,7 +29683,10 @@
 							"px": [192,136],
 							"fieldInstances": [
 								{ "__identifier": "Attachments", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
-								{ "__identifier": "IsGroup", "__type": "Bool", "__value": false, "__tile": null, "defUid": 359, "realEditorValues": [] },
+								{ "__identifier": "IsGroup", "__type": "Bool", "__value": true, "__tile": null, "defUid": 359, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] },
 								{ "__identifier": "InChain", "__type": "Bool", "__value": false, "__tile": null, "defUid": 360, "realEditorValues": [] },
 								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 363, "realEditorValues": [] }
 							],
@@ -29684,7 +29745,7 @@
 							"__worldY": 728
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [36,0],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -29717,7 +29778,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["d806ed80-fa90-11f0-b65b-ebac39ea3642"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 1728,
 							"__worldY": 544
@@ -29739,7 +29801,7 @@
 							"__worldY": 560
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,24],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -29772,7 +29834,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["2e7d3310-fa90-11f0-b65b-4d68c2ec36ba"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 1440,
 							"__worldY": 736
@@ -31785,7 +31848,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [8,32],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -31818,7 +31881,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["1084fe80-21a0-11f1-9d98-ebaf36c11443"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2224,
 							"__worldY": -16
@@ -31840,7 +31904,7 @@
 							"__worldY": -32
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,14],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -31873,7 +31937,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["282768c0-21a0-11f1-9d98-6f6fc6ce9bfc"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2624,
 							"__worldY": -160
@@ -31946,7 +32011,10 @@
 							"px": [352,192],
 							"fieldInstances": [
 								{ "__identifier": "Attachments", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
-								{ "__identifier": "IsGroup", "__type": "Bool", "__value": false, "__tile": null, "defUid": 359, "realEditorValues": [] },
+								{ "__identifier": "IsGroup", "__type": "Bool", "__value": true, "__tile": null, "defUid": 359, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] },
 								{ "__identifier": "InChain", "__type": "Bool", "__value": false, "__tile": null, "defUid": 360, "realEditorValues": [] },
 								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 363, "realEditorValues": [] }
 							],
@@ -33361,7 +33429,7 @@
 							"__worldY": 384
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,26],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -33394,7 +33462,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["742dfea0-21a0-11f1-9d98-c743658f6ca7"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2640,
 							"__worldY": 480
@@ -33416,7 +33485,7 @@
 							"__worldY": 480
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [52,32],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -33449,7 +33518,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["9b07ac60-21a0-11f1-9d98-cbdfca2a1d4e"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3056,
 							"__worldY": 528
@@ -33622,21 +33692,13 @@
 									"params": [ true ]
 								}] },
 								{ "__identifier": "InChain", "__type": "Bool", "__value": false, "__tile": null, "defUid": 360, "realEditorValues": [] },
-								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [{
-									"entityIid": "2cfa75f0-6fc0-11f1-bd12-5f86ceb8ea5c",
-									"layerIid": "d5ae6781-1030-11f0-996f-8fcef191b910",
-									"levelIid": "d5ae6780-1030-11f0-996f-efbed2df7e2d",
-									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
-								}], "__tile": null, "defUid": 363, "realEditorValues": [{
-									"id": "V_String",
-									"params": ["2cfa75f0-6fc0-11f1-bd12-5f86ceb8ea5c"]
-								}] }
+								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 363, "realEditorValues": [] }
 							],
 							"__worldX": 2880,
 							"__worldY": 368
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,9],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -33669,7 +33731,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["217d6280-48b0-11f1-8b32-97445008825b"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3104,
 							"__worldY": 344
@@ -33689,22 +33752,6 @@
 							"fieldInstances": [],
 							"__worldX": 3088,
 							"__worldY": 344
-						},
-						{
-							"__identifier": "SubSlambox",
-							"__grid": [30,7],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#B58165",
-							"iid": "2cfa75f0-6fc0-11f1-bd12-5f86ceb8ea5c",
-							"width": 24,
-							"height": 40,
-							"defUid": 361,
-							"px": [240,56],
-							"fieldInstances": [],
-							"__worldX": 2880,
-							"__worldY": 328
 						}
 					]
 				},
@@ -34770,7 +34817,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [52,0],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -34803,7 +34850,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["a7656a10-21a0-11f1-9d98-e3a00020408e"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3056,
 							"__worldY": 544
@@ -34825,7 +34873,7 @@
 							"__worldY": 560
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,26],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -34858,7 +34906,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["bf914fa0-21a0-11f1-9d98-4105e8b27fca"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3104,
 							"__worldY": 752
@@ -34880,7 +34929,7 @@
 							"__worldY": 752
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,26],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -34913,7 +34962,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["e0226880-21a0-11f1-9d98-f96408f6ec28"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2640,
 							"__worldY": 752
@@ -34935,7 +34985,7 @@
 							"__worldY": 752
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [26,32],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -34968,7 +35018,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["ee0a7c10-48b0-11f1-a703-37e7e061c463"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2848,
 							"__worldY": 800
@@ -36201,7 +36252,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,26],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -36234,7 +36285,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["f1105cb0-21a0-11f1-9d98-9b59e2aa3204"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2624,
 							"__worldY": 752
@@ -37177,7 +37229,10 @@
 							"px": [104,184],
 							"fieldInstances": [
 								{ "__identifier": "Attachments", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
-								{ "__identifier": "IsGroup", "__type": "Bool", "__value": false, "__tile": null, "defUid": 359, "realEditorValues": [] },
+								{ "__identifier": "IsGroup", "__type": "Bool", "__value": true, "__tile": null, "defUid": 359, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] },
 								{ "__identifier": "InChain", "__type": "Bool", "__value": false, "__tile": null, "defUid": 360, "realEditorValues": [] },
 								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 363, "realEditorValues": [] }
 							],
@@ -37198,7 +37253,10 @@
 							"px": [104,80],
 							"fieldInstances": [
 								{ "__identifier": "Attachments", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
-								{ "__identifier": "IsGroup", "__type": "Bool", "__value": false, "__tile": null, "defUid": 359, "realEditorValues": [] },
+								{ "__identifier": "IsGroup", "__type": "Bool", "__value": true, "__tile": null, "defUid": 359, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] },
 								{ "__identifier": "InChain", "__type": "Bool", "__value": false, "__tile": null, "defUid": 360, "realEditorValues": [] },
 								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 363, "realEditorValues": [] }
 							],
@@ -37206,7 +37264,7 @@
 							"__worldY": 624
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,26],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -37239,7 +37297,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["cb7681f0-21a0-11f1-9d98-b5e0df3eef3b"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3120,
 							"__worldY": 752
@@ -37261,45 +37320,6 @@
 							"__worldY": 752
 						},
 						{
-							"__identifier": "LockedDoor",
-							"__grid": [58,26],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": { "tilesetUid": 368, "x": 336, "y": 128, "w": 16, "h": 16 },
-							"__smartColor": "#7EB093",
-							"iid": "780c4620-6fc0-11f1-8cfb-81429e4cb0cf",
-							"width": 16,
-							"height": 48,
-							"defUid": 525,
-							"px": [464,208],
-							"fieldInstances": [
-								{ "__identifier": "OtherSide", "__type": "EntityRef", "__value": {
-									"entityIid": "7f60f3d0-6fc0-11f1-8cfb-4da4f054f110",
-									"layerIid": "4413d4a1-6fc0-11f1-8cfb-7b98a5e15b6d",
-									"levelIid": "4413d4a0-6fc0-11f1-8cfb-7b1f37f3369f",
-									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
-								}, "__tile": null, "defUid": 526, "realEditorValues": [{
-									"id": "V_String",
-									"params": ["7f60f3d0-6fc0-11f1-8cfb-4da4f054f110"]
-								}] },
-								{ "__identifier": "Direction", "__type": "LocalEnum.Direction", "__value": "Left", "__tile": null, "defUid": 527, "realEditorValues": [{
-									"id": "V_String",
-									"params": ["Left"]
-								}] },
-								{ "__identifier": "InteractRegion", "__type": "EntityRef", "__value": {
-									"entityIid": "86b616b0-6fc0-11f1-8cfb-87d8be7b5aa8",
-									"layerIid": "17922261-fa90-11f0-b873-db1b743ef854",
-									"levelIid": "17922260-fa90-11f0-b873-2b970f47baa3",
-									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
-								}, "__tile": null, "defUid": 528, "realEditorValues": [{
-									"id": "V_String",
-									"params": ["86b616b0-6fc0-11f1-8cfb-87d8be7b5aa8"]
-								}] }
-							],
-							"__worldX": 3584,
-							"__worldY": 752
-						},
-						{
 							"__identifier": "Region",
 							"__grid": [56,26],
 							"__pivot": [0,0],
@@ -37313,6 +37333,49 @@
 							"px": [448,208],
 							"fieldInstances": [],
 							"__worldX": 3568,
+							"__worldY": 752
+						},
+						{
+							"__identifier": "Door",
+							"__grid": [58,26],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#37C673",
+							"iid": "c0bdfdb0-6fc0-11f1-bd3a-bb6af235366e",
+							"width": 16,
+							"height": 48,
+							"defUid": 372,
+							"px": [464,208],
+							"fieldInstances": [
+								{ "__identifier": "OtherSide", "__type": "EntityRef", "__value": {
+									"entityIid": "c5d872d0-6fc0-11f1-bd3a-4798b6d92e37",
+									"layerIid": "4413d4a1-6fc0-11f1-8cfb-7b98a5e15b6d",
+									"levelIid": "4413d4a0-6fc0-11f1-8cfb-7b1f37f3369f",
+									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
+								}, "__tile": null, "defUid": 373, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["c5d872d0-6fc0-11f1-bd3a-4798b6d92e37"]
+								}] },
+								{ "__identifier": "Direction", "__type": "LocalEnum.Direction", "__value": "Left", "__tile": null, "defUid": 375, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["Left"]
+								}] },
+								{ "__identifier": "InteractRegion", "__type": "EntityRef", "__value": {
+									"entityIid": "86b616b0-6fc0-11f1-8cfb-87d8be7b5aa8",
+									"layerIid": "17922261-fa90-11f0-b873-db1b743ef854",
+									"levelIid": "17922260-fa90-11f0-b873-2b970f47baa3",
+									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
+								}, "__tile": null, "defUid": 376, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["86b616b0-6fc0-11f1-8cfb-87d8be7b5aa8"]
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": true, "__tile": null, "defUid": 536, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] }
+							],
+							"__worldX": 3584,
 							"__worldY": 752
 						}
 					]
@@ -38313,7 +38376,7 @@
 							"__worldY": -256
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,2],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -38346,7 +38409,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["334fb3b0-21a0-11f1-9d98-5524fceb31e4"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2640,
 							"__worldY": -256
@@ -40181,7 +40245,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [26,0],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -40214,7 +40278,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["f3602570-48b0-11f1-a703-b9e16b8cc719"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 2848,
 							"__worldY": 816
@@ -40249,7 +40314,10 @@
 							"px": [104,40],
 							"fieldInstances": [
 								{ "__identifier": "Attachments", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 299, "realEditorValues": [] },
-								{ "__identifier": "IsGroup", "__type": "Bool", "__value": false, "__tile": null, "defUid": 359, "realEditorValues": [] },
+								{ "__identifier": "IsGroup", "__type": "Bool", "__value": true, "__tile": null, "defUid": 359, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] },
 								{ "__identifier": "InChain", "__type": "Bool", "__value": false, "__tile": null, "defUid": 360, "realEditorValues": [] },
 								{ "__identifier": "SubSlamboxes", "__type": "Array<EntityRef>", "__value": [], "__tile": null, "defUid": 363, "realEditorValues": [] }
 							],
@@ -40273,7 +40341,7 @@
 							"__worldY": 1048
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,10],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -40306,7 +40374,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["51a38130-48b0-11f1-a703-67b210a1474a"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3104,
 							"__worldY": 896
@@ -41910,7 +41979,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,10],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -41943,7 +42012,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["578a1ff0-48b0-11f1-a703-8d0aeb9a9b59"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3120,
 							"__worldY": 896
@@ -44810,7 +44880,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,9],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -44843,7 +44913,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["27f4a880-48b0-11f1-8b32-dff910b8dc82"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3120,
 							"__worldY": 344
@@ -44913,7 +44984,7 @@
 							"__worldY": 416
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [58,15],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -44946,7 +45017,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["00c22340-6fc0-11f1-8cfb-611b56b48773"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3584,
 							"__worldY": 392
@@ -44981,13 +45053,13 @@
 							"px": [424,48],
 							"fieldInstances": [
 								{ "__identifier": "Opens", "__type": "EntityRef", "__value": {
-									"entityIid": "7f60f3d0-6fc0-11f1-8cfb-4da4f054f110",
+									"entityIid": "c5d872d0-6fc0-11f1-bd3a-4798b6d92e37",
 									"layerIid": "4413d4a1-6fc0-11f1-8cfb-7b98a5e15b6d",
 									"levelIid": "4413d4a0-6fc0-11f1-8cfb-7b1f37f3369f",
 									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
 								}, "__tile": null, "defUid": 529, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["7f60f3d0-6fc0-11f1-8cfb-4da4f054f110"]
+									"params": ["c5d872d0-6fc0-11f1-bd3a-4798b6d92e37"]
 								}] },
 								{ "__identifier": "IsUniversal", "__type": "Bool", "__value": false, "__tile": null, "defUid": 530, "realEditorValues": [] }
 							],
@@ -46873,7 +46945,7 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [0,15],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -46906,7 +46978,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["062f2530-6fc0-11f1-8cfb-233b5e773933"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3600,
 							"__worldY": 392
@@ -47008,7 +47081,7 @@
 							"__worldY": 296
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [37,32],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -47041,7 +47114,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["72a06030-6fc0-11f1-8cfb-7f3a8cd8268a"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3896,
 							"__worldY": 528
@@ -48918,45 +48992,6 @@
 					"gridTiles": [],
 					"entityInstances": [
 						{
-							"__identifier": "LockedDoor",
-							"__grid": [0,26],
-							"__pivot": [0,0],
-							"__tags": [],
-							"__tile": { "tilesetUid": 368, "x": 336, "y": 128, "w": 16, "h": 16 },
-							"__smartColor": "#7EB093",
-							"iid": "7f60f3d0-6fc0-11f1-8cfb-4da4f054f110",
-							"width": 16,
-							"height": 48,
-							"defUid": 525,
-							"px": [0,208],
-							"fieldInstances": [
-								{ "__identifier": "OtherSide", "__type": "EntityRef", "__value": {
-									"entityIid": "780c4620-6fc0-11f1-8cfb-81429e4cb0cf",
-									"layerIid": "17922261-fa90-11f0-b873-db1b743ef854",
-									"levelIid": "17922260-fa90-11f0-b873-2b970f47baa3",
-									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
-								}, "__tile": null, "defUid": 526, "realEditorValues": [{
-									"id": "V_String",
-									"params": ["780c4620-6fc0-11f1-8cfb-81429e4cb0cf"]
-								}] },
-								{ "__identifier": "Direction", "__type": "LocalEnum.Direction", "__value": "Right", "__tile": null, "defUid": 527, "realEditorValues": [{
-									"id": "V_String",
-									"params": ["Right"]
-								}] },
-								{ "__identifier": "InteractRegion", "__type": "EntityRef", "__value": {
-									"entityIid": "8d895f60-6fc0-11f1-8cfb-5b89b0714c4b",
-									"layerIid": "4413d4a1-6fc0-11f1-8cfb-7b98a5e15b6d",
-									"levelIid": "4413d4a0-6fc0-11f1-8cfb-7b1f37f3369f",
-									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
-								}, "__tile": null, "defUid": 528, "realEditorValues": [{
-									"id": "V_String",
-									"params": ["8d895f60-6fc0-11f1-8cfb-5b89b0714c4b"]
-								}] }
-							],
-							"__worldX": 3600,
-							"__worldY": 752
-						},
-						{
 							"__identifier": "Region",
 							"__grid": [2,26],
 							"__pivot": [0,0],
@@ -48973,7 +49008,7 @@
 							"__worldY": 752
 						},
 						{
-							"__identifier": "DoorV2",
+							"__identifier": "Door",
 							"__grid": [37,0],
 							"__pivot": [0,0],
 							"__tags": [],
@@ -49006,7 +49041,8 @@
 								}, "__tile": null, "defUid": 376, "realEditorValues": [{
 									"id": "V_String",
 									"params": ["790b9840-6fc0-11f1-8cfb-3f4b647f4ca7"]
-								}] }
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": false, "__tile": null, "defUid": 536, "realEditorValues": [] }
 							],
 							"__worldX": 3896,
 							"__worldY": 544
@@ -49026,6 +49062,49 @@
 							"fieldInstances": [],
 							"__worldX": 3896,
 							"__worldY": 560
+						},
+						{
+							"__identifier": "Door",
+							"__grid": [0,26],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#37C673",
+							"iid": "c5d872d0-6fc0-11f1-bd3a-4798b6d92e37",
+							"width": 16,
+							"height": 48,
+							"defUid": 372,
+							"px": [0,208],
+							"fieldInstances": [
+								{ "__identifier": "OtherSide", "__type": "EntityRef", "__value": {
+									"entityIid": "c0bdfdb0-6fc0-11f1-bd3a-bb6af235366e",
+									"layerIid": "17922261-fa90-11f0-b873-db1b743ef854",
+									"levelIid": "17922260-fa90-11f0-b873-2b970f47baa3",
+									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
+								}, "__tile": null, "defUid": 373, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["c0bdfdb0-6fc0-11f1-bd3a-bb6af235366e"]
+								}] },
+								{ "__identifier": "Direction", "__type": "LocalEnum.Direction", "__value": "Right", "__tile": null, "defUid": 375, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["Right"]
+								}] },
+								{ "__identifier": "InteractRegion", "__type": "EntityRef", "__value": {
+									"entityIid": "8d895f60-6fc0-11f1-8cfb-5b89b0714c4b",
+									"layerIid": "4413d4a1-6fc0-11f1-8cfb-7b98a5e15b6d",
+									"levelIid": "4413d4a0-6fc0-11f1-8cfb-7b1f37f3369f",
+									"worldIid": "9458bf20-c210-11ef-b2e6-377bd33403e9"
+								}, "__tile": null, "defUid": 376, "realEditorValues": [{
+									"id": "V_String",
+									"params": ["8d895f60-6fc0-11f1-8cfb-5b89b0714c4b"]
+								}] },
+								{ "__identifier": "Locked", "__type": "Bool", "__value": true, "__tile": null, "defUid": 536, "realEditorValues": [{
+									"id": "V_Bool",
+									"params": [ true ]
+								}] }
+							],
+							"__worldX": 3600,
+							"__worldY": 752
 						}
 					]
 				},

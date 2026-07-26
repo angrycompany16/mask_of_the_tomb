@@ -53,13 +53,14 @@ type SoundData struct {
 
 type addSoundRequest struct {
 	soundData SoundData
-	name string
+	name      string
 }
 
 type playRequest struct {
 	name               string
 	DSPChannelName     string
 	pitchRandomization float64
+	volume             float64 // keep between 0 and 1!
 }
 
 type effectRequest struct {
@@ -80,22 +81,19 @@ type finishedPlayer struct {
 }
 
 func AddNewSound(name string, data SoundData) {
-	fmt.Println("Adding new sound", name)
-	addNewSoundChan <- struct{soundData SoundData; name string}{name: name, soundData: data}
-	fmt.Println("Added new sound")
+	addNewSoundChan <- struct {
+		soundData SoundData
+		name      string
+	}{name: name, soundData: data}
 }
 
-func PlaySound(name string, DSPChannel string, pitchRandomization float64) {
-	fmt.Println("Sending play request")
-	playRequestChan <- playRequest{name, DSPChannel, pitchRandomization}
-	fmt.Println("Sent play request")
+func PlaySound(name string, volume float64, DSPChannel string, pitchRandomization float64) {
+	playRequestChan <- playRequest{name, DSPChannel, pitchRandomization, volume}
 }
 
 // BETTER: Add a small fadeout when stopping a sound
 func StopSound(name string) {
-	fmt.Println("Sending stop request")
 	stopRequestChan <- name
-	fmt.Println("Sent stop request")
 }
 
 func AddDSPChannelEffect(channelName string, effectName string, effect resound.IEffect) {
@@ -113,7 +111,7 @@ func DebugSoundServer() {
 }
 
 func SoundServer(
-//	soundCatalogue map[string]SoundData,
+	//	soundCatalogue map[string]SoundData,
 	DSPChannelNames []string,
 ) {
 	fmt.Println("Starting sound server")
@@ -126,25 +124,21 @@ func SoundServer(
 	for {
 		select {
 		case audioRequest := <-playRequestChan:
-			fmt.Println("Time to play", audioRequest.name)
 			if playChans[audioRequest.name] == nil {
 				fmt.Printf("player named [%s] not found!\n", audioRequest.name)
 				continue
 			}
 			playChans[audioRequest.name] <- audioRequest
-			fmt.Println("Played it")
 		case effectRequest := <-dspChannelEffectChan:
 			dspChannels.addEffect(effectRequest.channelName, effectRequest.effectName, effectRequest.effect)
 		case editEffectRequest := <-dspChannelEditEffectChan:
 			dspChannels.editEffect(editEffectRequest.channelName, editEffectRequest.effectName, editEffectRequest.action)
 		case name := <-stopRequestChan:
-			fmt.Println("Time to stop", name)
 			if stopChans[name] == nil {
 				fmt.Printf("player named [%s] not found!\n", name)
 				continue
 			}
 			stopChans[name] <- 1
-			fmt.Println("Stopped it")
 		case addSoundRequest := <-addNewSoundChan:
 			if playChans[addSoundRequest.name] != nil {
 				continue
@@ -195,6 +189,7 @@ func player(
 			pitchShift := computePitchShift(rq.pitchRandomization)
 			pitchShiftEffect := effects.NewPitchShift(2048).SetSource(player.Source).SetPitch(pitchShift)
 			player.AddEffect("pitch", pitchShiftEffect)
+			player.SetVolume(rq.volume)
 
 			player.Play()
 			activePlayer = player

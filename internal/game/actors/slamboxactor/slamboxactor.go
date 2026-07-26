@@ -60,7 +60,7 @@ func (s *Slambox) Update(cmd *commands.Commands) {
 		dir := data["dir"].(maths.Direction)
 		cx, cy := s.rect.Center()
 		w, h := s.rect.HalfSize()
-		scene.SpawnBundle(cmd, MakeSlamboxParticlesBundle(cx, cy, dir, w, h))
+		scene.SpawnBundleV2(cmd, MakeSlamboxParticlesBundle(cx, cy, dir, w, h))
 	}
 
 	if s.slamRequest == maths.DirNone && !s.inChain && !s.inGroup {

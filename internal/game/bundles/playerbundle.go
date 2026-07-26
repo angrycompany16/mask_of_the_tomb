@@ -16,7 +16,7 @@ import (
 )
 
 func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engine.Bundle {
-	return func(cmd *commands.Commands, scene *engine.Scene) {
+	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		gw, gh := cmd.Renderer.GetGameSize()
 		tlX, tlY := playerX+gw/2, playerY+gh/2
 		playerNode := scene.SpawnActor("Player", player.NewPlayer(
@@ -111,5 +111,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 		)
 
 		playerNode.AddChild(slamSound, "DashSound", engine.MakeOnTreeAdd(slamSound, cmd))
+
+		return playerNode
 	}
 }

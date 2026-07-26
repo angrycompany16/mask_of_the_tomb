@@ -1,6 +1,7 @@
 package gamestate
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/node"
 	"mask_of_the_tomb/internal/engine"
@@ -24,10 +25,20 @@ type LevelState struct {
 	PlayerSpawnDir   maths.Direction
 }
 
+type Inventory struct {
+	keys []*Key
+}
+
+type Key struct {
+	opensIid string
+}
+
 type GameState struct {
 	Config        Config
 	LevelStates   map[string]LevelState
 	GrassWindSeed int64
+	Inventory     *Inventory
+	UnlockedDoors map[string]bool
 }
 
 func (g *GameState) SaveLevelState(scene *engine.Scene) {
@@ -46,11 +57,36 @@ func (g *GameState) SaveLevelState(scene *engine.Scene) {
 	}
 }
 
+func (i *Inventory) AddKey(opensIid string) {
+	i.keys = append(i.keys, &Key{opensIid: opensIid})
+	fmt.Println("Added key, current inventory")
+	i.Pritn()
+}
+
+func (i *Inventory) HasKey(doorIid string) bool {
+	for _, key := range i.keys {
+		if key.opensIid == doorIid {
+			return true
+		}
+	}
+	return false
+}
+
+func (i *Inventory) Pritn() {
+	fmt.Println("Printing inventory...")
+	for _, key := range i.keys {
+		fmt.Println("A key, opening", key.opensIid)
+	}
+}
+
 func NewGameState() *GameState {
 	return &GameState{
 		Config:        Config{},
 		LevelStates:   make(map[string]LevelState),
 		GrassWindSeed: rand.Int64(),
+		Inventory: &Inventory{
+			keys: make([]*Key, 0),
+		},
 	}
 }
 

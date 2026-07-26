@@ -11,6 +11,7 @@ import (
 type SoundPlayer struct {
 	*nodeactor.Node
 	filePath           string
+	volume             float64
 	loop               bool
 	name               string
 	dspChannelName     string
@@ -58,7 +59,7 @@ func (s *SoundPlayer) OnDestroy(cmd *commands.Commands) {
 }
 
 func (s *SoundPlayer) Play() {
-	sound_v2.PlaySound(s.name, s.dspChannelName, s.pitchRandomization)
+	sound_v2.PlaySound(s.name, s.volume, s.dspChannelName, s.pitchRandomization)
 }
 
 func (s *SoundPlayer) Stop() {
@@ -69,6 +70,7 @@ func defaultSoundPlayer() *SoundPlayer {
 	return &SoundPlayer{
 		Node:               nodeactor.NewNode(),
 		filePath:           "sfx/vietnamese_talking.wav",
+		volume:             1,
 		loop:               false,
 		name:               "test-sound",
 		dspChannelName:     "master",
@@ -95,6 +97,12 @@ func WithSoundData(filePath string, loop bool, name string) utils.Option[SoundPl
 		s.filePath = filePath
 		s.loop = loop
 		s.name = name
+	}
+}
+
+func WithVolume(volume float64) utils.Option[SoundPlayer] {
+	return func(s *SoundPlayer) {
+		s.volume = volume
 	}
 }
 

@@ -38,13 +38,13 @@ type Node = node.Node[Actor]
 type NodeTree = node.NodeTree[Actor]
 
 type SceneBuilder func(*commands.Commands) *Scene
-type Bundle func(*commands.Commands, *Scene)
-type BundleV2 func(*commands.Commands, *Scene) *Node
+type Bundle func(*commands.Commands, *Scene) *Node
 
 type Scene struct {
-	name       string
-	nodeTree   *NodeTree
-	drawGizmos bool
+	name        string
+	nodeTree    *NodeTree
+	drawGizmos  bool
+	initialized bool
 }
 
 func (s *Scene) Update(cmd *commands.Commands) {
@@ -133,11 +133,11 @@ func MakeOnTreeAdd(actor Actor, cmd *commands.Commands) func(*Node) {
 	}
 }
 
-func (s *Scene) SpawnActorAlt(name string, actor Actor, cmd *commands.Commands) Actor {
-	node := s.nodeTree.GetRoot().AddChild(actor, name, MakeOnTreeAdd(actor, cmd))
-	actor.OnTreeAdd(node, cmd)
-	return actor
-}
+//func (s *Scene) SpawnActorAlt(name string, actor Actor, cmd *commands.Commands) Actor {
+//	node := s.nodeTree.GetRoot().AddChild(actor, name, MakeOnTreeAdd(actor, cmd))
+//	actor.OnTreeAdd(node, cmd)
+//	return actor
+//}
 
 // Deprecated: It's now possible to call the node library directly instead
 // Spawn a child of type node with the specified parent
@@ -150,17 +150,24 @@ func (s *Scene) AddChild(name string, actor Actor, parent *Node, cmd *commands.C
 	return node
 }
 
-// Deprecated(?): Use SpawnBundleV2 instead?
-func (s *Scene) SpawnBundle(cmd *commands.Commands, bundle Bundle) {
-	bundle(cmd, s)
+// Deprecated: Use SpawnBundleV2 instead?
+func (s *Scene) SpawnBundle(cmd *commands.Commands, bundle Bundle) *Node {
+	bundleRoot := bundle(cmd, s)
+	return bundleRoot
 }
 
 // This will initialize the root of the bundle. Probably a good idea
-func (s *Scene) SpawnBundleV2(cmd *commands.Commands, bundle BundleV2) {
+func (s *Scene) SpawnBundleV2(cmd *commands.Commands, bundle Bundle) *Node {
 	bundleRoot := bundle(cmd, s)
-	bundleRoot.Traverse(func(n *node.Node[Actor]) {
-		n.GetValue().Init(cmd)
-	})
+
+	if s.initialized {
+		cmd.AssetLoader.LoadAll()
+		bundleRoot.Traverse(func(n *node.Node[Actor]) {
+			n.GetValue().Init(cmd)
+		})
+	}
+
+	return bundleRoot
 }
 
 func (s *Scene) SetParent(node *Node, parent *Node) {
@@ -282,6 +289,7 @@ func (s *SceneManager) SpawnScene(name string, cmd *commands.Commands) *SceneMan
 	// Create an instance of the scene's node tree
 	sceneBuilder := s.scenes[name]
 	sceneInst := sceneBuilder(cmd)
+	sceneInst.initialized = true
 
 	// Load any staged assets
 	cmd.AssetLoader.LoadAll()

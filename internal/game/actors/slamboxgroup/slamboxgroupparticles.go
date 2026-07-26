@@ -1,9 +1,7 @@
 package slamboxgroup
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/backend/maths"
-	"mask_of_the_tomb/internal/backend/node"
 	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
@@ -13,7 +11,7 @@ import (
 )
 
 func MakeSlamboxParticlesBundle(rect *maths.Rect, dir maths.Direction) engine.Bundle {
-	return func(cmd *commands.Commands, scene *engine.Scene) {
+	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		dx, dy := maths.VectorFromDir(dir)
 		x, y := rect.Cx(), rect.Cy()
 		halfWidth, halfHeight := rect.HalfSize()
@@ -27,7 +25,6 @@ func MakeSlamboxParticlesBundle(rect *maths.Rect, dir maths.Direction) engine.Bu
 			size = halfHeight
 		}
 
-		fmt.Println(dir)
 		rot := maths.DirToRadians(dir)
 		slamboxParticles := scene.SpawnActor("SlamboxParticles", particles.NewParticleSystem(
 			particles.WithGraphic(
@@ -65,13 +62,15 @@ func MakeSlamboxParticlesBundle(rect *maths.Rect, dir maths.Direction) engine.Bu
 			}, 30),
 		), cmd)
 
-		cmd.AssetLoader.LoadAll()
+		//		cmd.AssetLoader.LoadAll()
 
 		// This is not the worst, but it's not ideal either
 		// ...
-		slamboxParticles.Traverse(
-			func(n *node.Node[engine.Actor]) {
-				n.GetValue().Init(cmd)
-			})
+		//		slamboxParticles.Traverse(
+		//			func(n *node.Node[engine.Actor]) {
+		//				n.GetValue().Init(cmd)
+		//			})
+
+		return slamboxParticles
 	}
 }

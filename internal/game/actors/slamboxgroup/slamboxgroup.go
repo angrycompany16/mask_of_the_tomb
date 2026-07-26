@@ -60,9 +60,9 @@ func (s *SlamboxGroup) Update(cmd *commands.Commands) {
 	if data, raised := s.OnMoveFinish.Poll(); raised && s.hasParticles {
 		dir := data["dir"].(maths.Direction)
 		if s.hitRectIndex == len(s.subrects) {
-			scene.SpawnBundle(cmd, MakeSlamboxParticlesBundle(s.rect, dir))
+			scene.SpawnBundleV2(cmd, MakeSlamboxParticlesBundle(s.rect, dir))
 		} else {
-			scene.SpawnBundle(cmd, MakeSlamboxParticlesBundle(s.subrects[s.hitRectIndex], dir))
+			scene.SpawnBundleV2(cmd, MakeSlamboxParticlesBundle(s.subrects[s.hitRectIndex], dir))
 		}
 	}
 

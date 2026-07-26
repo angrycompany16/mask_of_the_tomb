@@ -1,7 +1,6 @@
 package autotilesprite
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/backend/assetloader"
 	"mask_of_the_tomb/internal/backend/assetloader/assettypes"
 	"mask_of_the_tomb/internal/backend/autotile"
@@ -50,13 +49,11 @@ func (a *AutoTileSprite) Update(cmd *commands.Commands) {
 	camX, camY := a.GetCamera().WorldToCam(gPosX, gPosY, true)
 	cmd.Renderer.Request(opgen.Pos(a.sprite, camX, camY, 0, 0), a.sprite, a.target, 20)
 
-	fmt.Println(len(a.subsprites))
 	for i, subsprite := range a.subsprites {
 		dx := a.otherRects[i].X - a.rect.X
 		dy := a.otherRects[i].Y - a.rect.Y
 
-		fmt.Println(dx, dy)
-		cmd.Renderer.Request(opgen.Pos(subsprite, camX + dx, camY + dy, 0, 0), subsprite, a.target, 20)
+		cmd.Renderer.Request(opgen.Pos(subsprite, camX+dx, camY+dy, 0, 0), subsprite, a.target, 20)
 	}
 }
 
@@ -82,12 +79,9 @@ func (a *AutoTileSprite) createSprite(slamboxTilemap *ebiten.Image) {
 		},
 	)
 
-
 	for i, rect := range a.otherRects {
 		neighbours := slices.Concat(a.otherRects[:i], a.otherRects[i+1:])
 		neighbours = append(neighbours, a.rect)
-
-		fmt.Println(a.otherRects, a.rect)
 
 		autotile.CreateSprite(
 			slamboxTilemap,

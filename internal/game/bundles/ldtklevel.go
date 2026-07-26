@@ -10,31 +10,18 @@ import (
 	sound_v2 "mask_of_the_tomb/internal/backend/sound"
 	"mask_of_the_tomb/internal/backend/vector64"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/engine/actors/animatedsprite"
 	"mask_of_the_tomb/internal/engine/actors/graphic"
 	"mask_of_the_tomb/internal/engine/actors/particles"
 	"mask_of_the_tomb/internal/engine/actors/sound"
-	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/actors/vectorgraphic"
 	"mask_of_the_tomb/internal/engine/commands"
 	ldtktilelayer "mask_of_the_tomb/internal/game/actors/LDTKTileLayer"
-	"mask_of_the_tomb/internal/game/actors/autotilesprite"
 	"mask_of_the_tomb/internal/game/actors/backgroundshader"
-	"mask_of_the_tomb/internal/game/actors/doorv2"
-	"mask_of_the_tomb/internal/game/actors/grass"
-	"mask_of_the_tomb/internal/game/actors/hazard"
-	"mask_of_the_tomb/internal/game/actors/key"
 	"mask_of_the_tomb/internal/game/actors/levelshader"
-	"mask_of_the_tomb/internal/game/actors/platform"
 	"mask_of_the_tomb/internal/game/actors/shaderactor"
-	"mask_of_the_tomb/internal/game/actors/slamboxactor"
-	"mask_of_the_tomb/internal/game/actors/slamboxgroup"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/game/actors/sounddebug"
-	"mask_of_the_tomb/internal/game/actors/tracker"
-	"mask_of_the_tomb/internal/game/actors/trigger"
-	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/game/sceneswitch"
 	"mask_of_the_tomb/internal/utils"
 
@@ -70,14 +57,14 @@ var songMap = map[string]string{
 }
 
 func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
-	return func(cmd *commands.Commands, scene *engine.Scene) {
+	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		// gw, gh := cmd.Renderer.GetGameSize()
 
 		// 1. Load and prepare data from LDTK
 		LDTKData, ok := assetloader.GetAsset[assettypes.LDTKData](cmd.AssetLoader, "LDTK/world.ldtk")
 		if !ok {
 			fmt.Println("Unable to load LDTK world asset from assetloader when making level bundle. Returning.")
-			return
+			return scene.SpawnActor("LDTK-FAILURE", transform2D.NewTransform2D(), cmd)
 		}
 
 		world := LDTKData.Value().World
@@ -90,15 +77,13 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
 		if biome != sceneswitch.PreviousBiome {
 			// Stop playing the current song (This is VERY UGLY!)
-			fmt.Println("hello")
 			sound_v2.StopSound(songMap[sceneswitch.PreviousBiome])
-			fmt.Println("world")
 		}
 
 		playerspace, err := level.GetLayerByName("Playerspace")
 		if err != nil {
 			fmt.Println("Error when loading level:", err)
-			return
+			return scene.SpawnActor("LDTK-FAILURE", transform2D.NewTransform2D(), cmd)
 		}
 
 		var spikeIntGridID int
@@ -168,41 +153,36 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		// 3. Spawn entities (doors, slamboxes, platforms, etc...)
 		entityLayer := utils.Must(level.GetLayerByName("Entities"))
 		for _, entity := range entityLayer.Entities {
+			var entityBundle engine.Bundle
+			hasBundle := true
+
 			switch entity.Name {
 			case "Hazard":
-				SpawnHazard(cmd, scene, &entity, envParentNode)
+				entityBundle = makeHazardBundle(&entity)
 			case "Slambox":
-				isGroupField, _ := entity.GetFieldByName("IsGroup")
-				isGroup := ebitenLDTK.As[bool](isGroupField)
+				mainRect := maths.NewRect(entity.Px[0], entity.Px[1], entity.Width, entity.Height)
+				subSlamboxesField, _ := entity.GetFieldByName("SubSlamboxes")
+				subSlamboxes := ebitenLDTK.AsArray[ebitenLDTK.EntityRef](subSlamboxesField)
+				subrects := make([]*maths.Rect, len(subSlamboxes))
 
-				if isGroup {
-					mainRect := maths.NewRect(entity.Px[0], entity.Px[1], entity.Width, entity.Height)
-					subSlamboxesField, _ := entity.GetFieldByName("SubSlamboxes")
-					subSlamboxes := ebitenLDTK.AsArray[ebitenLDTK.EntityRef](subSlamboxesField)
-					subrects := make([]*maths.Rect, len(subSlamboxes))
-
-					for i, entityRef := range subSlamboxes {
-						entity, _ := level.GetEntityByIid(entityRef.EntityIid)
-						subrects[i] = maths.NewRect(entity.Px[0], entity.Px[1], entity.Width, entity.Height)
-					}
-
-					SpawnSlamboxGroup(mainRect, subrects, cmd, scene, envParentNode)
-				} else {
-					SpawnSlambox(cmd, scene, &entity, envParentNode)
+				for i, entityRef := range subSlamboxes {
+					entity, _ := level.GetEntityByIid(entityRef.EntityIid)
+					subrects[i] = maths.NewRect(entity.Px[0], entity.Px[1], entity.Width, entity.Height)
 				}
 
+				entityBundle = makeSlamboxGroupBundle(mainRect, subrects)
 			case "Grass":
-				SpawnGrass(cmd, scene, &entity, &level, envParentNode)
+				entityBundle = makeGrassBundle(&entity, &level)
 			// case names.TurretEntity:
 			// 	newLevel.turrets = append(newLevel.turrets, entities.NewTurret(&entity, entityLayer.GridSize))
 			// case names.CatcherEntity:
 			// 	newLevel.catchers = append(newLevel.catchers, entities.NewCatcher(&entity))
 			case "Platform":
-				SpawnPlatform(cmd, scene, &entity, envParentNode)
+				entityBundle = MakePlatformBundle(&entity)
 			// case names.LanternEntity:
 			// 	newLevel.lanterns = append(newLevel.lanterns, entities.NewLantern(&entity, entityLayer.GridSize))
-			case "DoorV2":
-				SpawnDoor(cmd, scene, &entity, &level, envParentNode)
+			case "Door":
+				entityBundle = makeDoorBundle(&entity, &level)
 				// case chainNodeEntityName:
 				// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
 				// case names.TestSpeechBubbleEntity:
@@ -212,8 +192,13 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 				// 	)
 				// }
 			case "DoorKey":
-				fmt.Println("key!!")
-				SpawnDoorKey(cmd, scene, &entity, &level, envParentNode)
+				entityBundle = makeKeyBundle(&entity)
+			default:
+				hasBundle = false
+			}
+
+			if hasBundle {
+				scene.SetParent(scene.SpawnBundleV2(cmd, entityBundle), envParentNode)
 			}
 		}
 
@@ -265,229 +250,6 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 				),
 			), cmd)
 
-		// scene.SpawnActor("Resetlistener", resetlistener.NewResetListener(nodeactor.NewNode()), cmd)
+		return envParentNode
 	}
-}
-
-func SpawnSlamboxGroup(mainRect *maths.Rect, subrects []*maths.Rect, cmd *commands.Commands, scene *engine.Scene, envParentNode *engine.Node) {
-	for _, rect := range subrects {
-		fmt.Println(rect)
-	}
-
-	fmt.Println(mainRect)
-
-	slamboxGroup := slamboxgroup.NewSlamboxGroup(
-		tracker.NewTracker(
-			graphic.NewGraphic(), 7.5, mainRect.X, mainRect.Y,
-		),
-		slamboxgroup.WithRects(mainRect, subrects),
-	)
-	slamboxNode := envParentNode.AddChild(slamboxGroup, "Slambox", engine.MakeOnTreeAdd(slamboxGroup, cmd))
-
-	subrects_ := make([]*maths.Rect, len(subrects))
-	for i := range subrects_ {
-		r := subrects[i]
-		subrects_[i] = maths.NewRect(r.X, r.Y, r.Width, r.Height)
-	}
-
-	autotileActor := autotilesprite.NewAutoTileSprite(
-		graphic.NewGraphic(), renderer.RenderTarget{
-			Type: renderer.TEXTURE,
-			Name: "LevelTextureRaw",
-		},
-		autotilesprite.WithRects(maths.NewRect(mainRect.X, mainRect.Y, mainRect.Width, mainRect.Height), subrects_),
-		autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
-	)
-	slamboxNode.AddChild(autotileActor, "Sprite", engine.MakeOnTreeAdd(autotileActor, cmd))
-
-	slamboxSound := sound.NewSoundPlayer(
-		sound.WithSoundData("sfx/stone-crash-trimmed.wav", false, "Slambox-land"),
-		sound.WithStartTriggers(slamboxGroup.OnMoveFinishEv),
-	)
-
-	slamboxNode.AddChild(slamboxSound, "slamboxSound", engine.MakeOnTreeAdd(slamboxSound, cmd))
-}
-
-func SpawnSlambox(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
-	slamboxActor := slamboxactor.NewSlambox(
-		tracker.NewTracker(
-			graphic.NewGraphic(), 7.5, entity.Px[0], entity.Px[1],
-		),
-		slamboxactor.WithPos(entity.Px[0], entity.Px[1]),
-		slamboxactor.WithSize(entity.Width, entity.Height),
-	)
-	slamboxNode := envParentNode.AddChild(slamboxActor, "Slambox", engine.MakeOnTreeAdd(slamboxActor, cmd))
-
-	autotileActor := autotilesprite.NewAutoTileSprite(
-		graphic.NewGraphic(), renderer.RenderTarget{
-			Type: renderer.TEXTURE,
-			Name: "LevelTextureRaw",
-		},
-		autotilesprite.WithSize(entity.Width, entity.Height),
-		autotilesprite.WithTilemap("sprites/environment/slambox_tilemap.png"),
-	)
-	slamboxNode.AddChild(autotileActor, "Sprite", engine.MakeOnTreeAdd(autotileActor, cmd))
-
-	slamboxSound := sound.NewSoundPlayer(
-		sound.WithSoundData("sfx/stone-crash-trimmed.wav", false, "Slambox-land"),
-		sound.WithStartTriggers(slamboxActor.OnMoveFinishEv),
-	)
-
-	slamboxNode.AddChild(slamboxSound, "slamboxSound", engine.MakeOnTreeAdd(slamboxSound, cmd))
-}
-
-func SpawnDoor(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level, envParentNode *engine.Node) {
-	directionField := utils.Must(entity.GetFieldByName("Direction"))
-	direction := maths.DirFromString(ebitenLDTK.As[ebitenLDTK.Enum](directionField).Value)
-
-	doorV2Actor := doorv2.NewDoorV2(
-		graphic.NewGraphic(
-			graphic.WithTransform(
-				transform2D.NewTransform2D(
-					transform2D.WithPos(entity.Px[0], entity.Px[1]),
-				),
-			),
-		), entity, level,
-	)
-	doorNode := envParentNode.AddChild(doorV2Actor, "Door", engine.MakeOnTreeAdd(doorV2Actor, cmd))
-
-	doorAnim := animatedsprite.NewAnimatedSprite(
-		graphic.NewGraphic(
-			graphic.WithTransform(
-				transform2D.NewTransform2D(
-					transform2D.WithPos(entity.Width/2, entity.Height/2),
-				),
-			),
-		),
-		map[string]*animatedsprite.Clip{
-			"Idle": animatedsprite.NewClip(
-				"sprites/environment/door_v2-idle-Sheet.png",
-				48,
-				16,
-				animatedsprite.Loop,
-				100,
-				"",
-			),
-			"Open": animatedsprite.NewClip(
-				"sprites/environment/door_v2-open-Sheet.png",
-				48,
-				16,
-				animatedsprite.Once,
-				100,
-				"",
-			),
-			"Close": animatedsprite.NewClip(
-				"sprites/environment/door_v2-close-Sheet.png", 48, 16,
-				animatedsprite.Once,
-				100,
-				"",
-			),
-		}, renderer.RenderTarget{
-			Type: renderer.TEXTURE,
-			Name: "LevelTextureRaw",
-		}, 5, 0.5, 0.5, "Idle",
-	)
-
-	doorAnimNode := doorNode.AddChild(doorAnim, "Sprite", engine.MakeOnTreeAdd(doorAnim, cmd))
-
-	transform, ok := engine.As[*transform2D.Transform2D](doorAnimNode.GetValue())
-	if ok {
-		transform.SetAngle(maths.DirToRadians(direction))
-	}
-
-	doorV2Actor.AnimatedSprite = doorAnim
-
-	triggerField := utils.Must(entity.GetFieldByName("InteractRegion"))
-	triggerEntityIid := ebitenLDTK.As[ebitenLDTK.EntityRef](triggerField).EntityIid
-	triggerEntity := utils.Must(level.GetEntityByIid(triggerEntityIid))
-
-	relPosX := triggerEntity.Px[0] - entity.Px[0]
-	relPosY := triggerEntity.Px[1] - entity.Px[1]
-	triggerActor := trigger.NewTrigger(
-		graphic.NewGraphic(
-			graphic.WithTransform(
-				transform2D.NewTransform2D(
-					transform2D.WithPos(relPosX, relPosY),
-				),
-			),
-		),
-		trigger.WithRect(maths.NewRect(triggerEntity.Px[0], triggerEntity.Px[1], triggerEntity.Width, triggerEntity.Height)),
-		trigger.WithName(fmt.Sprintf("Door-%s", triggerEntityIid)),
-	)
-
-	doorNode.AddChild(triggerActor, "Trigger", engine.MakeOnTreeAdd(triggerActor, cmd))
-
-	doorV2Actor.Trigger = triggerActor
-
-	doorOpenSound := sound.NewSoundPlayer(
-		sound.WithSoundData("sfx/door-open.ogg", false, "door-open"),
-		sound.WithStartTriggers(doorV2Actor.OnOpen),
-	)
-
-	doorNode.AddChild(doorOpenSound, "door-open", engine.MakeOnTreeAdd(doorOpenSound, cmd))
-
-	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
-
-	doorCloseSound := sound.NewSoundPlayer(
-		sound.WithSoundData("sfx/door-close.ogg", false, "door-close"),
-		sound.WithAutoPlay(sceneswitch.SpawnEntityIid == doorV2Actor.EntityIid),
-	)
-
-	doorNode.AddChild(doorCloseSound, "door-close", engine.MakeOnTreeAdd(doorCloseSound, cmd))
-}
-
-func SpawnPlatform(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
-	platformActor := platform.NewPlatform(
-		graphic.NewGraphic(), entity,
-	)
-	envParentNode.AddChild(platformActor, "Platform", engine.MakeOnTreeAdd(platformActor, cmd))
-}
-
-func SpawnHazard(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, envParentNode *engine.Node) {
-	hazardActor := hazard.NewHazard(
-		graphic.NewGraphic(), entity,
-	)
-
-	envParentNode.AddChild(hazardActor, "Hazard", engine.MakeOnTreeAdd(hazardActor, cmd))
-}
-
-func SpawnGrass(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level, envParentNode *engine.Node) {
-	playerspace := utils.Must(level.GetLayerByName("Playerspace"))
-	gamestate, _ := commands.Get[gamestate.GameState](cmd)
-
-	grassActor := grass.NewGrass(
-		graphic.NewGraphic(
-			graphic.WithTransform(
-				transform2D.NewTransform2D(
-					transform2D.WithPos(entity.Px[0], entity.Px[1]),
-				),
-			),
-		),
-		entity,
-		playerspace.GridSize,
-		"sprites/environment/grass.png",
-		gamestate.GrassWindSeed,
-		renderer.TextureTarget("LevelTextureRaw"),
-		-10,
-	)
-
-	envParentNode.AddChild(grassActor, "Grass", engine.MakeOnTreeAdd(grassActor, cmd))
-}
-
-func SpawnDoorKey(cmd *commands.Commands, scene *engine.Scene, entity *ebitenLDTK.Entity, level *ebitenLDTK.Level, envParentNode *engine.Node) {
-	keyActor := key.NewKey(
-		transform2D.NewTransform2D(
-			transform2D.WithPos(entity.Px[0], entity.Px[1]),
-		),
-	)
-
-	keyActorNode := envParentNode.AddChild(keyActor, "Key", engine.MakeOnTreeAdd(keyActor, cmd))
-
-	keySprite := sprite.NewSprite(
-		renderer.TextureTarget("LevelTextureRaw"),
-		"sprites/environment/key.png",
-		sprite.WithPivot(0, 0),
-	)
-
-	keyActorNode.AddChild(keySprite, "sprite", engine.MakeOnTreeAdd(keySprite, cmd))
 }

@@ -84,11 +84,7 @@ func CreateOverlappingMethodScene(cmd *commands.Commands) *engine.Scene {
 
 	scene.SpawnActor("Halla kompis",
 		overlappingmodel.NewOverlappingModel(
-			graphic.NewGraphic(
-				transform2D.NewTransform2D(
-					nodeactor.NewNode(),
-				),
-			),
+			graphic.NewGraphic(),
 			wfcSetup,
 			renderer.ScreenTarget("Playerspace"),
 			0,

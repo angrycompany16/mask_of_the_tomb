@@ -17,7 +17,7 @@ import (
 )
 
 func MakeMainMenuBundle() engine.Bundle {
-	return func(cmd *commands.Commands, scene *engine.Scene) {
+	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		gw, gh := cmd.Renderer.GetGameSize()
 		ps := cmd.Renderer.GetPixelScale()
 
@@ -121,5 +121,7 @@ func MakeMainMenuBundle() engine.Bundle {
 		)
 
 		rootAlign.AddChild(selectSound, "selectSound", engine.MakeOnTreeAdd(selectSound, cmd))
+
+		return rootAlign
 	}
 }
