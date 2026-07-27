@@ -317,7 +317,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 		if !key.PickedUp {
 			gamestate, _ := commands.Get[gamestate.GameState](cmd)
 			inventory := gamestate.Inventory
-			inventory.AddKey(key.DoorIid)
+			inventory.Keys[key.EntityIid] = key.DoorIid
 			key.OnPickupEv.Raise()
 		}
 	}

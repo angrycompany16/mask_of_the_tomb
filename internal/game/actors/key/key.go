@@ -6,6 +6,7 @@ import (
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/game/gamestate"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -21,8 +22,18 @@ type Key struct {
 	OnPickupEv *events.Event
 	OnPickup   *events.EventBus
 	Hitbox     *maths.Rect
+	EntityIid  string
 	DoorIid    string
 	PickedUp   bool
+}
+
+func (k *Key) Init(cmd *commands.Commands) {
+	k.Transform2D.Init(cmd)
+	gamestate, _ := commands.Get[gamestate.GameState](cmd)
+
+	if _, ok := gamestate.Inventory.Keys[k.EntityIid]; ok {
+		k.PickedUp = true
+	}
 }
 
 func (k *Key) Update(cmd *commands.Commands) {
@@ -52,6 +63,8 @@ func NewKey(entity *ebitenLDTK.Entity) *Key {
 	transform := transform2D.NewTransform2D(transform2D.WithPos(entity.Px[0], entity.Px[1]))
 
 	key := defaultKey(transform)
+
+	key.EntityIid = entity.Iid
 
 	key.Hitbox = maths.NewRect(entity.Px[0], entity.Px[1], entity.Width, entity.Height)
 

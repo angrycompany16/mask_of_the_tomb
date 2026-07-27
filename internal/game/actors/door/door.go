@@ -68,12 +68,16 @@ func (d *Door) Init(cmd *commands.Commands) {
 		d.State = CLOSING
 	}
 
+	gamestate, _ := commands.Get[gamestate.GameState](cmd)
+
+	if unlocked, ok := gamestate.UnlockedDoors[d.EntityIid]; ok {
+		d.Locked = !unlocked
+		fmt.Println("Setting locked state to", !unlocked)
+	}
+
 	d.OnClipFinished = events.NewBusFrom(d.AnimatedSprite.OnClipFinished)
 
-	slamboxenv, ok := commands.Get[slambox.SlamboxEnvironment](cmd)
-	if !ok {
-		panic("Missing slambox env (Door)")
-	}
+	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
 
 	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
 	playerControls.RegisterAction("DoorInteract", func() bool {
@@ -81,7 +85,6 @@ func (d *Door) Init(cmd *commands.Commands) {
 	})
 	slamboxenv.AddEnvironmentRect(d.Hitbox)
 	d.OnCollision = events.NewBusFrom(d.Trigger.OnCollision)
-
 }
 
 func (d *Door) Update(cmd *commands.Commands) {
@@ -141,9 +144,10 @@ func (d *Door) Update(cmd *commands.Commands) {
 			haskey := inventory.HasKey(d.EntityIid) || inventory.HasKey(d.OtherSideEntityIid)
 
 			if d.Locked && haskey {
-				fmt.Println("Door unlocked! Let's play a little jingle!")
 				d.OnUnlockEv.Raise()
 				d.Locked = false
+				gamestate.UnlockedDoors[d.EntityIid] = true
+				gamestate.UnlockedDoors[d.OtherSideEntityIid] = true
 			}
 		}
 	}
