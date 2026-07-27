@@ -315,10 +315,10 @@ func (p *Player) Update(cmd *commands.Commands) {
 	if ok {
 		key, _ := engine.As[*key.Key](keyNode.GetValue())
 		if !key.PickedUp {
-			gamestate, _ := commands.Get[gamestate.GameState](cmd)
-			inventory := gamestate.Inventory
-			inventory.Keys[key.EntityIid] = key.DoorIid
-			key.OnPickupEv.Raise()
+			gamestate_, _ := commands.Get[gamestate.GameState](cmd)
+			inventory := gamestate_.Inventory
+			inventory.Keys[key.EntityIid] = &gamestate.Key{key.DoorIid, false}
+			key.OnPickupEv.Raise().WithData("Transform", p.Transform2D)
 		}
 	}
 

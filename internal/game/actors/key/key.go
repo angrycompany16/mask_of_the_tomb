@@ -1,9 +1,10 @@
 package key
 
 import (
-	"fmt"
 	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
+	"mask_of_the_tomb/internal/backend/missile"
+	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/gamestate"
@@ -17,52 +18,78 @@ import (
 // -> Sprite
 // Thats's it
 
+type KeyState int
+
+const (
+	IDLE KeyState = iota
+	CHASING
+)
+
 type Key struct {
-	*transform2D.Transform2D
+	*missile.Missile
 	OnPickupEv *events.Event
 	OnPickup   *events.EventBus
 	Hitbox     *maths.Rect
 	EntityIid  string
 	DoorIid    string
 	PickedUp   bool
+	state      KeyState
+	Sprite     *sprite.Sprite
 }
 
 func (k *Key) Init(cmd *commands.Commands) {
-	k.Transform2D.Init(cmd)
+	k.Missile.Init(cmd)
 	gamestate, _ := commands.Get[gamestate.GameState](cmd)
 
 	if _, ok := gamestate.Inventory.Keys[k.EntityIid]; ok {
 		k.PickedUp = true
+		k.Sprite.Hidden = true
 	}
 }
 
 func (k *Key) Update(cmd *commands.Commands) {
-	k.Transform2D.Update(cmd)
+	k.Missile.Update(cmd)
 	if k.PickedUp {
 		return
 	}
 
-	if _, raised := k.OnPickup.Poll(); raised {
-		fmt.Println("I was picked up!")
-		k.PickedUp = true
+	switch k.state {
+	case IDLE:
+		if data, raised := k.OnPickup.Poll(); raised {
+			k.PickedUp = true
+			k.Missile.Active = true
+			k.state = CHASING
+			collectorTransform := data["Transform"].(*transform2D.Transform2D)
+			k.TargetTransform = collectorTransform
+		}
+	case CHASING:
 	}
 }
 
-func defaultKey(transform2D *transform2D.Transform2D) *Key {
+func defaultKey() *Key {
 	onPickupEv := events.NewEvent()
 
 	return &Key{
-		Transform2D: transform2D,
-		OnPickupEv:  onPickupEv,
-		OnPickup:    events.NewBusFrom(onPickupEv),
-		PickedUp:    false,
+		Missile:    missile.NewMissile(),
+		OnPickupEv: onPickupEv,
+		OnPickup:   events.NewBusFrom(onPickupEv),
+		PickedUp:   false,
+		state:      IDLE,
 	}
 }
 
 func NewKey(entity *ebitenLDTK.Entity) *Key {
-	transform := transform2D.NewTransform2D(transform2D.WithPos(entity.Px[0], entity.Px[1]))
+	missile := missile.NewMissile(
+		missile.WithTransform(
+			transform2D.NewTransform2D(transform2D.WithPos(entity.Px[0], entity.Px[1])),
+		),
+		missile.WithSpeed(4),
+		missile.WithActive(false),
+		missile.WithCircularOffset(40, 1, maths.RandomRange(0, 10)),
+	)
 
-	key := defaultKey(transform)
+	key := defaultKey()
+	key.Missile = missile
 
 	key.EntityIid = entity.Iid
 

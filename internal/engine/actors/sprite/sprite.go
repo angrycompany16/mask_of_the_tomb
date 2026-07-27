@@ -26,6 +26,7 @@ type Sprite struct {
 	pivotY    float64 `debug:"auto"`
 	target    renderer.RenderTarget
 	imageRef  *assetloader.AssetRef[ebiten.Image]
+	Hidden    bool
 }
 
 func (s *Sprite) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
@@ -48,6 +49,11 @@ func (s *Sprite) Update(cmd *commands.Commands) {
 		// This should in theory never happen. But humans make mistakes...
 		return
 	}
+
+	if s.Hidden {
+		return
+	}
+
 	gPosX, gPosY := s.Transform2D.GetPos(false)
 	gAngle := s.Transform2D.GetAngle(false)
 	gScaleX, gScaleY := s.Transform2D.GetScale(false)
@@ -118,6 +124,7 @@ func defaultSprite() *Sprite {
 		scaling:   1.0,
 		pivotX:    0.5,
 		pivotY:    0.5,
+		Hidden:    false,
 	}
 }
 

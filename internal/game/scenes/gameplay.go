@@ -18,6 +18,7 @@ func MakeGamePlayScene(playerX, playerY float64, levelIid string) engine.SceneBu
 		scene.SpawnBundleV2(cmd, enginebundles.MakeDefaultBundle(gameWidth, gameHeigth, pixelScale))
 		scene.SpawnBundleV2(cmd, bundles.MakeLDTKLevelBundle(levelIid))
 		scene.SpawnBundleV2(cmd, bundles.MakePlayerBundle(playerX, playerY, 16, 16))
+		scene.SpawnBundleV2(cmd, bundles.MakeCollectedKeysBundle(playerX, playerY))
 		scene.SpawnActor("PauseMenuTrigger", pausemenuspawner.NewPauseMenuSpawner(
 			nodeactor.NewNode(),
 		), cmd)

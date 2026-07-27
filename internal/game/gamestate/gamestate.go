@@ -25,7 +25,12 @@ type LevelState struct {
 }
 
 type Inventory struct {
-	Keys map[string]string
+	Keys map[string]*Key
+}
+
+type Key struct {
+	OpensIid string
+	Used     bool
 }
 
 type GameState struct {
@@ -56,13 +61,13 @@ func (g *GameState) UnlockDoor(entityIid string) {
 	g.UnlockedDoors[entityIid] = true
 }
 
-func (i *Inventory) HasKey(doorIid string) bool {
-	for _, opensIid := range i.Keys {
-		if opensIid == doorIid {
-			return true
+func (i *Inventory) HasKey(doorIid string) (bool, string) {
+	for keyIid, key := range i.Keys {
+		if key.OpensIid == doorIid {
+			return true, keyIid
 		}
 	}
-	return false
+	return false, ""
 }
 
 func NewGameState() *GameState {
@@ -71,7 +76,7 @@ func NewGameState() *GameState {
 		LevelStates:   make(map[string]LevelState),
 		GrassWindSeed: rand.Int64(),
 		Inventory: &Inventory{
-			Keys: make(map[string]string),
+			Keys: make(map[string]*Key),
 		},
 		UnlockedDoors: make(map[string]bool),
 	}

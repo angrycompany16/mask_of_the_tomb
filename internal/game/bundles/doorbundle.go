@@ -43,32 +43,10 @@ func makeDoorBundle(entity *ebitenLDTK.Entity, level *ebitenLDTK.Level) engine.B
 				),
 			),
 			map[string]*animatedsprite.Clip{
-				"Idle": animatedsprite.NewClip(
-					"sprites/environment/door-idle-Sheet.png",
-					48,
-					16,
-					animatedsprite.Loop,
-					100,
-					"",
-				),
-				"Open": animatedsprite.NewClip(
-					"sprites/environment/door-open-Sheet.png",
-					48,
-					16,
-					animatedsprite.Once,
-					100,
-					"",
-				),
-				"Close": animatedsprite.NewClip(
-					"sprites/environment/door-close-Sheet.png", 48, 16,
-					animatedsprite.Once,
-					100,
-					"",
-				),
-			}, renderer.RenderTarget{
-				Type: renderer.TEXTURE,
-				Name: "LevelTextureRaw",
-			}, 5, 0.5, 0.5, "Idle",
+				"Idle":  animatedsprite.NewClip("sprites/environment/door-idle-Sheet.png", 48, 16, animatedsprite.Loop, 100, ""),
+				"Open":  animatedsprite.NewClip("sprites/environment/door-open-Sheet.png", 48, 16, animatedsprite.Once, 100, ""),
+				"Close": animatedsprite.NewClip("sprites/environment/door-close-Sheet.png", 48, 16, animatedsprite.Once, 100, ""),
+			}, renderer.TextureTarget("LevelTextureRaw"), 5, 0.5, 0.5, "Idle",
 		)
 
 		doorAnimNode := doorNode.AddChild(doorAnim, "Sprite", engine.MakeOnTreeAdd(doorAnim, cmd))
@@ -79,6 +57,24 @@ func makeDoorBundle(entity *ebitenLDTK.Entity, level *ebitenLDTK.Level) engine.B
 		}
 
 		doorActor.AnimatedSprite = doorAnim
+
+		lockAnim := animatedsprite.NewAnimatedSprite(
+			graphic.NewGraphic(
+				graphic.WithTransform(
+					transform2D.NewTransform2D(
+						transform2D.WithPos(entity.Width/2, entity.Height/2),
+					),
+				),
+			),
+			map[string]*animatedsprite.Clip{
+				"Idle":      animatedsprite.NewClip("sprites/environment/lock-idle-Sheet.png", 40, 62, animatedsprite.Loop, 100, ""),
+				"Unlock":    animatedsprite.NewClip("sprites/environment/lock-unlock-Sheet.png", 40, 62, animatedsprite.Once, 80, ""),
+				"TryUnlock": animatedsprite.NewClip("sprites/environment/lock-tryunlock-Sheet.png", 40, 62, animatedsprite.Once, 80, ""),
+			}, renderer.TextureTarget("LevelTextureRaw"), 10, 0.5, 0.5, "Idle",
+		)
+
+		doorNode.AddChild(lockAnim, "LockAnim", engine.MakeOnTreeAdd(lockAnim, cmd))
+		doorActor.LockAnim = lockAnim
 
 		triggerField := utils.Must(entity.GetFieldByName("InteractRegion"))
 		triggerEntityIid := ebitenLDTK.As[ebitenLDTK.EntityRef](triggerField).EntityIid

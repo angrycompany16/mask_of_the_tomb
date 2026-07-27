@@ -100,6 +100,7 @@ func MakePlayerBundle(playerX, playerY, playerWidth, playerHeight float64) engin
 			sound.WithSoundData("sfx/dash.wav", false, "dash"),
 			sound.WithDspChannel("master"),
 			sound.WithStartTriggers(playerActor.OnMove),
+			sound.WithPitchRandomization(0.05),
 		)
 
 		playerNode.AddChild(dashSound, "DashSound", engine.MakeOnTreeAdd(dashSound, cmd))

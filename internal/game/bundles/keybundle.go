@@ -16,7 +16,6 @@ func makeKeyBundle(entity *ebitenLDTK.Entity) engine.Bundle {
 		keyActor := key.NewKey(entity)
 
 		keyActorNode := scene.SpawnActor("Key", keyActor, cmd)
-		//		keyActorNode := envParentNode.AddChild(keyActor, "Key", engine.MakeOnTreeAdd(keyActor, cmd))
 
 		sprite := sprite.NewSprite(
 			renderer.TextureTarget("LevelTextureRaw"),
@@ -24,6 +23,7 @@ func makeKeyBundle(entity *ebitenLDTK.Entity) engine.Bundle {
 			sprite.WithPivot(0, 0),
 		)
 
+		keyActor.Sprite = sprite
 		keyActorNode.AddChild(sprite, "sprite", engine.MakeOnTreeAdd(sprite, cmd))
 
 		collectSound := sound.NewSoundPlayer(

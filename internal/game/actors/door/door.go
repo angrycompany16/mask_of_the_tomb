@@ -43,6 +43,7 @@ type Door struct {
 	Trigger            *trigger.Trigger
 	SpriteTransform    *transform2D.Transform2D
 	AnimatedSprite     *animatedsprite.AnimatedSprite
+	LockAnim           *animatedsprite.AnimatedSprite
 	EntityIid          string
 	OtherSideLevelIid  string
 	OtherSideEntityIid string
@@ -73,6 +74,10 @@ func (d *Door) Init(cmd *commands.Commands) {
 	if unlocked, ok := gamestate.UnlockedDoors[d.EntityIid]; ok {
 		d.Locked = !unlocked
 		fmt.Println("Setting locked state to", !unlocked)
+	}
+
+	if !d.Locked {
+		d.LockAnim.Hidden = true
 	}
 
 	d.OnClipFinished = events.NewBusFrom(d.AnimatedSprite.OnClipFinished)
@@ -129,8 +134,9 @@ func (d *Door) Update(cmd *commands.Commands) {
 		playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
 		if playerControls.PollAction("DoorInteract") && d.isReady {
 			if d.Locked {
-				fmt.Println("Unable to open locked door") // Here we will add a sound effect
 				d.OnTryOpenLocked.Raise()
+				d.LockAnim.SwitchClip("TryUnlock")
+				d.LockAnim.Restart()
 			} else if !d.Locked {
 				d.OnOpen.Raise()
 				d.AnimatedSprite.SwitchClip("Open")
@@ -141,13 +147,27 @@ func (d *Door) Update(cmd *commands.Commands) {
 		if playerControls.PollAction("Use") && d.isReady {
 			gamestate, _ := commands.Get[gamestate.GameState](cmd)
 			inventory := gamestate.Inventory
-			haskey := inventory.HasKey(d.EntityIid) || inventory.HasKey(d.OtherSideEntityIid)
+			var keyIid string
+			haskeyThisSide, keyIidThisSide := inventory.HasKey(d.EntityIid)
+			hasKeyOtherSide, keyIidOtherSide := inventory.HasKey(d.OtherSideEntityIid)
+			if haskeyThisSide {
+				keyIid = keyIidThisSide
+			} else if hasKeyOtherSide {
+				keyIid = keyIidOtherSide
+			}
 
-			if d.Locked && haskey {
+			if d.Locked && (haskeyThisSide || hasKeyOtherSide) {
 				d.OnUnlockEv.Raise()
 				d.Locked = false
 				gamestate.UnlockedDoors[d.EntityIid] = true
 				gamestate.UnlockedDoors[d.OtherSideEntityIid] = true
+				d.LockAnim.SwitchClip("Unlock")
+				fmt.Println(inventory)
+				fmt.Println(inventory.Keys)
+				fmt.Println(keyIid)
+				fmt.Println(inventory.Keys[keyIid])
+				fmt.Println(inventory.Keys[keyIid].Used)
+				inventory.Keys[keyIid].Used = true
 			}
 		}
 	}

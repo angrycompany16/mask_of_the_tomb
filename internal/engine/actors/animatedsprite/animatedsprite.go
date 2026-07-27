@@ -26,6 +26,7 @@ type AnimatedSprite struct {
 	drawOrder      int     `debug:"auto"`
 	pivotX         float64 `debug:"auto"`
 	pivotY         float64 `debug:"auto"`
+	Hidden         bool
 }
 
 func (a *AnimatedSprite) OnTreeAdd(node *engine.Node, cmd *commands.Commands) {
@@ -49,6 +50,10 @@ func (a *AnimatedSprite) Init(cmd *commands.Commands) {
 
 func (a *AnimatedSprite) Update(cmd *commands.Commands) {
 	a.Graphic.Update(cmd)
+	if a.Hidden {
+		return
+	}
+
 	activeClip := a.Clips[a.ActiveClipName]
 
 	activeClip.Update()
@@ -71,6 +76,12 @@ func (a *AnimatedSprite) Update(cmd *commands.Commands) {
 		a.target,
 		a.drawOrder,
 	)
+}
+
+func (a *AnimatedSprite) Restart() {
+	activeClip := a.Clips[a.ActiveClipName]
+	activeClip.Reset()
+	activeClip.Play()
 }
 
 func (a *AnimatedSprite) SwitchClip(newClip string) {
@@ -110,6 +121,7 @@ func NewAnimatedSprite(
 		pivotX:         pivotX,
 		pivotY:         pivotY,
 		ActiveClipName: startClip,
+		Hidden:         false,
 	}
 }
 
