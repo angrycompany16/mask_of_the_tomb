@@ -17,6 +17,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sound"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/game/globaldata"
 )
 
 func MakePauseMenuBundle() engine.Bundle {
@@ -127,6 +128,9 @@ func MakePauseMenuBundle() engine.Bundle {
 				textbox.WithText("Quit"),
 			),
 			selectable.WithCallback(func(cmd *commands.Commands) {
+				globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+				globaldata.Persist.Save(globaldata.Temp.CurrentSaveProfile, false)
+
 				slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
 				slamboxenv.Reset()
 				triggerenv, _ := commands.Get[triggerenv.TriggerEnv](cmd)

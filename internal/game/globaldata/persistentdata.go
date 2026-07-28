@@ -128,6 +128,8 @@ func (p *PersistentData) Load(profile int, isConfig bool) {
 		fmt.Errorf("LOAD: Error when decoding save data:", err)
 		return
 	}
+
+	fmt.Println("Finished loading:", target)
 }
 
 func (p *PersistentData) UnlockDoor(entityIid string) {

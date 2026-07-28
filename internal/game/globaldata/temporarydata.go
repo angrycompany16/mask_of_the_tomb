@@ -9,8 +9,9 @@ import (
 )
 
 type TemporaryData struct {
-	LevelStates   map[string]LevelState
-	GrassWindSeed int64
+	LevelStates        map[string]LevelState
+	GrassWindSeed      int64
+	CurrentSaveProfile int
 }
 
 type LevelState struct {
@@ -45,7 +46,8 @@ func NewLevelState(spawnX, spawnY float64, spawnDir maths.Direction) LevelState 
 
 func newTemporaryData() TemporaryData {
 	return TemporaryData{
-		LevelStates:   make(map[string]LevelState),
-		GrassWindSeed: rand.Int64(),
+		LevelStates:        make(map[string]LevelState),
+		GrassWindSeed:      rand.Int64(),
+		CurrentSaveProfile: 0,
 	}
 }

@@ -14,7 +14,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sound"
 	"mask_of_the_tomb/internal/engine/commands"
-	"mask_of_the_tomb/internal/game/actors/savemanager"
+	"mask_of_the_tomb/internal/game/globaldata"
 )
 
 func MakeMainMenuBundle() engine.Bundle {
@@ -36,8 +36,6 @@ func MakeMainMenuBundle() engine.Bundle {
 				},
 			),
 		), cmd)
-
-		scene.SpawnActor("SaveManager", savemanager.MakeSaveManager(), cmd)
 
 		rootAlign := scene.SpawnActor("RootAlign", align.NewAlign(
 			container.NewContainer(
@@ -79,6 +77,9 @@ func MakeMainMenuBundle() engine.Bundle {
 				textbox.WithText("Play video game"),
 			),
 			selectable.WithCallback(func(cmd *commands.Commands) {
+				globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+				globaldata.Persist.Load(globaldata.Temp.CurrentSaveProfile, false)
+
 				scenemanager, _ := commands.Get[engine.SceneManager](cmd)
 				scenemanager.SpawnScene("d5ae6780-1030-11f0-996f-efbed2df7e2d", cmd)
 			}),
@@ -111,6 +112,9 @@ func MakeMainMenuBundle() engine.Bundle {
 				textbox.WithText("Don't play video game"),
 			),
 			selectable.WithCallback(func(cmd *commands.Commands) {
+				globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+				globaldata.Persist.Save(0, true)
+
 				cmd.GameInfo.Exit = true
 			}),
 		)

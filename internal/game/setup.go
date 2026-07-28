@@ -50,6 +50,9 @@ func CreateGame(gw, gh, ps int) *engine.Game {
 
 	cmd.AssetLoader.LoadAll()
 
+	globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+	globaldata.Persist.Load(0, true)
+
 	sceneManager, _ := commands.Get[engine.SceneManager](cmd)
 	LDTKWorld := ldtkDataRef.Value().World
 	for _, level := range LDTKWorld.Levels {

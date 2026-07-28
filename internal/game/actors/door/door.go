@@ -162,11 +162,6 @@ func (d *Door) Update(cmd *commands.Commands) {
 				globaldata.Persist.Profile.UnlockedDoors[d.EntityIid] = true
 				globaldata.Persist.Profile.UnlockedDoors[d.OtherSideEntityIid] = true
 				d.LockAnim.SwitchClip("Unlock")
-				fmt.Println(inventory)
-				fmt.Println(inventory.Keys)
-				fmt.Println(keyIid)
-				fmt.Println(inventory.Keys[keyIid])
-				fmt.Println(inventory.Keys[keyIid].Used)
 				inventory.Keys[keyIid].Used = true
 			}
 		}
