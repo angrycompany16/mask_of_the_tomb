@@ -18,8 +18,6 @@ func (s *SaveManager) Init(cmd *commands.Commands) {
 	globaldata.Persist.Load(0, true)
 }
 
-func (s *SaveManager) Save()
-
 func MakeSaveManager() *SaveManager {
 	return &SaveManager{
 		Node: nodeactor.NewNode(),

@@ -16,4 +16,4 @@
 - [ ] Implement simple button prompt for doors and locked doors
 - [ ] Add systme for saving game info to disk
 - [ ] Add menu for selecting save file
-
+- [ ] Resoluve bug: Slalboxes currently don't get reset since they all use slambox groups instead of just slamboxes. Should be an easy fix
