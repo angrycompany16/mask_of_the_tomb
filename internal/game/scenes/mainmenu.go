@@ -14,8 +14,8 @@ func MakeMainMenuScene() engine.SceneBuilder {
 
 		gameWidth, gameHeigth := cmd.Renderer.GetGameSize()
 		pixelScale := cmd.Renderer.GetPixelScale()
-		scene.SpawnBundle(cmd, enginebundles.MakeDefaultBundle(gameWidth, gameHeigth, pixelScale))
-		scene.SpawnBundle(cmd, bundles.MakeMainMenuBundle())
+		scene.SpawnBundleV2(cmd, enginebundles.MakeDefaultBundle(gameWidth, gameHeigth, pixelScale))
+		scene.SpawnBundleV2(cmd, bundles.MakeMainMenuBundle())
 		return scene
 	}
 }

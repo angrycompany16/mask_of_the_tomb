@@ -14,21 +14,13 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sound"
 	"mask_of_the_tomb/internal/engine/commands"
+	"mask_of_the_tomb/internal/game/actors/savemanager"
 )
 
 func MakeMainMenuBundle() engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		gw, gh := cmd.Renderer.GetGameSize()
 		ps := cmd.Renderer.GetPixelScale()
-
-		rootAlign := scene.SpawnActor("RootAlign", align.NewAlign(
-			container.NewContainer(
-				nodeactor.NewNode(),
-				container.WithRect(maths.NewRect(0, 0, gw*ps, gh*ps)),
-			),
-			align.WithIsRow(false),
-			align.WithSpacing([]float64{2, 3}),
-		), cmd)
 
 		scene.SpawnActor("CoolCursor", cursor.NewCursor(
 			uigraphic.NewUIGraphic(
@@ -43,6 +35,17 @@ func MakeMainMenuBundle() engine.Bundle {
 					Name: "ScreenUI",
 				},
 			),
+		), cmd)
+
+		scene.SpawnActor("SaveManager", savemanager.MakeSaveManager(), cmd)
+
+		rootAlign := scene.SpawnActor("RootAlign", align.NewAlign(
+			container.NewContainer(
+				nodeactor.NewNode(),
+				container.WithRect(maths.NewRect(0, 0, gw*ps, gh*ps)),
+			),
+			align.WithIsRow(false),
+			align.WithSpacing([]float64{2, 3}),
 		), cmd)
 
 		titleActor := textbox.NewTextBox(

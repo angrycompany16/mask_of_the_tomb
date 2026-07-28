@@ -18,7 +18,7 @@ import (
 	"mask_of_the_tomb/internal/game/actors/key"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxgroup"
-	"mask_of_the_tomb/internal/game/gamestate"
+	"mask_of_the_tomb/internal/game/globaldata"
 	"mask_of_the_tomb/internal/game/sceneswitch"
 	"math"
 
@@ -73,7 +73,7 @@ func (p *Player) Init(cmd *commands.Commands) {
 
 	scene, _ := commands.Get[engine.Scene](cmd)
 	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
-	gamestate_, _ := commands.Get[gamestate.GameState](cmd)
+	globaldata_, _ := commands.Get[globaldata.GlobalData](cmd)
 
 	// TODO: Make it so that we aren't *forced* to spawn the player after
 	// All of the doors and stuff...
@@ -106,8 +106,8 @@ func (p *Player) Init(cmd *commands.Commands) {
 
 	p.Direction = sceneswitch.SpawnDirection
 	x, y := p.GetPos()
-	gamestate_.LevelStates[scene.GetName()] = gamestate.NewLevelState(x, y, p.Direction)
-	gamestate_.SaveLevelState(scene)
+	globaldata_.Temp.LevelStates[scene.GetName()] = globaldata.NewLevelState(x, y, p.Direction)
+	globaldata_.Temp.SaveLevelState(scene)
 
 	playerControls := cmd.InputHandler.InputSchemes["PlayerControls"]
 	playerControls.RegisterAction("moveLeft", input.KeyJustPressedAction(ebiten.KeyA))
@@ -148,7 +148,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 
 	scene, _ := commands.Get[engine.Scene](cmd)
 	slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
-	gameState, _ := commands.Get[gamestate.GameState](cmd)
+	globaldata_, _ := commands.Get[globaldata.GlobalData](cmd)
 
 	x, y := p.pivotTransform.GetPos(false)
 
@@ -244,7 +244,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 
 					p.setDoorOffset(doorActor.Hitbox)
 
-					gameState.SaveLevelState(scene)
+					globaldata_.Temp.SaveLevelState(scene)
 					cmd.InputHandler.InputSchemes["PlayerControls"].Active = false
 					p.jumpOffsetvel = 3.5
 				}
@@ -285,7 +285,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 	p.inputbuffer.Update()
 
 	if cmd.InputHandler.InputSchemes["PlayerControls"].PollAction("Reset") {
-		p.ResetLevel(scene, gameState)
+		p.ResetLevel(scene, globaldata_)
 	}
 
 	// TODO: This is not clean at all
@@ -300,7 +300,7 @@ func (p *Player) Update(cmd *commands.Commands) {
 		return triggerRect.Overlapping(p.GetRect())
 	})
 	if ok {
-		p.ResetLevel(scene, gameState)
+		p.ResetLevel(scene, globaldata_)
 	}
 
 	keyNode, ok := scene.GetNodeFunc(func(n *engine.Node) bool {
@@ -315,9 +315,9 @@ func (p *Player) Update(cmd *commands.Commands) {
 	if ok {
 		key, _ := engine.As[*key.Key](keyNode.GetValue())
 		if !key.PickedUp {
-			gamestate_, _ := commands.Get[gamestate.GameState](cmd)
-			inventory := gamestate_.Inventory
-			inventory.Keys[key.EntityIid] = &gamestate.Key{key.DoorIid, false}
+			gamestate_, _ := commands.Get[globaldata.GlobalData](cmd)
+			inventory := gamestate_.Persist.Profile.Inventory
+			inventory.Keys[key.EntityIid] = &globaldata.Key{key.DoorIid, false}
 			key.OnPickupEv.Raise().WithData("Transform", p.Transform2D)
 		}
 	}
@@ -356,8 +356,8 @@ func (p *Player) GetCenterPos() (float64, float64) {
 	return x + p.GetRect().Width/2, y + p.GetRect().Height/2
 }
 
-func (p *Player) ResetLevel(scene *engine.Scene, gameState *gamestate.GameState) {
-	levelstate := gameState.LevelStates[scene.GetName()]
+func (p *Player) ResetLevel(scene *engine.Scene, gameState *globaldata.GlobalData) {
+	levelstate := gameState.Temp.LevelStates[scene.GetName()]
 
 	p.SetPos(levelstate.PlayerSpawnPos.X, levelstate.PlayerSpawnPos.Y)
 	p.Direction = levelstate.PlayerSpawnDir

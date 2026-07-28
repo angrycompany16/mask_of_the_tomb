@@ -7,7 +7,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/grass"
-	"mask_of_the_tomb/internal/game/gamestate"
+	"mask_of_the_tomb/internal/game/globaldata"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -16,7 +16,7 @@ import (
 func makeGrassBundle(entity *ebitenLDTK.Entity, level *ebitenLDTK.Level) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		playerspace := utils.Must(level.GetLayerByName("Playerspace"))
-		gamestate, _ := commands.Get[gamestate.GameState](cmd)
+		globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
 
 		grassActor := grass.NewGrass(
 			graphic.NewGraphic(
@@ -29,7 +29,7 @@ func makeGrassBundle(entity *ebitenLDTK.Entity, level *ebitenLDTK.Level) engine.
 			entity,
 			playerspace.GridSize,
 			"sprites/environment/grass.png",
-			gamestate.GrassWindSeed,
+			globaldata.Temp.GrassWindSeed,
 			renderer.TextureTarget("LevelTextureRaw"),
 			-10,
 		)

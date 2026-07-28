@@ -7,7 +7,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
-	"mask_of_the_tomb/internal/game/gamestate"
+	"mask_of_the_tomb/internal/game/globaldata"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -39,9 +39,9 @@ type Key struct {
 
 func (k *Key) Init(cmd *commands.Commands) {
 	k.Missile.Init(cmd)
-	gamestate, _ := commands.Get[gamestate.GameState](cmd)
+	globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
 
-	if _, ok := gamestate.Inventory.Keys[k.EntityIid]; ok {
+	if _, ok := globaldata.Persist.Profile.Inventory.Keys[k.EntityIid]; ok {
 		k.PickedUp = true
 		k.Sprite.Hidden = true
 	}

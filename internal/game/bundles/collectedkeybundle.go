@@ -11,17 +11,17 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/key"
 	"mask_of_the_tomb/internal/game/actors/player"
-	"mask_of_the_tomb/internal/game/gamestate"
+	"mask_of_the_tomb/internal/game/globaldata"
 )
 
 func MakeCollectedKeysBundle(playerX, playerY float64) engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		keysRootNode := scene.SpawnActor("CollectedKeys", nodeactor.NewNode(), cmd)
-		gamestate, _ := commands.Get[gamestate.GameState](cmd)
+		globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
 		playerNode, _ := scene.GetNodeByName("Player")
 		playerActor, _ := engine.As[*player.Player](playerNode.GetValue())
 
-		for _, keyData := range gamestate.Inventory.Keys {
+		for _, keyData := range globaldata.Persist.Profile.Inventory.Keys {
 			if keyData.Used {
 				continue
 			}

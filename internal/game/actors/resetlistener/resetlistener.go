@@ -7,7 +7,7 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/player"
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
-	"mask_of_the_tomb/internal/game/gamestate"
+	"mask_of_the_tomb/internal/game/globaldata"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -30,8 +30,8 @@ func (r *ResetListener) Update(cmd *commands.Commands) {
 
 	if cmd.InputHandler.InputSchemes["PlayerControls"].PollAction("Reset") {
 		scene, _ := commands.Get[engine.Scene](cmd)
-		gamestate, _ := commands.Get[gamestate.GameState](cmd)
-		levelstate := gamestate.LevelStates[scene.GetName()]
+		globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+		levelstate := globaldata.Temp.LevelStates[scene.GetName()]
 
 		slamboxes := scene.GetRoot().GetChildrenFunc(
 			func(n *node.Node[engine.Actor]) bool {

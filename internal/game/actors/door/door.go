@@ -16,7 +16,7 @@ import (
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/trigger"
-	"mask_of_the_tomb/internal/game/gamestate"
+	"mask_of_the_tomb/internal/game/globaldata"
 	"mask_of_the_tomb/internal/game/sceneswitch"
 	"mask_of_the_tomb/internal/utils"
 
@@ -69,9 +69,9 @@ func (d *Door) Init(cmd *commands.Commands) {
 		d.State = CLOSING
 	}
 
-	gamestate, _ := commands.Get[gamestate.GameState](cmd)
+	globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
 
-	if unlocked, ok := gamestate.UnlockedDoors[d.EntityIid]; ok {
+	if unlocked, ok := globaldata.Persist.Profile.UnlockedDoors[d.EntityIid]; ok {
 		d.Locked = !unlocked
 		fmt.Println("Setting locked state to", !unlocked)
 	}
@@ -145,8 +145,8 @@ func (d *Door) Update(cmd *commands.Commands) {
 		}
 
 		if playerControls.PollAction("Use") && d.isReady {
-			gamestate, _ := commands.Get[gamestate.GameState](cmd)
-			inventory := gamestate.Inventory
+			globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+			inventory := globaldata.Persist.Profile.Inventory
 			var keyIid string
 			haskeyThisSide, keyIidThisSide := inventory.HasKey(d.EntityIid)
 			hasKeyOtherSide, keyIidOtherSide := inventory.HasKey(d.OtherSideEntityIid)
@@ -159,8 +159,8 @@ func (d *Door) Update(cmd *commands.Commands) {
 			if d.Locked && (haskeyThisSide || hasKeyOtherSide) {
 				d.OnUnlockEv.Raise()
 				d.Locked = false
-				gamestate.UnlockedDoors[d.EntityIid] = true
-				gamestate.UnlockedDoors[d.OtherSideEntityIid] = true
+				globaldata.Persist.Profile.UnlockedDoors[d.EntityIid] = true
+				globaldata.Persist.Profile.UnlockedDoors[d.OtherSideEntityIid] = true
 				d.LockAnim.SwitchClip("Unlock")
 				fmt.Println(inventory)
 				fmt.Println(inventory.Keys)

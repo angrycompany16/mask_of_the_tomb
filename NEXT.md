@@ -14,3 +14,6 @@
 - [X] Deprecate the old slambox module! Everything is a group now :)
 - [X] Make key + lock sprites and animations
 - [ ] Implement simple button prompt for doors and locked doors
+- [ ] Add systme for saving game info to disk
+- [ ] Add menu for selecting save file
+
