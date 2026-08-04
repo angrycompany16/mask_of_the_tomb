@@ -1,9 +1,9 @@
 package assettypes
 
 import (
-	"fmt"
 	"image"
 	"io/fs"
+	"log"
 	"path/filepath"
 	"strings"
 
@@ -49,7 +49,7 @@ func (a *LDTKAsset) Load(fs fs.FS) (any, error) {
 		// fmt.Println(tilesetPath)
 
 		if !strings.HasSuffix(tilesetPath, ".png") {
-			fmt.Println("Tileset loading: Skipping non-png file")
+			log.Println("Tileset loading: Skipping non-png file")
 			continue
 		}
 

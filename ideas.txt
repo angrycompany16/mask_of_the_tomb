@@ -28,4 +28,9 @@ We create a cmd system that stores global (i.e. world-level) info about game
 progression, such as collectibles, context for NPC's, and other things. Once again we will
 learn from the best and take inspiration from aarthificial.
 
-
+Notes for level creation:
+Try to create something that actually has an interesting "twist" or "Aha moment". Look at 
+GMtk videos for Inspiration.
+Note that this doesn't mean that each level needs its own completely unique mechanic, but
+it does mean that each level should utilize some kind of (unique) rule or logical 
+conclusion.

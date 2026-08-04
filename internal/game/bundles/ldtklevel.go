@@ -185,14 +185,17 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 				entityBundle = makeDoorBundle(&entity, &level)
 				// case chainNodeEntityName:
 				// 	newLevel.chainNodes = append(newLevel.chainNodes, entities.NewChainNode(&entity))
-				// case names.TestSpeechBubbleEntity:
-				// 	fmt.Println(entity.Px[0], entity.Px[1])
-				// 	newLevel.testSpeechBubble = speechbubble.NewSpeechBubble(
-				// 		entity.Px[0], entity.Px[1], entity.Width, entity.Height, false,
-				// 	)
-				// }
 			case "DoorKey":
 				entityBundle = makeKeyBundle(&entity)
+			case "NPCSpawn":
+				NPCField, _ := entity.GetFieldByName("NPC")
+				NPCName := ebitenLDTK.As[ebitenLDTK.Enum](NPCField).Value
+				switch NPCName {
+				case "Lemma":
+					entityBundle = makeLemmaBundle(&entity)
+				case "Grok":
+					entityBundle = makeGrokBundle(&entity)
+				}
 			default:
 				hasBundle = false
 			}

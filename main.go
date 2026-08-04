@@ -49,6 +49,8 @@ func main() {
 		defer stopProfiling()
 	}
 
+	utils.StartLogger()
+
 	// ebiten.SetWindowSize(GAME_WIDTH*PIXEL_SCALE, GAME_HEIGHT*PIXEL_SCALE)
 	ebiten.SetWindowTitle("Mask of the tomb")
 	// ebiten.SetCursorMode(ebiten.CursorModeHidden)

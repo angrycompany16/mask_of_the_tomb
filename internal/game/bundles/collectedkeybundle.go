@@ -2,9 +2,9 @@ package bundles
 
 import (
 	"mask_of_the_tomb/internal/backend/maths"
-	"mask_of_the_tomb/internal/backend/missile"
 	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
+	"mask_of_the_tomb/internal/engine/actors/missile"
 	"mask_of_the_tomb/internal/engine/actors/nodeactor"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"

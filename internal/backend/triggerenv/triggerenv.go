@@ -29,11 +29,6 @@ type TriggerEnv struct {
 }
 
 func (t *TriggerEnv) CheckCollision(trigger *Trigger) (bool, CollisionInfo) {
-	// fmt.Println("--- TRIGGER LIST ---")
-	// for _, trigger := range t.triggers {
-	// 	fmt.Println(trigger.Name)
-	// }
-	// fmt.Println("--------------------")
 	for _, otherTrigger := range t.triggers {
 		if otherTrigger == trigger {
 			// fmt.Println("Skip:", otherTrigger.Name)

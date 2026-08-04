@@ -1,8 +1,8 @@
 package door
 
 import (
-	"fmt"
 	"image/color"
+	"log"
 	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/opgen"
@@ -70,7 +70,6 @@ func (d *Door) Init(cmd *commands.Commands) {
 
 	if unlocked, ok := globaldata.Persist.Profile.UnlockedDoors[d.EntityIid]; ok {
 		d.Locked = !unlocked
-		fmt.Println("Setting locked state to", !unlocked)
 	}
 
 	if !d.Locked {
@@ -101,7 +100,7 @@ func (d *Door) Update(cmd *commands.Commands) {
 		}
 	case OPENING:
 		if value, raised := d.OnClipFinished.Poll(); raised && value["clip"] == "Open" {
-			fmt.Println("Switch scene!")
+			log.Println("Switch scene to", d.OtherSideLevelIid)
 			scenemanager, _ := commands.Get[engine.SceneManager](cmd)
 
 			globaldata, _ := commands.Get[globaldata.GlobalData](cmd)

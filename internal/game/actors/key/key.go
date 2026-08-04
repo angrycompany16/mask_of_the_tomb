@@ -3,7 +3,7 @@ package key
 import (
 	"mask_of_the_tomb/internal/backend/events"
 	"mask_of_the_tomb/internal/backend/maths"
-	"mask_of_the_tomb/internal/backend/missile"
+	"mask_of_the_tomb/internal/engine/actors/missile"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/actors/transform2D"
 	"mask_of_the_tomb/internal/engine/commands"

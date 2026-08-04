@@ -125,7 +125,7 @@ func SoundServer(
 		select {
 		case audioRequest := <-playRequestChan:
 			if playChans[audioRequest.name] == nil {
-				fmt.Printf("player named [%s] not found!\n", audioRequest.name)
+				log.Printf("player named [%s] not found!\n", audioRequest.name)
 				continue
 			}
 			playChans[audioRequest.name] <- audioRequest
@@ -135,7 +135,7 @@ func SoundServer(
 			dspChannels.editEffect(editEffectRequest.channelName, editEffectRequest.effectName, editEffectRequest.action)
 		case name := <-stopRequestChan:
 			if stopChans[name] == nil {
-				fmt.Printf("player named [%s] not found!\n", name)
+				log.Printf("player named [%s] not found!\n", name)
 				continue
 			}
 			stopChans[name] <- 1

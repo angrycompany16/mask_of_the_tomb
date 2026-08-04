@@ -1,7 +1,7 @@
 package key
 
 import (
-	"mask_of_the_tomb/internal/backend/missile"
+	"mask_of_the_tomb/internal/engine/actors/missile"
 	"mask_of_the_tomb/internal/engine/actors/sprite"
 	"mask_of_the_tomb/internal/engine/commands"
 )

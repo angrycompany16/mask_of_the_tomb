@@ -3,6 +3,7 @@ package assetloader
 import (
 	"fmt"
 	"io/fs"
+	"log"
 
 	om "github.com/wk8/go-ordered-map/v2"
 )
@@ -85,7 +86,7 @@ func StageAsset[T any](a *AssetLoader, name string, loadable Loadable) *AssetRef
 
 // Probably should incorporate a simple mutex here
 func (a *AssetLoader) LoadAll() {
-	fmt.Println("Loading all assets...")
+	log.Println("Loading all assets...")
 	for pair := a.assetpool.Oldest(); pair != nil; pair = pair.Next() {
 		if pair.Value.status == LOADED || pair.Value.status == FAILED {
 			continue
@@ -93,13 +94,14 @@ func (a *AssetLoader) LoadAll() {
 		val, err := pair.Value.loadable.Load(a.fs)
 		if err != nil {
 			fmt.Printf("WARNING: Asset failed with error %s\n", err.Error())
+			log.Printf("WARNING: Asset failed with error %s\n", err.Error())
 			pair.Value.status = FAILED
 			continue
 		}
 		pair.Value.status = LOADED
 		pair.Value.value = val
 	}
-	fmt.Println("Done!")
+	log.Println("Done!")
 	// Print asset registry
 }
 

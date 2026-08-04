@@ -8,12 +8,16 @@
 - [X] Add particle effects to multi-slamboxes (it's fucking RESOLVED BABY (one try hell yeah))
 - [X] Add default value to transform2D actor to reduce constructor code (like with nodeactor)
 - [ ] Remove the need for adding direction explicitly in LDtk -- Just compute based on vector from interact region to door (if possible!)
-- [ ] Add logging for more detailed debug output. Reduce Println statements.
+- [X] Add logging for more detailed debug output. Reduce Println statements.
 - [X] Store the state of locked doors as part of gamestate
 - [X] Add sounds for picking up key, unlocking doors, and trying to open locked doors
 - [X] Deprecate the old slambox module! Everything is a group now :)
 - [X] Make key + lock sprites and animations
 - [ ] Implement simple button prompt for doors and locked doors
 - [X] Add system for saving game info to disk
-- [ ] Add menu for selecting save file
-- [ ] Resoluve bug: Slamboxes currently don't get reset since they all use slambox groups instead of just slamboxes. Should be an easy fix
+- [X] Add menu for selecting save file
+- [X] Resoluve bug: Slamboxes currently don't get reset since they all use slambox groups instead of just slamboxes. Should be an easy fix
+- [ ] Make key idle rotation centered around player
+- [ ] Make key render in front of slamboxes and doors
+- [ ] Add some fading / effect when respawning
+- [ ] Next long term goal: NPCs!

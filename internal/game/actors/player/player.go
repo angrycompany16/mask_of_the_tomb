@@ -96,8 +96,6 @@ func (p *Player) Init(cmd *commands.Commands) {
 	if enteringFromRoom {
 		doorActor, _ := engine.As[*door.Door](spawnDoorNode.GetValue())
 		p.SetPos(doorActor.GetSpawnPos())
-		//		p.Transform2D.SetPos(doorActor.GetSpawnPos())
-		p.Transform2D.Propagate()
 		p.State = ENTERING
 		p.jumpOffset = -2 * p.GetRect().Height
 		p.jumpOffsetvel = 4.5
@@ -106,14 +104,11 @@ func (p *Player) Init(cmd *commands.Commands) {
 		p.Direction = globaldata_.Temp.SceneSwitch.SpawnDirection
 	} else if savedDoor {
 		doorActor, _ := engine.As[*door.Door](spawnDoorNode.GetValue())
-		p.SetPos(doorActor.GetSpawnPos())
 		p.Transform2D.Propagate()
 		p.Direction = doorActor.Direction
 	} else if hasGameInitPos {
 
 	} else {
-		fmt.Println("All methods for finding spawn pos failed. Picking first available door")
-
 		spawnDoorNode, _ := scene.GetNodeFunc(
 			func(n *node.Node[engine.Actor]) bool {
 				_, ok := engine.As[*door.Door](n.GetValue())
@@ -124,9 +119,9 @@ func (p *Player) Init(cmd *commands.Commands) {
 		doorActor, _ := engine.As[*door.Door](spawnDoorNode.GetValue())
 		p.SetPos(doorActor.GetSpawnPos())
 		p.Transform2D.SetPos(doorActor.GetSpawnPos())
-		p.Transform2D.Propagate()
 		p.Direction = doorActor.Direction
 	}
+	p.Transform2D.Propagate()
 
 	x, y := p.GetPos()
 	globaldata_.Temp.LevelStates[scene.GetName()] = globaldata.NewLevelState(x, y, p.Direction)
