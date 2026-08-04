@@ -39,3 +39,4 @@ Bug and improvement list:
   I guess it's fine, but we really shouldn't be doing that kind
   of stuff. It would be better if we just manually re-rectify whenever we actually
 	change the level geometry.
+- In the options menu, it looks like there is "one button too much". This alignment issue should be resolved.

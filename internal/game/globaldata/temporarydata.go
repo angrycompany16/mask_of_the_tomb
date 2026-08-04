@@ -4,7 +4,7 @@ import (
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/node"
 	"mask_of_the_tomb/internal/engine"
-	"mask_of_the_tomb/internal/game/actors/slamboxactor"
+	"mask_of_the_tomb/internal/game/actors/slamboxgroup"
 	"math/rand/v2"
 )
 
@@ -12,6 +12,14 @@ type TemporaryData struct {
 	LevelStates        map[string]LevelState
 	GrassWindSeed      int64
 	CurrentSaveProfile int
+	SceneSwitch        SceneSwitch
+	BypassSave         bool
+}
+
+type SceneSwitch struct {
+	SpawnEntityIid string
+	SpawnDirection maths.Direction
+	PreviousBiome  string
 }
 
 type LevelState struct {
@@ -25,13 +33,13 @@ func (t *TemporaryData) SaveLevelState(scene *engine.Scene) {
 
 	slamboxes := scene.GetRoot().GetChildrenFunc(
 		func(n *node.Node[engine.Actor]) bool {
-			_, ok := engine.As[*slamboxactor.Slambox](n.GetValue())
+			_, ok := engine.As[*slamboxgroup.SlamboxGroup](n.GetValue())
 			return ok
 		},
 	)
 
 	for _, slambox := range slamboxes {
-		slamboxactor, _ := engine.As[*slamboxactor.Slambox](slambox.GetValue())
+		slamboxactor, _ := engine.As[*slamboxgroup.SlamboxGroup](slambox.GetValue())
 		levelState.SlamboxPositions[slambox.GetID()] = maths.NewVec2(slamboxactor.GetPos())
 	}
 }
@@ -44,10 +52,12 @@ func NewLevelState(spawnX, spawnY float64, spawnDir maths.Direction) LevelState 
 	}
 }
 
-func newTemporaryData() TemporaryData {
+func newTemporaryData(bypassSave bool) TemporaryData {
 	return TemporaryData{
 		LevelStates:        make(map[string]LevelState),
 		GrassWindSeed:      rand.Int64(),
 		CurrentSaveProfile: 0,
+		SceneSwitch:        SceneSwitch{"", maths.DirUp, ""},
+		BypassSave:         bypassSave,
 	}
 }

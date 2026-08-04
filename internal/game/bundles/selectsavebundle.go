@@ -1,6 +1,7 @@
 package bundles
 
 import (
+	"fmt"
 	"mask_of_the_tomb/internal/backend/maths"
 	"mask_of_the_tomb/internal/backend/renderer"
 	"mask_of_the_tomb/internal/engine"
@@ -17,7 +18,7 @@ import (
 	"mask_of_the_tomb/internal/game/globaldata"
 )
 
-func MakeMainMenuBundle() engine.Bundle {
+func MakeSaveMenuBundle() engine.Bundle {
 	return func(cmd *commands.Commands, scene *engine.Scene) *engine.Node {
 		gw, gh := cmd.Renderer.GetGameSize()
 		ps := cmd.Renderer.GetPixelScale()
@@ -43,7 +44,7 @@ func MakeMainMenuBundle() engine.Bundle {
 				container.WithRect(maths.NewRect(0, 0, gw*ps, gh*ps)),
 			),
 			align.WithIsRow(false),
-			align.WithSpacing([]float64{2, 3}),
+			align.WithSpacing([]float64{1, 7}),
 		), cmd)
 
 		titleActor := textbox.NewTextBox(
@@ -51,7 +52,7 @@ func MakeMainMenuBundle() engine.Bundle {
 				nodeactor.NewNode(),
 			),
 			"fonts/JSE_AmigaAMOS.ttf",
-			textbox.WithText("Meletus' tomb"),
+			textbox.WithText("Select a save file"),
 		)
 
 		rootAlign.AddChild(titleActor, "Title", engine.MakeOnTreeAdd(titleActor, cmd))
@@ -62,73 +63,54 @@ func MakeMainMenuBundle() engine.Bundle {
 					nodeactor.NewNode(),
 				),
 				align.WithIsRow(false),
-				align.WithSpacing([]float64{1, 1, 1}),
+				align.WithSpacing([]float64{-1}),
 			),
 		)
 
 		selectListNode := rootAlign.AddChild(selectList, "selectList", engine.MakeOnTreeAdd(selectList, cmd))
 
-		playButton := selectable.NewSelectable(
+		for i := range 3 {
+			saveButton := selectable.NewSelectable(
+				textbox.NewTextBox(
+					container.NewContainer(
+						nodeactor.NewNode(),
+					),
+					"fonts/JSE_AmigaAMOS.ttf",
+					textbox.WithText(fmt.Sprintf("Save %d", i+1)),
+				),
+				selectable.WithCallback(func(cmd *commands.Commands) {
+					globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+					globaldata.Temp.CurrentSaveProfile = i + 1
+					globaldata.Persist.Load(globaldata.Temp.CurrentSaveProfile, false)
+
+					scenemanager, _ := commands.Get[engine.SceneManager](cmd)
+					// Find last exited scene
+					scenemanager.SpawnScene(globaldata.Persist.Profile.SaveScene, cmd)
+				}),
+			)
+
+			selectListNode.AddChild(saveButton, "playButton", engine.MakeOnTreeAdd(saveButton, cmd))
+		}
+
+		backButton := selectable.NewSelectable(
 			textbox.NewTextBox(
 				container.NewContainer(
 					nodeactor.NewNode(),
 				),
 				"fonts/JSE_AmigaAMOS.ttf",
-				textbox.WithText("Play video game"),
+				textbox.WithText("Back to main menu"),
 			),
 			selectable.WithCallback(func(cmd *commands.Commands) {
-				globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
 				scenemanager, _ := commands.Get[engine.SceneManager](cmd)
-				if globaldata.Temp.BypassSave {
-					scenemanager.SpawnScene("d5ae6780-1030-11f0-996f-efbed2df7e2d", cmd)
-				} else {
-					scenemanager.SpawnScene("SaveMenu", cmd)
-				}
+				scenemanager.SpawnScene("MainMenu", cmd)
 			}),
 		)
 
-		selectListNode.AddChild(playButton, "playButton", engine.MakeOnTreeAdd(playButton, cmd))
-
-		optionsButton := selectable.NewSelectable(
-			textbox.NewTextBox(
-				container.NewContainer(
-					nodeactor.NewNode(),
-				),
-				"fonts/JSE_AmigaAMOS.ttf",
-				textbox.WithText("Options"),
-			),
-			selectable.WithCallback(func(cmd *commands.Commands) {
-				scenemanager, _ := commands.Get[engine.SceneManager](cmd)
-				scenemanager.SpawnScene("OptionsMenu", cmd)
-			}),
-		)
-
-		selectListNode.AddChild(optionsButton, "optionsButton", engine.MakeOnTreeAdd(optionsButton, cmd))
-
-		quitButton := selectable.NewSelectable(
-			textbox.NewTextBox(
-				container.NewContainer(
-					nodeactor.NewNode(),
-				),
-				"fonts/JSE_AmigaAMOS.ttf",
-				textbox.WithText("Don't play video game"),
-			),
-			selectable.WithCallback(func(cmd *commands.Commands) {
-				globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
-				if !globaldata.Temp.BypassSave {
-					globaldata.Persist.Save(0, true)
-				}
-
-				cmd.GameInfo.Exit = true
-			}),
-		)
-
-		selectListNode.AddChild(quitButton, "quitButton", engine.MakeOnTreeAdd(quitButton, cmd))
+		selectListNode.AddChild(backButton, "backButton", engine.MakeOnTreeAdd(backButton, cmd))
 
 		selectSound := sound.NewSoundPlayer(
 			sound.WithSoundData("sfx/select3.ogg", false, "select"),
 			sound.WithStartTriggers(selectList.OnSelectEv),
-			//			sound.WithStartTriggers(playButton.OnHoverStart, optionsButton.OnHoverStart, quitButton.OnHoverStart, selectList.OnSelect),
 		)
 
 		rootAlign.AddChild(selectSound, "selectSound", engine.MakeOnTreeAdd(selectSound, cmd))

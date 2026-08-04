@@ -52,7 +52,7 @@ func MakeOptionsbundle() engine.Bundle {
 					nodeactor.NewNode(),
 				),
 				align.WithIsRow(false),
-				align.WithSpacing([]float64{1, 1, 1, 1, 1, 1}),
+				align.WithSpacing([]float64{-1}),
 			),
 		)
 

@@ -40,6 +40,7 @@ func main() {
 	// flag.StringVar(&scenes.InitLevelName, "initlevel", "", "Level in which to spawn the player")
 	// flag.IntVar(&scenes.SaveProfile, "saveprofile", 1, "Profile to use for saving/loading (99 for dev save)")
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file (.prof ending)")
+	bypassSave := flag.Bool("bypassSave", false, "bypass the save system")
 
 	flag.Parse()
 
@@ -55,7 +56,7 @@ func main() {
 	go sound_v2.SoundServer([]string{"master"})
 
 	a := &App{
-		game.CreateGame(GAME_WIDTH, GAME_HEIGHT, PIXEL_SCALE),
+		game.CreateGame(GAME_WIDTH, GAME_HEIGHT, PIXEL_SCALE, *bypassSave),
 	}
 
 	ebiten.SetFullscreen(true)

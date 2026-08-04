@@ -16,6 +16,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// Deprecated: Use SlamboxGroup instead
 type Slambox struct {
 	*tracker.Tracker
 	rect         *maths.Rect

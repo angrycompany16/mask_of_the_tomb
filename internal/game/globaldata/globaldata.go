@@ -13,10 +13,10 @@ type GlobalData struct {
 	Temp    TemporaryData
 }
 
-func NewGameState() *GlobalData {
+func NewGlobalData(bypassSave bool) *GlobalData {
 	return &GlobalData{
 		Config:  newConfig(),
 		Persist: newPersistentData(),
-		Temp:    newTemporaryData(),
+		Temp:    newTemporaryData(bypassSave),
 	}
 }

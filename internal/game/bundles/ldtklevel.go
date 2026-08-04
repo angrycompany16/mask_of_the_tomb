@@ -22,7 +22,7 @@ import (
 	"mask_of_the_tomb/internal/game/actors/shaderactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
 	"mask_of_the_tomb/internal/game/actors/sounddebug"
-	"mask_of_the_tomb/internal/game/sceneswitch"
+	"mask_of_the_tomb/internal/game/globaldata"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -74,10 +74,10 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		biomeField := utils.Must(level.GetFieldByName("Biome"))
 		biome := ebitenLDTK.As[ebitenLDTK.Enum](biomeField).Value
 
-		sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
-		if biome != sceneswitch.PreviousBiome {
+		globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+		if biome != globaldata.Temp.SceneSwitch.PreviousBiome {
 			// Stop playing the current song (This is VERY UGLY!)
-			sound_v2.StopSound(songMap[sceneswitch.PreviousBiome])
+			sound_v2.StopSound(songMap[globaldata.Temp.SceneSwitch.PreviousBiome])
 		}
 
 		playerspace, err := level.GetLayerByName("Playerspace")

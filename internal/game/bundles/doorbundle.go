@@ -12,7 +12,7 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/door"
 	"mask_of_the_tomb/internal/game/actors/trigger"
-	"mask_of_the_tomb/internal/game/sceneswitch"
+	"mask_of_the_tomb/internal/game/globaldata"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -105,11 +105,11 @@ func makeDoorBundle(entity *ebitenLDTK.Entity, level *ebitenLDTK.Level) engine.B
 
 		doorNode.AddChild(doorOpenSound, "door-open", engine.MakeOnTreeAdd(doorOpenSound, cmd))
 
-		sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
+		globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
 
 		doorCloseSound := sound.NewSoundPlayer(
 			sound.WithSoundData("sfx/door-close.ogg", false, "door-close"),
-			sound.WithAutoPlay(sceneswitch.SpawnEntityIid == doorActor.EntityIid),
+			sound.WithAutoPlay(globaldata.Temp.SceneSwitch.SpawnEntityIid == doorActor.EntityIid),
 		)
 
 		doorNode.AddChild(doorCloseSound, "door-close", engine.MakeOnTreeAdd(doorCloseSound, cmd))

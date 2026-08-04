@@ -19,7 +19,6 @@ import (
 	"mask_of_the_tomb/internal/game/actors/slamboxactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxgroup"
 	"mask_of_the_tomb/internal/game/globaldata"
-	"mask_of_the_tomb/internal/game/sceneswitch"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -72,13 +71,18 @@ func (p *Player) Init(cmd *commands.Commands) {
 	p.Slambox.Init(cmd)
 
 	scene, _ := commands.Get[engine.Scene](cmd)
-	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
 	globaldata_, _ := commands.Get[globaldata.GlobalData](cmd)
 
-	// TODO: Make it so that we aren't *forced* to spawn the player after
-	// All of the doors and stuff...
-	spawnDoorIid := sceneswitch.SpawnEntityIid
-	spawnDoorNode, ok := scene.GetNodeFunc(
+	savedDoor := (globaldata_.Persist.Profile.LastDoor != "")
+	enteringFromRoom := (globaldata_.Temp.SceneSwitch.SpawnEntityIid != "")
+
+	var spawnDoorIid string
+	if savedDoor {
+		spawnDoorIid = globaldata_.Persist.Profile.LastDoor
+	} else {
+		spawnDoorIid = globaldata_.Temp.SceneSwitch.SpawnEntityIid
+	}
+	spawnDoorNode, _ := scene.GetNodeFunc(
 		func(n *node.Node[engine.Actor]) bool {
 			doorActor, ok := engine.As[*door.Door](n.GetValue())
 			if !ok {
@@ -87,24 +91,43 @@ func (p *Player) Init(cmd *commands.Commands) {
 			return doorActor.EntityIid == spawnDoorIid
 		},
 	)
-	if !ok {
-		fmt.Println("Problem: Could not find door to spawn at...")
-	} else {
-		doorActor, ok := engine.As[*door.Door](spawnDoorNode.GetValue())
-		if !ok {
-			fmt.Println("Spawn door node could not convert to Door actor")
-		}
+
+	hasGameInitPos := false
+	if enteringFromRoom {
+		doorActor, _ := engine.As[*door.Door](spawnDoorNode.GetValue())
 		p.SetPos(doorActor.GetSpawnPos())
-		p.Transform2D.SetPos(doorActor.GetSpawnPos())
+		//		p.Transform2D.SetPos(doorActor.GetSpawnPos())
 		p.Transform2D.Propagate()
 		p.State = ENTERING
 		p.jumpOffset = -2 * p.GetRect().Height
 		p.jumpOffsetvel = 4.5
 		p.trueDoorOffset = 0
 		p.doorOffset = 0
+		p.Direction = globaldata_.Temp.SceneSwitch.SpawnDirection
+	} else if savedDoor {
+		doorActor, _ := engine.As[*door.Door](spawnDoorNode.GetValue())
+		p.SetPos(doorActor.GetSpawnPos())
+		p.Transform2D.Propagate()
+		p.Direction = doorActor.Direction
+	} else if hasGameInitPos {
+
+	} else {
+		fmt.Println("All methods for finding spawn pos failed. Picking first available door")
+
+		spawnDoorNode, _ := scene.GetNodeFunc(
+			func(n *node.Node[engine.Actor]) bool {
+				_, ok := engine.As[*door.Door](n.GetValue())
+				return ok
+			},
+		)
+
+		doorActor, _ := engine.As[*door.Door](spawnDoorNode.GetValue())
+		p.SetPos(doorActor.GetSpawnPos())
+		p.Transform2D.SetPos(doorActor.GetSpawnPos())
+		p.Transform2D.Propagate()
+		p.Direction = doorActor.Direction
 	}
 
-	p.Direction = sceneswitch.SpawnDirection
 	x, y := p.GetPos()
 	globaldata_.Temp.LevelStates[scene.GetName()] = globaldata.NewLevelState(x, y, p.Direction)
 	globaldata_.Temp.SaveLevelState(scene)
@@ -125,20 +148,20 @@ func (p *Player) Init(cmd *commands.Commands) {
 	// way
 	// But how? I guess we would have to link them together somehow
 	// in the bundle
-	childNode, ok := scene.GetNodeByName("PlayerSprite")
-	p.spriteTransform, ok = engine.As[*transform2D.Transform2D](childNode.GetValue())
-	p.animatedSprite, ok = engine.As[*animatedsprite.AnimatedSprite](childNode.GetValue())
+	childNode, enteringFromRoom := scene.GetNodeByName("PlayerSprite")
+	p.spriteTransform, enteringFromRoom = engine.As[*transform2D.Transform2D](childNode.GetValue())
+	p.animatedSprite, enteringFromRoom = engine.As[*animatedsprite.AnimatedSprite](childNode.GetValue())
 	p.OnClipFinish = events.NewBusFrom(p.animatedSprite.OnClipFinished)
 
-	pivotNode, ok := scene.GetNodeByName("PlayerPivot")
-	p.pivotTransform, ok = engine.As[*transform2D.Transform2D](pivotNode.GetValue())
+	pivotNode, enteringFromRoom := scene.GetNodeByName("PlayerPivot")
+	p.pivotTransform, enteringFromRoom = engine.As[*transform2D.Transform2D](pivotNode.GetValue())
 
 	p.pivotTransform.Propagate()
 	x, y = p.pivotTransform.GetPos(false)
 	p.Light.X = x
 	p.Light.Y = y
 
-	if !ok {
+	if !enteringFromRoom {
 		fmt.Println("død og jøde, markens grøde")
 	}
 }
@@ -364,13 +387,13 @@ func (p *Player) ResetLevel(scene *engine.Scene, gameState *globaldata.GlobalDat
 
 	slamboxes := scene.GetRoot().GetChildrenFunc(
 		func(n *node.Node[engine.Actor]) bool {
-			_, ok := engine.As[*slamboxactor.Slambox](n.GetValue())
+			_, ok := engine.As[*slamboxgroup.SlamboxGroup](n.GetValue())
 			return ok
 		},
 	)
 
 	for _, slambox := range slamboxes {
-		slamboxactor, _ := engine.As[*slamboxactor.Slambox](slambox.GetValue())
+		slamboxactor, _ := engine.As[*slamboxgroup.SlamboxGroup](slambox.GetValue())
 		if _, ok := engine.As[*Player](slambox.GetValue()); ok {
 			continue
 		}

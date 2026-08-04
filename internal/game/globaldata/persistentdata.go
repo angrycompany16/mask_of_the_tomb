@@ -20,8 +20,11 @@ type PersistentData struct {
 }
 
 type Profile struct {
-	Inventory     Inventory
-	UnlockedDoors map[string]bool
+	SaveScene      string
+	SaveSceneState LevelState
+	LastDoor       string
+	Inventory      Inventory
+	UnlockedDoors  map[string]bool
 }
 
 type Config struct {
@@ -155,6 +158,7 @@ func newConfig() Config {
 
 func newProfile() Profile {
 	return Profile{
+		SaveScene: "d5ae6780-1030-11f0-996f-efbed2df7e2d",
 		Inventory: Inventory{
 			Keys: make(map[string]*Key),
 		},

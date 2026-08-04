@@ -129,7 +129,9 @@ func MakePauseMenuBundle() engine.Bundle {
 			),
 			selectable.WithCallback(func(cmd *commands.Commands) {
 				globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
-				globaldata.Persist.Save(globaldata.Temp.CurrentSaveProfile, false)
+				if !globaldata.Temp.BypassSave {
+					globaldata.Persist.Save(globaldata.Temp.CurrentSaveProfile, false)
+				}
 
 				slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
 				slamboxenv.Reset()

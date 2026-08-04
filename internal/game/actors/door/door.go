@@ -17,7 +17,6 @@ import (
 	"mask_of_the_tomb/internal/engine/commands"
 	"mask_of_the_tomb/internal/game/actors/trigger"
 	"mask_of_the_tomb/internal/game/globaldata"
-	"mask_of_the_tomb/internal/game/sceneswitch"
 	"mask_of_the_tomb/internal/utils"
 
 	ebitenLDTK "github.com/angrycompany16/ebiten-LDTK"
@@ -63,13 +62,11 @@ type Door struct {
 
 func (d *Door) Init(cmd *commands.Commands) {
 	d.Graphic.Init(cmd)
-	sceneswitch, _ := commands.Get[sceneswitch.SceneSwitch](cmd)
+	globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
 
-	if sceneswitch.SpawnEntityIid == d.EntityIid {
+	if globaldata.Temp.SceneSwitch.SpawnEntityIid == d.EntityIid {
 		d.State = CLOSING
 	}
-
-	globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
 
 	if unlocked, ok := globaldata.Persist.Profile.UnlockedDoors[d.EntityIid]; ok {
 		d.Locked = !unlocked
@@ -107,16 +104,17 @@ func (d *Door) Update(cmd *commands.Commands) {
 			fmt.Println("Switch scene!")
 			scenemanager, _ := commands.Get[engine.SceneManager](cmd)
 
-			sceneswitch, ok := commands.Get[sceneswitch.SceneSwitch](cmd)
-			if !ok {
-				panic("Missing scene switch (Door)")
-			}
-			sceneswitch.SpawnEntityIid = d.OtherSideEntityIid
-			sceneswitch.SpawnDirection = maths.Opposite(d.Direction)
-			sceneswitch.PreviousBiome = d.biome
-			// TODO: There is a much better way to do this - Include an OnDestroy method that gets called whenever a scene gets destroyed.
+			globaldata, _ := commands.Get[globaldata.GlobalData](cmd)
+
+			globaldata.Temp.SceneSwitch.SpawnEntityIid = d.OtherSideEntityIid
+			globaldata.Temp.SceneSwitch.SpawnDirection = maths.Opposite(d.Direction)
+			globaldata.Temp.SceneSwitch.PreviousBiome = d.biome
+
 			slamboxenv, _ := commands.Get[slambox.SlamboxEnvironment](cmd)
 			slamboxenv.Reset()
+
+			globaldata.Persist.Profile.SaveScene = d.OtherSideLevelIid
+			globaldata.Persist.Profile.LastDoor = d.OtherSideEntityIid
 
 			triggerenv, _ := commands.Get[triggerenv.TriggerEnv](cmd)
 			triggerenv.Reset()
