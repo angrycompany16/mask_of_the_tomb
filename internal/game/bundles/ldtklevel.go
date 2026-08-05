@@ -21,7 +21,6 @@ import (
 	"mask_of_the_tomb/internal/game/actors/levelshader"
 	"mask_of_the_tomb/internal/game/actors/shaderactor"
 	"mask_of_the_tomb/internal/game/actors/slamboxtilemap"
-	"mask_of_the_tomb/internal/game/actors/sounddebug"
 	"mask_of_the_tomb/internal/game/globaldata"
 	"mask_of_the_tomb/internal/utils"
 
@@ -206,8 +205,6 @@ func MakeLDTKLevelBundle(levelIid string) engine.Bundle {
 		}
 
 		// 4. Spawn remaining actors (particlesystems, shaders, etc...)
-		scene.SpawnActor("SoundDebug", sounddebug.CreateSoundDebug(), cmd)
-
 		scene.SpawnActor("MusicPlayer", sound.NewSoundPlayer(
 			sound.WithSoundData(songMap[biome], true, songMap[biome]),
 			sound.WithAutoPlay(true),

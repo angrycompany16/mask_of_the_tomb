@@ -92,7 +92,7 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 		}
 
 		if !ok {
-			fmt.Println("Draw request failed - layer does not exist")
+			fmt.Printf("Draw request failed - layer %s does not exist\n", drawRequest.renderTarget.Name)
 			continue
 		}
 

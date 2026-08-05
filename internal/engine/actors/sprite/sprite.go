@@ -102,6 +102,10 @@ func (s *Sprite) GetLayer() string {
 	return s.target.Name
 }
 
+func (s *Sprite) GetSize() (float64, float64) {
+	return float64(s.imageRef.Value().Bounds().Dx()), float64(s.imageRef.Value().Bounds().Dy())
+}
+
 // We can remove layer and src as required args
 func NewSprite(target renderer.RenderTarget, srcPath string, options ...utils.Option[Sprite]) *Sprite {
 	s := defaultSprite()

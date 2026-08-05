@@ -14,18 +14,19 @@ import (
 
 type VectorGraphic struct {
 	*graphic.Graphic
-	drawFunc       func(*ebiten.Image)
+	DrawFunc       func(*ebiten.Image)
 	image          *ebiten.Image
 	pivotX, pivotY float64 `debug:"auto"`
 	drawOrder      int     `debug:"auto"`
 	target         renderer.RenderTarget
+	scaling        float64
 }
 
 // Note: In some cases this can be optimized by rendering only in init
 func (v *VectorGraphic) Update(cmd *commands.Commands) {
 	v.Graphic.Update(cmd)
 	v.image.Clear()
-	v.drawFunc(v.image)
+	v.DrawFunc(v.image)
 
 	gPosX, gPosY := v.Transform2D.GetPos(false)
 	camX, camY := v.GetCamera().WorldToCam(gPosX, gPosY, true)
@@ -36,25 +37,24 @@ func (v *VectorGraphic) Update(cmd *commands.Commands) {
 		v.image,
 		camX, camY,
 		gAngle,
-		gScaleX, gScaleY,
+		gScaleX*v.scaling, gScaleY*v.scaling,
 		v.pivotX, v.pivotY,
 	), v.image, v.target, v.drawOrder)
 }
 
-func NewDefaultVectorGraphic() *VectorGraphic {
+func newDefaultVectorGraphic() *VectorGraphic {
 	return &VectorGraphic{
 		Graphic:   graphic.NewGraphic(),
-		drawFunc:  func(i *ebiten.Image) { vector64.FillRect(i, 0, 0, 16, 16, color.RGBA{255, 0, 0, 255}, false) },
+		DrawFunc:  func(i *ebiten.Image) { vector64.FillRect(i, 0, 0, 16, 16, color.RGBA{255, 0, 0, 255}, false) },
 		image:     ebiten.NewImage(16, 16),
 		target:    renderer.ScreenTarget("Playerspace"),
 		drawOrder: 0,
+		scaling:   1,
 	}
 }
 
-func NewVectorGraphic(
-	options ...utils.Option[VectorGraphic],
-) *VectorGraphic {
-	vectorGraphic := NewDefaultVectorGraphic()
+func NewVectorGraphic(options ...utils.Option[VectorGraphic]) *VectorGraphic {
+	vectorGraphic := newDefaultVectorGraphic()
 
 	for _, option := range options {
 		option(vectorGraphic)
@@ -71,7 +71,7 @@ func WithGraphic(graphic *graphic.Graphic) utils.Option[VectorGraphic] {
 
 func WithDrawFunc(drawFunc func(*ebiten.Image)) utils.Option[VectorGraphic] {
 	return func(vg *VectorGraphic) {
-		vg.drawFunc = drawFunc
+		vg.DrawFunc = drawFunc
 	}
 }
 
@@ -84,6 +84,12 @@ func WithImage(width, height int) utils.Option[VectorGraphic] {
 func WithDrawOrder(drawOrder int) utils.Option[VectorGraphic] {
 	return func(vg *VectorGraphic) {
 		vg.drawOrder = drawOrder
+	}
+}
+
+func WithScaling(scaling float64) utils.Option[VectorGraphic] {
+	return func(vg *VectorGraphic) {
+		vg.scaling = scaling
 	}
 }
 
